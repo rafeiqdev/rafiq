@@ -103,7 +103,7 @@ function ServicesMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="px-3 py-2 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream"
+        className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream"
       >
         {t('nav.services')} ▾
       </button>
@@ -184,7 +184,7 @@ export function Layout() {
                 key={n.to}
                 to={n.to}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
                   }`
                 }
@@ -194,16 +194,16 @@ export function Layout() {
             ))}
             <ServicesMenu />
             {user?.isCompany && (
-              <NavLink to="/company" className="px-3 py-2 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream">
+              <NavLink to="/company" className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream">
                 {t('nav.companyPortal')}
               </NavLink>
             )}
             {user?.isAdmin && (
               <>
-                <NavLink to="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
+                <NavLink to="/admin" className="px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
                   {t('nav.admin')}
                 </NavLink>
-                <NavLink to="/admin/bookings" className="relative px-3 py-2 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
+                <NavLink to="/admin/bookings" className="relative px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
                   {t('nav.bookings')}
                   {newBookings > 0 && (
                     <span className="absolute -top-0.5 -end-0.5 min-w-5 h-5 px-1 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">

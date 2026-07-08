@@ -113,7 +113,7 @@ function CityDistricts() {
           <Link
             key={d}
             to="/hub/districts"
-            className="text-xs font-semibold bg-cream hover:bg-brand-blue rounded-full px-3 py-1.5 text-navy transition-colors flex items-center gap-1.5"
+            className="text-xs font-semibold bg-cream hover:bg-brand-blue rounded-full px-3 py-2 text-navy transition-colors flex items-center gap-1.5"
           >
             <AppIcon name="map-pin" className="w-3 h-3" />
             {d}
