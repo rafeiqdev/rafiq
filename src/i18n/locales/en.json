@@ -1,0 +1,1352 @@
+{
+  "common": {
+    "appName": "Rafiq Istanbul",
+    "tagline": "Your companion for life in Istanbul",
+    "start": "Start",
+    "next": "Next",
+    "back": "Back",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search",
+    "loading": "Loading...",
+    "viewAll": "View all",
+    "learnMore": "Learn more",
+    "helpMe": "Help me with this",
+    "bookAppointment": "Book an appointment",
+    "upgradeNow": "Upgrade now",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "register": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "perMonth": "/ month",
+    "daysLeft": "{{count}} days left",
+    "free": "Free",
+    "recommended": "Recommended",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "duration": "How long it takes",
+    "requiredDocs": "Required documents",
+    "markDone": "Mark as done",
+    "done": "Done",
+    "status": "Status",
+    "language": "Language",
+    "date": "Date",
+    "time": "Time",
+    "actions": "Actions",
+    "note": "Note",
+    "send": "Send",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "all": "All",
+    "error": "Something went wrong. Please try again.",
+    "tl": "TL",
+    "nameInvalid": "Please enter your full name."
+  },
+  "nav": {
+    "home": "Home",
+    "contact": "Contact us",
+    "smart": "Smart Consultation",
+    "premium": "AI Assistant",
+    "map": "Map",
+    "hub": "Guides",
+    "pricing": "Pricing",
+    "tricks": "Istanbul Tricks",
+    "residency": "Residency",
+    "realEstate": "Real Estate",
+    "health": "Health Tourism",
+    "referrals": "Invite & Earn",
+    "profile": "My Profile",
+    "notifications": "Notifications",
+    "admin": "Admin",
+    "bookings": "Bookings",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy (KVKK)",
+    "refund": "Refund Policy",
+    "menu": "Menu",
+    "services": "Services",
+    "allServices": "All services",
+    "forCompanies": "For companies",
+    "companyPortal": "Company portal",
+    "myRequests": "My requests"
+  },
+  "langSelect": {
+    "title": "Welcome to Rafiq Istanbul",
+    "subtitle": "Choose your language to continue"
+  },
+  "onboarding": {
+    "startBtn": "Start",
+    "skip": "Skip for now",
+    "q1": {
+      "title": "Where are you in your Turkey journey?",
+      "planning": {
+        "title": "Planning to come",
+        "sub": "Not in Turkey yet — preparing the move"
+      },
+      "arrived": {
+        "title": "Just arrived",
+        "sub": "In Istanbul for 0–3 months"
+      },
+      "living": {
+        "title": "Living here",
+        "sub": "Settled — renewals and services"
+      },
+      "browsing": {
+        "title": "Just browsing",
+        "sub": "Exploring culture and investment"
+      }
+    },
+    "q2": {
+      "title": "Why are you coming?",
+      "tourism": {
+        "title": "Tourism",
+        "sub": "A holiday or short trip"
+      },
+      "visiting": {
+        "title": "Visiting",
+        "sub": "Family or friends"
+      },
+      "live": {
+        "title": "Moving to live",
+        "sub": "Long-term relocation"
+      },
+      "work": {
+        "title": "Work",
+        "sub": "Job or business"
+      },
+      "study": {
+        "title": "Study",
+        "sub": "University or language school"
+      }
+    },
+    "q3": {
+      "title": "What do you already have?",
+      "subtitle": "Select everything you already own",
+      "turkishPhone": {
+        "title": "Turkish phone number",
+        "sub": "A local SIM or eSIM"
+      },
+      "taxNumber": {
+        "title": "Tax number (Vergi No)",
+        "sub": "Turkish tax ID"
+      },
+      "residencePermit": {
+        "title": "Residence permit (İkamet)",
+        "sub": "Valid ikamet card"
+      },
+      "bankAccount": {
+        "title": "Bank account",
+        "sub": "A Turkish bank account"
+      },
+      "continue": "Continue"
+    },
+    "q4": {
+      "title": "Are you coming with family or kids?",
+      "yes": {
+        "title": "Yes, with family",
+        "sub": "Schools, family residence and insurance"
+      },
+      "no": {
+        "title": "No, just me",
+        "sub": "Solo plan"
+      }
+    }
+  },
+  "home": {
+    "heroTitle": "Everything you need for Istanbul, in one place",
+    "heroSubtitle": "Residency, banking, housing, health and daily life — guided step by step in your language.",
+    "searchPlaceholder": "Search guides and services...",
+    "searchAllResults": "See all results",
+    "yourPlan": "Your plan",
+    "forYou": "Your personalized plan",
+    "editAnswers": "Change my answers",
+    "heroCtaPrimary": "Get help now",
+    "heroCtaSecondary": "Explore services",
+    "trustbar": {
+      "languages": "4 languages",
+      "experts": "Expert support",
+      "free": "Free first consultation",
+      "secure": "KVKK-compliant"
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Settled in 3 simple steps",
+      "subtitle": "From your first question to done — we guide every step.",
+      "s1": {
+        "title": "Tell us your situation",
+        "desc": "Chat with Rafiq in your language about residency, housing, banking or health."
+      },
+      "s2": {
+        "title": "Get your tailored plan",
+        "desc": "We map the exact steps, documents and timelines for your case."
+      },
+      "s3": {
+        "title": "We get it done",
+        "desc": "Book a free expert call and let our team handle the paperwork with you."
+      }
+    },
+    "about": {
+      "eyebrow": "Who we are",
+      "title": "Your trusted companion in Istanbul",
+      "body": "Rafiq Istanbul is an independent guidance service helping foreigners settle in Istanbul with clarity and confidence — in Arabic, English, Russian and Farsi.",
+      "p1": "Local experts who speak your language",
+      "p2": "Transparent, step-by-step guidance — no surprises",
+      "p3": "Your data handled securely under Turkish KVKK law",
+      "cta": "Talk to our team"
+    },
+    "testimonials": {
+      "eyebrow": "Testimonials",
+      "title": "Trusted by newcomers from around the world",
+      "t1": {
+        "quote": "Rafiq walked me through my residence permit step by step. I got my İkamet without the usual stress.",
+        "name": "Ahmad K.",
+        "role": "Student from Syria"
+      },
+      "t2": {
+        "quote": "Opening a bank account and getting my tax number finally made sense — everything in Russian, so clear.",
+        "name": "Olga P.",
+        "role": "Investor from Russia"
+      },
+      "t3": {
+        "quote": "The free expert call saved me weeks. They handled the paperwork while I focused on my move.",
+        "name": "Reza M.",
+        "role": "Professional from Iran"
+      }
+    },
+    "servicesCta": {
+      "title": "Explore all Rafiq services",
+      "body": "70+ services — residency, legal, real estate, tourism, health and more. Request directly.",
+      "button": "Explore services",
+      "bottom": "View all Rafiq services"
+    },
+    "explore": {
+      "title": "Explore everything Rafiq offers",
+      "subtitle": "Every service and guide, one tap away."
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": {
+        "q": "Do I need a residence permit to live in Istanbul?",
+        "a": "Yes. To stay legally beyond your visa or visa-free period you need a residence permit (İkamet). The most common first permit is the short-term one, usually valid for 1–2 years. Start by getting a tax number and mandatory health insurance, then apply on the e-İkamet portal."
+      },
+      "q2": {
+        "q": "How do I open a bank account as a foreigner?",
+        "a": "You generally need your passport, a Turkish tax number (Vergi No), and proof of address. Requirements vary by bank and even by branch — if one refuses, another may accept you. Your card usually arrives by courier within a week."
+      },
+      "q3": {
+        "q": "What is a Vergi No and how do I get one?",
+        "a": "It is your Turkish tax number, required for banking, rentals and most official steps. It is free and takes minutes online via the İnteraktif Vergi Dairesi portal, or about an hour at any tax office."
+      },
+      "q4": {
+        "q": "Is it true some Istanbul districts are closed to new residents?",
+        "a": "Yes. Roughly a quarter of Istanbul districts are closed to new residence-permit registrations. Always verify your district is open BEFORE signing a rental contract, or your application can be rejected."
+      },
+      "q5": {
+        "q": "Can I get Turkish citizenship by buying property?",
+        "a": "Yes, through citizenship by investment. A qualifying property purchase above the official threshold, held for three years, can make you eligible. Our real-estate listings marked “Citizenship eligible” meet the criteria, and our legal team verifies every title deed."
+      },
+      "q6": {
+        "q": "How does the free expert appointment work?",
+        "a": "When the AI assistant sees that your case needs a human, it offers a free online appointment (call or video). You only pick a date, time and language — your problem summary and chat are attached automatically for the specialist."
+      },
+      "ctaTitle": "Still have a question?",
+      "ctaBody": "Ask Rafiq AI in your language — it answers instantly and connects you to an expert if needed.",
+      "ctaButton": "Ask the assistant"
+    }
+  },
+  "help": {
+    "eyebrow": "Free assistance",
+    "title": "Your Rafiq advisor is on the way",
+    "body": "Sit back — one of our local experts will guide you through it, step by step and free of charge. Choose how you'd like to start.",
+    "sceneCaption": "Your Rafiq advisor, coming to help you in Istanbul.",
+    "yes": "Yes, I want help",
+    "askAi": "Talk to the AI assistant",
+    "note": "No fees — your first consultation is free.",
+    "advisorRole": "Your Istanbul advisor",
+    "selfGuide": "Read the guide myself"
+  },
+  "whatsapp": {
+    "aria": "Chat with us on WhatsApp",
+    "default": "Hello, I'd like help with your Istanbul services."
+  },
+  "rates": {
+    "live": "Live rates",
+    "cached": "Cached rates",
+    "label": "Currency rates",
+    "official": "Official rate"
+  },
+  "blocks": {
+    "preArrival": {
+      "title": "Before you fly: visa & documents",
+      "body": "Check the visa rules for your nationality, and prepare your documents BEFORE flying: apostille your diplomas and civil records, and plan for sworn translation (yeminli tercüme) in Turkey.",
+      "warning": "Important: about 25% of Istanbul districts are closed to new residence-permit registrations. Check your district before signing a rental contract.",
+      "cta": "See the pre-arrival checklist"
+    },
+    "arrivalPackage": {
+      "title": "Arrival package: first 48 hours",
+      "body": "Airport pickup, SIM or eSIM, Istanbulkart for transport, and temporary housing for your first week.",
+      "tip": "Tip: an eSIM bought online is much cheaper than SIM cards sold at the airport.",
+      "cta": "Build my arrival package"
+    },
+    "tourismGuide": {
+      "title": "Tourist essentials",
+      "body": "Top sights, public transport with Istanbulkart, an eSIM for data, and how to avoid taxi overcharging on day one.",
+      "cta": "Open the tourist guide"
+    },
+    "settlementStack": {
+      "title": "Settlement stack: residency, bank & tax",
+      "body": "The full sequence for settling: residence permit (İkamet), tax number (Vergi No), bank account, and sworn translation of your documents.",
+      "cta": "Plan my settlement"
+    },
+    "studyBlock": {
+      "title": "Studying in Turkey",
+      "body": "University enrollment, diploma equivalency (denklik), and the student residence permit — in the right order.",
+      "cta": "Open the student guide"
+    },
+    "simBlock": {
+      "title": "Get a Turkish SIM / eSIM",
+      "body": "You need a local number for almost everything: bank, ikamet appointment, deliveries. Foreign phones must be registered after 90 days.",
+      "duration": "About 30 minutes in any operator shop",
+      "docs": [
+        "Passport",
+        "Cash or card for the line + package"
+      ],
+      "cta": "Help me with this"
+    },
+    "transportBlock": {
+      "title": "Istanbulkart & getting around",
+      "body": "One card for metro, bus, tram and ferry. Buy it at any kiosk or machine and top it up with cash.",
+      "warning": "Avoid unmetered taxis on day one — use the metro, official taxi apps, or arranged pickup.",
+      "duration": "10 minutes at any metro station",
+      "docs": [
+        "A small amount of cash (no documents needed)"
+      ],
+      "cta": "Help me with this"
+    },
+    "taxNumberBlock": {
+      "title": "Get your tax number (Vergi No)",
+      "body": "Required for the bank, rental contracts and many official steps. Free, and available online or at any tax office (Vergi Dairesi).",
+      "duration": "15 minutes online, or about 1 hour at the tax office",
+      "docs": [
+        "Passport",
+        "Passport photocopy"
+      ],
+      "cta": "Help me with this"
+    },
+    "bankBlock": {
+      "title": "Open a Turkish bank account",
+      "body": "Most banks ask for your tax number plus a proof of address (rental contract or utility bill). Requirements vary by branch.",
+      "duration": "1–2 hours in the branch, card arrives within a week",
+      "docs": [
+        "Passport",
+        "Tax number (Vergi No)",
+        "Proof of address"
+      ],
+      "cta": "Help me with this"
+    },
+    "residenceBlock": {
+      "title": "Residence permit (İkamet)",
+      "body": "Register your address, apply on e-İkamet, and buy the mandatory health insurance before your appointment.",
+      "warning": "About 25% of Istanbul districts are closed to new residence registrations — verify your district BEFORE renting.",
+      "duration": "Application 1 day; card in 2–8 weeks",
+      "docs": [
+        "Passport",
+        "4 biometric photos",
+        "Health insurance",
+        "Proof of address",
+        "Tax number"
+      ],
+      "cta": "Help me with this"
+    },
+    "renewalTracker": {
+      "title": "Renewal tracker",
+      "body": "Track the expiry of your residence permit, health insurance and passport — and get reminders before the deadline.",
+      "expiredNote": "Your residence permit is marked as expired — start the renewal immediately to avoid fines.",
+      "cta": "Open my renewals"
+    },
+    "driverLicense": {
+      "title": "Driver's license",
+      "body": "Exchange your foreign license or do the full Turkish process. You will need a sworn translation and a medical report (sağlık raporu).",
+      "cta": "Help me with this"
+    },
+    "healthInsurance": {
+      "title": "Health insurance: SGK vs private",
+      "body": "SGK is the public scheme with broad hospital coverage; private insurance is faster for ikamet and often cheaper for the young.",
+      "cta": "Compare my options"
+    },
+    "realEstateUpgrade": {
+      "title": "Buy property in Istanbul",
+      "body": "Curated apartments and houses, with title-deed (tapu) checks and citizenship-by-investment guidance.",
+      "cta": "Browse properties"
+    },
+    "companyFormation": {
+      "title": "Open a company",
+      "body": "Set up a Turkish LLC (Limited Şirket): notary, tax registration, accountant — done for you.",
+      "cta": "Start company setup"
+    },
+    "translators": {
+      "title": "Sworn translators on demand",
+      "body": "Certified (yeminli) translation for diplomas, contracts and civil documents — same-day options available.",
+      "cta": "Request a translation"
+    },
+    "costOfLiving": {
+      "title": "Cost of living calculator",
+      "body": "Estimate your monthly budget in Istanbul by district and lifestyle.",
+      "rent": "Rent",
+      "food": "Food & groceries",
+      "transport": "Transport",
+      "utilities": "Utilities & internet",
+      "health": "Health insurance",
+      "leisure": "Leisure & dining out",
+      "district": "District",
+      "central": "Central (Kadıköy, Beşiktaş)",
+      "suburban": "Suburban (Esenyurt, Beylikdüzü)",
+      "lifestyle": "Lifestyle",
+      "budget": "Budget",
+      "comfort": "Comfort",
+      "premium": "Premium",
+      "household": "Household",
+      "single": "Single",
+      "couple": "Couple",
+      "family": "Family (2 + 2)",
+      "total": "Estimated monthly total",
+      "disclaimer": "Auto-estimated from typical 2026 prices. Actual costs vary."
+    },
+    "cityGuide": {
+      "title": "Istanbul city guide",
+      "body": "Districts, culture, food and neighborhood character — from our guides hub.",
+      "districtsLabel": "Popular districts",
+      "cta": "Open the guides"
+    },
+    "serviceOverview": {
+      "title": "Our services",
+      "body": "Explore what Rafiq can do for you.",
+      "residency": "Residency",
+      "realEstate": "Real Estate",
+      "health": "Health Tourism",
+      "map": "Services Map"
+    },
+    "relocateNudge": {
+      "title": "Planning to move to Turkey?",
+      "body": "Switch to the relocation plan and get a step-by-step path built for you.",
+      "cta": "Start here"
+    },
+    "schoolsBlock": {
+      "title": "Schools for your kids",
+      "body": "Public, private and international schools in Istanbul — enrollment requirements and district tips.",
+      "cta": "Explore schools"
+    },
+    "familyResidence": {
+      "title": "Family residence permits",
+      "body": "Family ikamet for your spouse and children: documents, civil-record translation and apostille requirements.",
+      "cta": "Help me with this"
+    },
+    "familyInsurance": {
+      "title": "Family health insurance",
+      "body": "Cover the whole family: SGK family coverage or private family packages for ikamet.",
+      "cta": "Compare family plans"
+    }
+  },
+  "auth": {
+    "title": "Welcome back",
+    "registerTitle": "Create your account",
+    "subtitle": "Sign in to sync your plan, documents and subscription.",
+    "registerSubtitle": "Create a free account to save your plan, documents and subscription.",
+    "google": "Continue with Google",
+    "or": "or with email",
+    "noAccount": "No account yet? Create one",
+    "haveAccount": "Already have an account? Sign in",
+    "signedInAs": "Signed in as",
+    "checkEmail": "Check your email to confirm your account, then sign in.",
+    "errors": {
+      "userNotFound": "No account found with this email.",
+      "wrongPassword": "Incorrect password. Try again.",
+      "emailExists": "This email is already registered — sign in instead.",
+      "weakPassword": "Password must be at least 8 characters.",
+      "generic": "Sign-in failed. Please try again."
+    }
+  },
+  "pricing": {
+    "title": "Choose your plan",
+    "subtitle": "Upgrade anytime. Cancel anytime.",
+    "annualNote": "2 months free with annual billing",
+    "choose": "Choose {{plan}}",
+    "current": "Current plan",
+    "light": {
+      "name": "Light",
+      "desc": "The essentials for getting started",
+      "features": [
+        "All guides in 4 languages",
+        "Personalized checklist",
+        "Renewal reminders",
+        "Email support"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "desc": "Full power: AI assistant + map",
+      "features": [
+        "Everything in Light",
+        "Unlimited AI consultations",
+        "Interactive services map",
+        "Free expert appointments",
+        "Document locker"
+      ]
+    },
+    "elite": {
+      "name": "Elite",
+      "desc": "White-glove relocation support",
+      "features": [
+        "Everything in Pro",
+        "Dedicated personal advisor",
+        "Airport VIP pickup",
+        "Paperwork done for you",
+        "Priority bookings"
+      ]
+    },
+    "active": {
+      "title": "Your subscription",
+      "plan": "Plan",
+      "daysRemaining": "{{count}} days remaining",
+      "renews": "Renews on {{date}}",
+      "cancelBtn": "Cancel subscription"
+    },
+    "cancelFlow": {
+      "title": "We're sorry to see you go",
+      "reasonLabel": "Why are you cancelling?",
+      "tooExpensive": "Too expensive",
+      "notUsing": "Not using it enough",
+      "missingFeatures": "Missing features I need",
+      "movedAway": "I left Turkey",
+      "other": "Other",
+      "comments": "Anything we could do better?",
+      "confirm": "Confirm cancellation",
+      "keep": "Keep my plan",
+      "done": "Your subscription has been cancelled. It stays active until the end of the paid period."
+    },
+    "upgrade": "Upgrade to {{plan}}",
+    "downgrade": "Downgrade to {{plan}}"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "summary": "Order summary",
+    "plan": "Plan",
+    "billing": "Billing",
+    "total": "Total",
+    "tabs": {
+      "card": "Card",
+      "bank": "Bank transfer",
+      "crypto": "Crypto"
+    },
+    "card": {
+      "note": "Card payments are reviewed and confirmed by our team — your plan activates once we verify it. No automatic charge.",
+      "pay": "Request by card"
+    },
+    "bank": {
+      "title": "Transfer to our TL account",
+      "iban": "IBAN",
+      "holder": "Account holder",
+      "upload": "Upload transfer receipt",
+      "uploaded": "Receipt attached"
+    },
+    "crypto": {
+      "title": "Pay with USDT / USDC",
+      "network": "Network",
+      "wallet": "Wallet address"
+    },
+    "paid": "Yes, I paid",
+    "verify": {
+      "title": "Confirm your payment",
+      "body": "Our team verifies payments within a few hours. Your plan activates as soon as the payment is confirmed.",
+      "confirm": "I confirm I sent the payment"
+    },
+    "pending": "Payment received — under review. We will activate your plan shortly.",
+    "success": "Your plan is now active. Welcome aboard!",
+    "perYear": "{{price}} TL / year",
+    "approxMonthly": "≈ {{price}} TL / month",
+    "result": {
+      "failed": "Payment failed or was cancelled. No charge was made.",
+      "checking": "Checking your payment..."
+    }
+  },
+  "smart": {
+    "title": "Smart Consultation",
+    "subtitle": "A live diagnosis of where you are and what to do next.",
+    "completeness": "Setup completeness",
+    "missing": "Missing items",
+    "noMissing": "Nothing missing — you're fully set up!",
+    "nextSteps": "Recommended next steps",
+    "askAi": "Discuss with the AI assistant"
+  },
+  "chat": {
+    "title": "AI Consultation Hub",
+    "subtitle": "Ask anything about residency, real estate, health or settling in.",
+    "placeholder": "Describe your situation...",
+    "disclaimer": "Rafiq AI gives general guidance, not legal advice.",
+    "greeting": "Hello! I'm Rafiq, your Istanbul assistant. Tell me what you're working on — residency, banking, housing, health — and I'll guide you step by step.",
+    "typing": "Rafiq is typing...",
+    "bookOffer": "This looks like a case where a human expert can really help. I can arrange a free online appointment (call or video) with one of our specialists.",
+    "bookCta": "Book a free appointment",
+    "error": "The assistant is unavailable right now.",
+    "retry": "Retry",
+    "previewLeft": "{{count}} free messages left",
+    "gate": {
+      "title": "AI Assistant is a Pro feature",
+      "body": "Upgrade to Pro or Elite to chat with Rafiq AI without limits and book free expert appointments.",
+      "cta": "See plans"
+    },
+    "topicSeed": "I need help with: {{service}}",
+    "voice": "Voice input"
+  },
+  "booking": {
+    "title": "Book a free online appointment",
+    "dateLabel": "Preferred date",
+    "timeLabel": "Preferred time",
+    "langLabel": "Preferred language",
+    "attachedNote": "Your problem summary and the chat transcript are attached automatically — no need to repeat anything.",
+    "summaryLabel": "Your problem summary",
+    "submit": "Confirm booking",
+    "errors": {
+      "past": "Please choose a future date and time."
+    },
+    "success": {
+      "title": "Appointment requested!",
+      "body": "Our team will confirm your online appointment shortly. You'll get a notification here."
+    }
+  },
+  "map": {
+    "title": "Istanbul services map",
+    "subtitle": "Trusted places, filtered by what you need.",
+    "ai": "Ask AI where to go...",
+    "aiGo": "Find",
+    "categories": {
+      "all": "All",
+      "dining": "Dining",
+      "hotels": "Hotels",
+      "notary": "Notary",
+      "hospitals": "Hospitals",
+      "government": "Government",
+      "shopping": "Shopping"
+    },
+    "locked": {
+      "title": "Upgrade to unlock the map",
+      "body": "The interactive services map with verified locations is available on Pro and Elite plans.",
+      "cta": "Unlock with Pro"
+    },
+    "directory": {
+      "title": "Services directory",
+      "count": "{{count}} places",
+      "empty": "No places in this category yet.",
+      "directions": "Directions"
+    }
+  },
+  "referrals": {
+    "title": "Invite & earn",
+    "subtitle": "Share Rafiq with friends and earn 30% of every payment they make.",
+    "yourLink": "Your invite link",
+    "invited": "Link clicks",
+    "signedUp": "Signed up",
+    "earned": "Earned",
+    "how": {
+      "title": "How it works",
+      "step1": "Share your personal link with friends moving to Turkey.",
+      "step2": "They sign up and subscribe to any plan.",
+      "step3": "You receive 30% commission on every payment, forever."
+    }
+  },
+  "residency": {
+    "title": "Residence permits (İkamet)",
+    "subtitle": "Every permit type, explained step by step.",
+    "warning": "About 25% of Istanbul districts are currently closed to new residence registrations. Always verify the district before signing a rental contract.",
+    "types": {
+      "shortTerm": {
+        "title": "Short-term residence",
+        "body": "The most common first permit — usually 1–2 years, based on tourism, property ownership or business ties."
+      },
+      "family": {
+        "title": "Family residence",
+        "body": "For spouses and children of a Turkish citizen or a foreigner with a valid permit. Civil documents need apostille + sworn translation."
+      },
+      "student": {
+        "title": "Student residence",
+        "body": "For enrolled university students. The university enrollment letter replaces most other justifications."
+      },
+      "longTerm": {
+        "title": "Long-term residence",
+        "body": "After 8 years of uninterrupted legal residence — indefinite, with no need to renew."
+      }
+    },
+    "steps": {
+      "title": "The application flow",
+      "s1": "Get your tax number and health insurance.",
+      "s2": "Register your address (notarized rental contract).",
+      "s3": "Apply online at e-İkamet and book the appointment.",
+      "s4": "Attend with your documents; card arrives by mail."
+    }
+  },
+  "realEstate": {
+    "title": "Real estate in Istanbul",
+    "subtitle": "Curated listings with legal checks done for you.",
+    "citizenshipBadge": "Citizenship eligible",
+    "perM2": "m²",
+    "rooms": "Rooms",
+    "cta": "Request details",
+    "note": "Every listing is verified: title deed (tapu), debts, and zoning status checked by our legal team.",
+    "requested": "Request sent! Our advisor will contact you.",
+    "bathrooms": "{{count}} bath",
+    "furnished": "Furnished",
+    "viewDetails": "View details"
+  },
+  "health": {
+    "title": "Health tourism",
+    "subtitle": "World-class treatment at Istanbul prices.",
+    "cta": "Get a free quote",
+    "requested": "Quote request sent! We'll reply within 24 hours.",
+    "services": {
+      "hair": {
+        "title": "Hair transplant (DHI / FUE)",
+        "body": "JCI-accredited clinics, transparent graft pricing, hotel + transfer packages."
+      },
+      "dental": {
+        "title": "Dental treatment",
+        "body": "Implants, veneers and full smile makeovers — typically 50–70% below EU prices."
+      },
+      "checkup": {
+        "title": "Full check-up",
+        "body": "Comprehensive screening in premium hospitals with same-week appointments."
+      }
+    }
+  },
+  "services": {
+    "title": "All Rafiq services",
+    "subtitle": "Everything you need in Istanbul — handled by our own team or vetted partners.",
+    "trustNote": "Direct service + vetted partners",
+    "searchPlaceholder": "Search services…",
+    "allCategories": "All",
+    "noResults": "No services match your search.",
+    "request": "Request",
+    "partnerBadge": "Vetted partner",
+    "directBadge": "Rafiq direct",
+    "onRequest": "Priced on request",
+    "type": {
+      "all": "All",
+      "direct": "Direct",
+      "partner": "Partners"
+    },
+    "modal": {
+      "title": "Request service",
+      "service": "Service",
+      "name": "Full name",
+      "phone": "Phone / WhatsApp",
+      "phoneInvalid": "Enter a valid number with country code, e.g. +90 5xx xxx xx xx",
+      "message": "Message (optional)",
+      "messagePlaceholder": "Tell us briefly what you need…",
+      "send": "Send request",
+      "sending": "Sending…",
+      "successTitle": "Request received",
+      "successBody": "Thank you — our team will contact you shortly.",
+      "whatsapp": "Continue on WhatsApp",
+      "waIntro": "New service request from Rafiq Istanbul:",
+      "error": "Couldn't send. Please try again.",
+      "area": "Your area in Istanbul",
+      "areaPlaceholder": "Select your district",
+      "broadcastNote": "We'll share this request with trusted companies near you so they can compete for it. Your phone number stays private."
+    }
+  },
+  "serviceGuides": {
+    "learnDetails": "Learn the details",
+    "whoFor": "Who is this for / when you need it",
+    "documents": "Required documents",
+    "steps": "Steps",
+    "duration": "Estimated time",
+    "cost": "Estimated fees",
+    "mistakes": "Common mistakes & tips",
+    "rafiqHelp": "How Rafiq helps you",
+    "disclaimer": "Fees and durations are estimates and change — confirmed by the Rafiq team on request.",
+    "independent": "Rafiq Istanbul is an independent guidance service, not a government body.",
+    "translationNote": "This guide is currently shown in Arabic; full translation is coming soon."
+  },
+  "guide": {
+    "choice": {
+      "title": "How would you like to handle this?",
+      "diy": {
+        "label": "Read how to do it yourself",
+        "subtitle": "A detailed step-by-step guide"
+      },
+      "person": {
+        "label": "Get help from a person",
+        "subtitle": "Our team handles it with you",
+        "badge": "Human"
+      },
+      "ai": {
+        "label": "Ask the AI assistant",
+        "subtitle": "Chat about this service, instant answers",
+        "badge": "Instant"
+      }
+    },
+    "badge": {
+      "pro": "Pro",
+      "free": "Free"
+    },
+    "paywall": {
+      "title": "This detailed guide is exclusive to Pro members",
+      "body": "You've previewed the first step. Upgrade to see all steps, documents and official links — or get a person for free.",
+      "upgrade": "⭐ Upgrade to Pro",
+      "useFree": "Or get a person for free →"
+    },
+    "section": {
+      "steps": "Steps",
+      "documents": "Required documents",
+      "where": "Where to go + official links",
+      "cost": "Fees & duration",
+      "mistakes": "Common mistakes",
+      "whenHelp": "When to use a person"
+    },
+    "diy": {
+      "yes": "You can do this yourself",
+      "partial": "Partly DIY",
+      "expert": "Better with an expert"
+    },
+    "notAvailable": "This guide isn't published yet — our team can do it with you.",
+    "previewLabel": "Preview"
+  },
+  "hub": {
+    "title": "Guides hub",
+    "subtitle": "Practical, up-to-date guides for life in Istanbul.",
+    "readMore": "Read the guide",
+    "guides": {
+      "istanbulkart": {
+        "title": "Istanbulkart: the only transport card you need",
+        "excerpt": "Metro, bus, tram, ferry — one card for everything.",
+        "body": "Buy an Istanbulkart at any metro station kiosk or machine for a small card fee, then top it up with cash or card. It works on metro, Metrobüs, buses, trams, funiculars and city ferries, and transfers within two hours are discounted. One card can pay for multiple passengers. Keep it topped up — drivers don't sell tickets."
+      },
+      "esim": {
+        "title": "eSIM vs airport SIM: don't overpay",
+        "excerpt": "Airport SIM kiosks charge tourists double. Here's the smart way.",
+        "body": "SIM packages sold at the airport are heavily marked up. If your phone supports eSIM, buy a Turkish eSIM online before flying and land connected. For a physical SIM, any Turkcell, Vodafone or Türk Telekom shop in the city is far cheaper than the airport. Note: foreign phones must be registered (a paid IMEI registration) if you stay beyond 90 days with a Turkish SIM."
+      },
+      "ikamet": {
+        "title": "İkamet: residence permit from A to Z",
+        "excerpt": "The full application flow, documents, and the closed-district trap.",
+        "body": "The residence permit (ikamet) flow: get a tax number, buy mandatory health insurance, register your address with a notarized rental contract, then apply on the e-İkamet portal and attend your appointment with biometric photos and document copies. Critical: roughly a quarter of Istanbul districts are closed to new registrations — verify your district is open BEFORE you sign a rental contract."
+      },
+      "vergi": {
+        "title": "Vergi No: your Turkish tax number",
+        "excerpt": "Free, fast, and required for almost everything.",
+        "body": "The tax number (Vergi Numarası) is required to open a bank account, sign contracts, buy property and apply for residence. Get it free online via the İnteraktif Vergi Dairesi portal with your passport details, or in person at any tax office (Vergi Dairesi) in about an hour. Keep the printout — banks ask for it."
+      },
+      "bank": {
+        "title": "Opening a Turkish bank account",
+        "excerpt": "Which banks accept foreigners and what they ask for.",
+        "body": "Requirements vary by bank and even by branch. You will always need your passport and tax number; most banks also want proof of address (notarized rental contract or a utility bill in your name) and sometimes a residence permit. If one branch refuses, try another — policies genuinely differ. Your card typically arrives by courier within a week."
+      },
+      "districts": {
+        "title": "Choosing your district in Istanbul",
+        "excerpt": "Character, prices and the residence-permit factor.",
+        "body": "Kadıköy and Beşiktaş offer central, lively living at higher rents; Üsküdar is calmer and conservative; Esenyurt and Beylikdüzü are budget-friendly but far; Şişli and Levent suit professionals. Before falling in love with a flat, check two things: whether the district is open for new residence-permit registrations, and your commute on the metro map."
+      }
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "persona": {
+      "title": "My situation",
+      "path": "Journey stage",
+      "reason": "Reason",
+      "family": "With family",
+      "edit": "Redo onboarding"
+    },
+    "checklist": {
+      "title": "Setup checklist",
+      "progress": "{{done}} of {{total}} complete"
+    },
+    "locker": {
+      "title": "Document locker",
+      "empty": "No documents yet. Upload passport scans, contracts, and translations to keep them safe.",
+      "upload": "Upload document",
+      "uploadedAt": "Uploaded",
+      "download": "Download"
+    },
+    "renewals": {
+      "title": "Renewal tracker",
+      "residence": "Residence permit (İkamet)",
+      "insurance": "Health insurance",
+      "passport": "Passport",
+      "set": "Set date",
+      "expired": "Expired",
+      "daysLeft": "{{count}} days left",
+      "noDate": "No date set"
+    },
+    "pipeline": {
+      "title": "My transactions",
+      "empty": "No active transactions. Bookings and payments will appear here."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "markAll": "Mark all as read",
+    "welcome": {
+      "title": "Welcome to Rafiq Istanbul!",
+      "body": "Your personalized plan is ready on the home page."
+    },
+    "paymentPending": {
+      "title": "Payment under review",
+      "body": "We received your payment confirmation and will activate your plan shortly."
+    },
+    "paymentVerified": {
+      "title": "Plan activated",
+      "body": "Your subscription is now active. Enjoy!"
+    },
+    "bookingNew": {
+      "title": "Appointment requested",
+      "body": "We received your booking request and will confirm the time soon."
+    },
+    "bookingConfirmed": {
+      "title": "Appointment confirmed",
+      "body": "Your online appointment has been confirmed. Check your email for the link."
+    },
+    "adminNewBooking": {
+      "title": "New booking",
+      "body": "A user requested an expert appointment."
+    },
+    "leadReceived": {
+      "title": "Request received",
+      "body": "We received your service request and will contact you shortly."
+    },
+    "adminNewPayment": {
+      "title": "New payment to verify",
+      "body": "A manual payment confirmation is awaiting review."
+    },
+    "adminNewLead": {
+      "title": "New service lead",
+      "body": "A user requested a service quote."
+    }
+  },
+  "admin": {
+    "serviceRequests": {
+      "title": "Service requests",
+      "empty": "No service requests yet."
+    },
+    "title": "Admin dashboard",
+    "users": {
+      "title": "Users",
+      "user": "User",
+      "email": "Email",
+      "tier": "Tier",
+      "joined": "Joined",
+      "setTier": "Set tier",
+      "clicks": "Clicks",
+      "signups": "Sign-ups",
+      "bookings": "Bookings",
+      "leads": "Leads",
+      "earned": "Earned",
+      "statUsers": "Total users",
+      "statPaying": "Paying users",
+      "statBookings": "Bookings",
+      "statLeads": "Leads"
+    },
+    "listings": {
+      "title": "Real-estate listings",
+      "add": "Add listing",
+      "edit": "Edit listing",
+      "empty": "No listings yet.",
+      "district": "District",
+      "roomsField": "Rooms",
+      "m2": "Area (m²)",
+      "priceUsd": "Price (USD)",
+      "image": "Image URL",
+      "description": "Description",
+      "descriptionPlaceholder": "Property details, features, neighborhood…",
+      "bathrooms": "Bathrooms",
+      "photos": "Photos",
+      "uploadPhotos": "Upload photos",
+      "uploading": "Uploading…",
+      "furnished": "Furnished",
+      "citizenship": "Citizenship eligible",
+      "invalid": "Please fill in district, rooms, area and price.",
+      "confirmDelete": "Delete this listing?"
+    },
+    "places": {
+      "title": "Map services",
+      "add": "Add place",
+      "edit": "Edit place",
+      "empty": "No places yet.",
+      "name": "Name",
+      "category": "Category",
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "address": "Address",
+      "invalid": "Please enter a name, category and valid coordinates.",
+      "confirmDelete": "Delete this place?"
+    },
+    "payments": {
+      "title": "Payment verification",
+      "empty": "No pending payments.",
+      "method": "Method",
+      "verify": "Verify",
+      "reject": "Reject",
+      "receipt": "View receipt"
+    },
+    "leads": {
+      "title": "Service request leads",
+      "empty": "No leads yet."
+    },
+    "news": {
+      "title": "Global news signals",
+      "placeholder": "Publish an alert to all users (e.g., new ikamet rules)...",
+      "publish": "Publish",
+      "empty": "No signals published."
+    },
+    "rates": {
+      "title": "Currency rates",
+      "body": "Set the daily USD/TRY and EUR/TRY shown in the black top bar. Leave them on the live feed, or override with the official daily rate.",
+      "save": "Save rates",
+      "saved": "Saved",
+      "useLive": "Use live feed",
+      "updated": "Official rate set — updated {{date}}",
+      "usingLive": "Currently using the live feed.",
+      "sypHint": "e.g. 13000"
+    },
+    "catalog": {
+      "heading": "Services editor",
+      "sub": "Add, edit text, or hide the services shown on the All Services page",
+      "add": "Add service",
+      "addedTag": "Added",
+      "newService": "New service",
+      "fTitle": "Name",
+      "fDesc": "Description",
+      "fCategory": "Category",
+      "fType": "Type",
+      "fIcon": "Icon",
+      "onRequest": "Priced on request",
+      "hide": "Hide",
+      "show": "Show"
+    },
+    "cancellations": {
+      "title": "Subscription cancellations",
+      "empty": "No cancellations."
+    }
+  },
+  "adminBookings": {
+    "title": "Expert appointment bookings",
+    "user": "User",
+    "summary": "AI problem summary",
+    "datetime": "Preferred date & time",
+    "language": "Language",
+    "transcript": "View transcript",
+    "hideTranscript": "Hide transcript",
+    "notePlaceholder": "Internal note...",
+    "saveNote": "Save note",
+    "empty": "No bookings yet.",
+    "statuses": {
+      "new": "New",
+      "confirmed": "Confirmed",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    }
+  },
+  "gates": {
+    "authRequired": {
+      "title": "Sign in required",
+      "body": "Create a free account to save your plan, documents and bookings.",
+      "cta": "Sign in"
+    },
+    "adminOnly": "This area is restricted to administrators."
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms of Service",
+      "body": "Welcome to Rafiq Istanbul. By creating an account or using our website and services, you agree to these Terms.\n\n1. Who we are. Rafiq Istanbul is an independent guidance and concierge service that helps foreigners settle in Istanbul. We are not a government agency, a law firm, or an official authority, and we do not issue any official document. Government fees and timelines are set by the relevant authorities, not by us.\n\n2. Your account. You are responsible for the accuracy of the information you provide and for keeping your login credentials secure. You must be at least 18 years old to purchase a subscription.\n\n3. Subscriptions and billing. Paid plans are billed in advance for the chosen period (monthly or annual) and renew automatically until you cancel. You can cancel at any time from the Pricing page; your access continues until the end of the period already paid.\n\n4. Our services. Some services are delivered directly by our team; others are arranged through vetted partner offices. Estimates of fees and durations are indicative and confirmed before work begins. We act as a guide and facilitator and cannot guarantee the outcome of any official application, which depends on the relevant authority.\n\n5. Acceptable use. You agree not to misuse the platform, submit false information, or use our services for unlawful purposes.\n\n6. Liability. To the maximum extent permitted by law, Rafiq Istanbul is not liable for indirect or consequential damages, or for decisions made by third parties or official authorities.\n\n7. Changes. We may update these Terms or our services from time to time. Continued use after changes means you accept the updated Terms.\n\n8. Governing law. These Terms are governed by the laws of the Republic of Türkiye.\n\n9. Contact. For any question about these Terms, contact our team through the app."
+    },
+    "privacy": {
+      "title": "Privacy Policy (KVKK)",
+      "body": "This Privacy Policy explains how Rafiq Istanbul collects and uses your information, in line with the Turkish Personal Data Protection Law (KVKK No. 6698).\n\n1. Data we collect. Account details (name, email), the answers you give during onboarding, your service requests and bookings, documents you choose to upload, and basic usage data needed to operate the service.\n\n2. Why we use it. To provide and personalize our services, prepare and follow up your requests, communicate with you, and improve the platform. We do not sell your personal data.\n\n3. Sharing. We share only what is necessary with the vetted partner handling your specific request (for example, a translation office or insurance provider). Our infrastructure is hosted on secure cloud providers.\n\n4. Storage and security. Your data is stored on protected servers with access controls. Uploaded documents stay private to your account and are accessible to our team only to deliver the service you requested.\n\n5. Your rights (KVKK). You may request access to, correction of, or deletion of your personal data, and you may withdraw consent at any time, by contacting us.\n\n6. Retention. We keep your data only as long as needed to provide the service and meet legal obligations, then delete or anonymize it.\n\n7. Contact. For privacy requests, contact our team through the app."
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "body": "All payments to Rafiq Istanbul are final.\n\nWe do not offer refunds — full or partial — once a payment has been made. This applies to all subscription plans (monthly and annual) and to any service fees, whether or not the period or service has been fully used.\n\nIf you do not wish to be charged again, cancel your subscription before its renewal date from the Pricing page. Cancellation stops future charges; it does not refund amounts already paid, and your access continues until the end of the period you already paid for.\n\nBy completing a payment, you acknowledge and accept this no-refund policy."
+    },
+    "updated": "Last updated: June 2026"
+  },
+  "leads": {
+    "kind": {
+      "realestate": "Real estate",
+      "health": "Health tourism"
+    }
+  },
+  "tricks": {
+    "title": "Tricks of Istanbul",
+    "subtitle": "Insider apps and shortcuts that make daily life in Istanbul easier.",
+    "appBadge": "App",
+    "tipBadge": "Tip",
+    "openApp": "Get the app",
+    "ctaTitle": "Stuck on something specific?",
+    "ctaBody": "Ask Rafiq AI — it knows the apps, the offices and the shortcuts.",
+    "ctaButton": "Ask the assistant",
+    "items": {
+      "edevlet": {
+        "title": "e-Devlet — the master key",
+        "body": "Turkey's official government app. With your foreigner ID (Yabancı Kimlik No) you can view your residence permit, book appointments, download official documents, check your address registration and more — all in one place."
+      },
+      "eikamet": {
+        "title": "e-İkamet (Göç İdaresi)",
+        "body": "The migration office portal: apply for or extend your residence permit, book your appointment, and track your card. Always verify your district is open before applying."
+      },
+      "istanbulkart": {
+        "title": "Istanbulkart app",
+        "body": "Top up your transport card straight from your phone — no kiosk needed. It also shows your balance and the nearest ferry, metro and bus lines."
+      },
+      "bitaksi": {
+        "title": "BiTaksi / iTaksi",
+        "body": "Hail a licensed, metered taxi from the app so you always pay the real fare. The trip and driver are logged — far safer than flagging one on the street."
+      },
+      "getir": {
+        "title": "Getir & Yemeksepeti",
+        "body": "Groceries in minutes and food delivery from almost anywhere. Pay by card in-app — handy before your Turkish bank account is ready."
+      },
+      "esim": {
+        "title": "Buy an eSIM before you land",
+        "body": "An eSIM bought online is far cheaper than SIM cards sold at the airport, and you arrive already connected to book taxis and find your way."
+      },
+      "vergi": {
+        "title": "Get your Vergi No online first",
+        "body": "Your tax number is free from the İnteraktif Vergi Dairesi portal in minutes. Get it before the bank visit — most branches ask for it."
+      },
+      "taxiCaution": {
+        "title": "Never ride an unmetered taxi",
+        "body": "Insist on the meter (\"taksimetre\") or use a taxi app. Agreeing a price by hand on day one is the most common way newcomers overpay."
+      }
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or has moved.",
+    "cta": "Back to home"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Please reload the page.",
+    "reload": "Reload"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "disclaimer": "Rafiq Istanbul is an independent guidance service, not a government body."
+  },
+  "tricksApps": {
+    "title": "Essential Istanbul Apps",
+    "search": "Search…",
+    "web": "Website",
+    "android": "Android",
+    "ios": "iPhone",
+    "install": "Install as app",
+    "empty": "No results."
+  },
+  "medTourism": {
+    "title": "Types of Medical Tourism in Istanbul",
+    "search": "Search…",
+    "treats": "Treats / offers",
+    "empty": "No results.",
+    "disclaimer": "General informational content, not medical advice."
+  },
+  "company": {
+    "portal": "Company portal",
+    "gate": {
+      "title": "Company access",
+      "body": "This area is for registered company partners.",
+      "cta": "Register your company"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "suspended": "Suspended"
+    },
+    "sub": {
+      "none": "Not subscribed",
+      "active": "Active",
+      "expired": "Expired"
+    },
+    "register": {
+      "title": "Register your company",
+      "subtitle": "Join Rafiq as a trusted partner and receive matching customer requests.",
+      "name": "Company name",
+      "namePh": "e.g. Istanbul Legal Partners",
+      "description": "About your company",
+      "descriptionPh": "What you do, your experience, languages spoken…",
+      "categories": "Service categories you cover",
+      "services": "Specific services you offer",
+      "areas": "Coverage areas (districts)",
+      "contact": "Contact details (kept in-platform)",
+      "contactEmail": "Contact email",
+      "contactPhone": "Contact phone",
+      "contactWhatsapp": "WhatsApp",
+      "documents": "Verification documents",
+      "documentsHint": "Trade license, tax certificate, etc. — reviewed by our team.",
+      "uploadDocs": "Upload document",
+      "selectAtLeastOne": "Please select at least one category and area.",
+      "submit": "Submit for review",
+      "submitting": "Submitting…",
+      "error": "Could not submit. Please try again.",
+      "successTitle": "Submitted for review",
+      "successBody": "Your company is pending approval. We'll review your documents and notify you.",
+      "goDashboard": "Go to dashboard"
+    },
+    "dashboard": {
+      "title": "Company dashboard",
+      "welcome": "Welcome, {{name}}",
+      "statusLabel": "Approval status",
+      "subLabel": "Subscription",
+      "expiresOn": "Renews {{date}}",
+      "leadsTitle": "Incoming requests",
+      "leadsEmpty": "No matching requests yet. We'll notify you when a customer nearby needs your services.",
+      "noCompany": "You haven't registered a company yet.",
+      "registerCta": "Register your company",
+      "pendingTitle": "Pending approval",
+      "pendingBody": "Your company is being reviewed. You'll receive requests once approved and subscribed.",
+      "suspendedTitle": "Account suspended",
+      "suspendedBody": "Your company is suspended. Please contact support for details.",
+      "notActiveTitle": "Subscription required",
+      "notActiveBody": "Activate your monthly subscription to start receiving and answering requests.",
+      "subscribeCta": "Go to billing",
+      "editProfile": "Edit profile",
+      "viewProfile": "View public profile",
+      "area": "Area",
+      "category": "Category",
+      "respond": "Send offer",
+      "responded": "Offer sent"
+    },
+    "profile": {
+      "title": "Company profile",
+      "save": "Save changes",
+      "saved": "Saved",
+      "logo": "Logo",
+      "uploadLogo": "Upload logo",
+      "name": "Company name",
+      "description": "About your company",
+      "categories": "Service categories",
+      "services": "Services offered",
+      "areas": "Coverage areas",
+      "contact": "Contact details",
+      "error": "Could not save. Please try again."
+    },
+    "billing": {
+      "title": "Subscription & billing",
+      "planName": "Rafiq Partner — Monthly",
+      "planDesc": "Receive unlimited matching customer requests and compete for them.",
+      "perMonth": "{{price}} {{currency}} / month",
+      "method": "Payment method",
+      "card": "Card",
+      "bank_transfer": "Bank transfer",
+      "crypto": "Crypto",
+      "pay": "Subscribe now",
+      "paying": "Processing…",
+      "pendingTitle": "Payment received",
+      "pendingBody": "Your payment is pending admin confirmation. Your subscription activates once confirmed.",
+      "error": "Could not create the payment. Please try again.",
+      "bankNote": "Transfer to the account below, then submit.",
+      "cryptoNote": "Send to the wallet below, then submit.",
+      "uploadReceipt": "Upload receipt",
+      "uploaded": "Uploaded",
+      "submit": "I have paid",
+      "activeTitle": "Subscription active",
+      "activeUntil": "Active until {{date}}"
+    },
+    "respond": {
+      "title": "Send your offer",
+      "forService": "For: {{service}}",
+      "quote": "Your price quote (TL)",
+      "quotePh": "e.g. 1500",
+      "optional": "optional",
+      "message": "Message to the customer",
+      "messagePh": "Describe what's included, timeline, etc.",
+      "send": "Send offer",
+      "sending": "Sending…",
+      "success": "Offer sent",
+      "error": "Could not send. Please try again."
+    },
+    "public": {
+      "reviews": "Reviews",
+      "noReviews": "No reviews yet.",
+      "services": "Services",
+      "areas": "Coverage areas",
+      "contactInPlatform": "Contact this company through Rafiq once you choose their offer.",
+      "back": "Back",
+      "notFound": "Company not found."
+    }
+  },
+  "requests": {
+    "title": "My requests",
+    "subtitle": "Track requests you've broadcast to nearby companies and choose an offer.",
+    "empty": "You haven't broadcast any requests yet. Open a trusted-partner service and tap 'Help me with this'.",
+    "browseServices": "Browse services",
+    "responsesTitle": "Offers ({{count}})",
+    "noResponses": "No offers yet. Companies nearby will respond soon.",
+    "capped": "Showing the top 5 offers, ranked by rating.",
+    "choose": "Choose this offer",
+    "chosen": "Chosen",
+    "quote": "Quote",
+    "noQuote": "Quote on request",
+    "viewCompany": "View company",
+    "leaveReview": "Leave a review",
+    "area": "Area",
+    "reviewed": "Reviewed"
+  },
+  "reviews": {
+    "leaveTitle": "Rate this company",
+    "ratingLabel": "Your rating",
+    "text": "Your review",
+    "textPh": "Share your experience…",
+    "submit": "Submit review",
+    "submitting": "Submitting…",
+    "success": "Thanks for your review!",
+    "error": "Could not submit. Please try again.",
+    "average": "{{rating}} avg",
+    "count": "{{count}} reviews"
+  },
+  "companyAdmin": {
+    "companies": {
+      "title": "Companies",
+      "empty": "No companies registered yet.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "suspend": "Suspend",
+      "reinstate": "Reinstate",
+      "viewDocs": "Documents",
+      "noDocs": "No documents uploaded.",
+      "note": "Admin note",
+      "notePh": "Internal note about this company…",
+      "saveNote": "Save note",
+      "owner": "Owner",
+      "categories": "Categories",
+      "areas": "Areas",
+      "subscription": "Subscription",
+      "registered": "Registered"
+    },
+    "payments": {
+      "title": "Company subscriptions",
+      "empty": "No pending company payments.",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "method": "Method",
+      "amount": "Amount",
+      "receipt": "Receipt"
+    },
+    "broadcast": {
+      "title": "Broadcast requests & responses",
+      "requestsTitle": "Broadcast requests",
+      "requestsEmpty": "No broadcast requests yet.",
+      "responsesTitle": "Company responses",
+      "responsesEmpty": "No responses yet.",
+      "chosen": "Chosen",
+      "quote": "Quote"
+    }
+  }
+}

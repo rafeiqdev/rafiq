@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo-rafiq-square.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <script>
+      // Keep the page locked at "fit to screen" on phones: stop iOS pinch-zoom
+      // (Safari ignores user-scalable=no, so cancel the gesture events too).
+      // Safe now that fixed-positioning works app-wide and inputs are 16px
+      // (no auto-zoom), so the user is never left stuck zoomed-in.
+      document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+      document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
+    </script>
+    <meta name="theme-color" content="#1a3a6b" />
+    <title>Rafiq Istanbul</title>
+    <meta name="description" content="Residency, banking, housing, health and daily life in Istanbul — guided step by step in your language." />
+    <link rel="canonical" href="https://rafiq-istanbul.vercel.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://rafiq-istanbul.vercel.app" />
+    <meta property="og:locale" content="ar_AR" />
+    <meta property="og:title" content="Rafiq Istanbul — Your companion for life in Istanbul" />
+    <meta property="og:description" content="Residency (İkamet), banking, housing, health and daily life in Istanbul — guided step by step in Arabic, English, Russian and Farsi." />
+    <meta property="og:image" content="https://rafiq-istanbul.vercel.app/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Rafiq Istanbul" />
+    <meta name="twitter:description" content="The digital services hub for foreigners in Istanbul — in 4 languages." />
+    <meta name="twitter:image" content="https://rafiq-istanbul.vercel.app/og-cover.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

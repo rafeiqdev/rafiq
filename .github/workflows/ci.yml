@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: i18n parity (ar/en/ru/fa identical key sets)
+        run: npm run check:i18n
+      - name: TypeScript + bundle
+        run: npm run build
+      - name: API integration tests
+        run: npm test

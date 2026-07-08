@@ -1,0 +1,420 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens exposed as CSS variables (mirror tailwind.config) ── */
+:root {
+  --navy: #1a3a6b;
+  --navy-dark: #12294d;
+  --navy-light: #2c4f8a;
+  --cream: #faf8f0;
+  --cream-dark: #efeadb;
+  --gold: #c69749;
+  --gold-dark: #a17a33;
+  --red: #c0392b;
+  --radius-btn: 12px;
+  --radius-card: 16px;
+}
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  /* comfortable default reading rhythm */
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip; /* no horizontal scroll at the root */
+  overscroll-behavior-x: none; /* no left/right rubber-band to blank space */
+}
+
+/* Professional Arabic/Persian typography: better face + roomier line-height.
+   Arabic glyphs need more vertical breathing room than Latin. */
+html[dir='rtl'] {
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  line-height: 1.85;
+  letter-spacing: 0; /* never letter-space Arabic */
+}
+html[lang='fa'] {
+  font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-cream text-navy antialiased;
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: clip; /* never allow horizontal drift on phones */
+  overscroll-behavior-x: none;
+  max-width: 100%;
+  overflow-wrap: break-word; /* long links / codes / emails wrap instead of overflowing */
+}
+
+/* Belt-and-suspenders: clip horizontal overflow at the app root and the page
+   wrapper so a single wide child can never widen the document or shift the page
+   sideways on mobile. (clip — not hidden — so it can't break the sticky header.) */
+#root {
+  overflow-x: clip;
+  max-width: 100%;
+}
+main {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+/* ── Overflow safety net (all sizes) ──
+   Media, native inputs and code boxes must never exceed their column; long
+   unbreakable tokens (emails, IBANs, wallets, URLs, file names) can wrap. */
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+input,
+select,
+textarea,
+.input {
+  max-width: 100%;
+  min-width: 0;
+}
+.overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+.break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ── Phone shrink-to-fit: compact the desktop scale so everything fits ──
+   The base styles are sized for desktop; on phones they were too big and ate
+   the ~360px width. Trim the biggest headings and paddings on small screens. */
+@media (max-width: 480px) {
+  .text-5xl,
+  .text-4xl {
+    font-size: 1.875rem !important;
+    line-height: 1.15 !important;
+  }
+  .text-3xl {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+  }
+  .text-2xl {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+  .section-title {
+    font-size: 1.375rem !important;
+    line-height: 1.3 !important;
+  }
+  .py-20 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+  .py-16 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+  .py-12 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+  .py-10 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  .p-10 {
+    padding: 1.5rem !important;
+  }
+  .p-8 {
+    padding: 1.25rem !important;
+  }
+  .p-6 {
+    padding: 1.15rem !important;
+  }
+  /* Smaller icon circles + inner icons on phones (desktop keeps the large ones).
+     icon-chip is 48px/text-xl by default — too big on a ~360px screen. */
+  .icon-chip {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 1.05rem !important;
+  }
+  .icon-chip svg {
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+  }
+}
+
+/* ── Mobile sizing lock ──
+   iOS Safari auto-zooms the whole page when you focus a form field smaller than
+   16px. Forcing 16px on phones keeps the page at a single, stable size. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .input {
+    font-size: 16px !important;
+  }
+}
+
+/* slightly larger paragraph leading for Arabic body copy */
+html[dir='rtl'] p,
+html[dir='rtl'] li {
+  line-height: 1.9;
+}
+
+@layer components {
+  /* ── Surfaces ── */
+  .card {
+    @apply bg-white rounded-card shadow-card border border-cream-dark transition-all duration-200;
+    border-width: 0.5px;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-cardHover hover:border-navy/20;
+  }
+
+  /* ── Button system: one base, five variants, three sizes, full states ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-btn font-semibold text-sm leading-none
+           transition-all duration-150 cursor-pointer select-none whitespace-nowrap
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy/40
+           active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-navy text-white hover:bg-navy-light active:bg-navy-dark;
+  }
+  /* secondary accent CTA — gold on navy text, used for the main hero action */
+  .btn-gold {
+    @apply btn bg-gold text-navy-dark hover:bg-gold-dark active:bg-gold-dark shadow-soft hover:shadow-gold;
+  }
+  .btn-secondary {
+    @apply btn bg-brand-blue text-navy hover:bg-navy/10 active:bg-navy/15;
+  }
+  /* ghost / outline */
+  .btn-ghost {
+    @apply btn bg-transparent text-navy border border-cream-dark hover:bg-cream hover:border-navy/30 active:bg-cream-dark;
+  }
+  .btn-danger {
+    @apply btn bg-brand-red text-white hover:bg-[#a93226] active:bg-[#8f2a1f];
+  }
+  /* WhatsApp green action */
+  .btn-whatsapp {
+    @apply btn text-white;
+    background-color: #25d366;
+  }
+  .btn-whatsapp:hover {
+    background-color: #1da851;
+  }
+  .btn-sm {
+    @apply h-9 px-3.5 text-xs;
+  }
+  .btn-lg {
+    @apply h-12 px-6 text-base;
+  }
+
+  /* ── Form controls ── */
+  .icon-chip {
+    @apply flex items-center justify-center w-12 h-12 rounded-full bg-brand-blue text-navy text-xl shrink-0;
+  }
+  .icon-chip-gold {
+    @apply flex items-center justify-center w-12 h-12 rounded-full bg-gold-soft text-gold-dark shrink-0;
+  }
+  .amber-note {
+    @apply rounded-xl bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 text-sm;
+  }
+  .input {
+    @apply w-full h-11 px-4 rounded-btn border border-cream-dark bg-white text-navy placeholder:text-navy/60
+           focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy/30 text-sm transition-shadow;
+  }
+
+  /* ── Section helpers ── */
+  .eyebrow {
+    @apply inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gold-dark;
+  }
+  .section-title {
+    @apply text-2xl sm:text-3xl font-extrabold text-navy;
+  }
+
+  /* ── Media ── */
+  .img-zoom {
+    @apply overflow-hidden rounded-t-card;
+  }
+  .img-zoom > * {
+    @apply transition-transform duration-300;
+  }
+  .card-hover:hover .img-zoom > * {
+    transform: scale(1.05);
+  }
+}
+
+/* arrows flip automatically in RTL */
+[dir='rtl'] .dir-arrow {
+  transform: scaleX(-1);
+}
+
+.leaflet-container {
+  border-radius: 16px;
+  z-index: 0;
+}
+
+/* ---- motion / entrance animations ---- */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out both;
+}
+
+/* page transition — replays on every route change (keyed by pathname).
+   A gentle fade + rise. The `to` ends at `transform: none` (NOT translateY(0)),
+   so no transform lingers after the animation — keeping `position: fixed`
+   relative to the viewport. (Modals portal to <body>, so they're unaffected.) */
+@keyframes routeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.route-fade {
+  /* OPACITY ONLY — a transform here lingers (esp. under reduced-motion) and makes
+     every position:fixed inside a page relative to this wrapper, breaking sticky
+     CTAs / modals. Never add transform to .route-fade. */
+  animation: routeIn 0.35s ease both;
+}
+
+/* dropdown / mobile-menu entrance (opacity only, same reason) */
+@keyframes menuIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-menu-in {
+  animation: menuIn 0.18s ease both;
+}
+
+/* modal pop-in */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-pop {
+  animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* gentle float for the WhatsApp FAB */
+@keyframes floatPulse {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.55);
+  }
+}
+.animate-float-pulse {
+  animation: floatPulse 2.6s ease-in-out infinite;
+}
+
+/* stagger children of a grid/list by index via a CSS variable */
+.stagger > * {
+  animation: fadeUp 0.5s ease-out both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* advisor scene: white car drives in, wheels spin, advisor rises */
+@keyframes driveIn {
+  from {
+    transform: translateX(-460px);
+  }
+  62% {
+    transform: translateX(20px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes wheelSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.adv-car {
+  animation: driveIn 1.9s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+.adv-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheelSpin 0.45s linear 5 both;
+}
+.adv-person {
+  animation: riseIn 0.6s ease-out 1.55s both;
+}
+
+/* scrolling currency ticker (two identical groups, translate -50% = seamless loop) */
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-ticker {
+  animation: ticker 38s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .stagger > *,
+  .route-fade,
+  .animate-pop,
+  .animate-float-pulse,
+  .adv-car,
+  .adv-wheel,
+  .adv-person,
+  .animate-ticker {
+    animation: none;
+  }
+}

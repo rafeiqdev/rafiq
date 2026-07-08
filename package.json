@@ -1,0 +1,45 @@
+{
+  "name": "rafiq-istanbul",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:server": "node --watch server/index.mjs",
+    "dev:all": "concurrently -k -n web,api \"npm:dev\" \"npm:dev:server\"",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "node --test server/test.mjs",
+    "check:i18n": "node scripts/check-i18n-parity.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "i18next": "^23.16.8",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.17.0",
+    "multer": "^2.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.1.3",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/leaflet": "^1.9.14",
+    "@types/multer": "^2.1.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.3",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.11"
+  }
+}

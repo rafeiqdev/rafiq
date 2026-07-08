@@ -1,0 +1,459 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { adminPayments, adminRates, adminUsers, leads, notifications } from '../lib/api';
+import type { AdminUser, Booking, Lead, PaymentRequest, PlanTier, Profile } from '../lib/types';
+import { RequireAdmin } from '../components/Gates';
+import { useApp } from '../context/AppContext';
+import { AppIcon } from '../components/AppIcon';
+import { ListingsManager, PlacesManager } from '../components/AdminManagers';
+import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
+import { AdminServicesManager } from '../components/AdminServicesManager';
+import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
+import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
+import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
+
+const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];
+const HAS_KEYS = ['turkishPhone', 'taxNumber', 'residencePermit', 'bankAccount'] as const;
+
+/** One user row in the admin table — click the name to expand full detail. */
+function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: string, tier: PlanTier) => void }) {
+  const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<{ onboarding: Profile | null; bookings: Booking[]; leads: Lead[] } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const toggle = async () => {
+    const next = !open;
+    setOpen(next);
+    if (next && !detail) {
+      setLoading(true);
+      try {
+        setDetail(await adminUsers.detail(u.id));
+      } catch {
+        /* ignore */
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const ob = detail?.onboarding ?? null;
+  const owned = ob ? HAS_KEYS.filter((k) => ob.has?.[k]) : [];
+
+  return (
+    <>
+      <tr className="border-b border-cream-dark/60">
+        <td className="py-2.5">
+          <button onClick={toggle} className="text-start inline-flex items-center gap-1.5 group" aria-expanded={open}>
+            <AppIcon name="arrow-right" className={`w-3 h-3 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
+            <span>
+              <span className="font-semibold text-navy inline-flex items-center gap-1.5 group-hover:underline">
+                {u.name}
+                {u.isAdmin && <AppIcon name="shield-check" className="w-3.5 h-3.5 text-brand-red" />}
+              </span>
+              <span className="block text-xs text-gray-500 break-all">{u.email}</span>
+            </span>
+          </button>
+        </td>
+        <td className="py-2.5 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString(i18n.language)}</td>
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.clicks}</td>
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.signups}</td>
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.bookings}</td>
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.leads}</td>
+        <td className="py-2.5 text-center font-semibold text-navy whitespace-nowrap" dir="ltr">
+          {u.earnedTl.toLocaleString()} {t('common.tl')}
+        </td>
+        <td className="py-2.5">
+          <select
+            className="input !h-9 !w-auto text-xs"
+            value={u.tier}
+            onChange={(e) => onSetTier(u.id, e.target.value as PlanTier)}
+            aria-label={t('admin.users.setTier')}
+          >
+            {TIERS.map((x) => (
+              <option key={x} value={x}>
+                {x === 'free' ? t('common.free') : t(`pricing.${x}.name`)}
+              </option>
+            ))}
+          </select>
+        </td>
+      </tr>
+      {open && (
+        <tr className="bg-cream/50">
+          <td colSpan={8} className="px-4 py-4">
+            {loading ? (
+              <p className="text-xs text-gray-500">…</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-3 text-sm">
+                {/* persona / profile */}
+                <div>
+                  <p className="font-bold text-navy text-xs mb-2">{t('profile.persona.title')}</p>
+                  <dl className="flex flex-col gap-1 text-xs">
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-gray-500">{t('profile.persona.path')}</dt>
+                      <dd className="font-semibold text-navy">{ob?.path ? t(`onboarding.q1.${ob.path}.title`) : '—'}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-gray-500">{t('profile.persona.reason')}</dt>
+                      <dd className="font-semibold text-navy">{ob?.reason ? t(`onboarding.q2.${ob.reason}.title`) : '—'}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-gray-500">{t('profile.persona.family')}</dt>
+                      <dd className="font-semibold text-navy">{ob?.family ? t(`common.${ob.family}`) : '—'}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-gray-500">{t('nav.referrals')}</dt>
+                      <dd className="font-semibold text-navy" dir="ltr">{u.referralCode || '—'}</dd>
+                    </div>
+                  </dl>
+                </div>
+                {/* what they already have */}
+                <div>
+                  <p className="font-bold text-navy text-xs mb-2">{t('profile.checklist.title')}</p>
+                  {owned.length === 0 ? (
+                    <p className="text-xs text-gray-500">—</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1">
+                      {owned.map((k) => (
+                        <li key={k} className="text-xs text-navy inline-flex items-center gap-1">
+                          <AppIcon name="check" className="w-3 h-3 text-green-600" />
+                          {t(`onboarding.q3.${k}.title`)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {/* activity */}
+                <div>
+                  <p className="font-bold text-navy text-xs mb-2">{t('profile.pipeline.title')}</p>
+                  {detail && detail.bookings.length === 0 && detail.leads.length === 0 ? (
+                    <p className="text-xs text-gray-500">{t('profile.pipeline.empty')}</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1">
+                      {detail?.bookings.map((b) => (
+                        <li key={b.id} className="text-xs text-navy inline-flex items-center gap-1">
+                          <AppIcon name="calendar" className="w-3 h-3 text-navy/60" />
+                          {b.problemSummary}
+                        </li>
+                      ))}
+                      {detail?.leads.map((l) => (
+                        <li key={l.id} className="text-xs text-navy inline-flex items-center gap-1">
+                          <AppIcon name="mail" className="w-3 h-3 text-navy/60" />
+                          {t(`leads.kind.${l.kind}`)} — {l.item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function AdminInner() {
+  const { t, i18n } = useTranslation();
+  const { refresh } = useApp();
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [pending, setPending] = useState<PaymentRequest[]>([]);
+  const [news, setNews] = useState('');
+  const [broadcasts, setBroadcasts] = useState<{ id: string; customText: string; createdAt: string }[]>([]);
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
+  const [cancellations, setCancellations] = useState<{ userId: string; tier: string; reason: string | null; comment: string | null; expiresAt: string }[]>([]);
+  const [usd, setUsd] = useState('');
+  const [eur, setEur] = useState('');
+  const [syp, setSyp] = useState('');
+  const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
+  const [ratesSaved, setRatesSaved] = useState(false);
+
+  const load = async () => {
+    const [us, ps, bs, ls, rt, cx] = await Promise.all([
+      adminUsers.list(),
+      adminPayments.pending(),
+      notifications.broadcasts(),
+      leads.adminList(),
+      adminRates.get(),
+      adminUsers.cancellations(),
+    ]);
+    setUsers(us);
+    setPending(ps);
+    setBroadcasts(bs);
+    setAllLeads(ls);
+    setCancellations(cx);
+    setUsd(rt.usdtry != null ? String(rt.usdtry) : '');
+    setEur(rt.eurtry != null ? String(rt.eurtry) : '');
+    setSyp(rt.sypusd != null ? String(rt.sypusd) : '');
+    setRatesUpdatedAt(rt.updatedAt);
+  };
+
+  const saveRates = async () => {
+    const u = Number(usd);
+    const e = Number(eur);
+    if (!(u > 0) || !(e > 0)) return;
+    await adminRates.set(u, e, Number(syp) || undefined);
+    setRatesSaved(true);
+    setTimeout(() => setRatesSaved(false), 2000);
+    await load();
+  };
+
+  const clearRates = async () => {
+    await adminRates.clear();
+    await load();
+  };
+
+  useEffect(() => {
+    load().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const setTier = async (userId: string, tier: PlanTier) => {
+    await adminUsers.setTier(userId, tier);
+    await load();
+    await refresh();
+  };
+
+  const resolvePayment = async (id: string, status: 'verified' | 'rejected') => {
+    await adminPayments.resolve(id, status);
+    await load();
+    await refresh();
+  };
+
+  const publish = async () => {
+    if (!news.trim()) return;
+    await notifications.publish(news.trim());
+    setNews('');
+    await load();
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-extrabold text-navy">{t('admin.title')}</h1>
+        <Link to="/admin/bookings" className="btn-primary h-9 px-4 text-xs">
+          <AppIcon name="calendar" className="w-3.5 h-3.5" />
+          {t('nav.bookings')}
+        </Link>
+      </div>
+
+      {/* at-a-glance stats */}
+      <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {([
+          ['statUsers', users.length, 'users'],
+          ['statPaying', users.filter((u) => u.tier !== 'free').length, 'star'],
+          ['statBookings', users.reduce((s, u) => s + u.bookings, 0), 'calendar'],
+          ['statLeads', users.reduce((s, u) => s + u.leads, 0), 'mail'],
+        ] as const).map(([key, value, icon]) => (
+          <div key={key} className="card p-4">
+            <div className="flex items-center gap-2 text-navy/60 text-xs font-semibold">
+              <AppIcon name={icon as never} className="w-3.5 h-3.5" />
+              {t(`admin.users.${key}`)}
+            </div>
+            <p className="mt-1 text-2xl font-extrabold text-navy" dir="ltr">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* daily currency rates (shown in the black top bar) */}
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy flex items-center gap-2">
+          <AppIcon name="trending-up" className="w-4 h-4" />
+          {t('admin.rates.title')}
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">{t('admin.rates.body')}</p>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label className="text-xs font-semibold text-navy/70">
+            USD/TRY
+            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={usd} onChange={(e) => setUsd(e.target.value)} dir="ltr" />
+          </label>
+          <label className="text-xs font-semibold text-navy/70">
+            EUR/TRY
+            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={eur} onChange={(e) => setEur(e.target.value)} dir="ltr" />
+          </label>
+          <label className="text-xs font-semibold text-navy/70">
+            USD/SYP
+            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={syp} onChange={(e) => setSyp(e.target.value)} dir="ltr" placeholder={t('admin.rates.sypHint')} />
+          </label>
+          <button onClick={saveRates} className="btn-primary h-11 px-5">
+            <AppIcon name={ratesSaved ? 'check' : 'save'} className="w-4 h-4" />
+            {ratesSaved ? t('admin.rates.saved') : t('admin.rates.save')}
+          </button>
+          <button onClick={clearRates} className="btn-secondary h-11 px-4">
+            {t('admin.rates.useLive')}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-gray-400">
+          {ratesUpdatedAt
+            ? t('admin.rates.updated', { date: new Date(ratesUpdatedAt).toLocaleString(i18n.language) })
+            : t('admin.rates.usingLive')}
+        </p>
+      </div>
+
+      {/* users + tier control + engagement */}
+      <div className="card p-6 mt-5 overflow-x-auto">
+        <h2 className="font-bold text-navy">{t('admin.users.title')}</h2>
+        <table className="mt-4 w-full text-sm min-w-[620px] sm:min-w-[760px]">
+          <thead>
+            <tr className="text-xs text-navy/60 border-b border-cream-dark">
+              <th className="text-start py-2">{t('admin.users.user')}</th>
+              <th className="text-start py-2">{t('admin.users.joined')}</th>
+              <th className="text-center py-2">{t('admin.users.clicks')}</th>
+              <th className="text-center py-2">{t('admin.users.signups')}</th>
+              <th className="text-center py-2">{t('admin.users.bookings')}</th>
+              <th className="text-center py-2">{t('admin.users.leads')}</th>
+              <th className="text-center py-2">{t('admin.users.earned')}</th>
+              <th className="text-start py-2">{t('admin.users.tier')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <UserRow key={u.id} user={u} onSetTier={setTier} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* subscription cancellations */}
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy">{t('admin.cancellations.title')}</h2>
+        {cancellations.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500">{t('admin.cancellations.empty')}</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-3">
+            {cancellations.map((c) => (
+              <li key={c.userId} className="rounded-xl bg-cream px-4 py-3 text-sm flex flex-col gap-1.5">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                    {t(`pricing.${c.tier}.name`)}
+                  </span>
+                  <span className="ms-auto text-xs text-gray-500">
+                    {new Date(c.expiresAt).toLocaleDateString(i18n.language)}
+                  </span>
+                </div>
+                {c.reason && <p className="font-semibold text-navy break-words">{c.reason}</p>}
+                {c.comment && <p className="text-gray-500 break-words">{c.comment}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* payment verification */}
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy">{t('admin.payments.title')}</h2>
+        {pending.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-3">
+            {pending.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
+                <span className="font-semibold text-navy break-all">{p.email}</span>
+                <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                  {t(`pricing.${p.tier}.name`)} / {t(`common.${p.billing}`)}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {t('admin.payments.method')}: {t(`checkout.tabs.${p.method}`)} ·{' '}
+                  <span dir="ltr">{p.amount.toLocaleString()} {t('common.tl')}</span>
+                </span>
+                {p.hasReceipt && (
+                  <button
+                    type="button"
+                    onClick={() => adminPayments.openReceipt(p.id)}
+                    className="btn-secondary h-9 px-3 text-xs"
+                  >
+                    <AppIcon name="paperclip" className="w-3.5 h-3.5" />
+                    {t('admin.payments.receipt')}
+                  </button>
+                )}
+                <span className="ms-auto flex gap-2">
+                  <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
+                    <AppIcon name="check" className="w-3.5 h-3.5" />
+                    {t('admin.payments.verify')}
+                  </button>
+                  <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
+                    <AppIcon name="x" className="w-3.5 h-3.5" />
+                    {t('admin.payments.reject')}
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* service request leads (P1-3) */}
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy">{t('admin.leads.title')}</h2>
+        {allLeads.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500">{t('admin.leads.empty')}</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-2">
+            {allLeads.map((l) => (
+              <li key={l.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
+                <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                  {t(`leads.kind.${l.kind}`)}
+                </span>
+                <span className="font-semibold text-navy break-anywhere">{l.item}</span>
+                <span className="text-xs text-gray-500 break-all">{l.userEmail}</span>
+                <span className="ms-auto text-xs text-gray-500">
+                  {new Date(l.createdAt).toLocaleString(i18n.language)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* incoming service-catalog requests */}
+      <ServiceRequestsManager />
+
+      {/* B2B companies: directory, subscriptions, broadcast leads/responses */}
+      <AdminCompaniesManager />
+      <AdminCompanyPaymentsManager />
+      <AdminBroadcastManager />
+
+      {/* editable services catalog (add / edit text / hide) */}
+      <AdminServicesManager />
+
+      {/* content management: real-estate listings + map services */}
+      <ListingsManager />
+      <PlacesManager />
+
+      {/* global news signals */}
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy">{t('admin.news.title')}</h2>
+        <div className="mt-3 flex gap-2">
+          <input className="input" placeholder={t('admin.news.placeholder')} value={news} onChange={(e) => setNews(e.target.value)} />
+          <button onClick={publish} className="btn-primary px-5">
+            <AppIcon name="megaphone" className="w-4 h-4" />
+            {t('admin.news.publish')}
+          </button>
+        </div>
+        {broadcasts.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-500">{t('admin.news.empty')}</p>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-2">
+            {broadcasts.map((b) => (
+              <li key={b.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
+                <AppIcon name="megaphone" className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
+                <span className="flex-1">{b.customText}</span>
+                <span className="text-xs text-gray-500">{new Date(b.createdAt).toLocaleDateString(i18n.language)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function Admin() {
+  return (
+    <RequireAdmin>
+      <AdminInner />
+    </RequireAdmin>
+  );
+}
