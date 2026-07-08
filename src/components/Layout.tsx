@@ -312,20 +312,20 @@ export function Layout() {
             <p className="mt-3 text-sm">{t('common.tagline')}</p>
             <p className="mt-2 text-xs text-white/70">{t('footer.disclaimer')}</p>
           </div>
-          <nav className="text-sm flex flex-col gap-2">
+          <nav className="text-sm flex flex-col">
             {SERVICE_LINKS.map((s) => (
-              <Link key={s.to} to={s.to} className="hover:text-white">
+              <Link key={s.to} to={s.to} className="py-2 hover:text-white">
                 {t(s.key)}
               </Link>
             ))}
-            <Link to="/company/register" className="hover:text-white">
+            <Link to="/company/register" className="py-2 hover:text-white">
               {t('nav.forCompanies')}
             </Link>
           </nav>
-          <nav className="text-sm flex flex-col gap-2">
-            <Link to="/terms" className="hover:text-white">{t('nav.terms')}</Link>
-            <Link to="/privacy" className="hover:text-white">{t('nav.privacy')}</Link>
-            <Link to="/refund" className="hover:text-white">{t('nav.refund')}</Link>
+          <nav className="text-sm flex flex-col">
+            <Link to="/terms" className="py-2 hover:text-white">{t('nav.terms')}</Link>
+            <Link to="/privacy" className="py-2 hover:text-white">{t('nav.privacy')}</Link>
+            <Link to="/refund" className="py-2 hover:text-white">{t('nav.refund')}</Link>
           </nav>
         </div>
         <div className="border-t border-white/10 py-4 text-center text-xs text-white/70">
