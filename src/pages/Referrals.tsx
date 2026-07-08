@@ -62,6 +62,11 @@ function ReferralsInner() {
           ))}
         </ol>
       </div>
+
+      <div className="card p-6 mt-5">
+        <h2 className="font-bold text-navy">{t('referrals.terms.title')}</h2>
+        <p className="mt-3 text-sm text-navy/70 leading-relaxed whitespace-pre-line">{t('referrals.terms.body')}</p>
+      </div>
     </div>
   );
 }
