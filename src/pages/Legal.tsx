@@ -1,5 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
+// TODO(legal-review): legal.refund.body (src/i18n/locales/*.json) currently states
+// an absolute no-refund policy. Turkey's Distance Contracts Regulation (Mesafeli
+// Sözleşmeler Yönetmeliği) grants consumers a 14-day withdrawal right on remote
+// digital services unless they've given explicit prior consent to lose that right
+// once performance starts immediately. Have Turkish consumer-law counsel review
+// this policy against that regulation before launch — do not edit the refund text
+// itself without their sign-off.
 export function Legal({ doc }: { doc: 'terms' | 'privacy' | 'refund' }) {
   const { t } = useTranslation();
   return (
