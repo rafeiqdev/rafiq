@@ -149,9 +149,9 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-export function AppIcon({ name, className = 'w-5 h-5' }: { name: IconName; className?: string }) {
+export function AppIcon({ name, className = 'w-5 h-5', fill }: { name: IconName; className?: string; fill?: string }) {
   const C = ICONS[name];
-  return <C className={className} strokeWidth={1.8} aria-hidden />;
+  return <C className={className} strokeWidth={1.8} fill={fill} aria-hidden />;
 }
 
 /** Directional arrow that flips in RTL (via the .dir-arrow CSS rule). */

@@ -24,7 +24,7 @@ export function Testimonials() {
               >
                 <div className="flex gap-0.5 text-gold-light">
                   {Array.from({ length: 5 }).map((_, s) => (
-                    <AppIcon key={s} name="star" className="w-4 h-4" />
+                    <AppIcon key={s} name="star" className="w-4 h-4" fill="currentColor" />
                   ))}
                 </div>
                 <blockquote className="mt-3 text-sm text-white/85 leading-relaxed flex-1">
