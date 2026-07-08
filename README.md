@@ -72,7 +72,60 @@ scripts/check-i18n-parity.mjs  locale key-set guard (also in CI)
 
 ## Naming note
 
-The product ships as **Rafiq Istanbul** everywhere (locales, logo, titles). If
-the "Mawadda / مودة" rebrand is decided, change `common.appName` in the four
-locale files, `public/logo.svg`, the `<title>`/OG tags in `index.html`, and the
-`Logo` alt text together.
+The product ships as **Rafiq Istanbul** everywhere (locales, logo, titles). The
+"Mawadda / مودة" rebrand is still an open business decision, not yet executed.
+This is a full impact map of what a rename actually touches, so the decision
+can be made with the real blast radius in view — no changes below are made
+until the rename is decided.
+
+**Trivial — single string, no design work:**
+- `common.appName` in the four locale files (`src/i18n/locales/*.json`) — the
+  one key the current note already called out.
+- `package.json` → `"name": "rafiq-istanbul"` (npm package name, cosmetic).
+- Header comments in `src/data/services.ts` and similar source files.
+
+**Requires real design/content work, not just find-and-replace:**
+- `public/logo.svg` — the wordmark "RAFIQ" is drawn directly into the SVG
+  (`<text>` element), not just a filename. A rename means a new logo design,
+  not a text swap.
+- `public/logo-rafiq.webp`, `public/logo-rafiq-square.png` — actual logo
+  image assets; filenames and the images themselves both need replacing.
+  Referenced from `src/components/Logo.tsx` (`src` + `alt` text) and
+  `index.html` (favicon link).
+- `public/og-cover.png` — the social-share preview image likely has the
+  current wordmark baked in visually; needs re-export, not just a rename.
+- `public/manifest.webmanifest` — `name`/`short_name` control what shows on a
+  user's home screen if the site is installed as a PWA. Existing installs
+  won't auto-update this until the manifest is refetched.
+- `index.html` — `<title>`, canonical URL, `og:title`, `og:url`, `og:image`,
+  `twitter:title`, `twitter:image`. Several of these are also tied to the
+  **deployed domain** (see below), not just visible text.
+- `src/data/guides-ar.json` — the brand name appears **32 times** inline in
+  long-form Arabic guide prose (not a single reusable key), so this is a real
+  editorial pass through real sentences, not a mechanical replace. The
+  equivalent en/ru/fa guide content should be checked too.
+- `server/ai-policy.mjs` → `SYSTEM_PROMPT` literally instructs the AI: *"You
+  are Rafiq, the multilingual assistant of Rafiq Istanbul..."* — without
+  updating this, the chat assistant keeps introducing itself as "Rafiq" after
+  a UI rebrand. Also note `chat.greeting`/`chat.typing`/`chat.disclaimer` in
+  all four locale files use "Rafiq" as the assistant's own first-person name,
+  separately from `common.appName`.
+
+**Business/legal decisions, not app changes:**
+- `.env` → `BANK_HOLDER` is currently `"Rafiq Istanbul Danışmanlık Ltd. Şti."`
+  — this is the **registered legal company name** shown to customers making
+  manual bank transfers. A brand rename does NOT change this unless the legal
+  entity itself is renamed, which is a separate, much bigger corporate step.
+  Shipping a "Mawadda" UI while bank transfers still show "Rafiq Istanbul
+  Danışmanlık Ltd. Şti." is a legitimate scenario to plan for, not a bug.
+- **Deployed domain**: the live site is `rafiq-istanbul.vercel.app`
+  (`.vercel/project.json` → `projectName: "rafiq-istanbul"`). A UI rename
+  without a new custom domain means the address bar still reads
+  "rafiq-istanbul.vercel.app" under a "Mawadda" brand — a real, easy-to-miss
+  mismatch that undermines the rebrand unless a new domain is purchased and
+  configured (and the old one redirected).
+
+**Intentionally out of scope for any rename:**
+- `CHANGES.md`, `rafiq-audit.md` — historical records; rewriting the brand
+  name into past changelog/audit entries would falsify history and should not
+  happen even after a rename ships.
