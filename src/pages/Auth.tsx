@@ -138,10 +138,10 @@ export function Auth() {
           }}
         >
           {mode === 'register' && (
-            <div>
+            <label className="text-xs font-semibold text-navy/70">
+              {t('common.name')}
               <input
-                className={`input ${nameError ? 'border-brand-red ring-1 ring-brand-red' : ''}`}
-                placeholder={t('common.name')}
+                className={`input mt-1 ${nameError ? 'border-brand-red ring-1 ring-brand-red' : ''}`}
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -151,32 +151,36 @@ export function Auth() {
                 aria-invalid={!!nameError}
               />
               {nameError && (
-                <p role="alert" className="mt-1 flex items-center gap-1 text-xs text-brand-red">
+                <span className="mt-1 flex items-center gap-1 text-xs font-normal text-brand-red">
                   <AppIcon name="alert-triangle" className="w-3.5 h-3.5 shrink-0" />
                   {t(nameError)}
-                </p>
+                </span>
               )}
-            </div>
+            </label>
           )}
-          <input
-            className="input"
-            type="email"
-            required
-            placeholder={t('common.email')}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-          <input
-            className="input"
-            type="password"
-            required
-            minLength={mode === 'register' ? 8 : undefined}
-            placeholder={t('common.password')}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-          />
+          <label className="text-xs font-semibold text-navy/70">
+            {t('common.email')}
+            <input
+              className="input mt-1"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </label>
+          <label className="text-xs font-semibold text-navy/70">
+            {t('common.password')}
+            <input
+              className="input mt-1"
+              type="password"
+              required
+              minLength={mode === 'register' ? 8 : undefined}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+            />
+          </label>
           {notice && (
             <p role="status" className="rounded-xl bg-brand-blue/60 text-navy text-sm px-3 py-2 flex items-center gap-2">
               <AppIcon name="mail" className="w-4 h-4 shrink-0" />
