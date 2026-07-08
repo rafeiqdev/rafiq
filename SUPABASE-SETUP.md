@@ -64,6 +64,27 @@ don't exist until the migration is applied, which would break the existing
 
 ---
 
+## 📨 LEAD-CAPTURE EMAIL + INSTANT NOTIFY (2026-07-09) — migration required
+
+The no-login "Help me with this" flow (services + hub guides) now collects an
+optional email, and every new `service_requests` row can ping an external
+webhook instantly instead of relying on someone checking the admin dashboard.
+
+1. **Run the migration** in `iseldofsfhwvpfzltqet` → SQL Editor → paste
+   **`supabase/migrations/20260709_lead_capture_email.sql`** → Run. Adds the
+   `email` column, enables `pg_net`, and installs an `AFTER INSERT` trigger on
+   `service_requests`. Additive + idempotent — safe to run any time.
+2. **Activate the webhook** (optional — the trigger silently no-ops until this
+   is set): pick any URL that accepts a JSON POST (Slack incoming webhook,
+   Zapier "Catch Hook", Make webhook, your own endpoint), then in SQL Editor:
+   ```sql
+   alter database postgres set app.lead_webhook_url = 'https://your-webhook-url';
+   ```
+   Each new lead posts `{name, phone, email, message, service_title, category,
+   service_type, lang, created_at}` as JSON.
+
+---
+
 ## ✅ STATUS — wiring is DONE
 
 The app now runs **fully on Supabase** (Auth + Postgres + Storage). The old

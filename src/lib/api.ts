@@ -706,6 +706,7 @@ export const places = {
 export interface ServiceRequestInput {
   name: string;
   phone: string;
+  email?: string;
   message?: string;
   serviceId: string;
   serviceTitle: string;
@@ -749,6 +750,7 @@ export const serviceRequests = {
       .insert({
         name: input.name,
         phone: input.phone,
+        email: input.email ?? null,
         message: input.message ?? null,
         service_id: input.serviceId,
         service_title: input.serviceTitle,

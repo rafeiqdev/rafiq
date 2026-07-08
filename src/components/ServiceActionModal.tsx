@@ -28,7 +28,14 @@ export function ServiceActionModal({ service, onClose }: { service: ServiceItem;
     track('guide_choice_shown', { service_slug: service.id, lang: i18n.language });
   }, [service.id, i18n.language]);
 
-  if (showRequest) return <ServiceRequestModal service={service} onClose={onClose} />;
+  if (showRequest) {
+    return (
+      <ServiceRequestModal
+        source={{ id: service.id, title: pickText(service.title, i18n.language), category: service.category, type: service.type }}
+        onClose={onClose}
+      />
+    );
+  }
 
   const goGuide = () => {
     track('diy_clicked', { service_slug: service.id, lang: i18n.language });

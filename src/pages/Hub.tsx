@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ServiceRequestModal } from '../components/ServiceRequestModal';
 
 export const GUIDE_SLUGS = ['istanbulkart', 'esim', 'ikamet', 'vergi', 'bank', 'districts'] as const;
 
@@ -45,6 +47,7 @@ export function HubDetail() {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const valid = slug && (GUIDE_SLUGS as readonly string[]).includes(slug);
+  const [helping, setHelping] = useState(false);
 
   if (!valid) {
     return (
@@ -69,11 +72,17 @@ export function HubDetail() {
         </div>
         <h1 className="mt-4 text-2xl font-extrabold text-navy leading-snug">{t(`hub.guides.${slug}.title`)}</h1>
         <p className="mt-4 text-navy/80 leading-relaxed">{t(`hub.guides.${slug}.body`)}</p>
-        <Link to="/premium" className="btn-primary mt-8">
+        <button onClick={() => setHelping(true)} className="btn-primary mt-8">
           <MessageCircle className="w-4 h-4" strokeWidth={1.8} aria-hidden />
           {t('common.helpMe')}
-        </Link>
+        </button>
       </div>
+      {helping && (
+        <ServiceRequestModal
+          source={{ id: `hub:${slug}`, title: t(`hub.guides.${slug}.title`), category: 'hub', type: 'guide' }}
+          onClose={() => setHelping(false)}
+        />
+      )}
     </div>
   );
 }

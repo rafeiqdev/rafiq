@@ -1,12 +1,19 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { serviceRequests, ApiError } from '../lib/api';
-import { pickText } from '../data/services';
-import type { ServiceItem } from '../data/services';
 import { ISTANBUL_AREAS, pickArea } from '../data/istanbulAreas';
 import { useApp } from '../context/AppContext';
 import { Modal } from './Modal';
 import { AppIcon } from './AppIcon';
+
+/** Anything a lead can be requested about — a catalog service or a hub guide. */
+export interface LeadSource {
+  id: string;
+  title: string;
+  category: string;
+  /** 'direct' | 'partner' (catalog services) or 'guide' (hub self-help guides) */
+  type: string;
+}
 
 // Admin WhatsApp number (international, no "+"). The placeholder is treated as
 // "not configured" so we just confirm the request instead of opening WhatsApp.
@@ -28,16 +35,17 @@ function isValidName(s: string): boolean {
   return v.length >= 3 && (v.match(/\p{L}/gu)?.length ?? 0) >= 2;
 }
 
-export function ServiceRequestModal({ service, onClose }: { service: ServiceItem; onClose: () => void }) {
+export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
   const lang = i18n.language;
-  const serviceTitle = pickText(service.title, lang);
+  const serviceTitle = source.title;
   // A trusted-partner request from a logged-in customer is BROADCAST to matching
   // companies (they compete). Direct services / logged-out keep the classic flow.
-  const broadcast = service.type === 'partner' && !!user;
+  const broadcast = source.type === 'partner' && !!user;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [area, setArea] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -66,11 +74,12 @@ export function ServiceRequestModal({ service, onClose }: { service: ServiceItem
       await serviceRequests.create({
         name: name.trim(),
         phone: phone.trim(),
+        email: email.trim() || undefined,
         message: message.trim() || undefined,
-        serviceId: service.id,
+        serviceId: source.id,
         serviceTitle,
-        category: service.category,
-        serviceType: service.type,
+        category: source.category,
+        serviceType: source.type,
         lang,
         area: broadcast ? area || undefined : undefined,
         broadcast,
@@ -160,6 +169,17 @@ export function ServiceRequestModal({ service, onClose }: { service: ServiceItem
                     </span>
                   )}
                 </label>
+                <label className="text-xs font-semibold text-navy/70">
+                  {t('services.modal.email')}
+                  <input
+                    className="input mt-1"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    dir="ltr"
+                    autoComplete="email"
+                  />
+                </label>
                 {broadcast && (
                   <label className="text-xs font-semibold text-navy/70">
                     {t('services.modal.area')}
@@ -193,6 +213,7 @@ export function ServiceRequestModal({ service, onClose }: { service: ServiceItem
                   {t('services.modal.error')}
                 </p>
               )}
+              <p className="mt-3 text-xs text-center text-navy/50">{t('services.modal.noAccountNote')}</p>
               <div className="mt-5 flex gap-2">
                 <button onClick={onClose} className="btn-secondary flex-1">
                   {t('common.cancel')}

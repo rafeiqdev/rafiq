@@ -220,7 +220,12 @@ export function GuidePage() {
         </button>
       </div>
 
-      {requesting && service && <ServiceRequestModal service={service} onClose={() => setRequesting(false)} />}
+      {requesting && service && (
+        <ServiceRequestModal
+          source={{ id: service.id, title, category: service.category, type: service.type }}
+          onClose={() => setRequesting(false)}
+        />
+      )}
     </div>
   );
 }
