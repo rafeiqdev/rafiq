@@ -54,7 +54,6 @@
   "nav": {
     "home": "Home",
     "contact": "Contact us",
-    "smart": "Smart Consultation",
     "premium": "AI Assistant",
     "map": "Map",
     "hub": "Guides",
@@ -165,15 +164,12 @@
     "heroSubtitle": "Residency, banking, housing, health and daily life — guided step by step in your language.",
     "searchPlaceholder": "Search guides and services...",
     "searchAllResults": "See all results",
-    "yourPlan": "Your plan",
     "forYou": "Your personalized plan",
     "editAnswers": "Change my answers",
-    "heroCtaPrimary": "Get help now",
-    "heroCtaSecondary": "Explore services",
     "trustbar": {
       "languages": "4 languages",
       "experts": "Expert support",
-      "free": "Free first consultation",
+      "free": "Free call after assessment",
       "secure": "KVKK-compliant"
     },
     "how": {
@@ -247,11 +243,11 @@
       },
       "q4": {
         "q": "Is it true some Istanbul districts are closed to new residents?",
-        "a": "Yes. Roughly a quarter of Istanbul districts are closed to new residence-permit registrations. Always verify your district is open BEFORE signing a rental contract, or your application can be rejected."
+        "a": "Yes. A number of Istanbul districts are closed to new residence-permit registrations at any given time. Always verify your specific district is open BEFORE signing a rental contract, or your application can be rejected."
       },
       "q5": {
         "q": "Can I get Turkish citizenship by buying property?",
-        "a": "Yes, through citizenship by investment. A qualifying property purchase above the official threshold, held for three years, can make you eligible. Our real-estate listings marked “Citizenship eligible” meet the criteria, and our legal team verifies every title deed."
+        "a": "Property investment can make you eligible to apply for citizenship — it does not guarantee approval. You must buy above the official threshold and hold the property for three years; the final decision belongs solely to the Turkish government after its own review. Listings marked “Meets citizenship threshold” satisfy the investment amount, and our legal team verifies every title deed, but no purchase can promise citizenship itself."
       },
       "q6": {
         "q": "How does the free expert appointment work?",
@@ -287,7 +283,7 @@
     "preArrival": {
       "title": "Before you fly: visa & documents",
       "body": "Check the visa rules for your nationality, and prepare your documents BEFORE flying: apostille your diplomas and civil records, and plan for sworn translation (yeminli tercüme) in Turkey.",
-      "warning": "Important: about 25% of Istanbul districts are closed to new residence-permit registrations. Check your district before signing a rental contract.",
+      "warning": "Important: a number of Istanbul districts are closed to new residence-permit registrations at any given time. Check your specific district before signing a rental contract.",
       "cta": "See the pre-arrival checklist"
     },
     "arrivalPackage": {
@@ -355,7 +351,7 @@
     "residenceBlock": {
       "title": "Residence permit (İkamet)",
       "body": "Register your address, apply on e-İkamet, and buy the mandatory health insurance before your appointment.",
-      "warning": "About 25% of Istanbul districts are closed to new residence registrations — verify your district BEFORE renting.",
+      "warning": "A number of Istanbul districts are closed to new residence registrations at any given time — verify your specific district BEFORE renting.",
       "duration": "Application 1 day; card in 2–8 weeks",
       "docs": [
         "Passport",
@@ -587,7 +583,7 @@
     "askAi": "Discuss with the AI assistant"
   },
   "chat": {
-    "title": "AI Consultation Hub",
+    "title": "AI Assistant",
     "subtitle": "Ask anything about residency, real estate, health or settling in.",
     "placeholder": "Describe your situation...",
     "disclaimer": "Rafiq AI gives general guidance, not legal advice.",
@@ -660,12 +656,16 @@
       "step1": "Share your personal link with friends moving to Turkey.",
       "step2": "They sign up and subscribe to any plan.",
       "step3": "You receive 30% commission on every payment, forever."
+    },
+    "terms": {
+      "title": "Referral program terms",
+      "body": "You earn 30% commission on payments made by people who sign up with your link, for as long as they remain an active paying customer.\n\nCommissions are tracked in your dashboard; payout is arranged directly with our team — contact us to request a settlement.\n\nRafiq Istanbul may set a maximum payout, cap, or eligibility limit for the program at its discretion, and may withhold or reverse commissions in cases of fraud, self-referral, or fake accounts.\n\nMoving or living outside Turkey does not cancel commissions you've already earned. We may update or end the referral program for future referrals at any time; commissions already earned remain payable under these terms."
     }
   },
   "residency": {
     "title": "Residence permits (İkamet)",
     "subtitle": "Every permit type, explained step by step.",
-    "warning": "About 25% of Istanbul districts are currently closed to new residence registrations. Always verify the district before signing a rental contract.",
+    "warning": "A number of Istanbul districts are closed to new residence registrations at any given time. Always verify the district before signing a rental contract.",
     "types": {
       "shortTerm": {
         "title": "Short-term residence",
@@ -695,7 +695,7 @@
   "realEstate": {
     "title": "Real estate in Istanbul",
     "subtitle": "Curated listings with legal checks done for you.",
-    "citizenshipBadge": "Citizenship eligible",
+    "citizenshipBadge": "Meets citizenship threshold",
     "perM2": "m²",
     "rooms": "Rooms",
     "cta": "Request details",
@@ -713,11 +713,11 @@
     "services": {
       "hair": {
         "title": "Hair transplant (DHI / FUE)",
-        "body": "JCI-accredited clinics, transparent graft pricing, hotel + transfer packages."
+        "body": "Clinics selected for high quality standards, transparent graft pricing, hotel + transfer packages."
       },
       "dental": {
         "title": "Dental treatment",
-        "body": "Implants, veneers and full smile makeovers — typically 50–70% below EU prices."
+        "body": "Implants, veneers and full smile makeovers — significantly below EU prices."
       },
       "checkup": {
         "title": "Full check-up",
@@ -838,7 +838,7 @@
       "ikamet": {
         "title": "İkamet: residence permit from A to Z",
         "excerpt": "The full application flow, documents, and the closed-district trap.",
-        "body": "The residence permit (ikamet) flow: get a tax number, buy mandatory health insurance, register your address with a notarized rental contract, then apply on the e-İkamet portal and attend your appointment with biometric photos and document copies. Critical: roughly a quarter of Istanbul districts are closed to new registrations — verify your district is open BEFORE you sign a rental contract."
+        "body": "The residence permit (ikamet) flow: get a tax number, buy mandatory health insurance, register your address with a notarized rental contract, then apply on the e-İkamet portal and attend your appointment with biometric photos and document copies. Critical: a number of Istanbul districts are closed to new registrations at any given time — verify your district is open BEFORE you sign a rental contract."
       },
       "vergi": {
         "title": "Vergi No: your Turkish tax number",
