@@ -3,18 +3,21 @@ import { useTranslation } from 'react-i18next';
 /** Floating WhatsApp button. Reads VITE_WHATSAPP_NUMBER (digits only); pass a
  *  per-page prefilled message via the `message` prop. */
 const NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
+const CONFIGURED = !!NUMBER && NUMBER !== '905000000000';
 
-// Dev-only guard: warn if the real number isn't configured, so the WhatsApp
-// hand-off doesn't silently point nowhere. Set it in .env + Vercel env vars.
-if (import.meta.env.DEV && (!NUMBER || NUMBER === '905000000000')) {
+// Warn in dev so the missing/placeholder number gets noticed during setup, but
+// the button itself is hidden in EVERY environment (see the render guard below)
+// so production never hands a customer off to a wrong or empty chat.
+if (import.meta.env.DEV && !CONFIGURED) {
   // eslint-disable-next-line no-console
-  console.warn('[Rafiq] VITE_WHATSAPP_NUMBER is missing or still the placeholder (905000000000).');
+  console.warn('[Rafiq] VITE_WHATSAPP_NUMBER is missing or still the placeholder (905000000000). The WhatsApp button is hidden until it is set.');
 }
 
 export function WhatsAppButton({ message }: { message?: string }) {
   const { t } = useTranslation();
+  if (!CONFIGURED) return null;
   const text = encodeURIComponent(message || t('whatsapp.default'));
-  const href = NUMBER ? `https://wa.me/${NUMBER}?text=${text}` : `https://wa.me/?text=${text}`;
+  const href = `https://wa.me/${NUMBER}?text=${text}`;
 
   return (
     <a
