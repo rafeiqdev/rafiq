@@ -6,3 +6,7 @@ server/uploads/
 *.local
 
 .vercel
+.gstack/
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
