@@ -7,23 +7,16 @@ import { BlockCard } from '../blocks/BlockCard';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ImageCarousel } from '../components/ImageCarousel';
-import { SiteImage } from '../components/SiteImage';
-import { CAROUSEL, EXPLORE_PHOTOS } from '../lib/images';
+import { CAROUSEL } from '../lib/images';
 import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../data/services';
 import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { AboutSection } from '../components/sections/AboutSection';
 
-const EXPLORE: { to: string; icon: IconName; titleKey: string; descKey: string }[] = [
-  { to: '/tricks', icon: 'lightbulb', titleKey: 'nav.tricks', descKey: 'tricks.subtitle' },
-  { to: '/residency', icon: 'id-card', titleKey: 'nav.residency', descKey: 'residency.subtitle' },
-  { to: '/real-estate', icon: 'building', titleKey: 'nav.realEstate', descKey: 'realEstate.subtitle' },
-  { to: '/health-tourism', icon: 'heart-pulse', titleKey: 'nav.health', descKey: 'health.subtitle' },
-  { to: '/map', icon: 'map', titleKey: 'nav.map', descKey: 'map.subtitle' },
-  { to: '/hub', icon: 'file-text', titleKey: 'nav.hub', descKey: 'hub.subtitle' },
-  { to: '/referrals', icon: 'gift', titleKey: 'nav.referrals', descKey: 'referrals.subtitle' },
-  { to: '/pricing', icon: 'star', titleKey: 'nav.pricing', descKey: 'pricing.subtitle' },
-];
+// P-simplify3: the old standalone "استكشف كل شي" grid (8 cards) duplicated
+// links already reachable from the header nav / services dropdown, and was
+// one of the 9 stacked sections making Home too long on mobile. Removed —
+// see خطة_تبسيط_التصميم.md section 3, option أ.
 
 const TRUST: { icon: IconName; key: string }[] = [
   { icon: 'languages', key: 'languages' },
@@ -36,10 +29,14 @@ const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 
 export function Home() {
   const { t, i18n } = useTranslation();
-  const { profile, resetOnboarding } = useApp();
+  const { profile } = useApp();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  // P-simplify3: personalized blocks can reach ~9 cards depending on profile —
+  // show the top 3 (already priority-sorted by blocksFor) by default with an
+  // explicit "اعرض الباقي" instead of dumping all of them on load.
+  const [showAllBlocks, setShowAllBlocks] = useState(false);
 
   // typing in the hero search and pressing Enter (or the icon) jumps to the
   // full services catalog, pre-filtered by the query
@@ -65,6 +62,10 @@ export function Home() {
         `${t(`blocks.${b.id}.title`)} ${t(`blocks.${b.id}.body`)}`.toLowerCase().includes(query.trim().toLowerCase()),
       )
     : blocks;
+  // a search query is explicit intent — never truncate matched results, only
+  // the untouched default list.
+  const visibleBlocks = query.trim() || showAllBlocks ? visible : visible.slice(0, 3);
+  const hasMoreBlocks = !query.trim() && !showAllBlocks && visible.length > 3;
 
   return (
     <div>
@@ -158,18 +159,22 @@ export function Home() {
 
       {/* personalized blocks */}
       <section className="mx-auto max-w-6xl px-4 py-10">
+        {/* Guests have no saved answers to edit — the button here used to
+            re-open the legacy modal. Personalization now starts at sign-in. */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="section-title">{t('home.forYou')}</h2>
-          <button onClick={resetOnboarding} className="btn-secondary h-9 px-3 text-xs">
-            <AppIcon name="pencil" className="w-3.5 h-3.5" />
-            {t('home.editAnswers')}
-          </button>
         </div>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-          {visible.map((b) => (
+          {visibleBlocks.map((b) => (
             <BlockCard key={b.id} block={b} />
           ))}
         </div>
+
+        {hasMoreBlocks && (
+          <button onClick={() => setShowAllBlocks(true)} className="btn-secondary w-full mt-5 sm:w-auto">
+            {t('common.viewAll')} ({visible.length - 3}+)
+          </button>
+        )}
 
         {/* CTA: explore the full services catalog */}
         <Link
@@ -188,41 +193,6 @@ export function Home() {
             <DirArrow className="w-4 h-4" />
           </span>
         </Link>
-      </section>
-
-      {/* explore everything — every section reachable from the main page */}
-      <section className="bg-cream/60 border-y border-cream-dark">
-        <div className="mx-auto max-w-6xl px-4 py-10">
-          <h2 className="section-title">{t('home.explore.title')}</h2>
-          <p className="mt-1 text-sm text-navy/60">{t('home.explore.subtitle')}</p>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 stagger">
-            {EXPLORE.map((e, i) => (
-              <Link
-                key={e.to}
-                to={e.to}
-                className="card card-hover group relative overflow-hidden h-40 sm:h-44 lg:h-48 flex flex-col justify-end"
-                style={{ '--i': i } as React.CSSProperties}
-              >
-                {/* subject background photo */}
-                <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105">
-                  <SiteImage src={EXPLORE_PHOTOS[e.to]} alt="" className="w-full h-full" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/95 via-navy/60 to-navy/20" aria-hidden />
-                <div className="relative p-3 sm:p-4 text-white">
-                  <span className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 border border-white/25 backdrop-blur mb-1.5 sm:mb-2">
-                    <AppIcon name={e.icon} className="w-4 h-4" />
-                  </span>
-                  <h3 className="font-bold leading-snug text-sm sm:text-base">{t(e.titleKey)}</h3>
-                  <p className="mt-0.5 text-xs text-white/80 line-clamp-2">{t(e.descKey)}</p>
-                  <span className="mt-2 text-sm font-semibold hidden sm:inline-flex items-center gap-1 text-gold-light">
-                    {t('common.learnMore')}
-                    <DirArrow className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* how it works */}
@@ -256,18 +226,6 @@ export function Home() {
             {t('home.faq.ctaButton')}
           </Link>
         </div>
-      </section>
-
-      {/* final CTA: view all Rafiq services (red button) */}
-      <section className="px-4 pb-16 text-center">
-        <Link
-          to="/services"
-          className="inline-flex items-center justify-center gap-2 rounded-btn bg-brand-red text-white font-extrabold px-5 sm:px-8 h-14 text-base shadow-card hover:opacity-90 transition-opacity max-w-full whitespace-normal text-center"
-        >
-          <AppIcon name="layers" className="w-5 h-5" />
-          {t('home.servicesCta.bottom')}
-          <DirArrow className="w-4 h-4" />
-        </Link>
       </section>
     </div>
   );

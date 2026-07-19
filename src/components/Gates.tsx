@@ -1,13 +1,27 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { AppIcon, DirArrow } from './AppIcon';
 
+/**
+ * Neutral placeholder shown while the session is still being restored.
+ * Without it every guard would paint its wall on the first frame and then
+ * swap to the real page a moment later — the flash users reported.
+ */
+function GatePending() {
+  return (
+    <div className="mx-auto max-w-md px-4 py-20 text-center" aria-busy>
+      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-cream-dark border-t-gold" />
+    </div>
+  );
+}
+
 /** Sign-in wall for auth-gated routes. */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { user } = useApp();
+  const { user, authLoading } = useApp();
+  if (authLoading) return <GatePending />;
   if (user) return <>{children}</>;
   return (
     <div className="mx-auto max-w-md px-4 py-20 text-center">
@@ -25,10 +39,35 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Onboarding wall for the personalized product surface (/home, /journey,
+ * /account, /profile).
+ *
+ * The single decision point for the whole flow:
+ *   auth loading            → neutral placeholder (never a personalized frame)
+ *   signed out              → the sign-in wall, NOT a redirect (a guest sent to
+ *                             /onboarding would bounce back here forever)
+ *   onboarding incomplete   → replace into /onboarding, so Back cannot return
+ *                             to the invalid state we just left
+ *   onboarding complete     → the page
+ *
+ * `authLoading` covers the profile too: auth.me() returns session, user and
+ * answers in one response, so by the time it clears, completion is known — the
+ * caller never paints personalized content on a guess.
+ */
+export function RequireOnboarded({ children }: { children: ReactNode }) {
+  const { user, authLoading, onboardingCompleted } = useApp();
+  if (authLoading) return <GatePending />;
+  if (!user) return <RequireAuth>{children}</RequireAuth>;
+  if (!onboardingCompleted) return <Navigate to="/onboarding" replace />;
+  return <>{children}</>;
+}
+
 /** Admin wall: restricted to admin emails. */
 export function RequireAdmin({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { user } = useApp();
+  const { user, authLoading } = useApp();
+  if (authLoading) return <GatePending />;
   if (user?.isAdmin) return <>{children}</>;
   return (
     <RequireAuth>
@@ -47,7 +86,8 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
 /** Company-portal wall: restricted to the 'company' role (admins pass too). */
 export function RequireCompany({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { user } = useApp();
+  const { user, authLoading } = useApp();
+  if (authLoading) return <GatePending />;
   if (user?.isCompany || user?.isAdmin) return <>{children}</>;
   return (
     <RequireAuth>
@@ -83,7 +123,10 @@ export function UpsellGate({
   blurredPreview?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const { tier } = useApp();
+  const { tier, authLoading } = useApp();
+  // `tier` defaults to 'free', so a paying user would see the up-sell flash
+  // before their subscription loads.
+  if (authLoading) return <GatePending />;
   const allowed = tier === 'pro' || tier === 'elite';
   if (allowed) return <>{children}</>;
 

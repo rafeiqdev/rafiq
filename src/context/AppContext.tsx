@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { auth, config as configApi, profileApi, referrals } from '../lib/api';
+import { AI_FREE_PERIOD, auth, config as configApi, profileApi, referrals } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { AppConfig, PlanTier, Profile, Subscription, User } from '../lib/types';
 import { EMPTY_PROFILE } from '../lib/types';
@@ -27,16 +27,23 @@ function clearLocalUserData() {
 
 interface AppState {
   user: User | null;
+  /** true until the first session lookup finishes — guards must wait on it */
+  authLoading: boolean;
   tier: PlanTier;
   subscription: Subscription | null;
   profile: Profile;
-  onboarded: boolean;
+  /**
+   * Whether this account finished onboarding. Sourced from the server only
+   * (`profiles.onboarding_completed`, with the server-returned answers as a
+   * pre-migration fallback) — never from localStorage, so a stale local blob
+   * can neither skip nor re-trigger the flow.
+   */
+  onboardingCompleted: boolean;
   langSelected: boolean;
   unread: number;
   appConfig: AppConfig;
   setLangSelected: (v: boolean) => void;
   updateProfile: (patch: Partial<Profile>) => void;
-  resetOnboarding: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<{ needsConfirmation: boolean }>;
   googleSignIn: () => Promise<void>;
@@ -48,17 +55,21 @@ const Ctx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [tier, setTier] = useState<PlanTier>('free');
   const [profile, setProfile] = useState<Profile>(loadLocalProfile);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [unread, setUnread] = useState(0);
-  const [appConfig, setAppConfig] = useState<AppConfig>({ googleClientId: null, freeChatMessages: 3 });
+  const [appConfig, setAppConfig] = useState<AppConfig>({
+    googleClientId: null,
+    freeChatMessages: 3,
+    aiFreePeriod: AI_FREE_PERIOD,
+  });
   const [langSelected, setLangSelectedState] = useState(
     () => localStorage.getItem('rafiq_lang_selected') === 'true',
   );
   const refAttributed = useRef(false);
-
-  const onboarded = profile.path !== null;
 
   const refresh = useCallback(async () => {
     try {
@@ -67,6 +78,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSubscription(me.subscription ?? null);
       setTier(me.tier ?? 'free');
       setUnread(me.unread ?? 0);
+      // Canonical column first; `me.profile.situation` only covers accounts
+      // saved before the journey migration added the column. Both come off the
+      // server response — the local blob is deliberately not consulted.
+      setOnboardingCompleted(Boolean(me.user?.onboardingCompleted) || Boolean(me.profile?.situation));
       if (me.user) {
         // attribute a stored referral code once (works for email + Google signups)
         const ref = localStorage.getItem('rafiq_ref');
@@ -90,11 +105,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSubscription(null);
       setTier('free');
       setUnread(0);
+      setOnboardingCompleted(false);
+    } finally {
+      setAuthLoading(false);
     }
   }, []);
 
   useEffect(() => {
     refresh();
+    // A stalled session lookup must not pin every guard on its spinner — that
+    // would turn a brief flash into the freeze it was meant to fix. After this
+    // the guards fall back to the signed-out view; a late `refresh()` still
+    // corrects them.
+    const bail = setTimeout(() => setAuthLoading(false), 3000);
     configApi
       .get()
       .then(setAppConfig)
@@ -103,7 +126,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const sub = supabase?.auth.onAuthStateChange(() => {
       refresh();
     });
-    return () => sub?.data.subscription.unsubscribe();
+    return () => {
+      clearTimeout(bail);
+      sub?.data.subscription.unsubscribe();
+    };
   }, [refresh]);
 
   const updateProfile = useCallback(
@@ -123,12 +149,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
-
-  const resetOnboarding = useCallback(() => {
-    localStorage.removeItem(PROFILE_KEY);
-    setProfile(EMPTY_PROFILE);
-    if (user) profileApi.save(EMPTY_PROFILE).catch(() => {});
-  }, [user]);
 
   const setLangSelected = useCallback((v: boolean) => {
     setLangSelectedState(v);
@@ -171,23 +191,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(
     () => ({
       user,
+      authLoading,
       tier,
       subscription,
       profile,
-      onboarded,
+      onboardingCompleted,
       langSelected,
       unread,
       appConfig,
       setLangSelected,
       updateProfile,
-      resetOnboarding,
       login,
       register,
       googleSignIn,
       signOut,
       refresh,
     }),
-    [user, tier, subscription, profile, onboarded, langSelected, unread, appConfig, setLangSelected, updateProfile, resetOnboarding, login, register, googleSignIn, signOut, refresh],
+    [user, authLoading, tier, subscription, profile, onboardingCompleted, langSelected, unread, appConfig, setLangSelected, updateProfile, login, register, googleSignIn, signOut, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

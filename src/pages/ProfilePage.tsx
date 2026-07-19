@@ -6,6 +6,7 @@ import { bookings, documents, leads } from '../lib/api';
 import type { Booking, Lead, StoredDocument } from '../lib/types';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon } from '../components/AppIcon';
+import { pickCity } from '../data/turkeyCities';
 
 function isoToDisplay(iso?: string): string {
   if (!iso) return '';
@@ -27,7 +28,7 @@ function daysUntil(iso?: string): number | null {
 
 function ProfileInner() {
   const { t, i18n } = useTranslation();
-  const { user, profile, updateProfile, resetOnboarding, signOut } = useApp();
+  const { user, profile, updateProfile, signOut } = useApp();
   const [docs, setDocs] = useState<StoredDocument[]>([]);
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [myLeads, setMyLeads] = useState<Lead[]>([]);
@@ -63,10 +64,64 @@ function ProfileInner() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold text-navy">{t('profile.title')}</h1>
-        <button onClick={() => signOut()} className="btn-secondary h-9 px-3 text-xs">
+        <button onClick={() => signOut()} className="btn-secondary h-9 px-3 text-xs min-h-[44px]">
           {t('common.signOut')}
         </button>
       </div>
+
+      {/* account summary — real data only (no fake documents/balances) */}
+      <section className="mt-5 rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center justify-center w-12 h-12 rounded-full bg-navy text-white font-extrabold shrink-0 overflow-hidden">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              (user?.name?.[0] ?? 'R').toUpperCase()
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="font-bold text-navy truncate">{user?.name}</p>
+            <p className="text-sm text-gray-500 break-all" dir="ltr">{user?.email}</p>
+          </div>
+        </div>
+
+        <dl className="mt-4 grid gap-2 sm:grid-cols-3 text-sm">
+          <div>
+            <dt className="text-gray-500 text-xs">{t('account.situation')}</dt>
+            <dd className="font-semibold text-navy">
+              {profile.situation ? t(`situationStatus.${profile.situation}`) : t('account.notSet')}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-gray-500 text-xs">{t('account.city')}</dt>
+            <dd className="font-semibold text-navy">
+              {profile.city ? pickCity(profile.city, i18n.language) : t('account.notSet')}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-gray-500 text-xs">{t('account.onboardingStatus')}</dt>
+            <dd className="font-semibold text-navy">
+              {user?.onboardingCompleted ? t('account.completed') : t('account.notCompleted')}
+            </dd>
+          </div>
+        </dl>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link to="/journey" className="btn-primary min-h-[44px] px-4 text-sm">
+            <AppIcon name="check-circle" className="w-4 h-4" />
+            {t('account.myJourney')}
+          </Link>
+          <Link to="/onboarding?edit=1" className="btn-secondary min-h-[44px] px-4 text-sm">
+            <AppIcon name="pencil" className="w-4 h-4" />
+            {t('account.editAnswers')}
+          </Link>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
+          <Link to="/terms" className="hover:text-navy hover:underline">{t('nav.terms')}</Link>
+          <Link to="/privacy" className="hover:text-navy hover:underline">{t('nav.privacy')}</Link>
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
         {/* persona */}
@@ -86,10 +141,12 @@ function ProfileInner() {
               <dd className="font-semibold text-navy text-end min-w-0 break-words">{profile.family ? t(`common.${profile.family}`) : '—'}</dd>
             </div>
           </dl>
-          <button onClick={resetOnboarding} className="btn-secondary w-full mt-4">
+          {/* Was a "wipe the answers and re-open the modal" trigger; it now
+              leads to the same /onboarding page, pre-filled. */}
+          <Link to="/onboarding?edit=1" className="btn-secondary w-full mt-4">
             <AppIcon name="pencil" className="w-4 h-4" />
             {t('profile.persona.edit')}
-          </button>
+          </Link>
         </div>
 
         {/* checklist */}
