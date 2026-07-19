@@ -33,13 +33,13 @@ export function Smart() {
           <div className="mt-4 flex items-center gap-4">
             <div className="relative w-24 h-24">
               <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#efeadb" strokeWidth="3.5" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#dceaf6" strokeWidth="3.5" />
                 <circle
                   cx="18"
                   cy="18"
                   r="15.9"
                   fill="none"
-                  stroke="#1a3a6b"
+                  stroke="#1d5f9e"
                   strokeWidth="3.5"
                   strokeDasharray={`${pct} 100`}
                   strokeLinecap="round"

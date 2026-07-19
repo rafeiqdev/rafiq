@@ -7,6 +7,15 @@ import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceActionModal } from '../components/ServiceActionModal';
 
+// P-simplify2: the catalog has 12 categories / 79 services. Rendering all of
+// them at once (the old default) was the biggest source of "too many
+// categories" — the chip row needed horizontal scroll on mobile and the page
+// became a very long stack of sections before the user asked for anything.
+// Default view now shows only these 6 (most relevant to an individual
+// newcomer) plus a "كل الفئات" toggle for the rest. A search query or an
+// explicit category click always shows full results regardless.
+const POPULAR_CATEGORY_IDS = ['residency', 'realestate', 'health', 'banking', 'translation', 'tourism'];
+
 function TypeBadge({ type }: { type: ServiceType }) {
   const { t } = useTranslation();
   if (type === 'partner') {
@@ -64,6 +73,7 @@ export function Services() {
   const [category, setCategory] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
   const [active, setActive] = useState<ServiceItem | null>(null);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
 
   const matches = useMemo(() => {
@@ -81,7 +91,14 @@ export function Services() {
     });
   }, [query, category, typeFilter, services]);
 
-  const visibleCategories = categories.filter((c) => matches.some((s) => s.category === c.id));
+  // Search or an explicit category pick always shows full results. Only the
+  // untouched "all categories, no search" landing state gets trimmed to the
+  // popular subset — that's the state that used to dump all 12 sections at once.
+  const trimToPopular = category === 'all' && !query.trim() && !showAllCategories;
+  const chipCategories = trimToPopular ? categories.filter((c) => POPULAR_CATEGORY_IDS.includes(c.id)) : categories;
+  const visibleCategories = (trimToPopular ? chipCategories : categories).filter((c) =>
+    matches.some((s) => s.category === c.id),
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -148,7 +165,7 @@ export function Services() {
         >
           {t('services.allCategories')}
         </button>
-        {categories.map((c) => (
+        {chipCategories.map((c) => (
           <button
             key={c.id}
             onClick={() => setCategory(c.id)}
@@ -161,6 +178,24 @@ export function Services() {
             {pickText(c.title, lang)}
           </button>
         ))}
+        {trimToPopular ? (
+          <button
+            onClick={() => setShowAllCategories(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border border-dashed border-navy/30 text-navy/70 hover:text-navy hover:border-navy/50 transition-colors"
+          >
+            {t('services.allCategories')} +
+          </button>
+        ) : (
+          !query.trim() &&
+          category === 'all' && (
+            <button
+              onClick={() => setShowAllCategories(false)}
+              className="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold border border-dashed border-navy/30 text-navy/70 hover:text-navy hover:border-navy/50 transition-colors"
+            >
+              {t('common.showLess')}
+            </button>
+          )
+        )}
       </div>
 
       {/* results grouped by category */}

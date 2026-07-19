@@ -5,6 +5,7 @@ import { ISTANBUL_AREAS, pickArea } from '../data/istanbulAreas';
 import { useApp } from '../context/AppContext';
 import { Modal } from './Modal';
 import { AppIcon } from './AppIcon';
+import { RequestBroadcast } from './RequestBroadcast';
 
 /** Anything a lead can be requested about — a catalog service or a hub guide. */
 export interface LeadSource {
@@ -50,6 +51,8 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  /** id of the row we just created — present only for signed-in customers */
+  const [requestId, setRequestId] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
@@ -71,7 +74,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
     setBusy(true);
     setError(false);
     try {
-      await serviceRequests.create({
+      const res = await serviceRequests.create({
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim() || undefined,
@@ -84,9 +87,14 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
         area: broadcast ? area || undefined : undefined,
         broadcast,
       });
+      setRequestId(res.id);
       setDone(true);
-      // hand off to WhatsApp if a real admin number is configured
-      if (WA_ENABLED) window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
+      // A signed-in customer now watches the live "broadcasting → waiting →
+      // ready" flow in-app, so we do NOT yank them out to WhatsApp. Anonymous
+      // submissions keep the original hand-off.
+      if (!res.id && WA_ENABLED) {
+        window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
+      }
     } catch (e) {
       setError(true);
       if (e instanceof ApiError && e.status === 503) setError(true);
@@ -104,7 +112,11 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
           </h2>
         </div>
         <div className="p-5">
-          {done ? (
+          {done && requestId ? (
+            /* signed-in customer → live broadcast animation, then the waiting
+               state that keeps loading until the admin marks the offer ready */
+            <RequestBroadcast requestId={requestId} serviceTitle={serviceTitle} onClose={onClose} />
+          ) : done ? (
             <div className="text-center">
               <div className="icon-chip mx-auto">
                 <AppIcon name="check-circle" className="w-6 h-6" />

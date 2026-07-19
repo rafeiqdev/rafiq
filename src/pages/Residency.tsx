@@ -7,10 +7,10 @@ import { BANNERS } from '../lib/images';
 import { IkametCard } from '../components/IkametCard';
 
 const TYPES: { id: string; icon: IconName; accent: string; label: string }[] = [
-  { id: 'shortTerm', icon: 'id-card', accent: '#1a3a6b', label: 'SHORT-TERM' },
-  { id: 'family', icon: 'users', accent: '#2c4f8a', label: 'FAMILY' },
+  { id: 'shortTerm', icon: 'id-card', accent: '#1d5f9e', label: 'SHORT-TERM' },
+  { id: 'family', icon: 'users', accent: '#2f7fc4', label: 'FAMILY' },
   { id: 'student', icon: 'graduation-cap', accent: '#3d63a5', label: 'STUDENT' },
-  { id: 'longTerm', icon: 'landmark', accent: '#12294d', label: 'LONG-TERM' },
+  { id: 'longTerm', icon: 'landmark', accent: '#163f6b', label: 'LONG-TERM' },
 ];
 
 export function Residency() {

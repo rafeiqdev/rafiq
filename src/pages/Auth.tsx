@@ -2,9 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { ApiError } from '../lib/api';
+import { ApiError, auth as authApi } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
+
+/**
+ * Where a just-signed-in user lands: onboarding until it's completed, then the
+ * personalized home. Reads the fresh session so it can't use stale context.
+ */
+async function landingRoute(): Promise<string> {
+  try {
+    const me = await authApi.me();
+    return me.user?.onboardingCompleted ? '/home' : '/onboarding';
+  } catch {
+    return '/home';
+  }
+}
 
 const ERROR_KEYS: Record<string, string> = {
   user_not_found: 'auth.errors.userNotFound',
@@ -69,14 +82,14 @@ export function Auth() {
     try {
       if (mode === 'signin') {
         await login(email, password);
-        navigate('/');
+        navigate(await landingRoute(), { replace: true });
       } else {
         const { needsConfirmation } = await register(email, password, name);
         if (needsConfirmation) {
           setNotice('auth.checkEmail');
           setMode('signin');
         } else {
-          navigate('/');
+          navigate(await landingRoute(), { replace: true });
         }
       }
     } catch (e) {

@@ -10,28 +10,28 @@ export function IstanbulSkyline({ className = '', height = 200 }: { className?: 
       <svg viewBox="0 0 1200 320" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
         <defs>
           <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1a3a6b" />
-            <stop offset="55%" stopColor="#2c4f8a" />
+            <stop offset="0%" stopColor="#1d5f9e" />
+            <stop offset="55%" stopColor="#2f7fc4" />
             <stop offset="100%" stopColor="#3d63a5" />
           </linearGradient>
           <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2c4f8a" />
-            <stop offset="100%" stopColor="#1a3a6b" />
+            <stop offset="0%" stopColor="#2f7fc4" />
+            <stop offset="100%" stopColor="#1d5f9e" />
           </linearGradient>
         </defs>
 
         <rect width="1200" height="320" fill="url(#sky)" />
 
         {/* sun */}
-        <circle cx="980" cy="92" r="40" fill="#faf8f0" opacity="0.92">
+        <circle cx="980" cy="92" r="40" fill="#f1f8fd" opacity="0.92">
           <animate attributeName="cy" values="92;84;92" dur="9s" repeatCount="indefinite" />
         </circle>
-        <circle cx="980" cy="92" r="58" fill="#faf8f0" opacity="0.12">
+        <circle cx="980" cy="92" r="58" fill="#f1f8fd" opacity="0.12">
           <animate attributeName="r" values="58;66;58" dur="9s" repeatCount="indefinite" />
         </circle>
 
         {/* seagulls */}
-        <g fill="none" stroke="#faf8f0" strokeWidth="2.5" strokeLinecap="round" opacity="0.85">
+        <g fill="none" stroke="#f1f8fd" strokeWidth="2.5" strokeLinecap="round" opacity="0.85">
           <path d="M120 70 q10 -9 20 0 q10 -9 20 0">
             <animateTransform attributeName="transform" type="translate" values="0 0; 60 -16; 140 -6" dur="14s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0;0.85;0" dur="14s" repeatCount="indefinite" />
@@ -52,7 +52,7 @@ export function IstanbulSkyline({ className = '', height = 200 }: { className?: 
 
           {/* Blue-Mosque style complex (center) */}
           <path d="M470 270 v-70 a70 70 0 0 1 140 0 v70 z" />
-          <path d="M505 200 a35 35 0 0 1 70 0" fill="#1a3a6b" />
+          <path d="M505 200 a35 35 0 0 1 70 0" fill="#1d5f9e" />
           <rect x="537" y="120" width="6" height="34" />
           <circle cx="540" cy="116" r="5" />
           {/* minarets */}
@@ -67,7 +67,7 @@ export function IstanbulSkyline({ className = '', height = 200 }: { className?: 
 
           {/* Hagia Sophia style dome (right of center) */}
           <path d="M700 270 v-46 a52 52 0 0 1 104 0 v46 z" />
-          <path d="M726 224 a26 26 0 0 1 52 0" fill="#1a3a6b" />
+          <path d="M726 224 a26 26 0 0 1 52 0" fill="#1d5f9e" />
           <rect x="749" y="168" width="6" height="20" />
           <rect x="690" y="200" width="8" height="70" />
           <rect x="806" y="200" width="8" height="70" />
@@ -86,7 +86,7 @@ export function IstanbulSkyline({ className = '', height = 200 }: { className?: 
         </g>
 
         {/* lit windows */}
-        <g fill="#faf8f0" opacity="0.5">
+        <g fill="#f1f8fd" opacity="0.5">
           <rect x="190" y="212" width="5" height="6" />
           <rect x="202" y="212" width="5" height="6" />
           <rect x="238" y="196" width="5" height="6" />
@@ -99,7 +99,7 @@ export function IstanbulSkyline({ className = '', height = 200 }: { className?: 
 
         {/* Bosphorus */}
         <rect y="270" width="1200" height="50" fill="url(#sea)" />
-        <g stroke="#faf8f0" strokeWidth="2" opacity="0.18">
+        <g stroke="#f1f8fd" strokeWidth="2" opacity="0.18">
           <path d="M0 286 q60 -8 120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0">
             <animate attributeName="opacity" values="0.18;0.06;0.18" dur="6s" repeatCount="indefinite" />
           </path>

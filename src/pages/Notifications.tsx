@@ -8,7 +8,7 @@ import { AppIcon } from '../components/AppIcon';
 
 export function Notifications() {
   const { t, i18n } = useTranslation();
-  const { user, refresh } = useApp();
+  const { user, authLoading, refresh } = useApp();
   const [items, setItems] = useState<AppNotification[]>([]);
 
   const load = () => notifications.list().then(setItems).catch(() => setItems([]));
@@ -24,6 +24,14 @@ export function Notifications() {
     await load();
     await refresh();
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-32" role="status" aria-busy>
+        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (

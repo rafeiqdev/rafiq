@@ -24,6 +24,12 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
             {t('adminBookings.datetime')}: {new Date(booking.preferredDatetime).toLocaleString(i18n.language)} ·{' '}
             {t('adminBookings.language')}: {lang?.native ?? booking.preferredLanguage}
           </p>
+          {booking.phone && (
+            <p className="mt-1 text-xs text-navy/80 break-all">
+              <span className="font-semibold">{t('adminBookings.phone')}:</span>{' '}
+              <a href={`tel:${booking.phone}`} className="underline" dir="ltr">{booking.phone}</a>
+            </p>
+          )}
         </div>
         <select
           className="input !h-9 !w-auto text-xs"
@@ -41,6 +47,28 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
           ))}
         </select>
       </div>
+
+      {booking.media && booking.media.length > 0 && (
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-navy/60">{t('adminBookings.media', { count: booking.media.length })}</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {booking.media.map((file) => (
+              <button
+                key={file.path}
+                onClick={async () => {
+                  const url = await bookings.mediaUrl(file.path);
+                  if (url) window.open(url, '_blank', 'noopener');
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-cream px-2.5 py-1.5 text-xs text-navy hover:bg-cream-dark max-w-[220px]"
+                title={file.name}
+              >
+                <AppIcon name="paperclip" className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{file.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button onClick={() => setOpen((v) => !v)} className="btn-secondary h-9 px-3 text-xs mt-3">
         <AppIcon name="message-circle" className="w-3.5 h-3.5" />

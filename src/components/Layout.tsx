@@ -8,6 +8,14 @@ import { LangSwitcher } from './LangSwitcher';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
 import { TopRatesBar } from './TopRatesBar';
+import { useIsMobile } from '../hooks/useIsMobile';
+
+// Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
+// own full-bleed header/nav — on phones we skip the desktop ticker+header+
+// footer chrome entirely for these so the mobile screen isn't sandwiched
+// between bars it wasn't designed for. Add a path here whenever a new
+// Mobile* page is wired in.
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/pricing', '/checkout', '/smart', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
 
 interface NavItem {
   to: string;
@@ -17,16 +25,20 @@ interface NavItem {
 
 // "الاستشارة الذكية" (/smart) was dropped from the nav — it duplicated the AI
 // assistant and its dashboard already lives on Home + Profile.
+//
+// P-simplify1: main bar trimmed from 5 to 4 items. "الدليل" (/hub) moved into
+// the "استكشف/الخدمات" dropdown below so it isn't a separate top-level item —
+// one grouped menu instead of two parallel navigation surfaces.
 const NAV: NavItem[] = [
   { to: '/', key: 'nav.home', icon: 'home' },
   { to: '/premium', key: 'nav.premium', icon: 'message-circle' },
   { to: '/map', key: 'nav.map', icon: 'map' },
-  { to: '/hub', key: 'nav.hub', icon: 'compass' },
   { to: '/pricing', key: 'nav.pricing', icon: 'credit-card' },
 ];
 
 const SERVICE_LINKS: NavItem[] = [
   { to: '/services', key: 'nav.allServices', icon: 'layers' },
+  { to: '/hub', key: 'nav.hub', icon: 'compass' },
   { to: '/tricks', key: 'nav.tricks', icon: 'lightbulb' },
   { to: '/residency', key: 'nav.residency', icon: 'id-card' },
   { to: '/real-estate', key: 'nav.realEstate', icon: 'building' },
@@ -130,6 +142,12 @@ export function Layout() {
   const { t, i18n } = useTranslation();
   const { user, tier, unread } = useApp();
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const hideChrome =
+    isMobile &&
+    (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
+      location.pathname.startsWith('/services/') ||
+      location.pathname.startsWith('/hub/'));
   const [menuOpen, setMenuOpen] = useState(false);
   const [newBookings, setNewBookings] = useState(0);
 
@@ -171,7 +189,8 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <TopRatesBar />
+      {!hideChrome && <TopRatesBar />}
+      {!hideChrome && (
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-cream-dark">
         <div className="mx-auto max-w-6xl px-4 h-16 flex items-center gap-2 sm:gap-4">
           <Link to="/" className="flex items-center shrink-0">
@@ -193,6 +212,30 @@ export function Layout() {
               </NavLink>
             ))}
             <ServicesMenu />
+            {user && (
+              <>
+                <NavLink
+                  to="/home"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
+                    }`
+                  }
+                >
+                  {t('nav.dashboard')}
+                </NavLink>
+                <NavLink
+                  to="/journey"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
+                    }`
+                  }
+                >
+                  {t('nav.myJourney')}
+                </NavLink>
+              </>
+            )}
             {user?.isCompany && (
               <NavLink to="/company" className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream">
                 {t('nav.companyPortal')}
@@ -271,6 +314,12 @@ export function Layout() {
               ) : (
                 <MobileTile to="/auth" icon="lock" label={t('common.signIn')} onNavigate={closeMenu} />
               )}
+              {user && (
+                <>
+                  <MobileTile to="/home" icon="home" label={t('nav.dashboard')} onNavigate={closeMenu} />
+                  <MobileTile to="/journey" icon="check-circle" label={t('nav.myJourney')} onNavigate={closeMenu} />
+                </>
+              )}
               {user && <MobileTile to="/requests" icon="inbox" label={t('nav.myRequests')} onNavigate={closeMenu} />}
               {user?.isCompany ? (
                 <MobileTile to="/company" icon="briefcase" label={t('nav.companyPortal')} onNavigate={closeMenu} />
@@ -294,6 +343,7 @@ export function Layout() {
           </nav>
         )}
       </header>
+      )}
 
       <main className="flex-1">
         {/* keyed by pathname so the entrance animation replays on every navigation */}
@@ -303,6 +353,7 @@ export function Layout() {
       </main>
 
 
+      {!hideChrome && (
       <footer className="bg-navy text-white/80 mt-16">
         <div className="mx-auto max-w-6xl px-4 py-10 grid gap-8 sm:grid-cols-3">
           <div>
@@ -332,6 +383,7 @@ export function Layout() {
           © {new Date().getFullYear()} {t('common.appName')} — {t('footer.rights')}
         </div>
       </footer>
+      )}
     </div>
   );
 }

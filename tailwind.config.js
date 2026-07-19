@@ -3,24 +3,33 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      // ── Design tokens: navy primary + gold secondary, cream surfaces ──
+      // ── Design tokens: navy + gold brand (restored) ──
+      // The signature Rafiq palette — deep navy primary, warm gold accent, cream
+      // surfaces. Keep these hex values in sync with the CSS variables in
+      // src/index.css (:root), which mirror them.
       colors: {
         navy: {
           DEFAULT: '#1a3a6b',
           dark: '#12294d',
           light: '#2c4f8a',
-          50: '#eef3f9',
-          100: '#dce7f3',
+          50: '#eef2f8',
+          100: '#d6e0ee',
         },
         cream: {
           DEFAULT: '#faf8f0',
           dark: '#efeadb',
         },
+        // P-recolor: gold accent retired per brand direction — navy + white now
+        // carry the site, black is reserved for emphasis/urgent moments. Token
+        // NAMES kept as `gold*` on purpose (dozens of components reference
+        // `bg-gold`, `text-gold-dark`, `icon-chip-gold`, etc.) — only the
+        // values changed, so every existing usage repaints automatically
+        // without a risky rename across the codebase.
         gold: {
-          DEFAULT: '#c69749',
-          dark: '#a17a33',
-          light: '#e2c885',
-          soft: '#f6eed9',
+          DEFAULT: '#111111', // solid accent bg (was warm gold) → near-black
+          dark: '#000000', // hover/active + dark text on light bg → pure black
+          light: '#ffffff', // icon/text color on navy-dark surfaces → white for contrast
+          soft: '#f1f1f1', // subtle badge background wash → light neutral gray
         },
         brand: {
           red: '#c0392b',
@@ -43,7 +52,7 @@ export default {
         soft: '0 1px 4px rgba(26, 58, 107, 0.06)',
         card: '0 2px 12px rgba(26, 58, 107, 0.08)',
         cardHover: '0 8px 24px rgba(26, 58, 107, 0.14)',
-        gold: '0 6px 20px rgba(198, 151, 73, 0.35)',
+        gold: '0 6px 20px rgba(0, 0, 0, 0.25)',
         float: '0 8px 24px rgba(18, 41, 77, 0.22)',
       },
       // ── Spacing additions (section rhythm) ──
