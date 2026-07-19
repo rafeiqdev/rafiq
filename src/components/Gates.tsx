@@ -123,11 +123,15 @@ export function UpsellGate({
   blurredPreview?: ReactNode;
 }) {
   const { t } = useTranslation();
-  const { tier, authLoading } = useApp();
+  const { tier, user, authLoading } = useApp();
   // `tier` defaults to 'free', so a paying user would see the up-sell flash
   // before their subscription loads.
   if (authLoading) return <GatePending />;
-  const allowed = tier === 'pro' || tier === 'elite';
+  // Admins pass without a subscription: they have to be able to QA paid
+  // features, and the database already encodes exactly this (RLS on places is
+  // `has_pro() or is_admin()`). Without it an admin is walled out of the very
+  // pages they administer.
+  const allowed = tier === 'pro' || tier === 'elite' || Boolean(user?.isAdmin);
   if (allowed) return <>{children}</>;
 
   return (

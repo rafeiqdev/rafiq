@@ -13,6 +13,15 @@ const ISTANBUL = { lat: 41.0151, lng: 28.9795 };
 const DEFAULT_ZOOM = 12;
 const SEARCH_RADIUS_M = 6000;
 
+/**
+ * AdvancedMarkerElement requires a Map ID that actually exists in the Google
+ * Cloud project — an arbitrary string is rejected and the markers never render.
+ * `DEMO_MAP_ID` is Google's documented development placeholder; production
+ * should set a real Map ID (Cloud Console → Map Management) so custom styling
+ * and quota attribution work.
+ */
+const MAP_ID = (import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) || 'DEMO_MAP_ID';
+
 const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
   dining: 'utensils',
   hotels: 'hotel',
@@ -74,7 +83,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     mapRef.current = new google.maps.Map(mapNodeRef.current, {
       center: ISTANBUL,
       zoom: DEFAULT_ZOOM,
-      mapId: 'RAFIQ_ISTANBUL_MAP',
+      mapId: MAP_ID,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,

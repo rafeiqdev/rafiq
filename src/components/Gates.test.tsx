@@ -132,6 +132,21 @@ describe('auth-gated routes once the session has resolved', () => {
 
     expect(screen.getByText('protected page')).toBeInTheDocument();
   });
+
+  it('UpsellGate admits an admin who has no subscription', () => {
+    // Regression: admins have tier `free`, so the paywall locked them out of
+    // the paid pages they administer — even though RLS already grants them
+    // access (`has_pro() or is_admin()`).
+    mockState({ user: { id: 'u1', isAdmin: true } as Partial<User>, authLoading: false, tier: 'free' });
+    renderGate(
+      <UpsellGate titleKey="up.title" bodyKey="up.body" ctaKey="up.cta">
+        {PAGE}
+      </UpsellGate>,
+    );
+
+    expect(screen.getByText('protected page')).toBeInTheDocument();
+    expect(screen.queryByText('up.title')).not.toBeInTheDocument();
+  });
 });
 
 /**
