@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useApp } from '../context/AppContext';
-import { ai, ApiError, bookings } from '../lib/api';
-import type { ChatSummary } from '../lib/api';
+import { useApp } from '../../context/AppContext';
+import { ai, ApiError, bookings } from '../../lib/api';
+import type { ChatSummary } from '../../lib/api';
 import {
   FREE_TOPICS_PER_DAY,
   formatCountdown,
@@ -12,8 +12,8 @@ import {
   recordTopicStart,
   readSubject,
   saveSubject,
-} from '../lib/aiQuota';
-import { detectSubject, isTopicSwitch } from '../lib/subject';
+} from '../../lib/aiQuota';
+import { detectSubject, isTopicSwitch } from '../../lib/subject';
 import {
   archiveTopic,
   deleteArchived,
@@ -21,19 +21,26 @@ import {
   readClosed,
   setClosed as persistClosed,
   topicTitle,
-} from '../lib/chatHistory';
-import type { ArchivedTopic } from '../lib/chatHistory';
-import type { BookingMedia, ChatMessage } from '../lib/types';
-import { RequireAuth } from '../components/Gates';
-import { BookingModal } from '../components/BookingModal';
-import { Logo } from '../components/Logo';
-import { AppIcon } from '../components/AppIcon';
-import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../components/ChatAttach';
-import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../components/ChatHistory';
-import { SERVICES, pickText } from '../data/services';
+} from '../../lib/chatHistory';
+import type { ArchivedTopic } from '../../lib/chatHistory';
+import type { BookingMedia, ChatMessage } from '../../lib/types';
+import { RequireAuth } from '../../components/Gates';
+import { BookingModal } from '../../components/BookingModal';
+import { AppIcon } from '../../components/AppIcon';
+import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../../components/ChatAttach';
+import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
+import { SERVICES, pickText } from '../../data/services';
 
 /** BCP-47 speech-recognition locale per app language. */
 const SPEECH_LANG: Record<string, string> = { ar: 'ar-SA', en: 'en-US', ru: 'ru-RU', fa: 'fa-IR' };
+
+// New mobile-only UI copy (not existing i18n keys), keyed by language code.
+const mobileCopy: Record<string, { back: string }> = {
+  en: { back: 'Back' },
+  ar: { back: 'رجوع' },
+  fa: { back: 'بازگشت' },
+  ru: { back: 'Назад' },
+};
 
 /** Simple inline microphone glyph (no 'mic' entry in the AppIcon registry). */
 function MicGlyph({ className = 'w-5 h-5' }: { className?: string }) {
@@ -49,7 +56,6 @@ function MicGlyph({ className = 'w-5 h-5' }: { className?: string }) {
 
 interface UiMessage extends ChatMessage {
   streaming?: boolean;
-  /** the assistant signalled it has gathered enough → show the confirm button */
   showConfirm?: boolean;
 }
 
@@ -64,8 +70,9 @@ function loadJson<T>(key: string, fallback: T): T {
   }
 }
 
-function ChatUI() {
+function MobileChatUI() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { user, tier } = useApp();
   const userId = user?.id ?? 'guest';
   const [messages, setMessages] = useState<UiMessage[]>(() => loadJson<UiMessage[]>(chatKey(userId), []));
@@ -95,10 +102,12 @@ function ChatUI() {
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
 
-  // Any paid plan lifts the free topic quota entirely.
+  const lang = (i18n.language || 'en').split('-')[0];
+  const isRTL = lang === 'ar' || lang === 'fa';
+  const mc = mobileCopy[lang] ?? mobileCopy.en;
+
   const hasPlan = tier !== 'free';
 
-  // Free tier: N topics per rolling 24h. Messages inside a topic are unlimited.
   const [topicStarts, setTopicStarts] = useState<number[]>(() => readTopicStarts(userId, Date.now()));
   const [nowTs, setNowTs] = useState(() => Date.now());
   const [currentSubject, setCurrentSubject] = useState<string | null>(() => readSubject(userId));
@@ -110,12 +119,10 @@ function ChatUI() {
   /** Composer is dead while the daily limit blocks a new topic, or once this topic is finished. */
   const inputLocked = blockedNewTopic || closed;
 
-  // does the assistant's latest message ask the user for documents?
   const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && !m.streaming);
   const askingForDocs = !!lastAssistant && wantsMedia(lastAssistant.text);
-  const showAttachCard = askingForDocs && !attachDismissed && !readyToBook;
+  const showAttachCard = askingForDocs && !attachDismissed && !readyToBook && !closed;
 
-  // tick the countdown (and auto-unblock the moment a slot frees up)
   useEffect(() => {
     if (hasPlan || !quota.limitReached) return;
     const id = setInterval(() => setNowTs(Date.now()), 1000);
@@ -127,7 +134,7 @@ function ChatUI() {
     try {
       localStorage.setItem(mediaKey(userId), JSON.stringify(next));
     } catch {
-      /* ignore quota errors */
+      /* ignore */
     }
   };
 
@@ -167,7 +174,6 @@ function ChatUI() {
     setLimitHit(false);
   };
 
-  // Web Speech API (browser-dependent). Only show the mic button if supported.
   const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
   useEffect(() => {
@@ -218,7 +224,6 @@ function ChatUI() {
     const text = input.trim();
     if (!text || busy || blockedNewTopic || closed) return;
 
-    // A topic is charged when the SUBJECT changes — detected from the message.
     if (!hasPlan) {
       const incoming = detectSubject(text, currentSubject);
       if (isTopicSwitch(currentSubject, incoming)) {
@@ -228,7 +233,7 @@ function ChatUI() {
           setTopicStarts(fresh);
           setNowTs(now);
           setLimitHit(true);
-          return; // refused — the current topic stays usable
+          return;
         }
         recordTopicStart(userId, now);
         setTopicStarts(readTopicStarts(userId, now));
@@ -293,10 +298,6 @@ function ChatUI() {
     }
   };
 
-  // Topic prefill: arriving with ?topic=<serviceId> seeds the first message.
-  // Coming from a service card must ALWAYS open that service's conversation —
-  // previously any saved chat made this a no-op, so the user landed back in an
-  // unrelated (or already finished) topic instead of the service they picked.
   useEffect(() => {
     if (seededRef.current === topic) return;
     if (!topic) return;
@@ -334,7 +335,7 @@ function ChatUI() {
   }, [topic]);
 
   const startVoice = () => {
-    if (!SR || listening || blockedNewTopic) return;
+    if (!SR || listening || inputLocked) return;
     const recognition = new SR();
     recognition.lang = SPEECH_LANG[i18n.language] ?? 'en-US';
     recognition.interimResults = false;
@@ -346,36 +347,50 @@ function ChatUI() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 flex flex-col" style={{ minHeight: 'calc(100vh - 8rem)' }}>
-      <div className="flex items-center gap-3 flex-wrap">
-        <Logo size={44} />
-        <div className="flex-1">
-          <h1 className="text-xl font-extrabold text-navy">{t('chat.title')}</h1>
-          <p className="text-sm text-navy/70">{t('chat.subtitle')}</p>
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="flex h-dvh flex-col bg-cream">
+      {/* ── Compact chat header — standard pattern, NO logo ── */}
+      <header className="relative shrink-0 overflow-hidden rounded-b-[28px] bg-navy px-5 pb-4 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
+        <span aria-hidden="true" className="pointer-events-none select-none absolute -bottom-10 -end-3 text-[9rem] font-bold leading-none text-white/5">
+          ر
+        </span>
+        <div className="relative flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            aria-label={mc.back}
+            className="relative -ms-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
+          >
+            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+          </button>
+          <div className="animate-fade-up min-w-0 flex-1">
+            <h1 className="text-[19px] font-extrabold leading-tight text-white">{t('chat.title')}</h1>
+            <p className="mt-0.5 text-[12.5px] leading-snug text-white/70">{t('chat.subtitle')}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative mt-2.5 flex items-center gap-2 flex-wrap">
           {!hasPlan && (
-            <span className="rounded-full bg-brand-blue text-navy text-xs font-bold px-3 py-1.5">
+            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/90">
               {t('chat.topicsLeft', { count: quota.remaining, total: FREE_TOPICS_PER_DAY })}
             </span>
           )}
           {archive.length > 0 && (
-            <button onClick={() => setHistoryOpen(true)} className="btn-secondary !h-9 px-3 text-xs">
+            <button onClick={() => setHistoryOpen(true)} className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold text-white">
               <AppIcon name="message-circle" className="w-3.5 h-3.5" />
               {t('chat.history.cta', { count: archive.length })}
             </button>
           )}
           {messages.length > 0 && (
-            <button onClick={startNewTopic} className="btn-secondary !h-9 px-3 text-xs">
+            <button onClick={startNewTopic} className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold text-white">
               <AppIcon name="plus" className="w-3.5 h-3.5" />
               {t('chat.newTopic')}
             </button>
           )}
         </div>
-      </div>
+      </header>
 
-      <div ref={scrollRef} className="card flex-1 mt-5 p-4 overflow-y-auto overscroll-contain flex flex-col gap-3" style={{ maxHeight: '55vh', minHeight: '40vh' }}>
-        <div className="self-start max-w-[85%] rounded-2xl rounded-ss-sm bg-brand-blue px-4 py-3 text-sm text-navy">
+      {/* ── Transcript: dominant, internal scroll only ── */}
+      <div ref={scrollRef} className="flex flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-4 py-4">
+        <div className="animate-fade-up self-start max-w-[85%] rounded-2xl rounded-ss-md bg-brand-blue px-4 py-2.5 text-[14.5px] leading-relaxed text-navy">
           {t('chat.greeting')}
         </div>
         {messages.map((m, i) => (
@@ -383,32 +398,35 @@ function ChatUI() {
             key={`${m.ts}_${i}`}
             className={
               m.role === 'user'
-                ? 'self-end max-w-[85%] rounded-2xl rounded-se-sm bg-navy px-4 py-3 text-sm text-white break-anywhere'
-                : 'self-start max-w-[85%] rounded-2xl rounded-ss-sm bg-brand-blue px-4 py-3 text-sm text-navy whitespace-pre-line break-anywhere'
+                ? 'animate-pop self-end max-w-[85%] rounded-2xl rounded-se-md bg-navy px-4 py-2.5 text-[14.5px] leading-relaxed text-white break-anywhere'
+                : 'animate-pop self-start max-w-[85%] rounded-2xl rounded-ss-md bg-brand-blue px-4 py-2.5 text-[14.5px] leading-relaxed text-navy whitespace-pre-line break-anywhere'
             }
           >
             {m.text}
-            {m.streaming && <span className="inline-block w-2 h-4 bg-navy/40 animate-pulse ms-1 align-middle" />}
+            {m.streaming && !m.text && (
+              <span className="inline-flex gap-1.5 px-0.5 py-1.5" aria-label={t('chat.typing')}>
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:120ms]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:240ms]" />
+              </span>
+            )}
+            {m.streaming && !!m.text && <span className="ms-1 inline-block h-4 w-0.5 animate-pulse bg-navy/50 align-middle" />}
           </div>
         ))}
 
-        {/* the assistant asked for documents → a clear attach prompt */}
-        {showAttachCard && !closed && (
-          <AttachCard onAttach={pickFiles} onSkip={() => setAttachDismissed(true)} uploading={uploading} />
-        )}
+        {showAttachCard && <AttachCard onAttach={pickFiles} onSkip={() => setAttachDismissed(true)} uploading={uploading} />}
 
         {/* topic finished — the assistant stops here until a new one is opened */}
         {closed && <ChatClosedCard booked={closedByBooking} onNewTopic={startNewTopic} />}
 
-        {/* the assistant has everything → offer to confirm an appointment */}
         {readyToBook && !booking && !closed && (
-          <div className="self-center card p-5 text-center max-w-sm" role="status">
+          <div className="card animate-pop mt-1.5 w-full max-w-[300px] self-center p-6 text-center" role="status">
             <div className="icon-chip mx-auto">
               <AppIcon name="check-circle" className="w-6 h-6" />
             </div>
-            <h2 className="mt-3 font-extrabold text-navy">{t('chat.ready.title')}</h2>
-            <p className="mt-1 text-sm text-gray-500">{t('chat.ready.body')}</p>
-            <button onClick={confirmAppointment} disabled={summarizing} className="btn-primary w-full mt-4 disabled:opacity-60">
+            <h2 className="mt-3 text-[16px] font-extrabold text-navy">{t('chat.ready.title')}</h2>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{t('chat.ready.body')}</p>
+            <button onClick={confirmAppointment} disabled={summarizing} className="btn-primary mt-4 flex min-h-[52px] w-full text-[15px] disabled:opacity-60">
               <AppIcon name="calendar" className="w-4 h-4" />
               {summarizing ? t('chat.ready.preparing') : t('chat.ready.cta')}
             </button>
@@ -416,11 +434,11 @@ function ChatUI() {
         )}
 
         {error && (
-          <div className="self-start max-w-[85%] amber-note flex items-center gap-3" role="alert">
-            <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
-            <span className="flex-1 min-w-0 break-anywhere">{t(error)}</span>
+          <div className="amber-note animate-pop flex max-w-[95%] items-center gap-2.5 self-start" role="alert">
+            <AppIcon name="alert-triangle" className="h-[17px] w-[17px] shrink-0" />
+            <span className="break-anywhere min-w-0 flex-1 text-[13.5px]">{t(error)}</span>
             {lastFailed && (
-              <button onClick={retry} className="btn-primary h-8 px-3 text-xs shrink-0">
+              <button type="button" onClick={retry} className="btn-primary min-h-[44px] shrink-0 px-3.5 text-xs">
                 {t('chat.retry')}
               </button>
             )}
@@ -429,17 +447,17 @@ function ChatUI() {
 
         {/* daily topic limit: countdown to the next free slot + upgrade path */}
         {showLimitPanel && (
-          <div className="self-center card p-5 text-center max-w-sm" role="status">
+          <div className="card animate-pop mt-1.5 w-full max-w-[300px] self-center p-6 text-center" role="status">
             <div className="icon-chip mx-auto">
               <AppIcon name="hourglass" />
             </div>
-            <h2 className="mt-3 font-extrabold text-navy">{t('chat.limit.title')}</h2>
-            <p className="mt-1 text-sm text-gray-500">{t('chat.limit.body', { total: FREE_TOPICS_PER_DAY })}</p>
-            <p className="mt-3 text-3xl font-extrabold text-navy tabular-nums" dir="ltr">
+            <h2 className="mt-3 text-[16px] font-extrabold text-navy">{t('chat.limit.title')}</h2>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{t('chat.limit.body', { total: FREE_TOPICS_PER_DAY })}</p>
+            <p className="mt-3 text-[28px] font-extrabold tabular-nums text-navy" dir="ltr">
               {formatCountdown(quota.msUntilReset)}
             </p>
-            {!noActiveTopic && <p className="mt-2 text-xs text-navy/60">{t('chat.limit.continueHint')}</p>}
-            <Link to="/pricing" className="btn-primary w-full mt-4">
+            {!noActiveTopic && <p className="mt-2 text-[12px] leading-relaxed text-navy/60">{t('chat.limit.continueHint')}</p>}
+            <Link to="/pricing" className="btn-primary mt-4 flex min-h-[52px] w-full text-[15px]">
               <AppIcon name="sparkles" className="w-4 h-4" />
               {t('chat.limit.cta')}
             </Link>
@@ -447,49 +465,47 @@ function ChatUI() {
         )}
       </div>
 
-      {/* attached files */}
-      {media.length > 0 && (
-        <MediaChips media={media} onRemove={(path) => persistMedia(media.filter((x) => x.path !== path))} />
-      )}
-
-      <input ref={fileRef} type="file" accept={ATTACH_ACCEPT} multiple className="hidden" onChange={(e) => onFilesChosen(e.target.files)} />
-
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={pickFiles}
-          disabled={uploading || inputLocked}
-          aria-label={t('chat.attach')}
-          title={t('chat.attach')}
-          className="btn-ghost h-12 px-3 shrink-0 disabled:opacity-60"
-        >
-          <AppIcon name={uploading ? 'hourglass' : 'paperclip'} className="w-5 h-5" />
-        </button>
-        <input
-          className="input h-12 flex-1 min-w-0"
-          placeholder={t(closed ? 'chat.closed.placeholder' : 'chat.placeholder')}
-          value={input}
-          disabled={inputLocked}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send()}
-        />
-        {SR && (
+      {/* ── Input bar: pinned above the safe-area bottom inset ── */}
+      <div className="shrink-0 border-t border-cream-dark bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
+        {media.length > 0 && <MediaChips media={media} onRemove={(path) => persistMedia(media.filter((x) => x.path !== path))} />}
+        <input ref={fileRef} type="file" accept={ATTACH_ACCEPT} multiple className="hidden" onChange={(e) => onFilesChosen(e.target.files)} />
+        <div className="mt-1 flex gap-2">
           <button
             type="button"
-            onClick={startVoice}
-            disabled={busy || inputLocked}
-            aria-label={t('chat.voice')}
-            title={t('chat.voice')}
-            className={`btn-ghost h-12 px-3 shrink-0 disabled:opacity-60 ${listening ? 'text-brand-red' : ''}`}
+            onClick={pickFiles}
+            disabled={uploading || inputLocked}
+            aria-label={t('chat.attach')}
+            title={t('chat.attach')}
+            className="btn-ghost h-12 w-12 shrink-0 px-0 disabled:opacity-60"
           >
-            <MicGlyph className="w-5 h-5" />
+            <AppIcon name={uploading ? 'hourglass' : 'paperclip'} className="h-5 w-5" />
           </button>
-        )}
-        <button onClick={send} disabled={busy || inputLocked} className="btn-primary h-12 px-4 sm:px-6 shrink-0 disabled:opacity-60">
-          {t('common.send')}
-        </button>
+          <input
+            className="input h-12 min-w-0 flex-1"
+            placeholder={t(closed ? 'chat.closed.placeholder' : 'chat.placeholder')}
+            value={input}
+            disabled={inputLocked}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && send()}
+          />
+          {SR && (
+            <button
+              type="button"
+              onClick={startVoice}
+              disabled={busy || inputLocked}
+              aria-label={t('chat.voice')}
+              title={t('chat.voice')}
+              className={`btn-ghost h-12 w-12 shrink-0 px-0 disabled:opacity-60 ${listening ? 'text-brand-red' : ''}`}
+            >
+              <MicGlyph className="h-5 w-5" />
+            </button>
+          )}
+          <button type="button" onClick={send} disabled={busy || inputLocked} className="btn-primary h-12 shrink-0 px-5 text-[14.5px] disabled:opacity-60">
+            {t('common.send')}
+          </button>
+        </div>
+        <p className="mt-2 text-center text-[11px] text-gray-500">{t('chat.disclaimer')}</p>
       </div>
-      <p className="mt-2 text-center text-xs text-gray-500">{t('chat.disclaimer')}</p>
 
       {booking && (
         <BookingModal
@@ -525,12 +541,11 @@ function ChatUI() {
   );
 }
 
-export function Premium() {
-  // The assistant is an intake agent that collects a case for a human specialist,
-  // so it always requires a signed-in account (name + phone come from it).
+export function MobilePremium() {
+  // The assistant is an intake agent — always requires a signed-in account.
   return (
     <RequireAuth>
-      <ChatUI />
+      <MobileChatUI />
     </RequireAuth>
   );
 }
