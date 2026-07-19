@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Bell,
+  Bookmark,
   Briefcase,
   Building2,
   Bus,
@@ -24,11 +25,13 @@ import {
   Gift,
   Globe,
   GraduationCap,
+  HandHelping,
   HeartPulse,
   Home,
   Hourglass,
   IdCard,
   Inbox,
+  Info,
   Landmark,
   Languages,
   Layers,
@@ -45,6 +48,7 @@ import {
   Navigation,
   Paperclip,
   Pencil,
+  Phone,
   Plane,
   Plus,
   Receipt,
@@ -81,6 +85,7 @@ const ICONS = {
   'arrow-left': ArrowLeft,
   'arrow-right': ArrowRight,
   bell: Bell,
+  bookmark: Bookmark,
   briefcase: Briefcase,
   building: Building2,
   bus: Bus,
@@ -100,11 +105,13 @@ const ICONS = {
   gift: Gift,
   globe: Globe,
   'graduation-cap': GraduationCap,
+  'hand-helping': HandHelping,
   'heart-pulse': HeartPulse,
   home: Home,
   hourglass: Hourglass,
   'id-card': IdCard,
   inbox: Inbox,
+  info: Info,
   landmark: Landmark,
   languages: Languages,
   layers: Layers,
@@ -121,6 +128,7 @@ const ICONS = {
   navigation: Navigation,
   paperclip: Paperclip,
   pencil: Pencil,
+  phone: Phone,
   plane: Plane,
   plus: Plus,
   receipt: Receipt,
@@ -151,7 +159,11 @@ export type IconName = keyof typeof ICONS;
 
 export function AppIcon({ name, className = 'w-5 h-5', fill }: { name: IconName; className?: string; fill?: string }) {
   const C = ICONS[name];
-  return <C className={className} strokeWidth={1.8} fill={fill} aria-hidden />;
+  // Default to fill="none" — lucide icons are stroke-based. Passing fill={undefined}
+  // would strip lucide's own default and leave the SVG filling solid black (making
+  // closed shapes like id-card / calendar render as black boxes). Callers that want
+  // a filled glyph (e.g. star ratings) pass fill explicitly.
+  return <C className={className} strokeWidth={1.8} fill={fill ?? 'none'} aria-hidden />;
 }
 
 /** Directional arrow that flips in RTL (via the .dir-arrow CSS rule). */

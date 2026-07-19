@@ -9,8 +9,8 @@
   --navy-light: #2c4f8a;
   --cream: #faf8f0;
   --cream-dark: #efeadb;
-  --gold: #c69749;
-  --gold-dark: #a17a33;
+  --gold: #111111;
+  --gold-dark: #000000;
   --red: #c0392b;
   --radius-btn: 12px;
   --radius-card: 16px;
@@ -182,9 +182,10 @@ html[dir='rtl'] li {
   .btn-primary {
     @apply btn bg-navy text-white hover:bg-navy-light active:bg-navy-dark;
   }
-  /* secondary accent CTA — gold on navy text, used for the main hero action */
+  /* secondary accent CTA — was gold bg + navy text; now solid black bg needs
+     white text to stay readable (P-recolor, see tailwind.config.js) */
   .btn-gold {
-    @apply btn bg-gold text-navy-dark hover:bg-gold-dark active:bg-gold-dark shadow-soft hover:shadow-gold;
+    @apply btn bg-gold text-white hover:bg-gold-dark active:bg-gold-dark shadow-soft hover:shadow-gold;
   }
   .btn-secondary {
     @apply btn bg-brand-blue text-navy hover:bg-navy/10 active:bg-navy/15;
@@ -213,7 +214,7 @@ html[dir='rtl'] li {
 
   /* ── Form controls ── */
   .icon-chip {
-    @apply flex items-center justify-center w-12 h-12 rounded-full bg-brand-blue text-navy text-xl shrink-0;
+    @apply flex items-center justify-center w-12 h-12 rounded-full bg-gold text-white text-xl shrink-0;
   }
   .icon-chip-gold {
     @apply flex items-center justify-center w-12 h-12 rounded-full bg-gold-soft text-gold-dark shrink-0;
@@ -249,11 +250,6 @@ html[dir='rtl'] li {
 /* arrows flip automatically in RTL */
 [dir='rtl'] .dir-arrow {
   transform: scaleX(-1);
-}
-
-.leaflet-container {
-  border-radius: 16px;
-  z-index: 0;
 }
 
 /* ---- motion / entrance animations ---- */
