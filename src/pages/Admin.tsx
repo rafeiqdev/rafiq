@@ -10,6 +10,7 @@ import { ListingsManager, PlacesManager } from '../components/AdminManagers';
 import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
 import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
+import { FxRatesPanel } from '../components/admin/FxRatesPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
 
@@ -164,8 +165,8 @@ function AdminInner() {
   const [broadcasts, setBroadcasts] = useState<{ id: string; customText: string; createdAt: string }[]>([]);
   const [allLeads, setAllLeads] = useState<Lead[]>([]);
   const [cancellations, setCancellations] = useState<{ userId: string; tier: string; reason: string | null; comment: string | null; expiresAt: string }[]>([]);
-  const [usd, setUsd] = useState('');
-  const [eur, setEur] = useState('');
+  // USD/TRY and EUR/TRY moved to fx_rates (daily sync + FxRatesPanel). Only the
+  // Syrian pound is still hand-set here, because no free feed prices it reliably.
   const [syp, setSyp] = useState('');
   const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
   const [ratesSaved, setRatesSaved] = useState(false);
@@ -184,24 +185,18 @@ function AdminInner() {
     setBroadcasts(bs);
     setAllLeads(ls);
     setCancellations(cx);
-    setUsd(rt.usdtry != null ? String(rt.usdtry) : '');
-    setEur(rt.eurtry != null ? String(rt.eurtry) : '');
     setSyp(rt.sypusd != null ? String(rt.sypusd) : '');
     setRatesUpdatedAt(rt.updatedAt);
   };
 
   const saveRates = async () => {
-    const u = Number(usd);
-    const e = Number(eur);
-    if (!(u > 0) || !(e > 0)) return;
-    await adminRates.set(u, e, Number(syp) || undefined);
+    const s = Number(syp);
+    if (!(s > 0)) return;
+    // The legacy settings.rates row now carries only sypusd; usd/eur are passed
+    // as 0 and ignored — the live pairs come from fx_rates.
+    await adminRates.set(0, 0, s);
     setRatesSaved(true);
     setTimeout(() => setRatesSaved(false), 2000);
-    await load();
-  };
-
-  const clearRates = async () => {
-    await adminRates.clear();
     await load();
   };
 
@@ -257,7 +252,13 @@ function AdminInner() {
         ))}
       </div>
 
-      {/* daily currency rates (shown in the black top bar) */}
+      {/* Daily FX sync: health, per-pair override with reason, audit trail.
+          Replaced the old free-text rates card, which wrote an unaudited
+          override into settings.rates with no reason and no history. */}
+      <FxRatesPanel />
+
+      {/* USD/SYP stays hand-set: free FX feeds report a stale or wrong Syrian
+          pound, so there is no provider to sync it from. */}
       <div className="card p-6 mt-5">
         <h2 className="font-bold text-navy flex items-center gap-2">
           <AppIcon name="trending-up" className="w-4 h-4" />
@@ -266,23 +267,12 @@ function AdminInner() {
         <p className="mt-1 text-sm text-gray-500">{t('admin.rates.body')}</p>
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <label className="text-xs font-semibold text-navy/70">
-            USD/TRY
-            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={usd} onChange={(e) => setUsd(e.target.value)} dir="ltr" />
-          </label>
-          <label className="text-xs font-semibold text-navy/70">
-            EUR/TRY
-            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={eur} onChange={(e) => setEur(e.target.value)} dir="ltr" />
-          </label>
-          <label className="text-xs font-semibold text-navy/70">
             USD/SYP
             <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={syp} onChange={(e) => setSyp(e.target.value)} dir="ltr" placeholder={t('admin.rates.sypHint')} />
           </label>
           <button onClick={saveRates} className="btn-primary h-11 px-5">
             <AppIcon name={ratesSaved ? 'check' : 'save'} className="w-4 h-4" />
             {ratesSaved ? t('admin.rates.saved') : t('admin.rates.save')}
-          </button>
-          <button onClick={clearRates} className="btn-secondary h-11 px-4">
-            {t('admin.rates.useLive')}
           </button>
         </div>
         <p className="mt-2 text-xs text-gray-400">

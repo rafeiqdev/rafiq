@@ -16,6 +16,7 @@ import type {
   AppNotification,
   Billing,
   Booking,
+  BookingMedia,
   BookingStatus,
   ChatMessage,
   Company,
@@ -28,12 +29,17 @@ import type {
   CompanyResponse,
   CompanyStatus,
   CustomerRequest,
+  FavoritePlace,
+  GooglePlaceResult,
+  JourneyItem,
+  JourneyStatus,
   Lead,
   Listing,
   MeResponse,
   PayMethod,
   PaymentRequest,
   Place,
+  PlaceOverlay,
   PlanTier,
   Profile,
   Review,
@@ -42,6 +48,8 @@ import type {
   User,
 } from './types';
 import { COMPANY_PLAN_PRICE } from './types';
+import { classifyError, isSchemaUnavailable, logDiagnostic } from './errors';
+import { familyStatusColumn, resolveOnboarding } from './onboardingSource';
 
 /** Listing/place fields the admin form submits (no id). */
 export type ListingInput = Omit<Listing, 'id'>;
@@ -51,12 +59,28 @@ export class ApiError extends Error {
   constructor(
     public code: string,
     public status: number,
+    /** optional structured extras, e.g. { resetAt } for a rate limit */
+    public details?: Record<string, unknown>,
   ) {
     super(code);
   }
 }
 
 const FREE_CHAT_MESSAGES = 3;
+
+/**
+ * TEMPORARY FREE PERIOD for the AI assistant.
+ *
+ * While true the assistant is open to everyone: no sign-in wall, no 3-message
+ * preview limit, no Pro paywall, and no `ai_usage` metering — so it also works
+ * while the database schema is still being built. Replies come from the local
+ * deterministic responder (ai-fallback.ts) unless the Gemini Edge Function is
+ * deployed, so there is no API cost.
+ *
+ * TO END THE PROMO: set this to false. That single change restores the original
+ * behaviour (sign-in required + 3 free messages + Pro paywall). Nothing else.
+ */
+export const AI_FREE_PERIOD = true;
 
 function sb(): SupabaseClient {
   if (!sbClient) throw new ApiError('supabase_not_configured', 503);
@@ -111,12 +135,14 @@ const fromPlace = (p: PlaceInput) => ({ name: p.name, category: p.category, lat:
 interface BookingRow {
   id: string; user_id: string; user_email: string | null; problem_summary: string; transcript: ChatMessage[];
   preferred_datetime: string; preferred_language: string; status: BookingStatus; internal_note: string | null; created_at: string;
+  phone?: string | null; media?: BookingMedia[] | null;
 }
 const toBooking = (r: BookingRow): Booking => ({
   id: r.id, userId: r.user_id, userEmail: r.user_email ?? '', problemSummary: r.problem_summary,
   transcript: Array.isArray(r.transcript) ? r.transcript : [], preferredDatetime: r.preferred_datetime,
   preferredLanguage: r.preferred_language as Booking['preferredLanguage'], status: r.status,
   internalNote: r.internal_note ?? undefined, createdAt: r.created_at,
+  phone: r.phone ?? undefined, media: Array.isArray(r.media) ? r.media : [],
 });
 
 interface LeadRow { id: string; user_email: string | null; kind: string; item: string; status: string; created_at: string; }
@@ -143,11 +169,47 @@ async function isProOrAdmin(uid: string): Promise<boolean> {
   return tier === 'pro' || tier === 'elite';
 }
 
+// ---------- profile row (migration-tolerant) ---------------------------------
+
+interface ProfileRow {
+  id: string; email: string | null; name: string | null; role: string | null;
+  referral_code: string | null; onboarding: unknown; created_at: string;
+  avatar_url?: string | null; city?: string | null; situation?: string | null;
+  family_status?: string | null; onboarding_completed?: boolean | null; phone?: string | null;
+}
+
+const PROFILE_BASE_COLS = 'id,email,name,role,referral_code,onboarding,created_at';
+const PROFILE_EXT_COLS = `${PROFILE_BASE_COLS},avatar_url,city,situation,family_status,onboarding_completed,phone`;
+
+/**
+ * Reads the profile row. Tolerates ONLY a confirmed missing-schema error (the
+ * 20260718_user_journey migration not applied yet) by retrying with the legacy
+ * column set. Any other failure (auth, RLS, network, server) is re-thrown so it
+ * can't be silently hidden.
+ */
+async function fetchProfileRow(c: SupabaseClient, uid: string): Promise<ProfileRow | null> {
+  const ext = await c.from('profiles').select(PROFILE_EXT_COLS).eq('id', uid).maybeSingle();
+  if (!ext.error) return (ext.data as ProfileRow | null) ?? null;
+
+  if (!isSchemaUnavailable(ext.error)) {
+    logDiagnostic('profile.read', ext.error, classifyError(ext.error));
+    throw new ApiError(classifyError(ext.error), 500);
+  }
+  logDiagnostic('profile.read', ext.error, 'schema_unavailable');
+  const base = await c.from('profiles').select(PROFILE_BASE_COLS).eq('id', uid).maybeSingle();
+  if (base.error) throw new ApiError(classifyError(base.error), 500);
+  return (base.data as ProfileRow | null) ?? null;
+}
+
 // ---------- config / session -------------------------------------------------
 
 export const config = {
   // Google sign-in is handled by Supabase OAuth (no client id needed in the browser).
-  get: async (): Promise<AppConfig> => ({ googleClientId: null, freeChatMessages: FREE_CHAT_MESSAGES }),
+  get: async (): Promise<AppConfig> => ({
+    googleClientId: null,
+    freeChatMessages: FREE_CHAT_MESSAGES,
+    aiFreePeriod: AI_FREE_PERIOD,
+  }),
 };
 
 export const auth = {
@@ -191,8 +253,8 @@ export const auth = {
     const u = await sessionUser();
     if (!u) return { user: null };
     const c = sb();
-    const [{ data: prof }, { data: sub }] = await Promise.all([
-      c.from('profiles').select('id,email,name,role,referral_code,onboarding,created_at').eq('id', u.id).maybeSingle(),
+    const [prof, { data: sub }] = await Promise.all([
+      fetchProfileRow(c, u.id),
       c.from('subscriptions').select('tier,billing,status,started_at,expires_at,cancel_reason,cancel_comment').eq('user_id', u.id).maybeSingle(),
     ]);
     if (!prof) return { user: null };
@@ -211,6 +273,12 @@ export const auth = {
       isCompany: role === 'company',
       referralCode: prof.referral_code ?? '',
       createdAt: prof.created_at,
+      // new columns are absent until the journey migration runs → default safely
+      onboardingCompleted: Boolean(prof.onboarding_completed),
+      avatarUrl: (prof.avatar_url as string | null) ?? (u.user_metadata?.avatar_url as string | undefined) ?? null,
+      city: (prof.city as string | null) ?? null,
+      situation: (prof.situation as User['situation']) ?? null,
+      phone: (prof as { phone?: string | null }).phone ?? null,
     };
     const subscription: Subscription | null = subRow
       ? {
@@ -228,16 +296,116 @@ export const auth = {
     const readSet = new Set((reads ?? []).map((r: { notification_id: string }) => r.notification_id));
     const unread = (notifs ?? []).filter((n: { id: string }) => !readSet.has(n.id)).length;
 
-    const profile = (prof.onboarding as Profile | null) ?? null;
+    // Structured columns are canonical; the jsonb fills any gap (see onboardingSource.ts)
+    const profile = resolveOnboarding(prof.onboarding as Partial<Profile> | null, {
+      city: prof.city,
+      situation: prof.situation,
+      family_status: (prof as { family_status?: string | null }).family_status,
+      onboarding_completed: prof.onboarding_completed,
+    });
     return { user, subscription, tier, unread, profile };
   },
 };
 
 export const profileApi = {
-  async save(data: Profile): Promise<{ ok: true }> {
+  /**
+   * Persist the onboarding profile. The `onboarding` jsonb stays the source of
+   * truth for the recommendation engine; key answers are mirrored into real
+   * columns when the journey migration has been applied. Pass
+   * `{ completed: true }` to mark onboarding finished.
+   */
+  async save(data: Profile, opts?: { completed?: boolean }): Promise<{ ok: true }> {
     const uid = await requireUid();
-    const { error } = await sb().from('profiles').update({ onboarding: data }).eq('id', uid);
+    const c = sb();
+    const extended: Record<string, unknown> = {
+      onboarding: data,
+      city: data.city ?? null,
+      situation: data.situation ?? null,
+      family_status: familyStatusColumn(data.family),
+      updated_at: new Date().toISOString(),
+    };
+    if (opts?.completed !== undefined) extended.onboarding_completed = opts.completed;
+
+    // One statement writes BOTH representations, so they can never drift.
+    const ext = await c.from('profiles').update(extended).eq('id', uid);
+    if (!ext.error) return { ok: true };
+
+    // ONLY a confirmed missing-schema error may degrade to a jsonb-only write
+    // (pre-migration). Once the columns exist, failing to write them is a real
+    // error and must surface — never a silent partial save.
+    if (!isSchemaUnavailable(ext.error)) {
+      logDiagnostic('profile.save', ext.error, classifyError(ext.error));
+      throw new ApiError(classifyError(ext.error), 500);
+    }
+    logDiagnostic('profile.save', ext.error, 'schema_unavailable');
+    const { error } = await c.from('profiles').update({ onboarding: data }).eq('id', uid);
     if (error) fail(error);
+    return { ok: true };
+  },
+
+  /** Attach a phone number to the account (asked once during intake if missing). */
+  async setPhone(phone: string): Promise<{ ok: true }> {
+    const uid = await requireUid();
+    const { error } = await sb().from('profiles').update({ phone: phone.trim() }).eq('id', uid);
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+// ---------- "مسيرتي" journey -------------------------------------------------
+
+interface JourneyRow {
+  id: string; task_key: string; title_ar: string; description_ar: string | null;
+  status: JourneyStatus; sort: number; related_route: string | null;
+  related_service_id: string | null; completed_at: string | null;
+}
+
+const toJourneyItem = (r: JourneyRow): JourneyItem => ({
+  id: r.id, taskKey: r.task_key, titleAr: r.title_ar, descriptionAr: r.description_ar,
+  status: r.status, sort: r.sort, relatedRoute: r.related_route,
+  relatedServiceId: r.related_service_id, completedAt: r.completed_at,
+});
+
+/**
+ * Turns a Supabase failure into a typed ApiError whose `code` is the error
+ * CATEGORY (schema_unavailable | unauthenticated | forbidden | network_error |
+ * server_error | unknown_error). The UI maps the category to safe Arabic copy;
+ * raw Supabase details never leave this module.
+ */
+function journeyFail(scope: string, error: unknown): never {
+  const category = classifyError(error);
+  logDiagnostic(scope, error, category);
+  const status =
+    category === 'unauthenticated' ? 401 : category === 'forbidden' ? 403 : category === 'schema_unavailable' ? 503 : 500;
+  throw new ApiError(category, status);
+}
+
+export const journey = {
+  /**
+   * Idempotently create/sync the caller's default tasks (server-side, SECURITY
+   * DEFINER). Tasks reported during onboarding start completed; re-running only
+   * upgrades todo → done and never reverts manual progress.
+   */
+  async ensure(): Promise<void> {
+    const { error } = await sb().rpc('ensure_my_journey');
+    if (error) journeyFail('journey.ensure', error);
+  },
+
+  async mine(): Promise<JourneyItem[]> {
+    const uid = await requireUid();
+    const { data, error } = await sb()
+      .from('user_journey_items')
+      .select('id,task_key,title_ar,description_ar,status,sort,related_route,related_service_id,completed_at')
+      .eq('user_id', uid)
+      .order('sort', { ascending: true });
+    if (error) journeyFail('journey.mine', error);
+    return ((data ?? []) as JourneyRow[]).map(toJourneyItem);
+  },
+
+  /** Flip a task. RLS (user_id = auth.uid()) blocks touching anyone else's row. */
+  async setStatus(id: string, status: JourneyStatus): Promise<{ ok: true }> {
+    const { error } = await sb().from('user_journey_items').update({ status }).eq('id', id);
+    if (error) journeyFail('journey.setStatus', error);
     return { ok: true };
   },
 };
@@ -306,22 +474,56 @@ export const checkout = {
 // ---------- bookings ---------------------------------------------------------
 
 export const bookings = {
-  async create(input: { problemSummary: string; transcript: ChatMessage[]; preferredDatetime: string; preferredLanguage: string }): Promise<{ id: string }> {
+  async create(input: {
+    problemSummary: string; transcript: ChatMessage[]; preferredDatetime: string; preferredLanguage: string;
+    phone?: string | null; media?: BookingMedia[];
+  }): Promise<{ id: string }> {
     const uid = await requireUid();
     const c = sb();
     const dt = new Date(input.preferredDatetime);
     if (Number.isNaN(dt.getTime()) || dt <= new Date()) throw new ApiError('past_datetime', 400);
     const { data: prof } = await c.from('profiles').select('email').eq('id', uid).maybeSingle();
-    const { data, error } = await c
-      .from('bookings')
-      .insert({
-        user_id: uid, user_email: prof?.email ?? null, problem_summary: input.problemSummary,
-        transcript: input.transcript, preferred_datetime: dt.toISOString(), preferred_language: input.preferredLanguage,
-      })
-      .select('id')
-      .single();
-    if (error) fail(error);
-    return { id: data!.id };
+    const core = {
+      user_id: uid, user_email: prof?.email ?? null, problem_summary: input.problemSummary,
+      transcript: input.transcript, preferred_datetime: dt.toISOString(),
+      preferred_language: input.preferredLanguage,
+    };
+    const full = { ...core, phone: input.phone ?? null, media: input.media ?? [] };
+
+    const first = await c.from('bookings').insert(full).select('id').single();
+    if (!first.error) return { id: first.data!.id };
+
+    // `phone` / `media` may not exist yet (storage+booking migration pending).
+    // Saving the appointment matters far more than the extras, so fall back to
+    // the core columns instead of failing the whole booking.
+    if (!isSchemaUnavailable(first.error)) fail(first.error);
+    logDiagnostic('bookings.create', first.error, 'schema_unavailable');
+    const retry = await c.from('bookings').insert(core).select('id').single();
+    if (retry.error) fail(retry.error);
+    return { id: retry.data!.id };
+  },
+  /** Upload one intake file to the private booking-media bucket → its metadata. */
+  async uploadMedia(file: File): Promise<BookingMedia> {
+    const uid = await requireUid();
+    const safe = file.name.replace(/[^\w.\-]+/g, '_').slice(-80);
+    const path = `${uid}/${Date.now()}-${safe}`;
+    const up = await sb().storage.from('booking-media').upload(path, file, { upsert: false, contentType: file.type || undefined });
+    if (up.error) {
+      // The bucket may not exist yet (storage migration not applied). Say so
+      // precisely instead of a generic "try again" the user can't act on.
+      const msg = String((up.error as { message?: string }).message ?? '').toLowerCase();
+      logDiagnostic('bookings.uploadMedia', up.error, classifyError(up.error));
+      if (msg.includes('bucket') || msg.includes('not found')) {
+        throw new ApiError('attachments_unavailable', 503);
+      }
+      fail(up.error);
+    }
+    return { path, name: file.name, mime: file.type || undefined, size: file.size };
+  },
+  /** Owner/admin: short-lived signed URL to view an uploaded intake file. */
+  async mediaUrl(path: string): Promise<string | null> {
+    const { data } = await sb().storage.from('booking-media').createSignedUrl(path, 120);
+    return data?.signedUrl ?? null;
   },
   async mine(): Promise<Booking[]> {
     const { data, error } = await sb().from('bookings').select('*').order('created_at', { ascending: false });
@@ -511,7 +713,7 @@ export const adminUsers = {
     return (data as OverviewRow[]).map((r) => ({
       id: r.id, email: r.email ?? '', name: r.name ?? (r.email ?? '').split('@')[0],
       provider: r.provider === 'google' ? 'google' : 'email', isAdmin: r.is_admin,
-      role: r.is_admin ? 'admin' : 'user', isCompany: false,
+      role: r.is_admin ? 'admin' : 'user', isCompany: false, onboardingCompleted: false,
       referralCode: r.referral_code ?? '', createdAt: r.created_at, tier: r.tier,
       clicks: r.clicks, signups: r.signups, earnedTl: r.earned_tl, bookings: r.bookings, leads: r.leads, payments: r.payments,
     }));
@@ -699,6 +901,171 @@ export const places = {
     if (error) fail(error);
     return (data as PlaceRow[]).map(toPlace);
   },
+
+  /**
+   * Rafiq's editorial layer for a batch of Google results, keyed by place id.
+   * Fetched in ONE query per result page rather than per card — the map renders
+   * up to 20 results and a query each would be 20 round-trips.
+   *
+   * Returns an empty map on failure: a missing overlay must degrade to "no
+   * badge", never to a blank map.
+   */
+  async overlay(googlePlaceIds: string[]): Promise<Map<string, PlaceOverlay>> {
+    const ids = [...new Set(googlePlaceIds.filter(Boolean))];
+    if (ids.length === 0) return new Map();
+    const { data, error } = await sb()
+      .from('places')
+      .select('google_place_id,verified_status,recommended,recommendation_reason,last_reviewed_at')
+      .in('google_place_id', ids);
+    if (error) return new Map();
+    const out = new Map<string, PlaceOverlay>();
+    for (const r of (data ?? []) as PlaceOverlayRow[]) {
+      if (!r.google_place_id) continue;
+      out.set(r.google_place_id, {
+        googlePlaceId: r.google_place_id,
+        verifiedStatus: (r.verified_status as PlaceOverlay['verifiedStatus']) ?? 'unverified',
+        recommended: Boolean(r.recommended),
+        recommendationReason: r.recommendation_reason ?? null,
+        lastReviewedAt: r.last_reviewed_at ?? null,
+      });
+    }
+    return out;
+  },
+};
+
+interface PlaceOverlayRow {
+  google_place_id: string | null;
+  verified_status: string | null;
+  recommended: boolean | null;
+  recommendation_reason: string | null;
+  last_reviewed_at: string | null;
+}
+
+// ---------- Google Places search (via our own server function) ---------------
+
+export type PlaceSearchError = 'no_key' | 'key_rejected' | 'upstream_error' | 'network' | 'bad_request';
+
+export interface PlaceSearchResult {
+  places: GooglePlaceResult[];
+  error?: PlaceSearchError;
+}
+
+/**
+ * The endpoint answers 200 with `{ error }` on every failure (matching
+ * api/ai-chat.ts), so callers branch on the body, never on the HTTP status.
+ */
+interface PlacesResponse {
+  places?: GooglePlaceResult[];
+  place?: GooglePlaceResult;
+  error?: PlaceSearchError;
+}
+
+async function postPlaces(body: Record<string, unknown>): Promise<PlacesResponse> {
+  try {
+    const res = await fetch('/api/places-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return { error: 'upstream_error' };
+    return (await res.json()) as PlacesResponse;
+  } catch {
+    return { error: 'network' };
+  }
+}
+
+export const placeSearch = {
+  /** Category chip → Nearby Search (or Text, for categories Google has no type for). */
+  async nearby(category: string, lat: number, lng: number, radius: number, lang: string): Promise<PlaceSearchResult> {
+    const d = await postPlaces({ mode: 'nearby', category, lat, lng, radius, lang });
+    if (d.error) return { places: [], error: d.error };
+    return { places: d.places ?? [] };
+  },
+
+  /** Free-text query → Text Search, biased to the current viewport. */
+  async text(query: string, lat: number, lng: number, radius: number, lang: string): Promise<PlaceSearchResult> {
+    const d = await postPlaces({ mode: 'text', query, lat, lng, radius, lang });
+    if (d.error) return { places: [], error: d.error };
+    return { places: d.places ?? [] };
+  },
+
+  /** Rich fields for the one place the user opened. */
+  async details(placeId: string, lang: string): Promise<GooglePlaceResult | null> {
+    const d = await postPlaces({ mode: 'details', placeId, lang });
+    return d.error || !d.place ? null : d.place;
+  },
+
+  /** Photo bytes stream through our proxy so no key reaches the browser. */
+  photoUrl(photoRef: string | null, width = 800): string | null {
+    return photoRef ? `/api/place-photo?ref=${encodeURIComponent(photoRef)}&w=${width}` : null;
+  },
+};
+
+// ---------- saved places ------------------------------------------------------
+
+interface FavoriteRow {
+  id: string;
+  google_place_id: string;
+  name: string;
+  category: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+}
+
+const toFavorite = (r: FavoriteRow): FavoritePlace => ({
+  id: r.id,
+  googlePlaceId: r.google_place_id,
+  name: r.name,
+  category: r.category,
+  address: r.address,
+  lat: r.lat,
+  lng: r.lng,
+  createdAt: r.created_at,
+});
+
+export const placeFavorites = {
+  async list(): Promise<FavoritePlace[]> {
+    const { data, error } = await sb()
+      .from('place_favorites')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as FavoriteRow[]).map(toFavorite);
+  },
+
+  /** Idempotent: saving an already-saved place is a no-op, not an error. */
+  async add(p: GooglePlaceResult, category: string | null): Promise<{ ok: true }> {
+    const uid = await requireUid();
+    const { error } = await sb()
+      .from('place_favorites')
+      .upsert(
+        {
+          user_id: uid,
+          google_place_id: p.placeId,
+          name: p.name,
+          category,
+          address: p.address,
+          lat: p.lat,
+          lng: p.lng,
+        },
+        { onConflict: 'user_id,google_place_id' },
+      );
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async remove(googlePlaceId: string): Promise<{ ok: true }> {
+    const uid = await requireUid();
+    const { error } = await sb()
+      .from('place_favorites')
+      .delete()
+      .eq('user_id', uid)
+      .eq('google_place_id', googlePlaceId);
+    if (error) fail(error);
+    return { ok: true };
+  },
 };
 
 // ---------- service requests (new services catalog → leads) -----------------
@@ -744,23 +1111,76 @@ export const serviceRequests = {
    * No `.select()` read-back: reads are admin-only (keeps names/phones private),
    * and a read-back would fail RLS for the anonymous/non-admin submitter.
    */
-  async create(input: ServiceRequestInput): Promise<{ ok: true }> {
-    const { error } = await sb()
+  async create(input: ServiceRequestInput): Promise<{ ok: true; id: string | null }> {
+    const payload = {
+      name: input.name,
+      phone: input.phone,
+      email: input.email ?? null,
+      message: input.message ?? null,
+      service_id: input.serviceId,
+      service_title: input.serviceTitle,
+      category: input.category,
+      service_type: input.serviceType,
+      lang: input.lang,
+      area: input.area ?? null,
+      broadcast: input.broadcast ?? false,
+      // customer_id is stamped server-side via the column DEFAULT auth.uid()
+    };
+
+    // Columns that exist even before the 20260719 migration.
+    const legacy = {
+      name: payload.name,
+      phone: payload.phone,
+      message: payload.message,
+      service_id: payload.service_id,
+      service_title: payload.service_title,
+      category: payload.category,
+      service_type: payload.service_type,
+      lang: payload.lang,
+    };
+
+    const insert = (body: Record<string, unknown>) => sb().from('service_requests').insert(body);
+
+    // Insert WITHOUT a read-back first, so a blocked select can never cause a
+    // duplicate row. If the new columns aren't in the database yet, retry with
+    // the legacy shape — the form keeps working, it just can't be tracked live.
+    const first = await insert(payload);
+    if (first.error) {
+      if (!isSchemaUnavailable(first.error)) fail(first.error);
+      logDiagnostic('serviceRequests.create', first.error, 'schema_unavailable');
+      const retry = await insert(legacy);
+      if (retry.error) fail(retry.error);
+      return { ok: true, id: null };
+    }
+
+    // Best-effort: a signed-in customer owns the row (RLS "sr customer read
+    // own"), so fetch its id to drive the live status screen. Null is fine.
+    const uid = (await sessionUser())?.id ?? null;
+    if (!uid) return { ok: true, id: null };
+    const { data } = await sb()
       .from('service_requests')
-      .insert({
-        name: input.name,
-        phone: input.phone,
-        email: input.email ?? null,
-        message: input.message ?? null,
-        service_id: input.serviceId,
-        service_title: input.serviceTitle,
-        category: input.category,
-        service_type: input.serviceType,
-        lang: input.lang,
-        area: input.area ?? null,
-        broadcast: input.broadcast ?? false,
-        // customer_id is stamped server-side via the column DEFAULT auth.uid()
-      });
+      .select('id')
+      .eq('customer_id', uid)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return { ok: true, id: (data?.id as string | undefined) ?? null };
+  },
+
+  /** Live status of the caller's own request (null when not readable). */
+  async status(id: string): Promise<{ status: string; adminNote: string | null } | null> {
+    const { data, error } = await sb()
+      .from('service_requests')
+      .select('status,admin_note')
+      .eq('id', id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { status: (data.status as string) ?? 'new', adminNote: (data.admin_note as string | null) ?? null };
+  },
+
+  /** Admin: move a request through the workflow. */
+  async adminSetStatus(id: string, status: 'accepted' | 'done' | 'rejected'): Promise<{ ok: true }> {
+    const { error } = await sb().from('service_requests').update({ status }).eq('id', id);
     if (error) fail(error);
     return { ok: true };
   },
@@ -819,47 +1239,42 @@ export const guides = {
 
 export interface ChatResult {
   reply: string;
-  offerBooking: boolean;
-  problemSummary: string;
-  remaining: number | null;
+  /** the assistant has gathered enough → the UI offers to confirm an appointment */
+  done: boolean;
+}
+
+export interface ChatSummary {
+  /** plain prose, safe to show the user in the booking confirmation */
+  summary: string;
+  /** structured intake record for the team; undefined if the AI was unavailable */
+  caseFile?: Record<string, unknown>;
 }
 
 export const ai = {
   async chat(messages: ChatMessage[], lang: string, onDelta: (text: string) => void): Promise<ChatResult> {
-    const uid = await requireUid();
-    const c = sb();
+    const last = messages[messages.length - 1]?.text ?? '';
+    const history = messages.slice(0, -1).map((m) => ({ role: m.role, text: m.text }));
+    // The deterministic responder is only a safety net for when the AI service
+    // is unreachable, so the chat still says something useful.
+    const fb = fallbackRespond(history, last, lang);
 
-    let remaining: number | null = null;
-    if (!(await isProOrAdmin(uid))) {
-      const { data: usage } = await c.from('ai_usage').select('count').eq('user_id', uid).maybeSingle();
-      const used = usage?.count ?? 0;
-      if (used >= FREE_CHAT_MESSAGES) throw new ApiError('payment_required', 402);
-      const next = used + 1;
-      await c.from('ai_usage').upsert({ user_id: uid, count: next }, { onConflict: 'user_id' });
-      remaining = Math.max(0, FREE_CHAT_MESSAGES - next);
-    }
+    let reply = fb.reply;
+    let done = false;
 
-    // Real AI via the Gemini-backed Edge Function; gracefully fall back to the
-    // deterministic responder if it's unavailable (no key / quota / network).
-    let reply = '';
-    let offerBooking = false;
-    let problemSummary = '';
+    // Real AI (intake agent) via our own server function (/api/ai-chat on Vercel).
     try {
-      const { data, error } = await c.functions.invoke('ai-chat', {
-        body: { messages: messages.map((m) => ({ role: m.role, text: m.text })), lang },
+      const res = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messages.map((m) => ({ role: m.role, text: m.text })), lang }),
       });
-      const d = data as { reply?: string; offerBooking?: boolean; problemSummary?: string; error?: string } | null;
-      if (error || !d || d.error || !d.reply) throw new Error('ai_unavailable');
-      reply = d.reply;
-      offerBooking = !!d.offerBooking;
-      problemSummary = d.problemSummary ?? '';
+      if (res.ok) {
+        const d = (await res.json()) as { reply?: string; done?: boolean; error?: string };
+        if (d?.reply && d.reply.trim()) reply = d.reply.trim();
+        done = d?.done === true;
+      }
     } catch {
-      const last = messages[messages.length - 1]?.text ?? '';
-      const history = messages.slice(0, -1).map((m) => ({ role: m.role, text: m.text }));
-      const fb = fallbackRespond(history, last, lang);
-      reply = fb.reply;
-      offerBooking = fb.offerBooking;
-      problemSummary = fb.problemSummary;
+      /* offline or function unavailable — keep the fallback reply */
     }
 
     // simulate token streaming so the UI animates like the old SSE endpoint
@@ -871,119 +1286,150 @@ export const ai = {
       if (i % 2 === 1) await sleep(16);
     }
 
-    return { reply, offerBooking, problemSummary, remaining };
+    return { reply, done };
+  },
+
+  /**
+   * Ask the AI for the case file. `summary` is the human-readable brief shown
+   * to the user before they confirm; `caseFile` is the structured record for
+   * the team (absent when the service is unavailable or returned no JSON).
+   * Falls back to a trimmed transcript snippet so booking never blocks on AI.
+   */
+  async summarize(messages: ChatMessage[], lang: string): Promise<ChatSummary> {
+    try {
+      const res = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messages.map((m) => ({ role: m.role, text: m.text })), lang, summarize: true }),
+      });
+      if (res.ok) {
+        const d = (await res.json()) as { summary?: string; case?: Record<string, unknown> };
+        if (d?.summary && d.summary.trim()) return { summary: d.summary.trim(), caseFile: d.case };
+      }
+    } catch {
+      /* ignore — fall through to a local summary */
+    }
+    const firstUser = messages.find((m) => m.role === 'user')?.text ?? '';
+    return { summary: firstUser.slice(0, 200) };
   },
 };
 
-// ---------- exchange rates ---------------------------------------------------
+// ---------- FX rates (server-synced, read-only from the client) --------------
 
-export interface Rates {
-  usdtry: number;
-  eurtry: number;
-  live: boolean;
-  source?: 'live' | 'admin' | 'fallback';
-  updatedAt?: string | null;
+export interface FxRate {
+  pair: string;
+  rate: number;
+  source: 'provider' | 'manual';
+  providerName: string | null;
+  validationStatus: 'ok' | 'suspect' | 'stale';
+  updatedAt: string;
+  overrideReason: string | null;
 }
 
-const FALLBACK_RATES: Rates = { usdtry: 32.5, eurtry: 35.2, live: false, source: 'fallback' };
-
-export async function fetchRates(): Promise<Rates> {
-  // 1) admin override wins
-  try {
-    const { data } = await sb().from('settings').select('value').eq('key', 'rates').maybeSingle();
-    const v = data?.value as RatesValue | undefined;
-    if (v && v.usdtry > 0 && v.eurtry > 0) {
-      return { usdtry: v.usdtry, eurtry: v.eurtry, live: false, source: 'admin', updatedAt: v.updatedAt };
-    }
-  } catch {
-    /* ignore — fall through to live */
-  }
-  // 2) live (free, no key)
-  try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    if (res.ok) {
-      const j = await res.json();
-      const try_ = Number(j?.rates?.TRY);
-      const eur = Number(j?.rates?.EUR);
-      if (try_ > 0 && eur > 0) {
-        return { usdtry: try_, eurtry: try_ / eur, live: true, source: 'live', updatedAt: j?.time_last_update_utc ?? null };
-      }
-    }
-  } catch {
-    /* ignore — fall through to fallback */
-  }
-  // 3) fallback constants
-  return FALLBACK_RATES;
+export interface FxSyncRun {
+  id: string;
+  startedAt: string;
+  finishedAt: string | null;
+  status: 'success' | 'partial' | 'failed';
+  providerName: string | null;
+  pairsUpdated: number;
+  pairsRejected: number;
+  error: string | null;
+  localTime: string | null;
 }
 
-// ---------- multi-currency ticker (scrolling marquee) -----------------------
+export interface FxAuditEntry {
+  id: string;
+  pair: string;
+  oldRate: number | null;
+  newRate: number | null;
+  source: string;
+  reason: string | null;
+  createdAt: string;
+}
 
-export interface TickerItem { label: string; value: string }
+interface FxRateRow {
+  pair: string; rate: string | number; source: string; provider_name: string | null;
+  validation_status: string; updated_at: string; override_reason: string | null;
+}
 
 /**
- * Rich ticker: TRY crosses + Gulf currencies + Syrian Lira (admin-set, since
- * free APIs report a wrong/stale SYP) + Bitcoin/Ethereum. Fails soft per source.
+ * The whole ticker in one query. Nothing here calls an exchange-rate provider:
+ * the browser reads only what the daily cron wrote, so no third-party endpoint
+ * ever sees our users and no API key can leak into the bundle.
  */
-export async function fetchTicker(): Promise<{ items: TickerItem[]; live: boolean }> {
-  let fx: Record<string, number> = {};
-  let live = false;
-  try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    if (res.ok) {
-      const j = await res.json();
-      fx = (j?.rates as Record<string, number>) ?? {};
-      live = true;
-    }
-  } catch {
-    /* ignore */
-  }
+export const fx = {
+  async list(): Promise<FxRate[]> {
+    const { data, error } = await sb().from('fx_rates').select('*');
+    if (error) return [];
+    return ((data ?? []) as FxRateRow[]).map((r) => ({
+      pair: r.pair,
+      rate: Number(r.rate),
+      source: (r.source as FxRate['source']) ?? 'provider',
+      providerName: r.provider_name,
+      validationStatus: (r.validation_status as FxRate['validationStatus']) ?? 'ok',
+      updatedAt: r.updated_at,
+      overrideReason: r.override_reason,
+    }));
+  },
 
-  // admin overrides (settings 'rates'): authoritative USD/TRY, EUR/TRY, and the Syrian rate
-  let adminUsdTry: number | undefined;
-  let adminEurTry: number | undefined;
-  let sypusd: number | undefined;
-  try {
-    const { data } = await sb().from('settings').select('value').eq('key', 'rates').maybeSingle();
-    const v = data?.value as RatesValue | undefined;
-    if (v?.usdtry) adminUsdTry = v.usdtry;
-    if (v?.eurtry) adminEurTry = v.eurtry;
-    if (v?.sypusd) sypusd = v.sypusd;
-  } catch {
-    /* ignore */
-  }
+  /** Admin: the run log, newest first — the source of "last successful update". */
+  async runs(limit = 10): Promise<FxSyncRun[]> {
+    const { data, error } = await sb()
+      .from('fx_sync_runs')
+      .select('*')
+      .order('started_at', { ascending: false })
+      .limit(limit);
+    if (error) fail(error);
+    return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+      id: r.id as string,
+      startedAt: r.started_at as string,
+      finishedAt: (r.finished_at as string) ?? null,
+      status: r.status as FxSyncRun['status'],
+      providerName: (r.provider_name as string) ?? null,
+      pairsUpdated: Number(r.pairs_updated ?? 0),
+      pairsRejected: Number(r.pairs_rejected ?? 0),
+      error: (r.error as string) ?? null,
+      localTime: (r.local_time as string) ?? null,
+    }));
+  },
 
-  // crypto (CoinGecko, free, no key)
-  let btc = 0;
-  let eth = 0;
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
-    if (res.ok) {
-      const j = await res.json();
-      btc = Number(j?.bitcoin?.usd) || 0;
-      eth = Number(j?.ethereum?.usd) || 0;
-    }
-  } catch {
-    /* ignore */
-  }
+  async audit(limit = 30): Promise<FxAuditEntry[]> {
+    const { data, error } = await sb()
+      .from('fx_rate_audit')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) fail(error);
+    return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+      id: r.id as string,
+      pair: r.pair as string,
+      oldRate: r.old_rate === null ? null : Number(r.old_rate),
+      newRate: r.new_rate === null ? null : Number(r.new_rate),
+      source: r.source as string,
+      reason: (r.reason as string) ?? null,
+      createdAt: r.created_at as string,
+    }));
+  },
 
-  const fmt2 = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmt0 = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  const usdtry = adminUsdTry || fx.TRY || 0;
-  const items: TickerItem[] = [];
-  if (usdtry) items.push({ label: 'USD/TRY', value: fmt2(usdtry) });
-  if (adminEurTry || (fx.TRY && fx.EUR)) items.push({ label: 'EUR/TRY', value: fmt2(adminEurTry || fx.TRY / fx.EUR) });
-  if (fx.TRY && fx.GBP) items.push({ label: 'GBP/TRY', value: fmt2(fx.TRY / fx.GBP) });
-  if (fx.TRY && fx.SAR) items.push({ label: 'SAR/TRY', value: fmt2(fx.TRY / fx.SAR) });
-  if (fx.TRY && fx.AED) items.push({ label: 'AED/TRY', value: fmt2(fx.TRY / fx.AED) });
-  // Syrian Lira — admin-set only (free APIs are unreliable for SYP)
-  if (sypusd) {
-    items.push({ label: 'USD/SYP', value: fmt0(sypusd) });
-    if (usdtry) items.push({ label: 'TRY/SYP', value: fmt0(sypusd / usdtry) });
-  }
-  if (btc) items.push({ label: 'BTC/USD', value: '$' + fmt0(btc) });
-  if (eth) items.push({ label: 'ETH/USD', value: '$' + fmt0(eth) });
-  return { items, live };
-}
+  /** Admin override. The reason is enforced by the RPC, not just the form. */
+  async setOverride(pair: string, rate: number, reason: string): Promise<{ ok: true }> {
+    const { error } = await sb().rpc('set_fx_override', { p_pair: pair, p_rate: rate, p_reason: reason });
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async clearOverride(pair: string, reason: string): Promise<{ ok: true }> {
+    const { error } = await sb().rpc('clear_fx_override', { p_pair: pair, p_reason: reason });
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+// The old browser-side rate fetching (fetchRates / fetchTicker / FALLBACK_RATES)
+// lived here. It called open.er-api.com and coingecko directly from the user's
+// page. Removed with the daily server-side sync: see the `fx` module above and
+// api/cron/rates-sync.ts. Do not reintroduce a client-side price fetch.
 
 // ============================================================================
 // B2B Companies system — companies, billing, leads/responses, reviews, admin.

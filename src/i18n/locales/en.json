@@ -15,6 +15,7 @@
     "search": "Search",
     "loading": "Loading...",
     "viewAll": "View all",
+    "showLess": "Show less",
     "learnMore": "Learn more",
     "helpMe": "Help me with this",
     "bookAppointment": "Book an appointment",
@@ -75,7 +76,10 @@
     "allServices": "All services",
     "forCompanies": "For companies",
     "companyPortal": "Company portal",
-    "myRequests": "My requests"
+    "myRequests": "My requests",
+    "dashboard": "Home",
+    "myJourney": "My journey",
+    "account": "My account"
   },
   "langSelect": {
     "title": "Welcome to Rafiq Istanbul",
@@ -173,20 +177,19 @@
       "secure": "KVKK-compliant"
     },
     "how": {
-      "eyebrow": "How it works",
-      "title": "Settled in 3 simple steps",
-      "subtitle": "From your first question to done — we guide every step.",
+      "eyebrow": "How Rafiq works",
+      "title": "Three steps to handle your paperwork with confidence",
       "s1": {
-        "title": "Tell us your situation",
-        "desc": "Chat with Rafiq in your language about residency, housing, banking or health."
+        "title": "Pick your language & situation",
+        "desc": "Arabic, English, Russian or Persian — then choose your case (newcomer, student, family, work)."
       },
       "s2": {
-        "title": "Get your tailored plan",
-        "desc": "We map the exact steps, documents and timelines for your case."
+        "title": "Open the right guide",
+        "desc": "Ordered steps with the required documents, forms and official links."
       },
       "s3": {
-        "title": "We get it done",
-        "desc": "Book a free expert call and let our team handle the paperwork with you."
+        "title": "Get it done with confidence",
+        "desc": "Follow the steps, and if you need help, reach us directly on WhatsApp."
       }
     },
     "about": {
@@ -256,6 +259,12 @@
       "ctaTitle": "Still have a question?",
       "ctaBody": "Ask Rafiq AI in your language — it answers instantly and connects you to an expert if needed.",
       "ctaButton": "Ask the assistant"
+    },
+    "stats": {
+      "languages": "Supported languages",
+      "guides": "Practical guides & articles",
+      "users": "Users helped by Rafiq",
+      "services": "Transactions & fields covered"
     }
   },
   "help": {
@@ -277,7 +286,15 @@
     "live": "Live rates",
     "cached": "Cached rates",
     "label": "Currency rates",
-    "official": "Official rate"
+    "official": "Official rate",
+    "loading": "Loading rates…",
+    "unavailable": "Rates unavailable right now",
+    "updatedAt": "Last updated: {{time}}",
+    "source": "Source: {{source}}",
+    "sourceManual": "Official rate set by admin",
+    "sourceProvider": "Rate provider",
+    "statusFresh": "Rates are up to date",
+    "statusStale": "Rates are stale — no new update received"
   },
   "blocks": {
     "preArrival": {
@@ -600,13 +617,58 @@
       "cta": "See plans"
     },
     "topicSeed": "I need help with: {{service}}",
-    "voice": "Voice input"
+    "voice": "Voice input",
+    "newTopic": "New topic",
+    "topicsLeft": "{{count}} of {{total}} topics left today",
+    "limit": {
+      "title": "You've reached today's limit",
+      "body": "Free accounts can open {{total}} topics every 24 hours. You can start a new topic in:",
+      "cta": "Try our plans",
+      "continueHint": "You can still continue your current topic."
+    },
+    "attach": "Attach a file",
+    "attaching": "Uploading...",
+    "attachTooBig": "That file is too large. Maximum 50 MB.",
+    "attachError": "Couldn't upload the file. Please try again.",
+    "attached": "Attachments: {{count}}",
+    "attachCard": {
+      "title": "Attach your documents",
+      "body": "Take photos of your papers (passport, residence card, contract...) and attach them here — images, video or PDF up to {{mb}} MB.",
+      "cta": "Attach now",
+      "skip": "Skip for now"
+    },
+    "ready": {
+      "title": "Done — we've got your details",
+      "body": "Everything is ready on our side. Pick a time that suits you and our specialist will follow up.",
+      "cta": "Confirm appointment",
+      "preparing": "Preparing..."
+    },
+    "attachUnavailable": "Attachments are not enabled yet. You can still book — just describe your documents in the chat.",
+    "closed": {
+      "title": "This topic is finished",
+      "body": "Open a new topic whenever you need something else.",
+      "bookedTitle": "Appointment booked",
+      "bookedBody": "Your case is now with our team — they will contact you at the time you chose. Open a new topic for anything else.",
+      "cta": "Start a new topic",
+      "placeholder": "This topic is finished — start a new one"
+    },
+    "history": {
+      "cta": "Past chats ({{count}})",
+      "title": "Past conversations",
+      "empty": "No past conversations yet.",
+      "untitled": "Conversation",
+      "booked": "appointment booked",
+      "messages": "Messages: {{count}}"
+    },
+    "attachedNote": "I attached these files: {{files}}"
   },
   "booking": {
     "title": "Book a free online appointment",
     "dateLabel": "Preferred date",
     "timeLabel": "Preferred time",
     "langLabel": "Preferred language",
+    "phoneLabel": "Your phone number (WhatsApp if possible)",
+    "mediaAttached": "{{count}} attachment(s) will reach the specialist",
     "attachedNote": "Your problem summary and the chat transcript are attached automatically — no need to repeat anything.",
     "summaryLabel": "Your problem summary",
     "submit": "Confirm booking",
@@ -620,25 +682,49 @@
   },
   "map": {
     "title": "Istanbul services map",
-    "subtitle": "Trusted places, filtered by what you need.",
-    "ai": "Ask AI where to go...",
-    "aiGo": "Find",
+    "subtitle": "Find places around you, with Rafiq-reviewed recommendations.",
+    "searchPlaceholder": "Search for a place or service…",
+    "searchBtn": "Search",
+    "idle": "Pick a category or type a place name to start.",
+    "retry": "Try again",
+    "recommended": "Recommended by Rafiq",
+    "recommendedCount": "{{count}} recommended",
+    "verified": "Verified by Rafiq",
+    "notReviewed": "Not reviewed by Rafiq yet",
+    "notReviewedBody": "This result comes from Google and our team has not verified it. Please check it yourself before relying on it.",
+    "lastReviewed": "Last reviewed: {{date}}",
+    "openNow": "Open now",
+    "closedNow": "Closed now",
+    "save": "Save place",
+    "unsave": "Remove from saved",
+    "saved": "Saved",
+    "requestHelp": "Request help booking or visiting",
+    "helpPrefill": "I need help with: {{name}} — {{address}}",
     "categories": {
-      "all": "All",
-      "dining": "Dining",
+      "dining": "Restaurants",
       "hotels": "Hotels",
-      "notary": "Notary",
       "hospitals": "Hospitals",
-      "government": "Government",
-      "shopping": "Shopping"
+      "notary": "Notary",
+      "government": "Government offices",
+      "shopping": "Shopping",
+      "arabic": "Arabic services"
+    },
+    "empty": {
+      "title": "No results",
+      "body": "Try another category or widen your search."
+    },
+    "error": {
+      "title": "Could not load the map",
+      "body": "The maps service is unavailable right now. Please try again shortly.",
+      "noKey": "The Google Maps key is not configured yet. Please tell the Rafiq team."
     },
     "locked": {
       "title": "Upgrade to unlock the map",
-      "body": "The interactive services map with verified locations is available on Pro and Elite plans.",
+      "body": "The interactive services map with Rafiq recommendations is available on Pro and Elite.",
       "cta": "Unlock with Pro"
     },
     "directory": {
-      "title": "Services directory",
+      "title": "Service directory",
       "count": "{{count}} places",
       "empty": "No places in this category yet.",
       "directions": "Directions"
@@ -936,7 +1022,16 @@
   "admin": {
     "serviceRequests": {
       "title": "Service requests",
-      "empty": "No service requests yet."
+      "empty": "No service requests yet.",
+      "markReady": "Ready — notify customer",
+      "markDone": "Mark done",
+      "reject": "Close request",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Ready",
+        "done": "Done",
+        "rejected": "Closed"
+      }
     },
     "title": "Admin dashboard",
     "users": {
@@ -1036,6 +1131,41 @@
     "cancellations": {
       "title": "Subscription cancellations",
       "empty": "No cancellations."
+    },
+    "fx": {
+      "title": "Daily currency rate sync",
+      "body": "Runs automatically at 09:05 Istanbul time. Implausible values are rejected and the last trusted rate stays live.",
+      "healthy": "Daily sync is healthy",
+      "degraded": "The last run did not fully succeed — displayed rates are the last trusted values",
+      "lastSuccess": "Last successful update: {{date}}",
+      "lastRun": "Last run: {{date}} ({{status}}) — local time {{local}}",
+      "status": {
+        "success": "success",
+        "partial": "partial",
+        "failed": "failed"
+      },
+      "col": {
+        "pair": "Pair",
+        "rate": "Rate",
+        "source": "Source",
+        "updated": "Updated"
+      },
+      "source": {
+        "provider": "Provider",
+        "manual": "Manual"
+      },
+      "override": "Override",
+      "release": "Back to feed",
+      "save": "Save",
+      "reasonPlaceholder": "Reason for the change (required)",
+      "releasedReason": "Manual override released",
+      "auditTitle": "Audit log",
+      "auditEmpty": "No changes recorded yet.",
+      "errors": {
+        "rate": "Enter a positive numeric rate.",
+        "reason": "Give a reason — a manual override is never saved without one.",
+        "save": "Could not save. Please try again."
+      }
     }
   },
   "adminBookings": {
@@ -1046,6 +1176,8 @@
     "language": "Language",
     "transcript": "View transcript",
     "hideTranscript": "Hide transcript",
+    "phone": "Phone",
+    "media": "Attachments ({{count}})",
     "notePlaceholder": "Internal note...",
     "saveNote": "Save note",
     "empty": "No bookings yet.",
@@ -1137,7 +1269,13 @@
   "errors": {
     "title": "Something went wrong",
     "body": "An unexpected error occurred. Please reload the page.",
-    "reload": "Reload"
+    "reload": "Reload",
+    "schema_unavailable": "This feature is being set up. Please try again shortly.",
+    "unauthenticated": "Your session has expired. Please sign in again.",
+    "forbidden": "You don't have permission to view this.",
+    "network_error": "Connection problem. Check your internet and try again.",
+    "server_error": "The service is temporarily unavailable. Please try again.",
+    "unknown_error": "Something went wrong. Please try again."
   },
   "footer": {
     "rights": "All rights reserved.",
@@ -1349,6 +1487,185 @@
       "responsesEmpty": "No responses yet.",
       "chosen": "Chosen",
       "quote": "Quote"
+    }
+  },
+  "onboard": {
+    "title": "Let's get to know you",
+    "subtitle": "Four quick questions so we can tailor your journey.",
+    "stepOf": "Question {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "saving": "Saving…",
+    "error": "Could not save your answers. Please try again.",
+    "retry": "Try again",
+    "situation": {
+      "title": "What is your current situation in Turkey?",
+      "planning": "Planning to move to Turkey",
+      "arrived": "Recently arrived",
+      "visiting": "Visitor",
+      "student": "Student",
+      "resident": "Resident",
+      "long_resident": "Long-time resident"
+    },
+    "city": {
+      "title": "Which city do you live in?",
+      "placeholder": "Choose your city",
+      "other": "Another city"
+    },
+    "has": {
+      "title": "Which of these have you already done?",
+      "subtitle": "Pick everything that applies — we will mark them as completed."
+    },
+    "family": {
+      "title": "Do you live alone or with your family?",
+      "alone": "On my own",
+      "family": "With my family"
+    },
+    "done": {
+      "title": "Your journey is ready",
+      "body": "We built your first steps based on your answers.",
+      "cta": "Go to my home"
+    }
+  },
+  "dash": {
+    "greeting": "Hello, {{name}}",
+    "journeyTitle": "My journey",
+    "doneOf": "Completed {{done}} of {{total}}",
+    "remaining": "{{count}} steps left",
+    "continueCta": "Continue my journey",
+    "nextTitle": "Your next step",
+    "viewAll": "View all steps",
+    "services": "Services for you",
+    "guides": "Useful guides",
+    "incompleteTitle": "Let's get to know you",
+    "incompleteBody": "Answer a few quick questions and we will build your journey.",
+    "startNow": "Start now",
+    "guestTitle": "Sign in to see your journey",
+    "guestBody": "Create a free account to save your progress and documents.",
+    "guestCta": "Sign in",
+    "emptyTitle": "Your journey is empty",
+    "emptyBody": "We could not build your steps yet. Try again or review your answers.",
+    "emptyCta": "Rebuild my journey",
+    "errorTitle": "Something went wrong",
+    "errorBody": "We could not load your journey right now.",
+    "retry": "Try again",
+    "bookingsTitle": "My appointments",
+    "notifTitle": "Latest notifications",
+    "renewalsTitle": "Upcoming renewals",
+    "renewalIn": "in {{count}} days",
+    "renewalOverdue": "Expired — renew now",
+    "renewalLabels": {
+      "residence": "Residence permit",
+      "insurance": "Health insurance",
+      "passport": "Passport"
+    }
+  },
+  "journeyPage": {
+    "title": "My journey",
+    "subtitle": "Your personal checklist for settling in Turkey.",
+    "overall": "Overall progress",
+    "nextLabel": "Next step",
+    "todoSection": "Remaining steps",
+    "doneSection": "Completed steps",
+    "markDone": "Mark {{task}} as completed",
+    "markTodo": "Mark {{task}} as not completed",
+    "empty": "You have no steps yet.",
+    "emptyCta": "Build my journey",
+    "error": "We could not load your journey.",
+    "retry": "Try again",
+    "openService": "Open the service"
+  },
+  "account": {
+    "title": "My account",
+    "situation": "Current situation",
+    "city": "City",
+    "notSet": "Not set",
+    "onboardingStatus": "Onboarding",
+    "completed": "Completed",
+    "notCompleted": "Not completed",
+    "editAnswers": "Edit my answers",
+    "myJourney": "My journey",
+    "soon": "Soon"
+  },
+  "situationStatus": {
+    "planning": "Planning to move to Turkey",
+    "arrived": "Recently arrived in Turkey",
+    "visiting": "Visiting Turkey",
+    "student": "Studying in Turkey",
+    "resident": "Living in Turkey",
+    "long_resident": "Long-time resident in Turkey"
+  },
+  "journeyTasks": {
+    "turkishPhone": {
+      "title": "Get a Turkish phone number",
+      "desc": "A Turkish SIM in your name — needed to activate official accounts and apps."
+    },
+    "taxNumber": {
+      "title": "Get your tax number",
+      "desc": "A tax number (Vergi No) — required to open a bank account and for most procedures."
+    },
+    "residencePermit": {
+      "title": "Review your residence status",
+      "desc": "Check your permit: first application, or renewal before it expires."
+    },
+    "bankAccount": {
+      "title": "Open a bank account",
+      "desc": "A Turkish bank account to receive transfers and pay bills."
+    }
+  },
+  "requestFlow": {
+    "broadcasting": "Sending your request to every office in Istanbul so you get the best price",
+    "broadcastingSub": "Comparing trusted offices near you…",
+    "waiting": "Waiting for offers",
+    "waitingSub": "We'll notify you as soon as your offer is ready.",
+    "ready": "Your offer is ready",
+    "readySub": "Our team has prepared your request — open it now.",
+    "openNow": "Open now",
+    "track": "Track my request",
+    "rejected": "Request closed",
+    "rejectedSub": "Contact us if you still need help with this.",
+    "steps": {
+      "sent": "Request received",
+      "matching": "Matching offices",
+      "offers": "Collecting offers"
+    }
+  },
+  "intake": {
+    "title": "Three quick questions",
+    "subtitle": "So our specialist opens your file already knowing what you need.",
+    "stepOf": "Question {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Continue",
+    "skip": "Skip",
+    "permitType": {
+      "label": "Which residence permit do you need?",
+      "tourist": "Tourist residence",
+      "property": "Property-based residence",
+      "work": "Work residence",
+      "student": "Student residence",
+      "family": "Family reunification",
+      "renewal": "Renewal of an existing permit"
+    },
+    "priorPermit": {
+      "label": "Do you already have a residence permit?",
+      "none": "No, this is my first",
+      "active": "Yes, still valid",
+      "expired": "Yes, but it expired"
+    },
+    "documents": {
+      "label": "Which documents do you already have?",
+      "hint": "Pick everything you have — we will tell the specialist what is missing.",
+      "none": "None yet"
+    },
+    "summary": {
+      "heading": "Intake",
+      "permitType": "Permit type",
+      "priorPermit": "Previous permit",
+      "has": "Already has",
+      "missing": "Still needs",
+      "none": "None"
     }
   }
 }
