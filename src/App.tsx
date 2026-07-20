@@ -10,61 +10,96 @@ import { referrals } from './lib/api';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
 
+/**
+ * lazy() with stale-deploy recovery.
+ *
+ * Every deployment renames the hashed JS chunks. A tab opened before a deploy
+ * still holds the OLD manifest, so navigating to a not-yet-visited page
+ * requests a chunk that no longer exists — "تعذّر تحميل الصفحة" on every
+ * navigation until the user thinks to refresh. With several deploys a day this
+ * hit users constantly.
+ *
+ * Recovery: reload the page ONCE (fetching the new manifest). The
+ * sessionStorage guard stops a reload loop when the failure is real (offline);
+ * a successful load clears it so the next deploy gets its own single retry.
+ */
+const CHUNK_RELOAD_KEY = 'rafiq_chunk_reloaded';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors React.lazy's own constraint
+function lazyPage<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(() =>
+    factory().then(
+      (m) => {
+        sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+        return m;
+      },
+      (e: unknown) => {
+        if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+          sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
+          window.location.reload();
+          // never resolves — the reload replaces the document
+          return new Promise<{ default: T }>(() => {});
+        }
+        throw e;
+      },
+    ),
+  );
+}
+
 // P3-7: secondary routes are lazy-loaded to keep the initial bundle small
-const Auth = lazy(() => import('./pages/Auth').then((m) => ({ default: m.Auth })));
+const Auth = lazyPage(() => import('./pages/Auth').then((m) => ({ default: m.Auth })));
 // Dedicated mobile screens (phone viewports) — same route, different component.
 // See mobile-prompts/ for the design prompts used to generate these.
-const MobileAuth = lazy(() => import('./pages/mobile/MobileAuth').then((m) => ({ default: m.MobileAuth })));
-const MobileHome = lazy(() => import('./pages/mobile/MobileHome').then((m) => ({ default: m.MobileHome })));
-const MobilePricing = lazy(() => import('./pages/mobile/MobilePricing').then((m) => ({ default: m.MobilePricing })));
-const Pricing = lazy(() => import('./pages/Pricing').then((m) => ({ default: m.Pricing })));
-const Checkout = lazy(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
-const MobileCheckout = lazy(() => import('./pages/mobile/MobileCheckout').then((m) => ({ default: m.MobileCheckout })));
-const Smart = lazy(() => import('./pages/Smart').then((m) => ({ default: m.Smart })));
-const MobileSmart = lazy(() => import('./pages/mobile/MobileSmart').then((m) => ({ default: m.MobileSmart })));
-const Premium = lazy(() => import('./pages/Premium').then((m) => ({ default: m.Premium })));
-const MobilePremium = lazy(() => import('./pages/mobile/MobilePremium').then((m) => ({ default: m.MobilePremium })));
-const HelpRequest = lazy(() => import('./pages/HelpRequest').then((m) => ({ default: m.HelpRequest })));
-const MobileHelpRequest = lazy(() => import('./pages/mobile/MobileHelpRequest').then((m) => ({ default: m.MobileHelpRequest })));
-const Services = lazy(() => import('./pages/Services').then((m) => ({ default: m.Services })));
-const MobileServices = lazy(() => import('./pages/mobile/MobileServices').then((m) => ({ default: m.MobileServices })));
-const GuidePage = lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
-const MobileGuidePage = lazy(() => import('./pages/mobile/MobileGuidePage').then((m) => ({ default: m.MobileGuidePage })));
-const MapPage = lazy(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
-const MobileMapPage = lazy(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
-const Referrals = lazy(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
-const MobileReferrals = lazy(() => import('./pages/mobile/MobileReferrals').then((m) => ({ default: m.MobileReferrals })));
-const Residency = lazy(() => import('./pages/Residency').then((m) => ({ default: m.Residency })));
-const MobileResidency = lazy(() => import('./pages/mobile/MobileResidency').then((m) => ({ default: m.MobileResidency })));
-const RealEstate = lazy(() => import('./pages/RealEstate').then((m) => ({ default: m.RealEstate })));
-const MobileRealEstate = lazy(() => import('./pages/mobile/MobileRealEstate').then((m) => ({ default: m.MobileRealEstate })));
-const HealthTourism = lazy(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
-const MobileHealthTourism = lazy(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
-const Tricks = lazy(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
-const MobileTricks = lazy(() => import('./pages/mobile/MobileTricks').then((m) => ({ default: m.MobileTricks })));
-const Hub = lazy(() => import('./pages/Hub').then((m) => ({ default: m.Hub })));
-const MobileHub = lazy(() => import('./pages/mobile/MobileHub').then((m) => ({ default: m.MobileHub })));
-const HubDetail = lazy(() => import('./pages/Hub').then((m) => ({ default: m.HubDetail })));
-const MobileHubDetail = lazy(() => import('./pages/mobile/MobileHubDetail').then((m) => ({ default: m.MobileHubDetail })));
-const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
-const MobileProfilePage = lazy(() => import('./pages/mobile/MobileProfilePage').then((m) => ({ default: m.MobileProfilePage })));
-const Notifications = lazy(() => import('./pages/Notifications').then((m) => ({ default: m.Notifications })));
-const MobileNotifications = lazy(() => import('./pages/mobile/MobileNotifications').then((m) => ({ default: m.MobileNotifications })));
-const Admin = lazy(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
-const AdminBookings = lazy(() => import('./pages/AdminBookings').then((m) => ({ default: m.AdminBookings })));
-const CompanyRegister = lazy(() => import('./pages/company/CompanyRegister').then((m) => ({ default: m.CompanyRegister })));
-const CompanyDashboard = lazy(() => import('./pages/company/CompanyDashboard').then((m) => ({ default: m.CompanyDashboard })));
-const CompanyProfileEdit = lazy(() => import('./pages/company/CompanyProfileEdit').then((m) => ({ default: m.CompanyProfileEdit })));
-const CompanyBilling = lazy(() => import('./pages/company/CompanyBilling').then((m) => ({ default: m.CompanyBilling })));
-const CompanyPublic = lazy(() => import('./pages/CompanyPublic').then((m) => ({ default: m.CompanyPublic })));
-const MyRequests = lazy(() => import('./pages/MyRequests').then((m) => ({ default: m.MyRequests })));
-const MobileMyRequests = lazy(() => import('./pages/mobile/MobileMyRequests').then((m) => ({ default: m.MobileMyRequests })));
+const MobileAuth = lazyPage(() => import('./pages/mobile/MobileAuth').then((m) => ({ default: m.MobileAuth })));
+const MobileHome = lazyPage(() => import('./pages/mobile/MobileHome').then((m) => ({ default: m.MobileHome })));
+const MobilePricing = lazyPage(() => import('./pages/mobile/MobilePricing').then((m) => ({ default: m.MobilePricing })));
+const Pricing = lazyPage(() => import('./pages/Pricing').then((m) => ({ default: m.Pricing })));
+const Checkout = lazyPage(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
+const MobileCheckout = lazyPage(() => import('./pages/mobile/MobileCheckout').then((m) => ({ default: m.MobileCheckout })));
+const Smart = lazyPage(() => import('./pages/Smart').then((m) => ({ default: m.Smart })));
+const MobileSmart = lazyPage(() => import('./pages/mobile/MobileSmart').then((m) => ({ default: m.MobileSmart })));
+const Premium = lazyPage(() => import('./pages/Premium').then((m) => ({ default: m.Premium })));
+const MobilePremium = lazyPage(() => import('./pages/mobile/MobilePremium').then((m) => ({ default: m.MobilePremium })));
+const HelpRequest = lazyPage(() => import('./pages/HelpRequest').then((m) => ({ default: m.HelpRequest })));
+const MobileHelpRequest = lazyPage(() => import('./pages/mobile/MobileHelpRequest').then((m) => ({ default: m.MobileHelpRequest })));
+const Services = lazyPage(() => import('./pages/Services').then((m) => ({ default: m.Services })));
+const MobileServices = lazyPage(() => import('./pages/mobile/MobileServices').then((m) => ({ default: m.MobileServices })));
+const GuidePage = lazyPage(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
+const MobileGuidePage = lazyPage(() => import('./pages/mobile/MobileGuidePage').then((m) => ({ default: m.MobileGuidePage })));
+const MapPage = lazyPage(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
+const MobileMapPage = lazyPage(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
+const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
+const MobileReferrals = lazyPage(() => import('./pages/mobile/MobileReferrals').then((m) => ({ default: m.MobileReferrals })));
+const Residency = lazyPage(() => import('./pages/Residency').then((m) => ({ default: m.Residency })));
+const MobileResidency = lazyPage(() => import('./pages/mobile/MobileResidency').then((m) => ({ default: m.MobileResidency })));
+const RealEstate = lazyPage(() => import('./pages/RealEstate').then((m) => ({ default: m.RealEstate })));
+const MobileRealEstate = lazyPage(() => import('./pages/mobile/MobileRealEstate').then((m) => ({ default: m.MobileRealEstate })));
+const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
+const MobileHealthTourism = lazyPage(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
+const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
+const MobileTricks = lazyPage(() => import('./pages/mobile/MobileTricks').then((m) => ({ default: m.MobileTricks })));
+const Hub = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.Hub })));
+const MobileHub = lazyPage(() => import('./pages/mobile/MobileHub').then((m) => ({ default: m.MobileHub })));
+const HubDetail = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.HubDetail })));
+const MobileHubDetail = lazyPage(() => import('./pages/mobile/MobileHubDetail').then((m) => ({ default: m.MobileHubDetail })));
+const ProfilePage = lazyPage(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const MobileProfilePage = lazyPage(() => import('./pages/mobile/MobileProfilePage').then((m) => ({ default: m.MobileProfilePage })));
+const Notifications = lazyPage(() => import('./pages/Notifications').then((m) => ({ default: m.Notifications })));
+const MobileNotifications = lazyPage(() => import('./pages/mobile/MobileNotifications').then((m) => ({ default: m.MobileNotifications })));
+const Admin = lazyPage(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
+const AdminBookings = lazyPage(() => import('./pages/AdminBookings').then((m) => ({ default: m.AdminBookings })));
+const CompanyRegister = lazyPage(() => import('./pages/company/CompanyRegister').then((m) => ({ default: m.CompanyRegister })));
+const CompanyDashboard = lazyPage(() => import('./pages/company/CompanyDashboard').then((m) => ({ default: m.CompanyDashboard })));
+const CompanyProfileEdit = lazyPage(() => import('./pages/company/CompanyProfileEdit').then((m) => ({ default: m.CompanyProfileEdit })));
+const CompanyBilling = lazyPage(() => import('./pages/company/CompanyBilling').then((m) => ({ default: m.CompanyBilling })));
+const CompanyPublic = lazyPage(() => import('./pages/CompanyPublic').then((m) => ({ default: m.CompanyPublic })));
+const MyRequests = lazyPage(() => import('./pages/MyRequests').then((m) => ({ default: m.MyRequests })));
+const MobileMyRequests = lazyPage(() => import('./pages/mobile/MobileMyRequests').then((m) => ({ default: m.MobileMyRequests })));
 // User identity slice: onboarding → personalized home → "مسيرتي"
-const Onboarding = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.Onboarding })));
-const UserHome = lazy(() => import('./pages/UserHome').then((m) => ({ default: m.UserHome })));
-const Journey = lazy(() => import('./pages/Journey').then((m) => ({ default: m.Journey })));
-const Legal = lazy(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
-const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
+const Onboarding = lazyPage(() => import('./pages/Onboarding').then((m) => ({ default: m.Onboarding })));
+const UserHome = lazyPage(() => import('./pages/UserHome').then((m) => ({ default: m.UserHome })));
+const Journey = lazyPage(() => import('./pages/Journey').then((m) => ({ default: m.Journey })));
+const Legal = lazyPage(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
+const NotFound = lazyPage(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 function Spinner() {
   return (

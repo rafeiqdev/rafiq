@@ -278,28 +278,39 @@ function shape(p: GooglePlace) {
   };
 }
 
+/**
+ * Calls Places trying each key in order. A 401/403 means THIS key is bad
+ * (invalid value, wrong restriction, disabled API) — the next key may still
+ * work, so only auth-type failures fall through; anything else returns as-is.
+ * In practice: a misconfigured GOOGLE_MAPS_SERVER_KEY no longer takes search
+ * down while a working browser key is sitting right next to it.
+ */
 async function callPlaces(
   url: string,
-  key: string,
+  keys: string[],
   mask: string,
   body?: unknown,
 ): Promise<{ data?: Record<string, unknown>; error?: string; status?: number; detail?: string }> {
-  const res = await fetch(url, {
-    method: body ? 'POST' : 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': key,
-      'X-Goog-FieldMask': mask,
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  if (!res.ok) {
+  let last: { error: string; status?: number; detail?: string } = { error: 'no_key' };
+  for (const key of keys) {
+    const res = await fetch(url, {
+      method: body ? 'POST' : 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': key,
+        'X-Goog-FieldMask': mask,
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+    if (res.ok) return { data: (await res.json()) as Record<string, unknown> };
+
     const detail = (await res.text()).slice(0, 300);
     // 403 here almost always means the key is restricted to the wrong API or
     // carries a referrer restriction it cannot satisfy from a server.
-    return { error: res.status === 403 ? 'key_rejected' : 'upstream_error', status: res.status, detail };
+    last = { error: res.status === 403 ? 'key_rejected' : 'upstream_error', status: res.status, detail };
+    if (res.status !== 401 && res.status !== 403) return last;
   }
-  return { data: (await res.json()) as Record<string, unknown> };
+  return last;
 }
 
 function clampRadius(v: unknown): number {
@@ -314,8 +325,15 @@ function coord(v: unknown, fallback: number): number {
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const key = process.env.GOOGLE_MAPS_SERVER_KEY;
-  if (!key) return json({ error: 'no_key' });
+  // Preferred: a dedicated, referrer-unrestricted server key. Fallback: the
+  // browser key — it is already public in the JS bundle, so reusing it here
+  // exposes nothing new, and it unblocks search while the separate server key
+  // is missing or misconfigured. callPlaces() walks this list past auth
+  // failures, so a bad first key cannot take search down on its own.
+  const keys = [process.env.GOOGLE_MAPS_SERVER_KEY, process.env.VITE_GOOGLE_MAPS_API_KEY].filter(
+    (k): k is string => Boolean(k),
+  );
+  if (keys.length === 0) return json({ error: 'no_key' });
 
   let payload: {
     mode?: string;
@@ -344,7 +362,7 @@ export default async function handler(req: Request): Promise<Response> {
       if (!placeId) return json({ error: 'bad_request' }, 400);
       const res = await callPlaces(
         `${PLACES_ROOT}/places/${encodeURIComponent(placeId)}?languageCode=${encodeURIComponent(lang)}`,
-        key,
+        keys,
         DETAIL_MASK,
       );
       if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
@@ -362,7 +380,7 @@ export default async function handler(req: Request): Promise<Response> {
       // already Turkish. This is the fix for "search doesn't work for Arabic".
       const textQuery = typed ? await toTurkish(typed, lang) : (canned as string);
 
-      const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, key, LIST_MASK, {
+      const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, keys, LIST_MASK, {
         textQuery,
         languageCode: lang,
         maxResultCount: MAX_RESULTS,
@@ -386,7 +404,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       // Categories with no clean Places type resolve as text instead.
       if (!spec.types) {
-        const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, key, LIST_MASK, {
+        const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, keys, LIST_MASK, {
           textQuery: spec.textQuery,
           languageCode: lang,
           maxResultCount: MAX_RESULTS,
@@ -399,7 +417,7 @@ export default async function handler(req: Request): Promise<Response> {
         return json({ places });
       }
 
-      const res = await callPlaces(`${PLACES_ROOT}/places:searchNearby`, key, LIST_MASK, {
+      const res = await callPlaces(`${PLACES_ROOT}/places:searchNearby`, keys, LIST_MASK, {
         includedTypes: spec.types,
         languageCode: lang,
         maxResultCount: MAX_RESULTS,

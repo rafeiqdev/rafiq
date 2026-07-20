@@ -18,8 +18,11 @@ const DEFAULT_WIDTH = 800;
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'GET') return new Response('method_not_allowed', { status: 405 });
 
-  const key = process.env.GOOGLE_MAPS_SERVER_KEY;
-  if (!key) return new Response('no_key', { status: 503 });
+  // Same key strategy as places-search: dedicated server key first, the
+  // (already-public) browser key as fallback so photos keep working while the
+  // server key is missing or misconfigured.
+  const keys = [process.env.GOOGLE_MAPS_SERVER_KEY, process.env.VITE_GOOGLE_MAPS_API_KEY].filter(Boolean) as string[];
+  if (keys.length === 0) return new Response('no_key', { status: 503 });
 
   const url = new URL(req.url);
   const ref = url.searchParams.get('ref') ?? '';
@@ -32,11 +35,17 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response('bad_reference', { status: 400 });
   }
 
-  const upstream = await fetch(
-    `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=${width}&key=${encodeURIComponent(key)}`,
-    { redirect: 'follow' },
-  );
-  if (!upstream.ok || !upstream.body) return new Response('upstream_error', { status: 502 });
+  let upstream: Response | null = null;
+  for (const key of keys) {
+    upstream = await fetch(
+      `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=${width}&key=${encodeURIComponent(key)}`,
+      { redirect: 'follow' },
+    );
+    if (upstream.ok) break;
+    // Auth failures may be key-specific — give the next key its chance.
+    if (upstream.status !== 401 && upstream.status !== 403) break;
+  }
+  if (!upstream?.ok || !upstream.body) return new Response('upstream_error', { status: 502 });
 
   return new Response(upstream.body, {
     status: 200,
