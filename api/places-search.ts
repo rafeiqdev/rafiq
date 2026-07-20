@@ -299,6 +299,14 @@ export function candidateKeys(
     .filter((k): k is string => Boolean(k));
 }
 
+/** Our own production origin, for the Referer header above. */
+export function siteReferer(
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+): string {
+  const host = env.VERCEL_PROJECT_PRODUCTION_URL || env.VERCEL_URL || 'rafiq-istanbul.vercel.app';
+  return `https://${host.replace(/^https?:\/\//, '')}/`;
+}
+
 /**
  * Calls Places trying each key in order. A 401/403 means THIS key is bad
  * (invalid value, wrong restriction, disabled API) — the next key may still
@@ -320,6 +328,12 @@ async function callPlaces(
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': key,
         'X-Goog-FieldMask': mask,
+        // The browser-key fallback carries an HTTP-referrer restriction scoped
+        // to our own site. These requests ARE made on that site's behalf, so
+        // identify as it — otherwise Google sees referer <empty> and blocks
+        // (API_KEY_HTTP_REFERRER_BLOCKED). Harmless for the dedicated server
+        // key, which has no referrer restriction.
+        Referer: siteReferer(),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });

@@ -10,7 +10,7 @@
  * each miss is a billed Places call.
  */
 
-import { candidateKeys } from './places-search';
+import { candidateKeys, siteReferer } from './places-search';
 
 export const config = { runtime: 'edge' };
 
@@ -42,7 +42,7 @@ export default async function handler(req: Request): Promise<Response> {
   for (const key of keys) {
     upstream = await fetch(
       `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=${width}&key=${encodeURIComponent(key)}`,
-      { redirect: 'follow' },
+      { redirect: 'follow', headers: { Referer: siteReferer() } },
     );
     if (upstream.ok) break;
     // Auth failures may be key-specific — give the next key its chance.
