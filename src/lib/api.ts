@@ -948,6 +948,9 @@ export type PlaceSearchError = 'no_key' | 'key_rejected' | 'upstream_error' | 'n
 export interface PlaceSearchResult {
   places: GooglePlaceResult[];
   error?: PlaceSearchError;
+  /** For text search: what the user typed, and what we actually sent to Google. */
+  query?: string;
+  translatedQuery?: string;
 }
 
 /**
@@ -958,6 +961,8 @@ interface PlacesResponse {
   places?: GooglePlaceResult[];
   place?: GooglePlaceResult;
   error?: PlaceSearchError;
+  query?: string;
+  translatedQuery?: string;
 }
 
 async function postPlaces(body: Record<string, unknown>): Promise<PlacesResponse> {
@@ -986,7 +991,7 @@ export const placeSearch = {
   async text(query: string, lat: number, lng: number, radius: number, lang: string): Promise<PlaceSearchResult> {
     const d = await postPlaces({ mode: 'text', query, lat, lng, radius, lang });
     if (d.error) return { places: [], error: d.error };
-    return { places: d.places ?? [] };
+    return { places: d.places ?? [], query: d.query, translatedQuery: d.translatedQuery };
   },
 
   /** Rich fields for the one place the user opened. */

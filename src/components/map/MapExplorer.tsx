@@ -33,6 +33,21 @@ const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
 };
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'empty' | 'error';
+type SortKey = 'best' | 'rating' | 'distance' | 'recommended';
+const SORT_KEYS: SortKey[] = ['best', 'rating', 'distance', 'recommended'];
+
+type LatLng = { lat: number; lng: number };
+
+/** Great-circle distance in metres — good enough for a "how far" label. */
+function distanceM(a: LatLng, b: LatLng): number {
+  const R = 6371000;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
 
 export interface MapExplorerProps {
   /** Phones get a stacked layout and a taller map; desktop gets the split view. */
@@ -60,6 +75,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   // One Autocomplete session token per typing session. Google bills a session
   // as ONE request when the token is reused across keystrokes and then passed
   // to the follow-up Details call — a fresh token per keystroke is billed per
@@ -74,8 +90,23 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [state, setState] = useState<LoadState>('idle');
   const [selected, setSelected] = useState<GooglePlaceResult | null>(null);
   const [favorites, setFavorites] = useState<FavoritePlace[]>([]);
+  // The user's real GPS position, once granted — searches then centre on them
+  // instead of the middle of Istanbul, so "near me" actually means near them.
+  const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  const userLocationRef = useRef<LatLng | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState(false);
+  // Centre the last search ran from, so distances stay stable while sorting.
+  const [origin, setOrigin] = useState<LatLng | null>(null);
+  const [sort, setSort] = useState<SortKey>('best');
+  // What the user typed vs. what we actually sent to Google, for the honesty chip.
+  const [translation, setTranslation] = useState<{ original: string; translated: string } | null>(null);
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.googlePlaceId)), [favorites]);
+
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
 
   // ---- map bootstrap --------------------------------------------------------
   useEffect(() => {
@@ -134,32 +165,72 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     if (withCoords.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       withCoords.forEach((r) => bounds.extend({ lat: r.lat as number, lng: r.lng as number }));
+      if (userLocationRef.current) bounds.extend(userLocationRef.current);
       map.fitBounds(bounds, 48);
     }
     // openPlace is stable enough for this effect; results/overlays drive it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results, overlays, mapsStatus]);
 
+  // ---- "you are here" marker ------------------------------------------------
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapsStatus !== 'ready') return;
+    if (!userLocation) {
+      if (userMarkerRef.current) userMarkerRef.current.map = null;
+      userMarkerRef.current = null;
+      return;
+    }
+    const dot = document.createElement('div');
+    dot.setAttribute(
+      'style',
+      'width:16px;height:16px;border-radius:9999px;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 3px rgba(37,99,235,.35);',
+    );
+    if (userMarkerRef.current) userMarkerRef.current.map = null;
+    userMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
+      position: userLocation,
+      title: t('map.myLocation'),
+      content: dot,
+      zIndex: 9999,
+    });
+    userMarkerRef.current.map = map;
+  }, [userLocation, mapsStatus, t]);
+
   // ---- searching ------------------------------------------------------------
   const runSearch = useCallback(
-    async (kind: 'nearby' | 'text', arg: string) => {
+    async (kind: 'nearby' | 'text', arg: string, originOverride?: LatLng) => {
       setState('loading');
       setSelected(null);
       setSuggestions([]);
       const map = mapRef.current;
       const centre = map?.getCenter();
-      const lat = centre?.lat() ?? ISTANBUL.lat;
-      const lng = centre?.lng() ?? ISTANBUL.lng;
+      const from: LatLng =
+        originOverride ??
+        userLocationRef.current ??
+        (centre ? { lat: centre.lat(), lng: centre.lng() } : ISTANBUL);
+      setOrigin(from);
 
       const res =
         kind === 'nearby'
-          ? await placeSearch.nearby(arg, lat, lng, SEARCH_RADIUS_M, lang)
-          : await placeSearch.text(arg, lat, lng, SEARCH_RADIUS_M, lang);
+          ? await placeSearch.nearby(arg, from.lat, from.lng, SEARCH_RADIUS_M, lang)
+          : await placeSearch.text(arg, from.lat, from.lng, SEARCH_RADIUS_M, lang);
 
       if (res.error) {
         setResults([]);
         setState('error');
         return;
+      }
+      // Show the Turkish-translation hint only when translation actually changed
+      // the text — a Turkish or Latin query is searched verbatim.
+      if (
+        kind === 'text' &&
+        res.query &&
+        res.translatedQuery &&
+        res.translatedQuery.trim().toLowerCase() !== res.query.trim().toLowerCase()
+      ) {
+        setTranslation({ original: res.query, translated: res.translatedQuery });
+      } else {
+        setTranslation(null);
       }
       setResults(res.places);
       // One overlay query for the whole page of results, not one per card.
@@ -172,6 +243,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const pickCategory = (c: PlaceCategory) => {
     setQuery('');
     setCategory(c);
+    setSort('best');
     runSearch('nearby', c);
   };
 
@@ -179,9 +251,47 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     const q = (text ?? query).trim();
     if (!q) return;
     setCategory(null);
+    setSort('best');
     // The typing session ends here — the next keystroke starts a fresh one.
     sessionTokenRef.current = null;
     runSearch('text', q);
+  };
+
+  // ---- geolocation ("near me") ---------------------------------------------
+  const locateMe = () => {
+    if (!('geolocation' in navigator)) {
+      setLocError(true);
+      return;
+    }
+    setLocating(true);
+    setLocError(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc: LatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
+        userLocationRef.current = loc;
+        const map = mapRef.current;
+        if (map) {
+          map.panTo(loc);
+          if ((map.getZoom() ?? 0) < 14) map.setZoom(14);
+        }
+        setLocating(false);
+        // Refresh whatever the user was looking at, now centred on them. With no
+        // active search, show what's around them (dining is the safest default).
+        if (category) runSearch('nearby', category, loc);
+        else if (query.trim()) runSearch('text', query.trim(), loc);
+        else {
+          setCategory('dining');
+          setSort('distance');
+          runSearch('nearby', 'dining', loc);
+        }
+      },
+      () => {
+        setLocating(false);
+        setLocError(true);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
   };
 
   // ---- autocomplete ---------------------------------------------------------
@@ -206,7 +316,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             language: lang,
             region: 'tr',
             locationBias: new google.maps.Circle({
-              center: ISTANBUL,
+              center: userLocationRef.current ?? ISTANBUL,
               radius: SEARCH_RADIUS_M * 4,
             }),
           });
@@ -233,6 +343,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     setQuery(text);
     setSuggestions([]);
     setState('loading');
+    setTranslation(null);
     const place = await placeSearch.details(placeId, lang);
     sessionTokenRef.current = null;
     if (!place) {
@@ -288,6 +399,36 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       setFavorites(await placeFavorites.list().catch(() => []));
     }
   };
+
+  // ---- derived: distance + sorted list --------------------------------------
+  const distanceOf = useCallback(
+    (r: GooglePlaceResult): number | null => {
+      if (!origin || r.lat === null || r.lng === null) return null;
+      return distanceM(origin, { lat: r.lat, lng: r.lng });
+    },
+    [origin],
+  );
+
+  const sortedResults = useMemo(() => {
+    const arr = [...results];
+    if (sort === 'rating') {
+      arr.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
+    } else if (sort === 'distance') {
+      arr.sort((a, b) => (distanceOf(a) ?? Infinity) - (distanceOf(b) ?? Infinity));
+    } else if (sort === 'recommended') {
+      arr.sort(
+        (a, b) =>
+          Number(Boolean(overlays.get(b.placeId)?.recommended)) -
+          Number(Boolean(overlays.get(a.placeId)?.recommended)),
+      );
+    }
+    return arr;
+  }, [results, sort, distanceOf, overlays]);
+
+  const formatDistance = (m: number): string =>
+    m < 950
+      ? t('map.distanceM', { m: Math.round(m / 10) * 10 })
+      : t('map.distanceKm', { km: (m / 1000).toFixed(1) });
 
   // ---- SDK-level failures ---------------------------------------------------
   if (mapsStatus === 'no-key' || mapsStatus === 'error') {
@@ -355,6 +496,34 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         )}
       </div>
 
+      {/* near-me + translated-query hint */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={locateMe}
+          disabled={locating}
+          className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-white px-3.5 min-h-[40px] text-[13px] font-semibold text-navy hover:border-navy/40 disabled:opacity-60"
+        >
+          <AppIcon name="navigation" className={`w-4 h-4 ${locating ? 'animate-pulse' : ''}`} />
+          {locating ? t('map.locating') : t('map.nearMe')}
+        </button>
+        {userLocation && !locError && (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700">
+            <AppIcon name="map-pin" className="w-3.5 h-3.5" />
+            {t('map.usingYourLocation')}
+          </span>
+        )}
+        {locError && <span className="text-xs text-brand-red">{t('map.locationDenied')}</span>}
+      </div>
+
+      {translation && (
+        <div className="mt-2 flex items-center gap-2 rounded-xl border border-brand-blue/50 bg-brand-blue/40 px-3 py-2 text-xs text-navy">
+          <AppIcon name="languages" className="w-4 h-4 shrink-0" />
+          <span className="min-w-0 break-words">
+            {t('map.translatedAs', { original: translation.original, turkish: translation.translated })}
+          </span>
+        </div>
+      )}
+
       {/* category filters */}
       <div className={`mt-4 flex gap-2 ${compact ? 'overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'flex-wrap'}`}>
         {PLACE_CATEGORIES.map((c) => (
@@ -374,12 +543,26 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
 
       <div className={`mt-5 grid gap-5 ${compact ? '' : 'lg:grid-cols-[1.3fr_1fr]'}`}>
         {/* map */}
-        <div
-          ref={mapNodeRef}
-          role="application"
-          aria-label={t('map.title')}
-          className={`w-full rounded-2xl border border-gray-200 overflow-hidden bg-cream ${compact ? 'h-[320px]' : 'h-[560px]'}`}
-        />
+        <div className="relative">
+          <div
+            ref={mapNodeRef}
+            role="application"
+            aria-label={t('map.title')}
+            className={`w-full rounded-2xl border border-gray-200 overflow-hidden bg-cream ${compact ? 'h-[320px]' : 'h-[560px]'}`}
+          />
+          {/* my-location control, floating over the map */}
+          {mapsStatus === 'ready' && (
+            <button
+              onClick={locateMe}
+              disabled={locating}
+              aria-label={t('map.myLocation')}
+              title={t('map.myLocation')}
+              className="absolute bottom-3 end-3 flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white shadow-cardHover text-navy hover:border-navy/40 disabled:opacity-60"
+            >
+              <AppIcon name="navigation" className={`w-5 h-5 ${locating ? 'animate-pulse' : ''}`} />
+            </button>
+          )}
+        </div>
 
         {/* results, kept in sync with the markers */}
         <section aria-live="polite" className={compact ? '' : 'max-h-[560px] overflow-y-auto pe-1'}>
@@ -421,14 +604,31 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
 
           {state === 'ready' && (
             <>
-              <p className="text-xs font-semibold text-navy/60">
-                {t('map.directory.count', { count: results.length })}
-                {recommendedCount > 0 && ` · ${t('map.recommendedCount', { count: recommendedCount })}`}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-navy/60">
+                  {t('map.directory.count', { count: results.length })}
+                  {recommendedCount > 0 && ` · ${t('map.recommendedCount', { count: recommendedCount })}`}
+                </p>
+                <label className="flex items-center gap-1.5 text-xs text-navy/70">
+                  <span className="shrink-0">{t('map.sortBy')}</span>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortKey)}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-navy focus:border-navy/40 focus:outline-none"
+                  >
+                    {SORT_KEYS.map((k) => (
+                      <option key={k} value={k} disabled={k === 'distance' && !origin}>
+                        {t(`map.sort.${k}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
               <ul className="mt-2.5 flex flex-col gap-2.5">
-                {results.map((r) => {
+                {sortedResults.map((r) => {
                   const overlay = overlays.get(r.placeId);
                   const active = selected?.placeId === r.placeId;
+                  const dist = distanceOf(r);
                   return (
                     <li key={r.placeId}>
                       <button
@@ -452,6 +652,12 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
                             <span className="flex items-center gap-1">
                               <AppIcon name="star" className="w-3.5 h-3.5 text-gold-dark" />
                               <span dir="ltr">{r.rating.toFixed(1)}</span>
+                            </span>
+                          )}
+                          {dist !== null && (
+                            <span className="flex items-center gap-1">
+                              <AppIcon name="navigation" className="w-3.5 h-3.5 text-navy/50" />
+                              <span dir="ltr">{formatDistance(dist)}</span>
                             </span>
                           )}
                           {favoriteIds.has(r.placeId) && (

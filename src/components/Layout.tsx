@@ -8,6 +8,7 @@ import { LangSwitcher } from './LangSwitcher';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
 import { TopRatesBar } from './TopRatesBar';
+import { SiteFooter } from './SiteFooter';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 // Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
@@ -16,6 +17,27 @@ import { useIsMobile } from '../hooks/useIsMobile';
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
 const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/pricing', '/checkout', '/smart', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
+
+// Dropping the desktop chrome on phones also dropped the footer, so the terms /
+// privacy / refund block and the language switcher were unreachable from every
+// mobile screen. These are the chrome-free routes that DO scroll normally, so a
+// footer can be appended to them; the app-shell screens (/auth, /checkout,
+// /premium, /chat, /map, /help, /smart) are fixed-height flex layouts that own
+// the whole viewport and must stay footer-free.
+const MOBILE_FOOTER_ROUTES = new Set([
+  '/',
+  '/pricing',
+  '/services',
+  '/hub',
+  '/tricks',
+  '/residency',
+  '/real-estate',
+  '/health-tourism',
+  '/referrals',
+  '/profile',
+  '/requests',
+  '/notifications',
+]);
 
 interface NavItem {
   to: string;
@@ -146,6 +168,11 @@ export function Layout() {
   const hideChrome =
     isMobile &&
     (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
+      location.pathname.startsWith('/services/') ||
+      location.pathname.startsWith('/hub/'));
+  const showMobileFooter =
+    hideChrome &&
+    (MOBILE_FOOTER_ROUTES.has(location.pathname) ||
       location.pathname.startsWith('/services/') ||
       location.pathname.startsWith('/hub/'));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -353,37 +380,8 @@ export function Layout() {
       </main>
 
 
-      {!hideChrome && (
-      <footer className="bg-navy text-white/80 mt-16">
-        <div className="mx-auto max-w-6xl px-4 py-10 grid gap-8 sm:grid-cols-3">
-          <div>
-            <div className="flex items-center">
-              <Logo size={34} variant="white" />
-            </div>
-            <p className="mt-3 text-sm">{t('common.tagline')}</p>
-            <p className="mt-2 text-xs text-white/70">{t('footer.disclaimer')}</p>
-          </div>
-          <nav className="text-sm flex flex-col">
-            {SERVICE_LINKS.map((s) => (
-              <Link key={s.to} to={s.to} className="py-2 hover:text-white">
-                {t(s.key)}
-              </Link>
-            ))}
-            <Link to="/company/register" className="py-2 hover:text-white">
-              {t('nav.forCompanies')}
-            </Link>
-          </nav>
-          <nav className="text-sm flex flex-col">
-            <Link to="/terms" className="py-2 hover:text-white">{t('nav.terms')}</Link>
-            <Link to="/privacy" className="py-2 hover:text-white">{t('nav.privacy')}</Link>
-            <Link to="/refund" className="py-2 hover:text-white">{t('nav.refund')}</Link>
-          </nav>
-        </div>
-        <div className="border-t border-white/10 py-4 text-center text-xs text-white/70">
-          © {new Date().getFullYear()} {t('common.appName')} — {t('footer.rights')}
-        </div>
-      </footer>
-      )}
+      {!hideChrome && <SiteFooter />}
+      {showMobileFooter && <SiteFooter variant="mobile" />}
     </div>
   );
 }

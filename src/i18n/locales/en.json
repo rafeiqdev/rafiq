@@ -728,7 +728,22 @@
       "count": "{{count}} places",
       "empty": "No places in this category yet.",
       "directions": "Directions"
-    }
+    },
+    "nearMe": "Near me",
+    "locating": "Locating…",
+    "locationDenied": "Couldn't get your location. Enable location access in your browser.",
+    "usingYourLocation": "Results near you",
+    "myLocation": "My location",
+    "translatedAs": "Searched in Turkish: “{{turkish}}” (from: {{original}})",
+    "sortBy": "Sort",
+    "sort": {
+      "best": "Best match",
+      "rating": "Top rated",
+      "distance": "Nearest",
+      "recommended": "Recommended first"
+    },
+    "distanceKm": "{{km}} km",
+    "distanceM": "{{m}} m"
   },
   "referrals": {
     "title": "Invite & earn",
@@ -1279,7 +1294,14 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "disclaimer": "Rafiq Istanbul is an independent guidance service, not a government body."
+    "disclaimer": "Rafiq Istanbul is an independent guidance service, not a government body.",
+    "brandBody": "Your practical guide to life in Istanbul: residency steps, housing, health and education, and trusted service providers in one place.",
+    "exploreTitle": "Browse the site",
+    "legalTitle": "Terms & policies",
+    "helpTitle": "Didn't find what you need?",
+    "helpBody": "The AI assistant and our team are ready to answer your questions about residency, housing, healthcare and daily life in Istanbul.",
+    "helpAi": "Ask the AI assistant",
+    "helpWhatsapp": "Chat on WhatsApp"
   },
   "tricksApps": {
     "title": "Essential Istanbul Apps",

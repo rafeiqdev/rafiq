@@ -9,9 +9,17 @@
  * deliberately small `X-Goog-FieldMask` per mode — the list needs far less than
  * the detail card, so asking for one mask everywhere would multiply the bill.
  *
+ * Query translation: an expat types "شاورما لحمة" or "аптека" — Google's Text
+ * Search matches Turkish place data far better when the query itself is Turkish.
+ * So free-text queries are normalised to a Turkish search phrase BEFORE they hit
+ * Google: a static dictionary handles the common expat vocabulary for free, and
+ * anything it does not cover is translated once by Gemini (the same provider and
+ * key as api/ai-chat.ts). Every step degrades gracefully — if translation is
+ * unavailable the original text is searched, exactly as before.
+ *
  * Modes (POST body):
  *   { mode: 'nearby', category, lat, lng, radius? }  → { places: [] }
- *   { mode: 'text',   query, lat?, lng?, category? } → { places: [] }
+ *   { mode: 'text',   query, lat?, lng?, category? } → { places: [], query, translatedQuery }
  *   { mode: 'details', placeId }                     → { place }
  *
  * Convention matches api/ai-chat.ts: every failure returns HTTP 200 with
@@ -42,10 +50,160 @@ const CATEGORIES: Record<string, { types?: string[]; textQuery?: string }> = {
   government: { types: ['local_government_office', 'city_hall', 'embassy'] },
   // No Places type exists for these two — search them as text instead.
   notary: { textQuery: 'noter' },
-  arabic: { textQuery: 'مطعم عربي سوري arabic service' },
+  arabic: { textQuery: 'arapça konuşan restoran suriye mutfağı' },
 };
 
 export const CATEGORY_IDS = Object.keys(CATEGORIES);
+
+/**
+ * Common expat search vocabulary → Turkish, matched whole-word and
+ * case/diacritic-insensitively. This resolves the majority of real queries
+ * with ZERO translation cost or latency; only phrases outside this list fall
+ * through to Gemini. Keep the values as the words a local would actually type
+ * into Google Maps in Istanbul.
+ */
+const PHRASE_DICT: Record<string, string> = {
+  // food
+  'شاورما': 'dürüm döner',
+  'شاورما لحمة': 'et döner dürüm',
+  'شاورما دجاج': 'tavuk döner dürüm',
+  'مطعم': 'restoran',
+  'مطعم عربي': 'arap restoranı',
+  'مطعم سوري': 'suriye restoranı',
+  'كباب': 'kebap',
+  'فلافل': 'falafel',
+  'حلويات': 'tatlıcı',
+  'مخبز': 'fırın',
+  'خبز': 'ekmek fırını',
+  'قهوة': 'kahve',
+  'مقهى': 'kafe',
+  'مطعم بحري': 'balık restoranı',
+  'حلاق': 'kuaför berber',
+  // health
+  'صيدلية': 'eczane',
+  'مستشفى': 'hastane',
+  'طبيب': 'doktor',
+  'طبيب اسنان': 'diş hekimi',
+  'مختبر': 'laboratuvar',
+  'عيادة': 'klinik',
+  // services / admin
+  'كاتب عدل': 'noter',
+  'نوتر': 'noter',
+  'ترجمة': 'yeminli tercüman',
+  'مترجم': 'yeminli tercüman',
+  'محامي': 'avukat',
+  'بنك': 'banka',
+  'صراف': 'atm',
+  'صرافة': 'döviz bürosu',
+  'دائرة الهجرة': 'göç idaresi',
+  'النفوس': 'nüfus müdürlüğü',
+  'بلدية': 'belediye',
+  // shopping / daily
+  'سوق': 'market',
+  'سوبر ماركت': 'süpermarket',
+  'بقالة': 'bakkal',
+  'مول': 'alışveriş merkezi',
+  'محل موبايلات': 'telefon dükkanı',
+  'محطة بنزين': 'benzin istasyonu',
+  'مغسلة': 'çamaşırhane',
+  'مدرسة': 'okul',
+  'جامع': 'cami',
+  'مسجد': 'cami',
+  // russian / persian quick hits
+  'аптека': 'eczane',
+  'больница': 'hastane',
+  'ресторан': 'restoran',
+  'داروخانه': 'eczane',
+  'بیمارستان': 'hastane',
+  'رستوران': 'restoran',
+};
+
+/** Normalise for dictionary lookup: trim, lowercase, collapse whitespace. */
+function norm(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Fast path: exact whole-phrase dictionary hit. Returns null when not found. */
+function dictLookup(query: string): string | null {
+  const key = norm(query);
+  for (const [ar, tr] of Object.entries(PHRASE_DICT)) {
+    if (norm(ar) === key) return tr;
+  }
+  return null;
+}
+
+/** Already Latin/Turkish? Then translation would only add cost and risk. */
+function looksTurkish(query: string): boolean {
+  // No Arabic, Cyrillic, or Persian script present → treat as Latin/Turkish.
+  return !/[؀-ۿЀ-ӿ]/.test(query);
+}
+
+interface GeminiResult {
+  text: string;
+  failStatus?: number;
+}
+
+/** One Gemini generateContent call — mirrors api/ai-chat.ts. Never throws. */
+async function callGemini(key: string, model: string, systemText: string, userText: string): Promise<GeminiResult> {
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemText }] },
+        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        generationConfig: { temperature: 0, maxOutputTokens: 40, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    });
+    if (!res.ok) return { text: '', failStatus: res.status };
+    const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+    const text = data?.candidates?.[0]?.content?.parts?.map((p) => p?.text ?? '').join('').trim() ?? '';
+    return { text };
+  } catch {
+    return { text: '', failStatus: 0 };
+  }
+}
+
+// Lite models first — same reasoning as ai-chat.ts: the flagship free tier is
+// tiny, the lite tiers are generous, and translation is a trivial task.
+const MODEL_CHAIN = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-2.5-flash'];
+
+const TRANSLATE_SYSTEM = [
+  'You convert a place/business search query into a short Turkish query for Google Maps in Istanbul, Turkey.',
+  'Return ONLY the Turkish search phrase — no punctuation, no quotes, no explanation, at most 6 words.',
+  'If the input is already Turkish, a proper name, or a brand, return it unchanged.',
+  'Prefer the everyday word a local would type (e.g. "et döner", "eczane", "noter", "diş hekimi").',
+].join('\n');
+
+/**
+ * Best-effort translation of a free-text query to Turkish.
+ * Order: skip Latin/Turkish → dictionary → Gemini → original as fallback.
+ * `translated` equals `original` whenever nothing changed, so the caller can
+ * decide whether to show a "searched in Turkish" hint.
+ */
+async function toTurkish(query: string, lang: string): Promise<string> {
+  const q = query.trim();
+  if (!q || looksTurkish(q)) return q;
+
+  const hit = dictLookup(q);
+  if (hit) return hit;
+
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return q; // no translator configured → search as-is (previous behaviour)
+
+  const userText = `Input language: ${lang || 'unknown'}\nQuery: ${q}`;
+  for (const model of MODEL_CHAIN) {
+    const res = await callGemini(key, model, TRANSLATE_SYSTEM, userText);
+    if (res.text) {
+      // Guard against a chatty model: take the first line, cap the length.
+      const cleaned = res.text.split('\n')[0].replace(/["'`]/g, '').trim().slice(0, 80);
+      return cleaned || q;
+    }
+    // Only quota/retired errors are worth walking the chain for.
+    if (res.failStatus !== 429 && res.failStatus !== 404 && res.failStatus !== 400) break;
+  }
+  return q;
+}
 
 /** Lean mask for list views. Every extra field here is billed per result. */
 const LIST_MASK = [
@@ -197,8 +355,12 @@ export default async function handler(req: Request): Promise<Response> {
     if (payload.mode === 'text') {
       const typed = typeof payload.query === 'string' ? payload.query.trim() : '';
       const canned = payload.category ? CATEGORIES[payload.category]?.textQuery : undefined;
-      const textQuery = typed || canned;
-      if (!textQuery) return json({ error: 'bad_request' }, 400);
+      const original = typed || canned;
+      if (!original) return json({ error: 'bad_request' }, 400);
+
+      // Translate only what the user actually typed; canned category queries are
+      // already Turkish. This is the fix for "search doesn't work for Arabic".
+      const textQuery = typed ? await toTurkish(typed, lang) : (canned as string);
 
       const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, key, LIST_MASK, {
         textQuery,
@@ -212,7 +374,8 @@ export default async function handler(req: Request): Promise<Response> {
       });
       if (res.error) return json({ error: res.error, status: res.status });
       const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
-      return json({ places });
+      // Echo both strings so the UI can show "we searched Turkish: X" honestly.
+      return json({ places, query: original, translatedQuery: textQuery });
     }
 
     // ---- nearby search: the user picked a category -------------------------

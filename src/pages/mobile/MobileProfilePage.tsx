@@ -23,9 +23,52 @@ function displayToIso(v: string): string | undefined {
   const dt = new Date(`${y}-${m}-${d}`);
   return isNaN(dt.getTime()) ? undefined : `${y}-${m}-${d}`;
 }
+// Inserts "/" after the day and month segments as the user types, so raw
+// digits never sit on screen as one undifferentiated number.
+function formatDateInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 8); // DDMMYYYY
+  let out = digits.slice(0, 2);
+  if (digits.length > 2) out += `/${digits.slice(2, 4)}`;
+  if (digits.length > 4) out += `/${digits.slice(4, 8)}`;
+  return out;
+}
 function daysUntil(iso?: string): number | null {
   if (!iso) return null;
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+}
+
+/** Controlled DD/MM/YYYY field — reformats with "/" separators on every keystroke. */
+function RenewalDateInput({
+  iso,
+  label,
+  onChangeIso,
+}: {
+  iso?: string;
+  label: string;
+  onChangeIso: (iso: string | undefined) => void;
+}) {
+  const [text, setText] = useState(() => isoToDisplay(iso));
+
+  useEffect(() => {
+    setText(isoToDisplay(iso));
+  }, [iso]);
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      dir="ltr"
+      placeholder="DD/MM/YYYY"
+      value={text}
+      onChange={(e) => {
+        const formatted = formatDateInput(e.target.value);
+        setText(formatted);
+        onChangeIso(displayToIso(formatted));
+      }}
+      aria-label={label}
+      className="input mt-2.5 h-12 w-full text-[15px]"
+    />
+  );
 }
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
@@ -43,6 +86,7 @@ function MobileProfileInner() {
   const [docs, setDocs] = useState<StoredDocument[]>([]);
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [myLeads, setMyLeads] = useState<Lead[]>([]);
+  const [showAllPipeline, setShowAllPipeline] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -72,6 +116,13 @@ function MobileProfileInner() {
   const renewalRows = (['residence', 'insurance', 'passport'] as const).map((k) => ({
     key: k, date: profile.renewals[k], days: daysUntil(profile.renewals[k]),
   }));
+
+  // Show only the first 2 transactions by default — a handful of bookings/
+  // leads used to render as one long, heavy-looking list on every visit.
+  const pipelineTotal = myBookings.length + myLeads.length;
+  const visibleBookings = showAllPipeline ? myBookings : myBookings.slice(0, 2);
+  const visibleLeads = showAllPipeline ? myLeads : myLeads.slice(0, Math.max(0, 2 - visibleBookings.length));
+  const hasMorePipeline = !showAllPipeline && pipelineTotal > 2;
 
   const statRows = [
     { label: t('account.situation'), value: profile.situation ? t(`situationStatus.${profile.situation}`) : t('account.notSet') },
@@ -241,15 +292,10 @@ function MobileProfileInner() {
                           : `${t('profile.renewals.daysLeft', { count: r.days ?? 0 })} · ${new Date(r.date).toLocaleDateString(i18n.language)}`}
                     </span>
                   </div>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    dir="ltr"
-                    placeholder="DD/MM/YYYY"
-                    defaultValue={isoToDisplay(r.date)}
-                    onChange={(e) => updateProfile({ renewals: { ...profile.renewals, [r.key]: displayToIso(e.target.value) } })}
-                    aria-label={t('profile.renewals.set')}
-                    className="input mt-2.5 h-12 w-full text-[15px]"
+                  <RenewalDateInput
+                    iso={r.date}
+                    label={t('profile.renewals.set')}
+                    onChangeIso={(iso) => updateProfile({ renewals: { ...profile.renewals, [r.key]: iso } })}
                   />
                 </div>
               ))}
@@ -305,28 +351,39 @@ function MobileProfileInner() {
             {myBookings.length === 0 && myLeads.length === 0 ? (
               <p className="mt-3 text-[13px] text-gray-500">{t('profile.pipeline.empty')}</p>
             ) : (
-              <div className="mt-3.5 flex flex-col gap-2.5">
-                {myBookings.map((b) => (
-                  <div key={b.id} className="flex items-center gap-3 rounded-btn border border-cream-dark bg-cream px-3.5 py-3">
-                    <AppIcon name="calendar" className="h-[18px] w-[18px] shrink-0 text-navy/60" />
-                    <p className="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-navy">{b.problemSummary}</p>
-                    <span className="shrink-0 rounded-full bg-brand-blue px-2.5 py-0.5 text-[10.5px] font-bold text-navy">
-                      {t(`adminBookings.statuses.${b.status}`)}
-                    </span>
-                  </div>
-                ))}
-                {myLeads.map((l) => (
-                  <div key={l.id} className="flex items-center gap-3 rounded-btn border border-cream-dark bg-cream px-3.5 py-3">
-                    <AppIcon name="mail" className="h-[18px] w-[18px] shrink-0 text-navy/60" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-semibold leading-snug text-navy">
-                        {t(`leads.kind.${l.kind}`)} — {l.item}
-                      </p>
-                      <p className="mt-px text-[11.5px] text-navy/50">{new Date(l.createdAt).toLocaleDateString(i18n.language)}</p>
+              <>
+                <div className="mt-3.5 flex flex-col gap-2.5">
+                  {visibleBookings.map((b) => (
+                    <div key={b.id} className="flex items-center gap-3 rounded-btn border border-cream-dark bg-cream px-3.5 py-3">
+                      <AppIcon name="calendar" className="h-[18px] w-[18px] shrink-0 text-navy/60" />
+                      <p className="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-navy">{b.problemSummary}</p>
+                      <span className="shrink-0 rounded-full bg-brand-blue px-2.5 py-0.5 text-[10.5px] font-bold text-navy">
+                        {t(`adminBookings.statuses.${b.status}`)}
+                      </span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                  {visibleLeads.map((l) => (
+                    <div key={l.id} className="flex items-center gap-3 rounded-btn border border-cream-dark bg-cream px-3.5 py-3">
+                      <AppIcon name="mail" className="h-[18px] w-[18px] shrink-0 text-navy/60" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold leading-snug text-navy">
+                          {t(`leads.kind.${l.kind}`)} — {l.item}
+                        </p>
+                        <p className="mt-px text-[11.5px] text-navy/50">{new Date(l.createdAt).toLocaleDateString(i18n.language)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {hasMorePipeline && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllPipeline(true)}
+                    className="btn btn-secondary mt-3 min-h-[48px] w-full text-[13.5px]"
+                  >
+                    {t('common.viewAll')} ({pipelineTotal - 2}+)
+                  </button>
+                )}
+              </>
             )}
           </section>
         </div>
