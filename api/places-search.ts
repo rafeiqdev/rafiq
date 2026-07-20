@@ -347,7 +347,7 @@ export default async function handler(req: Request): Promise<Response> {
         key,
         DETAIL_MASK,
       );
-      if (res.error) return json({ error: res.error, status: res.status });
+      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
       return json({ place: shape(res.data as GooglePlace) });
     }
 
@@ -372,7 +372,7 @@ export default async function handler(req: Request): Promise<Response> {
           circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
         },
       });
-      if (res.error) return json({ error: res.error, status: res.status });
+      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
       const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
       // Echo both strings so the UI can show "we searched Turkish: X" honestly.
       return json({ places, query: original, translatedQuery: textQuery });
@@ -394,7 +394,7 @@ export default async function handler(req: Request): Promise<Response> {
             circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
           },
         });
-        if (res.error) return json({ error: res.error, status: res.status });
+        if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
         const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
         return json({ places });
       }
@@ -408,7 +408,7 @@ export default async function handler(req: Request): Promise<Response> {
         },
         rankPreference: 'POPULARITY',
       });
-      if (res.error) return json({ error: res.error, status: res.status });
+      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
       const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
       return json({ places });
     }
