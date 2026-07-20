@@ -1583,7 +1583,8 @@
       "residence": "Residence permit",
       "insurance": "Health insurance",
       "passport": "Passport"
-    }
+    },
+    "referralCta": "Start inviting now"
   },
   "journeyPage": {
     "title": "My journey",

@@ -367,6 +367,24 @@ export function UserHome() {
           <DirArrow />
         </Link>
       </Panel>
+
+      {/* ادعُ واربح — the page's closing section, right after the guides
+          (deliberately in the page body, not the footer). */}
+      <Panel className="mt-4 border-gold-dark/30 bg-gold-soft/40">
+        <div className="flex items-start gap-3">
+          <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gold-soft text-gold-dark shrink-0">
+            <AppIcon name="gift" className="w-5 h-5" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="font-extrabold text-navy">{t('referrals.title')}</h2>
+            <p className="mt-1 text-sm text-navy/70">{t('referrals.subtitle')}</p>
+          </div>
+        </div>
+        <Link to="/referrals" className="btn-primary mt-4 min-h-[44px]">
+          {t('dash.referralCta')}
+          <DirArrow />
+        </Link>
+      </Panel>
     </div>
   );
 }

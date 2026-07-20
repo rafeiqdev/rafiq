@@ -1583,7 +1583,8 @@
       "residence": "تصريح الإقامة",
       "insurance": "التأمين الصحي",
       "passport": "جواز السفر"
-    }
+    },
+    "referralCta": "ابدأ الدعوة الآن"
   },
   "journeyPage": {
     "title": "مسيرتي",

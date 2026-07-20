@@ -1583,7 +1583,8 @@
       "residence": "ВНЖ (икамет)",
       "insurance": "Медстраховка",
       "passport": "Паспорт"
-    }
+    },
+    "referralCta": "Начать приглашать"
   },
   "journeyPage": {
     "title": "Мой путь",

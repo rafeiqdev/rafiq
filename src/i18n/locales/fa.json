@@ -1583,7 +1583,8 @@
       "residence": "اجازه اقامت",
       "insurance": "بیمه درمانی",
       "passport": "گذرنامه"
-    }
+    },
+    "referralCta": "همین حالا دعوت کنید"
   },
   "journeyPage": {
     "title": "مسیر من",
