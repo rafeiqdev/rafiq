@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { placeFavorites, places as placesApi, placeSearch } from '../../lib/api';
+import type { PlaceSearchError } from '../../lib/api';
 import { PLACE_CATEGORIES } from '../../lib/types';
 import type { FavoritePlace, GooglePlaceResult, PlaceCategory, PlaceOverlay } from '../../lib/types';
 import { useGoogleMaps } from '../../hooks/useGoogleMaps';
@@ -88,6 +89,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [results, setResults] = useState<GooglePlaceResult[]>([]);
   const [overlays, setOverlays] = useState<Map<string, PlaceOverlay>>(new Map());
   const [state, setState] = useState<LoadState>('idle');
+  // Which kind of failure: a configuration problem (missing/rejected server
+  // key) gets its own message — telling the user to "try again later" for a
+  // key that will never appear on its own sent them chasing a ghost.
+  const [searchError, setSearchError] = useState<PlaceSearchError | null>(null);
   const [selected, setSelected] = useState<GooglePlaceResult | null>(null);
   const [favorites, setFavorites] = useState<FavoritePlace[]>([]);
   // The user's real GPS position, once granted — searches then centre on them
@@ -217,9 +222,11 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
 
       if (res.error) {
         setResults([]);
+        setSearchError(res.error);
         setState('error');
         return;
       }
+      setSearchError(null);
       // Show the Turkish-translation hint only when translation actually changed
       // the text — a Turkish or Latin query is searched verbatim.
       if (
@@ -583,14 +590,25 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
           {state === 'error' && (
             <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-center">
               <AppIcon name="alert-triangle" className="mx-auto w-5 h-5 text-amber-700" />
-              <p className="mt-2 text-sm font-semibold text-navy">{t('map.error.title')}</p>
-              <p className="mt-1 text-xs text-gray-600">{t('map.error.body')}</p>
-              <button
-                onClick={() => (category ? runSearch('nearby', category) : submitQuery())}
-                className="btn-secondary mt-4 min-h-[44px]"
-              >
-                {t('map.retry')}
-              </button>
+              {searchError === 'no_key' || searchError === 'key_rejected' ? (
+                <>
+                  {/* Configuration problem — retrying cannot fix a key that is
+                      missing on the server, so say what is actually wrong. */}
+                  <p className="mt-2 text-sm font-semibold text-navy">{t('map.error.searchKeyTitle')}</p>
+                  <p className="mt-1 text-xs text-gray-600">{t('map.error.searchKeyBody')}</p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm font-semibold text-navy">{t('map.error.title')}</p>
+                  <p className="mt-1 text-xs text-gray-600">{t('map.error.body')}</p>
+                  <button
+                    onClick={() => (category ? runSearch('nearby', category) : submitQuery())}
+                    className="btn-secondary mt-4 min-h-[44px]"
+                  >
+                    {t('map.retry')}
+                  </button>
+                </>
+              )}
             </div>
           )}
 
