@@ -7,11 +7,18 @@ export const MAX_MEDIA_MB = 50;
 export const ATTACH_ACCEPT = 'image/*,video/*,application/pdf';
 
 /**
- * Does the assistant's message ask the user to attach a document? Used to pop a
- * clear attach prompt exactly when it is relevant (multi-language keywords).
+ * Does the assistant's message EXPLICITLY ask the user to attach something?
+ *
+ * Deliberately narrow: only attach/upload verbs across the four languages.
+ * The first version also matched topic nouns (جواز، إقامة، صور، residence…),
+ * but in a conversation that is *about* residency every reply contains
+ * "الإقامة" — so the attach card popped under every single message while the
+ * assistant was still mid-questionnaire. Mentioning a document is not the same
+ * as requesting one; the intake prompt tells the model to use an explicit
+ * attach invitation when (and only when) a document is actually needed.
  */
 const MEDIA_HINT_RE =
-  /جواز|إقامة|اقامة|وثيق|مرفق|أرفق|ارفق|صور|passport|document|photo|attach|upload|ikamet|residence|паспорт|документ|فایل|گذرنامه|مدرک|عکس|پاسپورت/i;
+  /أرفق|ارفق|إرفاق|ارفاق|مرفقات|attach|upload|прикреп|загруз|پیوست|بارگذاری|ضمیمه/i;
 
 export function wantsMedia(text: string | undefined | null): boolean {
   return !!text && MEDIA_HINT_RE.test(text);
