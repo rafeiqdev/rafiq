@@ -279,6 +279,23 @@ function shape(p: GooglePlace) {
 }
 
 /**
+ * The env values, reduced to WELL-FORMED Google API keys only.
+ *
+ * Two real incidents drove the strictness: an OAuth client id pasted into
+ * GOOGLE_MAPS_SERVER_KEY (Google answers 401 "API keys are not supported"),
+ * and a value with a trailing newline (fetch throws "Invalid header value"
+ * before the request even leaves). Every Google API key matches AIza + 35 url-
+ * safe chars; anything else is config noise and must not reach a header.
+ */
+export function candidateKeys(
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+): string[] {
+  return [env.GOOGLE_MAPS_SERVER_KEY, env.VITE_GOOGLE_MAPS_API_KEY]
+    .map((k) => (k ?? '').trim())
+    .filter((k) => /^AIza[\w-]{30,}$/.test(k));
+}
+
+/**
  * Calls Places trying each key in order. A 401/403 means THIS key is bad
  * (invalid value, wrong restriction, disabled API) — the next key may still
  * work, so only auth-type failures fall through; anything else returns as-is.
@@ -330,9 +347,7 @@ export default async function handler(req: Request): Promise<Response> {
   // exposes nothing new, and it unblocks search while the separate server key
   // is missing or misconfigured. callPlaces() walks this list past auth
   // failures, so a bad first key cannot take search down on its own.
-  const keys = [process.env.GOOGLE_MAPS_SERVER_KEY, process.env.VITE_GOOGLE_MAPS_API_KEY].filter(
-    (k): k is string => Boolean(k),
-  );
+  const keys = candidateKeys();
   if (keys.length === 0) return json({ error: 'no_key' });
 
   let payload: {

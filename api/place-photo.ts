@@ -10,6 +10,8 @@
  * each miss is a billed Places call.
  */
 
+import { candidateKeys } from './places-search';
+
 export const config = { runtime: 'edge' };
 
 const MAX_WIDTH = 1600;
@@ -19,9 +21,10 @@ export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'GET') return new Response('method_not_allowed', { status: 405 });
 
   // Same key strategy as places-search: dedicated server key first, the
-  // (already-public) browser key as fallback so photos keep working while the
-  // server key is missing or misconfigured.
-  const keys = [process.env.GOOGLE_MAPS_SERVER_KEY, process.env.VITE_GOOGLE_MAPS_API_KEY].filter(Boolean) as string[];
+  // (already-public) browser key as fallback, and only values shaped like a
+  // real Google API key — a pasted OAuth id or a trailing newline must never
+  // reach a request header.
+  const keys = candidateKeys();
   if (keys.length === 0) return new Response('no_key', { status: 503 });
 
   const url = new URL(req.url);
