@@ -560,8 +560,8 @@
       "crypto": "Crypto"
     },
     "card": {
-      "note": "Card payments are reviewed and confirmed by our team — your plan activates once we verify it. No automatic charge.",
-      "pay": "Request by card"
+      "note": "Card payment is processed as a manually reviewed transfer: our team receives your request and activates your plan after verification within 24 hours. Nothing is charged instantly or automatically.",
+      "pay": "Submit payment request — reviewed within 24h"
     },
     "bank": {
       "title": "Transfer to our TL account",

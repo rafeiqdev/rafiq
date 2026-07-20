@@ -1,5 +1,8 @@
 <!doctype html>
-<html lang="en">
+<!-- Static default = Arabic RTL (the primary audience and og:locale).
+     src/i18n/index.ts applyDir() overwrites lang+dir at runtime for en/ru/fa,
+     so this only decides what crawlers and the pre-JS frame see. -->
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo-rafiq-square.png" />
@@ -7,7 +10,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover"
     />
     <script>
       // Keep the page locked at "fit to screen" on phones: stop iOS pinch-zoom

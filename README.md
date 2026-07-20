@@ -13,6 +13,21 @@ moving to, arriving in, or living in Istanbul.
   bcrypt password hashing, httpOnly cookie sessions, multer uploads
 - **Map:** React-Leaflet with bundled assets (no runtime CDN)
 
+## Required Vercel environment variables
+
+The daily FX-rate sync (`api/cron/rates-sync.ts`, scheduled in `vercel.json`)
+**does not run at all** unless BOTH of these are set in the Vercel dashboard
+(Settings → Environment Variables, Production). Without them the currency bar
+keeps showing the last stored rates forever:
+
+| Variable | Purpose |
+|---|---|
+| `CRON_SECRET` | Vercel sends it as `Authorization: Bearer …` on scheduled runs; the endpoint refuses without it. Any long random string. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Lets the cron write `fx_rates` (bypasses RLS). Supabase → Settings → API. **Server-only — never expose to the client.** |
+
+See `.env.example` for the full annotated list (Google Maps keys, provider
+overrides, alert webhook).
+
 ## Run
 
 ```bash

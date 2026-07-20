@@ -110,6 +110,8 @@ export function Services() {
           aria-hidden="true"
           loading="eager"
           decoding="async"
+          width={1600}
+          height={900}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/20 to-white/10" />
