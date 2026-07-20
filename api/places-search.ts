@@ -290,9 +290,13 @@ function shape(p: GooglePlace) {
 export function candidateKeys(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string[] {
+  // EXTRACT rather than validate: a value pasted with wrapping quotes, a
+  // trailing newline, or a "key=AIza…" fragment still contains one well-formed
+  // key — pull it out instead of rejecting the whole variable. Values with no
+  // AIza token at all (the OAuth client id incident) yield nothing.
   return [env.GOOGLE_MAPS_SERVER_KEY, env.VITE_GOOGLE_MAPS_API_KEY]
-    .map((k) => (k ?? '').trim())
-    .filter((k) => /^AIza[\w-]{30,}$/.test(k));
+    .map((k) => (k ?? '').match(/AIza[\w-]{30,}/)?.[0])
+    .filter((k): k is string => Boolean(k));
 }
 
 /**

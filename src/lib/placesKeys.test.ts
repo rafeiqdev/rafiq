@@ -35,6 +35,14 @@ describe('candidateKeys', () => {
     expect(candidateKeys({ GOOGLE_MAPS_SERVER_KEY: `  ${GOOD}\n` })).toEqual([GOOD]);
   });
 
+  it('extracts the key from wrapping quotes', () => {
+    expect(candidateKeys({ GOOGLE_MAPS_SERVER_KEY: `"${GOOD}"` })).toEqual([GOOD]);
+  });
+
+  it('extracts the key from a pasted key=value fragment', () => {
+    expect(candidateKeys({ GOOGLE_MAPS_SERVER_KEY: `GOOGLE_MAPS_SERVER_KEY=${GOOD}` })).toEqual([GOOD]);
+  });
+
   it('drops empty, quote-only and garbage values', () => {
     expect(
       candidateKeys({ GOOGLE_MAPS_SERVER_KEY: '""', VITE_GOOGLE_MAPS_API_KEY: '   ' }),
