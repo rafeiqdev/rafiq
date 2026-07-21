@@ -40,6 +40,23 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // GA4, loaded only when VITE_GA_MEASUREMENT_ID is set (Vite replaces the
+      // %...% placeholder at build/dev time; empty in local dev by default).
+      (function () {
+        var GA_ID = "%VITE_GA_MEASUREMENT_ID%";
+        if (!GA_ID || GA_ID.indexOf('%VITE_') === 0) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', GA_ID);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
