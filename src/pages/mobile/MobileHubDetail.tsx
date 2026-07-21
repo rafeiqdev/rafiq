@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../../components/AppIcon';
 import type { IconName } from '../../components/AppIcon';
 import { ServiceRequestModal } from '../../components/ServiceRequestModal';
+import { usePageMeta } from '../../lib/seo';
 
 // Kept local (not exported) — Hub.tsx stays the canonical export.
 const GUIDE_SLUGS = ['istanbulkart', 'esim', 'ikamet', 'vergi', 'bank', 'districts'] as const;
@@ -35,6 +36,11 @@ export function MobileHubDetail() {
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
+
+  usePageMeta({
+    title: valid ? `${t(`hub.guides.${slug}.title`)} — ${t('common.appName')}` : t('common.appName'),
+    description: valid ? t(`hub.guides.${slug}.body`).slice(0, 160) : t('common.tagline'),
+  });
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">

@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RequireAuth, UpsellGate } from '../../components/Gates';
 import { MapExplorer } from '../../components/map/MapExplorer';
 import { MobileTabBar } from '../../components/MobileTabBar';
+import { usePageMeta } from '../../lib/seo';
 
 /**
  * Phone map. Same feature as the desktop route — only the layout differs, via
@@ -12,9 +12,10 @@ import { MobileTabBar } from '../../components/MobileTabBar';
 export function MobileMapPage() {
   const { t } = useTranslation();
 
-  useEffect(() => {
-    document.title = `${t('map.title')} — ${t('common.appName')}`;
-  }, [t]);
+  usePageMeta({
+    title: `${t('map.title')} — ${t('common.appName')}`,
+    description: t('map.subtitle'),
+  });
 
   return (
     <RequireAuth>

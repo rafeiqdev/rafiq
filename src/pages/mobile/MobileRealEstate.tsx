@@ -8,6 +8,7 @@ import { AppIcon } from '../../components/AppIcon';
 import { Modal } from '../../components/Modal';
 import { PageHero } from '../../components/PageHero';
 import { BANNERS, LISTING_PHOTOS } from '../../lib/images';
+import { SITE_URL, usePageMeta } from '../../lib/seo';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -123,6 +124,12 @@ export function MobileRealEstate() {
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
+
+  usePageMeta({
+    title: `${t('realEstate.title')} — ${t('common.appName')}`,
+    description: t('realEstate.subtitle'),
+    image: `${SITE_URL}${BANNERS.realEstate}`,
+  });
 
   useEffect(() => {
     listingsApi

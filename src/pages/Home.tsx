@@ -12,6 +12,8 @@ import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../data/servic
 import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { AboutSection } from '../components/sections/AboutSection';
+import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
+import { usePageMeta } from '../lib/seo';
 
 // P-simplify3: the old standalone "استكشف كل شي" grid (8 cards) duplicated
 // links already reachable from the header nav / services dropdown, and was
@@ -33,6 +35,12 @@ export function Home() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+
+  usePageMeta({
+    title: `${t('common.appName')} — ${t('home.heroTitle')}`,
+    description: t('home.heroSubtitle'),
+  });
+
   // P-simplify3: personalized blocks can reach ~9 cards depending on profile —
   // show the top 3 (already priority-sorted by blocksFor) by default with an
   // explicit "اعرض الباقي" instead of dumping all of them on load.
@@ -69,6 +77,7 @@ export function Home() {
 
   return (
     <div>
+      <LocalBusinessSchema />
       {/* ── Hero: rotating Turkey photos (auto every 3s) + navy overlay, no buttons ── */}
       <section className="relative overflow-hidden border-b border-cream-dark">
         <ImageCarousel images={CAROUSEL} intervalMs={3000} />

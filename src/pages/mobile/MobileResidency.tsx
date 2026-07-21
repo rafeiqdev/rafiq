@@ -6,6 +6,7 @@ import { PageHero } from '../../components/PageHero';
 import { BANNERS } from '../../lib/images';
 import { IkametCard } from '../../components/IkametCard';
 import { useApp } from '../../context/AppContext';
+import { SITE_URL, usePageMeta } from '../../lib/seo';
 
 // Pure static data — label strings are baked into the IkametCard SVG, not i18n.
 const TYPES: { id: string; icon: IconName; accent: string; label: string }[] = [
@@ -32,6 +33,12 @@ export function MobileResidency() {
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
+
+  usePageMeta({
+    title: `${t('residency.title')} — ${t('common.appName')}`,
+    description: t('residency.subtitle'),
+    image: `${SITE_URL}${BANNERS.residency}`,
+  });
 
   const tabs = [
     { to: '/', icon: 'home', label: mc.home },

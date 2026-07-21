@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
@@ -10,6 +10,7 @@ import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
+import { usePageMeta } from '../lib/seo';
 
 const SITUATION_ICONS: Record<Situation, IconName> = {
   planning: 'luggage',
@@ -89,9 +90,10 @@ function OnboardingInner() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    document.title = `${t('onboard.title')} — ${t('common.appName')}`;
-  }, [t]);
+  usePageMeta({
+    title: `${t('onboard.title')} — ${t('common.appName')}`,
+    description: t('onboard.subtitle'),
+  });
 
   const canNext =
     (step === 1 && situation !== null) ||

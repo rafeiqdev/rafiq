@@ -10,6 +10,7 @@ import type { IconName } from './AppIcon';
 import { TopRatesBar } from './TopRatesBar';
 import { SiteFooter } from './SiteFooter';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useFallbackMeta, useSiteWideSeo } from '../lib/seo';
 
 // Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
 // own full-bleed header/nav — on phones we skip the desktop ticker+header+
@@ -161,7 +162,7 @@ function ServicesMenu() {
 }
 
 export function Layout() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, tier, unread } = useApp();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -178,17 +179,21 @@ export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [newBookings, setNewBookings] = useState(0);
 
+  // canonical + og:url/og:locale + hreflang — applies to every public route
+  // nested under this layout, updates on every route/language change.
+  useSiteWideSeo();
+
   useEffect(() => {
     if (user?.isAdmin) bookings.newCount().then(setNewBookings).catch(() => {});
     else setNewBookings(0);
   }, [user]);
 
-  // P3-6: per-language document title + meta description
-  useEffect(() => {
-    document.title = `${t('common.appName')} — ${t('common.tagline')}`;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', t('home.heroSubtitle'));
-  }, [t, i18n.language]);
+  // P3-6: generic, per-language document title + meta description — the
+  // fallback for any route that doesn't set its own via usePageMeta() (or one
+  // of the pre-existing per-page effects in Journey/MapPage/Onboarding/
+  // UserHome). Steps aside automatically when a page already claimed these —
+  // see useFallbackMeta's doc comment in src/lib/seo.ts for why that matters.
+  useFallbackMeta(`${t('common.appName')} — ${t('common.tagline')}`, t('home.heroSubtitle'));
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {

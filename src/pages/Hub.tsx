@@ -5,6 +5,7 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
+import { usePageMeta } from '../lib/seo';
 
 export const GUIDE_SLUGS = ['istanbulkart', 'esim', 'ikamet', 'vergi', 'bank', 'districts'] as const;
 
@@ -48,6 +49,11 @@ export function HubDetail() {
   const { slug } = useParams<{ slug: string }>();
   const valid = slug && (GUIDE_SLUGS as readonly string[]).includes(slug);
   const [helping, setHelping] = useState(false);
+
+  usePageMeta({
+    title: valid ? `${t(`hub.guides.${slug}.title`)} — ${t('common.appName')}` : t('common.appName'),
+    description: valid ? t(`hub.guides.${slug}.body`).slice(0, 160) : t('common.tagline'),
+  });
 
   if (!valid) {
     return (

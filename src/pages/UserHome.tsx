@@ -10,6 +10,7 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { AppNotification, Booking, JourneyItem } from '../lib/types';
+import { usePageMeta } from '../lib/seo';
 
 /** The three tracked renewal dates on the profile, soonest first. */
 const RENEWAL_KEYS = ['residence', 'insurance', 'passport'] as const;
@@ -109,9 +110,10 @@ export function UserHome() {
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [notifs, setNotifs] = useState<AppNotification[]>([]);
 
-  useEffect(() => {
-    document.title = `${t('dash.journeyTitle')} — ${t('common.appName')}`;
-  }, [t]);
+  usePageMeta({
+    title: `${t('dash.journeyTitle')} — ${t('common.appName')}`,
+    description: t('journeyPage.subtitle'),
+  });
 
   // Secondary panels — each loads independently and simply stays hidden on
   // failure, so they can never take the dashboard down with them.

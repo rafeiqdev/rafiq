@@ -10,6 +10,8 @@ import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/ser
 import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
 import { Testimonials } from '../../components/sections/Testimonials';
+import { LocalBusinessSchema } from '../../components/LocalBusinessSchema';
+import { usePageMeta } from '../../lib/seo';
 
 const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 
@@ -84,6 +86,11 @@ export function MobileHome() {
   const [focused, setFocused] = useState(false);
   const [showAllBlocks, setShowAllBlocks] = useState(false);
 
+  usePageMeta({
+    title: `${t('common.appName')} — ${t('home.heroTitle')}`,
+    description: t('home.heroSubtitle'),
+  });
+
   // Exact same forgiving-match predicate as desktop Home.tsx: normalize, then
   // match either the whole normalized query or any individual token (>=2
   // chars) against title/desc (ar/en/tr) + search synonyms.
@@ -127,6 +134,7 @@ export function MobileHome() {
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
+      <LocalBusinessSchema />
       {/* clears the fixed tab bar */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+88px)]">
         {/* ================= HERO ================= */}

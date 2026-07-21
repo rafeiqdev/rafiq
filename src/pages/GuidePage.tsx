@@ -8,6 +8,7 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
 import { track } from '../lib/analytics';
+import { usePageMeta } from '../lib/seo';
 
 function SectionCard({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
   return (
@@ -40,19 +41,11 @@ export function GuidePage() {
     track('guide_viewed_full', { service_slug: slug, lang });
   }, [slug, lang]);
 
-  // SEO: per-guide, per-language title + description
-  useEffect(() => {
-    if (!guide) return;
-    const prevTitle = document.title;
-    document.title = `${title} — ${t('common.appName')}`;
-    const meta = document.querySelector('meta[name="description"]');
-    const prevDesc = meta?.getAttribute('content') ?? '';
-    if (meta && guide.intro) meta.setAttribute('content', guide.intro.slice(0, 160));
-    return () => {
-      document.title = prevTitle;
-      if (meta) meta.setAttribute('content', prevDesc);
-    };
-  }, [guide, title, t]);
+  // SEO: per-guide, per-language title + description (+ matching og/twitter tags)
+  usePageMeta({
+    title: `${title} — ${t('common.appName')}`,
+    description: guide?.intro ? guide.intro.slice(0, 160) : t('common.tagline'),
+  });
 
   if (!guide) {
     return (

@@ -8,6 +8,7 @@ import { AppIcon } from '../components/AppIcon';
 import { Modal } from '../components/Modal';
 import { PageHero } from '../components/PageHero';
 import { BANNERS, LISTING_PHOTOS } from '../lib/images';
+import { SITE_URL, usePageMeta } from '../lib/seo';
 
 /**
  * Listing photo with layered fallback: the listing's own image → a curated
@@ -109,6 +110,12 @@ export function RealEstate() {
   const [loading, setLoading] = useState(true);
   const [requested, setRequested] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<Listing | null>(null);
+
+  usePageMeta({
+    title: `${t('realEstate.title')} — ${t('common.appName')}`,
+    description: t('realEstate.subtitle'),
+    image: `${SITE_URL}${BANNERS.realEstate}`,
+  });
 
   useEffect(() => {
     listingsApi

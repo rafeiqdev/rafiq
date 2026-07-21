@@ -8,6 +8,7 @@ import { useApp } from '../../context/AppContext';
 import { subscriptions } from '../../lib/api';
 import { PLAN_PRICES } from '../../lib/types';
 import type { Billing, PlanTier } from '../../lib/types';
+import { usePageMeta } from '../../lib/seo';
 
 const TIERS: Exclude<PlanTier, 'free'>[] = ['light', 'pro', 'elite'];
 const ORDER: Record<PlanTier, number> = { free: 0, light: 1, pro: 2, elite: 3 };
@@ -42,6 +43,11 @@ export function MobilePricing() {
   const [reason, setReason] = useState<string>('tooExpensive');
   const [comment, setComment] = useState('');
   const [cancelDone, setCancelDone] = useState(false);
+
+  usePageMeta({
+    title: `${t('pricing.title')} — ${t('common.appName')}`,
+    description: t('pricing.subtitle'),
+  });
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';

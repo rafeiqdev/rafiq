@@ -6,6 +6,7 @@ import type { ServiceItem, ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceActionModal } from '../components/ServiceActionModal';
+import { usePageMeta } from '../lib/seo';
 
 // P-simplify2: the catalog has 12 categories / 79 services. Rendering all of
 // them at once (the old default) was the biggest source of "too many
@@ -75,6 +76,11 @@ export function Services() {
   const [active, setActive] = useState<ServiceItem | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
+
+  usePageMeta({
+    title: `${t('services.title')} — ${t('common.appName')}`,
+    description: t('services.subtitle'),
+  });
 
   const matches = useMemo(() => {
     const nq = normalizeSearch(query);

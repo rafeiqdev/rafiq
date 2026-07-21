@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RequireAuth, UpsellGate } from '../components/Gates';
 import { MapExplorer } from '../components/map/MapExplorer';
+import { usePageMeta } from '../lib/seo';
 
 /**
  * Desktop map. All behaviour lives in MapExplorer — this file only carries the
@@ -15,9 +15,10 @@ import { MapExplorer } from '../components/map/MapExplorer';
 export function MapPage() {
   const { t } = useTranslation();
 
-  useEffect(() => {
-    document.title = `${t('map.title')} — ${t('common.appName')}`;
-  }, [t]);
+  usePageMeta({
+    title: `${t('map.title')} — ${t('common.appName')}`,
+    description: t('map.subtitle'),
+  });
 
   return (
     <RequireAuth>

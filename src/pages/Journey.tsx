@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
@@ -6,6 +5,7 @@ import { errorMessageKey } from '../lib/errors';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { JourneyItem } from '../lib/types';
+import { usePageMeta } from '../lib/seo';
 
 function TaskCard({ item, isNext, onToggle }: { item: JourneyItem; isNext: boolean; onToggle: () => void }) {
   const { t } = useTranslation();
@@ -68,9 +68,10 @@ function JourneyInner() {
   const { t } = useTranslation();
   const { items, state, errorCategory, progress, next, reload, toggle } = useJourney();
 
-  useEffect(() => {
-    document.title = `${t('journeyPage.title')} — ${t('common.appName')}`;
-  }, [t]);
+  usePageMeta({
+    title: `${t('journeyPage.title')} — ${t('common.appName')}`,
+    description: t('journeyPage.subtitle'),
+  });
 
   if (state === 'loading') {
     return (

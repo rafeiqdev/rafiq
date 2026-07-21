@@ -5,6 +5,7 @@ import type { IconName } from '../components/AppIcon';
 import { PageHero } from '../components/PageHero';
 import { BANNERS } from '../lib/images';
 import { IkametCard } from '../components/IkametCard';
+import { SITE_URL, usePageMeta } from '../lib/seo';
 
 const TYPES: { id: string; icon: IconName; accent: string; label: string }[] = [
   { id: 'shortTerm', icon: 'id-card', accent: '#1d5f9e', label: 'SHORT-TERM' },
@@ -15,6 +16,13 @@ const TYPES: { id: string; icon: IconName; accent: string; label: string }[] = [
 
 export function Residency() {
   const { t } = useTranslation();
+
+  usePageMeta({
+    title: `${t('residency.title')} — ${t('common.appName')}`,
+    description: t('residency.subtitle'),
+    image: `${SITE_URL}${BANNERS.residency}`,
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="animate-fade-in">

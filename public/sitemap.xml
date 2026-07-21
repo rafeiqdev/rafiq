@@ -1,75 +1,1059 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://rafiq-istanbul.vercel.app/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/services</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/hub</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/pricing</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/pricing" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/pricing" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/pricing" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/pricing" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/pricing" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/residency</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/residency" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/residency" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/residency" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/residency" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/residency" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/real-estate</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/real-estate" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/real-estate" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/real-estate" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/real-estate" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/real-estate" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/health-tourism</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/health-tourism" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/health-tourism" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/health-tourism" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/health-tourism" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/health-tourism" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/tricks</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/tricks" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/tricks" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/tricks" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/tricks" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/tricks" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/referrals</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/referrals" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/referrals" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/referrals" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/referrals" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/referrals" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/terms</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/terms" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/terms" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/privacy</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/privacy" />
   </url>
   <url>
     <loc>https://rafiq-istanbul.vercel.app/refund</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/refund" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/refund" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/refund" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/refund" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/refund" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/tourist-residence-permit</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/tourist-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/tourist-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/tourist-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/tourist-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/tourist-residence-permit" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/property-residence-permit</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/property-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/property-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/property-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/property-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/property-residence-permit" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/work-residence-permit</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/work-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/work-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/work-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/work-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/work-residence-permit" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/student-residence-permit</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/student-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/student-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/student-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/student-residence-permit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/student-residence-permit" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/family-reunification</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/family-reunification" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/family-reunification" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/family-reunification" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/family-reunification" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/family-reunification" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/residence-permit-renewal</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/residence-permit-renewal" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/residence-permit-renewal" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/residence-permit-renewal" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/residence-permit-renewal" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/residence-permit-renewal" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/residence-rejection-appeal" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/tax-number</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/tax-number" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/tax-number" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/tax-number" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/tax-number" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/tax-number" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/foreigner-id-number</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/foreigner-id-number" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/foreigner-id-number" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/foreigner-id-number" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/foreigner-id-number" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/foreigner-id-number" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/immigration-appointment</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/immigration-appointment" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/immigration-appointment" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/immigration-appointment" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/immigration-appointment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/immigration-appointment" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/turkish-citizenship</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/turkish-citizenship" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/turkish-citizenship" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/turkish-citizenship" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/turkish-citizenship" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/turkish-citizenship" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/limited-company-formation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/limited-company-formation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/limited-company-formation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/limited-company-formation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/limited-company-formation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/limited-company-formation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/joint-stock-company-formation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/commercial-contracts</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/commercial-contracts" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/commercial-contracts" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/commercial-contracts" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/commercial-contracts" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/commercial-contracts" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/power-of-attorney</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/power-of-attorney" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/power-of-attorney" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/power-of-attorney" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/power-of-attorney" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/power-of-attorney" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/rental-property-disputes</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/rental-property-disputes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/rental-property-disputes" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/rental-property-disputes" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/rental-property-disputes" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/rental-property-disputes" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/labor-disputes</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/labor-disputes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/labor-disputes" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/labor-disputes" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/labor-disputes" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/labor-disputes" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/family-law</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/family-law" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/family-law" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/family-law" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/family-law" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/family-law" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/company-liquidation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/company-liquidation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/company-liquidation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/company-liquidation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/company-liquidation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/company-liquidation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/general-legal-consultation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/general-legal-consultation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/general-legal-consultation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/general-legal-consultation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/general-legal-consultation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/general-legal-consultation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/monthly-accounting</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/monthly-accounting" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/monthly-accounting" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/monthly-accounting" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/monthly-accounting" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/monthly-accounting" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/vat-returns</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/vat-returns" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/vat-returns" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/vat-returns" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/vat-returns" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/vat-returns" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/payroll-sgk</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/payroll-sgk" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/payroll-sgk" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/payroll-sgk" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/payroll-sgk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/payroll-sgk" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/e-invoice-setup</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/e-invoice-setup" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/e-invoice-setup" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/e-invoice-setup" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/e-invoice-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/e-invoice-setup" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/tax-advisory</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/tax-advisory" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/tax-advisory" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/tax-advisory" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/tax-advisory" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/tax-advisory" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/apartment-rental</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/apartment-rental" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/apartment-rental" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/apartment-rental" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/apartment-rental" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/apartment-rental" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/property-sale-purchase</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/property-sale-purchase" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/property-sale-purchase" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/property-sale-purchase" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/property-sale-purchase" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/property-sale-purchase" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/citizenship-eligible-property" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/property-valuation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/property-valuation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/property-valuation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/property-valuation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/property-valuation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/property-valuation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/property-management</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/property-management" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/property-management" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/property-management" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/property-management" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/property-management" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/notarized-lease</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/notarized-lease" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/notarized-lease" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/notarized-lease" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/notarized-lease" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/notarized-lease" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/airport-pickup</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/airport-pickup" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/vip-airport-pickup</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/vip-airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/vip-airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/vip-airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/vip-airport-pickup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/vip-airport-pickup" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/daily-tours</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/daily-tours" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/daily-tours" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/daily-tours" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/daily-tours" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/daily-tours" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/multi-city-tours</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/multi-city-tours" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/multi-city-tours" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/multi-city-tours" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/multi-city-tours" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/multi-city-tours" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/tour-packages</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/tour-packages" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/tour-packages" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/tour-packages" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/tour-packages" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/tour-packages" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/bosphorus-cruise</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/bosphorus-cruise" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/bosphorus-cruise" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/bosphorus-cruise" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/bosphorus-cruise" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/bosphorus-cruise" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/private-driver</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/private-driver" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/private-driver" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/private-driver" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/private-driver" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/private-driver" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/long-term-car-rental</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/long-term-car-rental" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/long-term-car-rental" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/long-term-car-rental" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/long-term-car-rental" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/long-term-car-rental" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/hotel-booking</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/hotel-booking" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/hotel-booking" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/hotel-booking" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/hotel-booking" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/hotel-booking" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/attraction-tickets</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/attraction-tickets" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/attraction-tickets" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/attraction-tickets" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/attraction-tickets" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/attraction-tickets" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/accompanying-interpreter</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/accompanying-interpreter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/accompanying-interpreter" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/accompanying-interpreter" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/accompanying-interpreter" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/accompanying-interpreter" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/sworn-translation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/sworn-translation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/sworn-translation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/sworn-translation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/sworn-translation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/sworn-translation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/notary-apostille</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/notary-apostille" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/notary-apostille" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/notary-apostille" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/notary-apostille" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/notary-apostille" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/official-document-translation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/official-document-translation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/official-document-translation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/official-document-translation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/official-document-translation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/official-document-translation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/medical-translation</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/medical-translation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/medical-translation" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/medical-translation" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/medical-translation" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/medical-translation" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/bank-account-opening</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/bank-account-opening" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/bank-account-opening" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/bank-account-opening" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/bank-account-opening" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/bank-account-opening" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/residence-health-insurance</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/residence-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/residence-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/residence-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/residence-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/residence-health-insurance" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/family-health-insurance</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/family-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/family-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/family-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/family-health-insurance" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/family-health-insurance" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/car-home-insurance</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/car-home-insurance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/car-home-insurance" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/car-home-insurance" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/car-home-insurance" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/car-home-insurance" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/money-transfer</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/money-transfer" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/money-transfer" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/money-transfer" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/money-transfer" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/money-transfer" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/turkish-sim-card</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/turkish-sim-card" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/turkish-sim-card" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/turkish-sim-card" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/turkish-sim-card" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/turkish-sim-card" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/home-internet</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/home-internet" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/home-internet" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/home-internet" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/home-internet" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/home-internet" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/utilities-setup</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/utilities-setup" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/utilities-setup" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/utilities-setup" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/utilities-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/utilities-setup" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/istanbulkart</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/istanbulkart" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/address-registration</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/address-registration" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/address-registration" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/address-registration" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/address-registration" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/address-registration" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/private-hospital-referral</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/private-hospital-referral" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/private-hospital-referral" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/private-hospital-referral" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/private-hospital-referral" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/private-hospital-referral" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/arabic-speaking-doctors" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/medical-appointments</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/medical-appointments" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/medical-appointments" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/medical-appointments" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/medical-appointments" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/medical-appointments" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/medical-tourism</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/medical-tourism" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/medical-tourism" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/medical-tourism" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/medical-tourism" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/medical-tourism" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/school-enrollment</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/school-enrollment" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/school-enrollment" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/school-enrollment" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/school-enrollment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/school-enrollment" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/diploma-equivalency</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/diploma-equivalency" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/diploma-equivalency" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/diploma-equivalency" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/diploma-equivalency" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/diploma-equivalency" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/university-admission</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/university-admission" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/university-admission" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/university-admission" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/university-admission" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/university-admission" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/turkish-language-courses</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/turkish-language-courses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/turkish-language-courses" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/turkish-language-courses" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/turkish-language-courses" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/turkish-language-courses" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/restaurant-cafe-setup" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/commercial-location</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/commercial-location" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/commercial-location" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/commercial-location" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/commercial-location" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/commercial-location" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/business-license</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/business-license" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/business-license" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/business-license" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/business-license" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/business-license" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/equipment-supply</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/equipment-supply" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/equipment-supply" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/equipment-supply" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/equipment-supply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/equipment-supply" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/staff-recruitment</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/staff-recruitment" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/staff-recruitment" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/staff-recruitment" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/staff-recruitment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/staff-recruitment" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/web-development</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/web-development" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/web-development" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/web-development" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/web-development" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/web-development" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/personal-concierge</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/personal-concierge" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/personal-concierge" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/personal-concierge" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/personal-concierge" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/personal-concierge" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/furniture-moving</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/furniture-moving" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/furniture-moving" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/furniture-moving" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/furniture-moving" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/furniture-moving" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/driving-license</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/driving-license" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/driving-license" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/driving-license" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/driving-license" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/driving-license" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/foreigner-marriage</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/foreigner-marriage" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/foreigner-marriage" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/foreigner-marriage" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/foreigner-marriage" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/foreigner-marriage" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/shopping-assistance</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/shopping-assistance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/shopping-assistance" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/shopping-assistance" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/shopping-assistance" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/shopping-assistance" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/emergency-support</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/emergency-support" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/emergency-support" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/emergency-support" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/emergency-support" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/emergency-support" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/embassy-guidance</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/embassy-guidance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/embassy-guidance" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/embassy-guidance" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/embassy-guidance" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/embassy-guidance" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/services/document-renewal-reminders</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/services/document-renewal-reminders" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/services/document-renewal-reminders" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/services/document-renewal-reminders" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/services/document-renewal-reminders" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/services/document-renewal-reminders" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/istanbulkart</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/istanbulkart" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/istanbulkart" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/esim</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/esim" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/esim" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/esim" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/esim" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/esim" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/ikamet</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/ikamet" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/ikamet" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/ikamet" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/ikamet" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/ikamet" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/vergi</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/vergi" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/vergi" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/vergi" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/vergi" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/vergi" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/bank</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/bank" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/bank" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/bank" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/bank" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/bank" />
+  </url>
+  <url>
+    <loc>https://rafiq-istanbul.vercel.app/hub/districts</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq-istanbul.vercel.app/hub/districts" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq-istanbul.vercel.app/hub/districts" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq-istanbul.vercel.app/hub/districts" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq-istanbul.vercel.app/hub/districts" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq-istanbul.vercel.app/hub/districts" />
   </url>
 </urlset>

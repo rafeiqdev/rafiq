@@ -7,6 +7,7 @@ import { useCatalog } from '../../data/catalogStore';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
 import { ServiceActionModal } from '../../components/ServiceActionModal';
+import { usePageMeta } from '../../lib/seo';
 
 // Same trimmed landing set as the desktop catalog: only these 6 categories show
 // by default; a search or an explicit category pick reveals the full set.
@@ -83,6 +84,11 @@ export function MobileServices() {
   const [active, setActive] = useState<ServiceItem | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
+
+  usePageMeta({
+    title: `${t('services.title')} — ${t('common.appName')}`,
+    description: t('services.subtitle'),
+  });
 
   const langCode = (lang || 'en').split('-')[0];
   const isRTL = langCode === 'ar' || langCode === 'fa';
