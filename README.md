@@ -144,3 +144,4 @@ until the rename is decided.
 - `CHANGES.md`, `rafiq-audit.md` — historical records; rewriting the brand
   name into past changelog/audit entries would falsify history and should not
   happen even after a rename ships.
+
