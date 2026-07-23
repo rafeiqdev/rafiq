@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { serviceRequests, ApiError } from '../lib/api';
 import { ISTANBUL_AREAS, pickArea } from '../data/istanbulAreas';
 import { useApp } from '../context/AppContext';
 import { Modal } from './Modal';
 import { AppIcon } from './AppIcon';
-import { RequestBroadcast } from './RequestBroadcast';
+import { BestOfferSearching } from './BestOfferSearching';
 
 /** Anything a lead can be requested about — a catalog service or a hub guide. */
 export interface LeadSource {
@@ -39,6 +40,7 @@ function isValidName(s: string): boolean {
 export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
+  const navigate = useNavigate();
   const lang = i18n.language;
   const serviceTitle = source.title;
   // A trusted-partner request from a logged-in customer is BROADCAST to matching
@@ -113,9 +115,16 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
         </div>
         <div className="p-5">
           {done && requestId ? (
-            /* signed-in customer → live broadcast animation, then the waiting
-               state that keeps loading until the admin marks the offer ready */
-            <RequestBroadcast requestId={requestId} serviceTitle={serviceTitle} onClose={onClose} />
+            /* signed-in customer → full-screen "searching top offices" animation,
+               then a success screen pointing them at the real /requests tracker */
+            <BestOfferSearching
+              serviceName={serviceTitle}
+              onTrack={() => {
+                onClose();
+                navigate('/requests');
+              }}
+              onBack={onClose}
+            />
           ) : done ? (
             <div className="text-center">
               <div className="icon-chip mx-auto">

@@ -1656,6 +1656,18 @@
       "offers": "Collecting offers"
     }
   },
+  "bestOffer": {
+    "preparing": "Preparing your request...",
+    "sending": "Sending your request to top offices in Istanbul to get you the best offer",
+    "counter": "Contacted {{count}} offices",
+    "successTitle": "Your request has been sent",
+    "successSub": "We'll contact you soon with the best offer for {{service}}",
+    "whatsapp": "We'll send you a WhatsApp notification as soon as offers arrive",
+    "track": "Track your request",
+    "back": "Back to home",
+    "skip": "Skip",
+    "replay": "Replay"
+  },
   "intake": {
     "title": "Three quick questions",
     "subtitle": "So our specialist opens your file already knowing what you need.",

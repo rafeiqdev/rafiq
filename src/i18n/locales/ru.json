@@ -1656,6 +1656,18 @@
       "offers": "Сбор предложений"
     }
   },
+  "bestOffer": {
+    "preparing": "",
+    "sending": "",
+    "counter": "",
+    "successTitle": "",
+    "successSub": "",
+    "whatsapp": "",
+    "track": "",
+    "back": "",
+    "skip": "",
+    "replay": ""
+  },
   "intake": {
     "title": "Три быстрых вопроса",
     "subtitle": "Чтобы специалист открыл вашу заявку, уже зная ситуацию.",

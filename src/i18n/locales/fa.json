@@ -1656,6 +1656,18 @@
       "offers": "جمع‌آوری پیشنهادها"
     }
   },
+  "bestOffer": {
+    "preparing": "",
+    "sending": "",
+    "counter": "",
+    "successTitle": "",
+    "successSub": "",
+    "whatsapp": "",
+    "track": "",
+    "back": "",
+    "skip": "",
+    "replay": ""
+  },
   "intake": {
     "title": "سه پرسش کوتاه",
     "subtitle": "تا کارشناس پرونده‌تان را با آگاهی از وضعیت شما باز کند.",
