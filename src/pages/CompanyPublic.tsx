@@ -7,6 +7,7 @@ import { SERVICE_CATEGORIES, SERVICES, pickText } from '../data/services';
 import { pickArea } from '../data/istanbulAreas';
 import { ReviewStars } from '../components/ReviewStars';
 import { AppIcon, DirArrow } from '../components/AppIcon';
+import { RafiqLoaderScreen } from '../components/RafiqLoader';
 
 export function CompanyPublic() {
   const { t, i18n } = useTranslation();
@@ -23,11 +24,7 @@ export function CompanyPublic() {
   }, [id]);
 
   if (company === undefined) {
-    return (
-      <div className="flex items-center justify-center py-32" role="status">
-        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-      </div>
-    );
+    return <RafiqLoaderScreen />;
   }
 
   if (!company) {

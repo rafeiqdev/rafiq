@@ -8,6 +8,7 @@ import { ISTANBUL_AREAS, pickArea } from '../../data/istanbulAreas';
 import { RequireCompany } from '../../components/Gates';
 import { TagPicker } from '../../components/company/TagPicker';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
+import { RafiqLoaderScreen } from '../../components/RafiqLoader';
 
 function ProfileEditInner() {
   const { t, i18n } = useTranslation();
@@ -85,9 +86,7 @@ function ProfileEditInner() {
 
   if (company === undefined) {
     return (
-      <div className="flex items-center justify-center py-32" role="status">
-        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-      </div>
+      <RafiqLoaderScreen />
     );
   }
 

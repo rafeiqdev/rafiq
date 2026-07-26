@@ -384,6 +384,75 @@ html[dir='rtl'] li {
   animation: riseIn 0.6s ease-out 1.55s both;
 }
 
+/* ---- Rafiq loading screen (see components/RafiqLoader.tsx) ----
+   The wordmark is five separate letter PNGs so each can hop on its own delay,
+   wave-style, inside a wrapper that breathes as one word. */
+@keyframes rqRise {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes rqBreathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1) rotate(-0.4deg);
+  }
+  50% {
+    transform: translateY(-2.2%) scale(1.035) rotate(0.5deg);
+  }
+}
+@keyframes rqHop {
+  0%,
+  46%,
+  100% {
+    transform: translateY(0) scaleY(1) scaleX(1);
+  }
+  8% {
+    transform: translateY(0) scaleY(0.88) scaleX(1.08);
+  }
+  22% {
+    transform: translateY(-16%) scaleY(1.09) scaleX(0.95);
+  }
+  36% {
+    transform: translateY(0) scaleY(0.94) scaleX(1.04);
+  }
+}
+@keyframes rqHalo {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+.rq-rise {
+  animation: rqRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rq-breathe {
+  animation: rqBreathe 4.4s ease-in-out infinite;
+}
+.rq-letter {
+  transform-origin: 50% 90%;
+  animation: rqHop 2.4s cubic-bezier(0.34, 1.4, 0.5, 1) infinite;
+  /* each letter is offset one beat later — set inline per letter */
+  animation-delay: var(--rq-delay, 0s);
+}
+.rq-halo {
+  animation: rqHalo 3.6s ease-in-out infinite;
+}
+
 /* scrolling currency ticker (two identical groups, translate -50% = seamless loop) */
 @keyframes ticker {
   from {
@@ -410,7 +479,11 @@ html[dir='rtl'] li {
   .adv-car,
   .adv-wheel,
   .adv-person,
-  .animate-ticker {
+  .animate-ticker,
+  .rq-rise,
+  .rq-breathe,
+  .rq-letter,
+  .rq-halo {
     animation: none;
   }
 }

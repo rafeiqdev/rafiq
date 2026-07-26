@@ -8,6 +8,7 @@ import { RequireAuth } from '../components/Gates';
 import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
 import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
+import { RafiqLoader } from '../components/RafiqLoader';
 
 function ReviewModal({ companyId, companyName, leadId, onClose, onDone }: { companyId: string; companyName: string; leadId: string; onClose: () => void; onDone: () => void }) {
   const { t } = useTranslation();
@@ -161,9 +162,7 @@ function MyRequestsInner() {
       <p className="mt-2 text-sm text-navy/60">{t('requests.subtitle')}</p>
 
       {rows === null ? (
-        <div className="flex items-center justify-center py-20" role="status">
-          <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-        </div>
+        <RafiqLoader size="sm" className="min-h-[50vh]" />
       ) : rows.length === 0 ? (
         <div className="card p-8 mt-6 text-center">
           <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>

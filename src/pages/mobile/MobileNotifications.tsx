@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { notifications } from '../../lib/api';
 import type { AppNotification } from '../../lib/types';
 import { AppIcon } from '../../components/AppIcon';
+import { RafiqLoader } from '../../components/RafiqLoader';
 import { SiteImage } from '../../components/SiteImage';
 import { ISTANBUL } from '../../lib/images';
 
@@ -89,9 +90,7 @@ export function MobileNotifications() {
         <div className="px-5 pt-5">
           {authLoading ? (
             /* session still resolving — never flash the wall at a signed-in user */
-            <div className="flex items-center justify-center py-24" role="status" aria-busy>
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-cream-dark border-t-gold" />
-            </div>
+            <RafiqLoader size="sm" className="min-h-[50vh]" />
           ) : !user ? (
             /* signed-out state (this page does NOT use RequireAuth) */
             <div className="card animate-pop p-10 text-center">

@@ -7,6 +7,7 @@ import { RequireOnboarded } from './components/Gates';
 import { ChatRedirect } from './components/LegacyRedirects';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
+import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -100,12 +101,15 @@ const Journey = lazyPage(() => import('./pages/Journey').then((m) => ({ default:
 const Legal = lazyPage(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
 const NotFound = lazyPage(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
-function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-32" role="status" aria-live="polite">
-      <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-    </div>
-  );
+/**
+ * The app-wide waiting state: route chunks, the session gate, /r/:code.
+ *
+ * `chromeless` because the Suspense fallback sits OUTSIDE <Layout> — while a
+ * chunk downloads there is no header on screen, so the mark centres on the
+ * whole viewport. HomeGate is the exception: it renders inside Layout.
+ */
+function Spinner({ chromeless = true }: { chromeless?: boolean }) {
+  return <RafiqLoaderScreen chromeless={chromeless} />;
 }
 
 /** /r/:code — capture the referral, record the click, then land on home. */
@@ -146,7 +150,7 @@ function ReferralQueryCapture() {
  */
 function HomeGate({ isMobile }: { isMobile: boolean }) {
   const { user, authLoading, onboardingCompleted } = useApp();
-  if (authLoading) return <Spinner />;
+  if (authLoading) return <Spinner chromeless={false} />;
   if (user) return onboardingCompleted ? <UserHome /> : <Navigate to="/onboarding" replace />;
   return isMobile ? <MobileHome /> : <Home />;
 }

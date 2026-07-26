@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { AppIcon, DirArrow } from './AppIcon';
+import { RafiqLoader } from './RafiqLoader';
 
 /**
  * Neutral placeholder shown while the session is still being restored.
@@ -11,8 +12,8 @@ import { AppIcon, DirArrow } from './AppIcon';
  */
 function GatePending() {
   return (
-    <div className="mx-auto max-w-md px-4 py-20 text-center" aria-busy>
-      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-cream-dark border-t-gold" />
+    <div className="mx-auto max-w-md px-4 text-center" aria-busy>
+      <RafiqLoader size="sm" className="min-h-[60vh]" />
     </div>
   );
 }

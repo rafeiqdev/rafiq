@@ -8,6 +8,7 @@ import { bookings as bookingsApi, notifications as notificationsApi } from '../l
 import { SERVICES, pickText } from '../data/services';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import { MobileTabBar } from '../components/MobileTabBar';
+import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { AppNotification, Booking, JourneyItem } from '../lib/types';
 import { usePageMeta } from '../lib/seo';
@@ -126,11 +127,7 @@ export function UserHome() {
   // ---- session still resolving ----------------------------------------------
   // Painting the guest card here first would flash it at signed-in users.
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center py-32" role="status" aria-busy>
-        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-      </div>
-    );
+    return <RafiqLoaderScreen />;
   }
 
   // On phones this page is chrome-free (Layout hides header/footer for "/"),

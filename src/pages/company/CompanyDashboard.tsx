@@ -7,6 +7,7 @@ import { isCompanyActive } from '../../lib/types';
 import { RequireCompany } from '../../components/Gates';
 import { CompanyLeadCard } from '../../components/company/CompanyLeadCard';
 import { AppIcon } from '../../components/AppIcon';
+import { RafiqLoaderScreen } from '../../components/RafiqLoader';
 
 function StatusPill({ kind, label }: { kind: 'ok' | 'warn' | 'bad'; label: string }) {
   const cls = kind === 'ok' ? 'bg-green-100 text-green-800' : kind === 'warn' ? 'bg-gold-soft text-gold-dark' : 'bg-brand-red/10 text-brand-red';
@@ -29,9 +30,7 @@ function DashboardInner() {
 
   if (company === undefined) {
     return (
-      <div className="flex items-center justify-center py-32" role="status">
-        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-      </div>
+      <RafiqLoaderScreen />
     );
   }
 

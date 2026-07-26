@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { notifications } from '../lib/api';
 import type { AppNotification } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
+import { RafiqLoaderScreen } from '../components/RafiqLoader';
 
 export function Notifications() {
   const { t, i18n } = useTranslation();
@@ -26,11 +27,7 @@ export function Notifications() {
   };
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center py-32" role="status" aria-busy>
-        <div className="w-10 h-10 rounded-full border-4 border-cream-dark border-t-navy animate-spin" />
-      </div>
-    );
+    return <RafiqLoaderScreen />;
   }
 
   if (!user) {

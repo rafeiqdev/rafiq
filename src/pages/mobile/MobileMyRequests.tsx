@@ -6,6 +6,7 @@ import type { CompanyResponse, CustomerRequest } from '../../lib/types';
 import { pickArea } from '../../data/istanbulAreas';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
+import { RafiqLoader } from '../../components/RafiqLoader';
 import { RequireAuth } from '../../components/Gates';
 import { Modal } from '../../components/Modal';
 import { ReviewStars, StarRatingInput } from '../../components/ReviewStars';
@@ -266,9 +267,7 @@ function MobileMyRequestsInner() {
 
         <div className="px-5 pt-5">
           {rows === null ? (
-            <div className="flex justify-center py-16">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-cream-dark border-t-navy" role="status" />
-            </div>
+            <RafiqLoader size="sm" className="min-h-[50vh]" />
           ) : rows.length === 0 ? (
             <div className="card animate-pop p-10 text-center">
               <div className="icon-chip mx-auto">
