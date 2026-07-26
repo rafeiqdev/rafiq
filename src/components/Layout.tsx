@@ -17,13 +17,13 @@ import { useFallbackMeta, useSiteWideSeo } from '../lib/seo';
 // footer chrome entirely for these so the mobile screen isn't sandwiched
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
-const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/pricing', '/checkout', '/smart', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/pricing', '/checkout', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
 
 // Dropping the desktop chrome on phones also dropped the footer, so the terms /
 // privacy / refund block and the language switcher were unreachable from every
 // mobile screen. These are the chrome-free routes that DO scroll normally, so a
 // footer can be appended to them; the app-shell screens (/auth, /checkout,
-// /premium, /chat, /map, /help, /smart) are fixed-height flex layouts that own
+// /premium, /chat, /map, /help) are fixed-height flex layouts that own
 // the whole viewport and must stay footer-free.
 const MOBILE_FOOTER_ROUTES = new Set([
   '/',
@@ -46,8 +46,10 @@ interface NavItem {
   icon: IconName;
 }
 
-// "الاستشارة الذكية" (/smart) was dropped from the nav — it duplicated the AI
-// assistant and its dashboard already lives on Home + Profile.
+// "الاستشارة الذكية" (/smart) was first dropped from the nav and then removed
+// as a route entirely — it duplicated the AI assistant and its dashboard
+// already lives on Home + Profile. Smart.tsx / MobileSmart.tsx are kept on disk
+// (unrouted) because the profile-completeness ring may be reused later.
 //
 // P-simplify1: main bar trimmed from 5 to 4 items. "الدليل" (/hub) moved into
 // the "استكشف/الخدمات" dropdown below so it isn't a separate top-level item —

@@ -163,7 +163,6 @@ describe('RequireOnboarded', () => {
         <Routes>
           <Route path="/home" element={ui} />
           <Route path="/journey" element={ui} />
-          <Route path="/account" element={ui} />
           <Route path="/profile" element={ui} />
           <Route path="/onboarding" element={<p>onboarding page</p>} />
         </Routes>
@@ -193,7 +192,9 @@ describe('RequireOnboarded', () => {
     expect(screen.queryByText('onboarding page')).not.toBeInTheDocument();
   });
 
-  it.each(['/home', '/journey', '/account', '/profile'])(
+  // /account is absent on purpose: it is now a bare redirect to /profile and
+  // carries no guard of its own. /profile below is the surface that must gate.
+  it.each(['/home', '/journey', '/profile'])(
     'redirects an incomplete user away from %s, without rendering it first',
     (path) => {
       mockState({ user: { id: 'u1' } as Partial<User>, onboardingCompleted: false });

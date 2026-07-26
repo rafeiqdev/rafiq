@@ -128,9 +128,13 @@ describe('entry points lead to the new page', () => {
     },
   );
 
+  // /account is not in this list any more: it is a bare redirect to /profile
+  // and holds no guard of its own. The gate assertion that used to cover it now
+  // rides on /profile, which is where an /account visitor actually lands — see
+  // LegacyRedirects.test.tsx for the hop itself.
   it('guards every authenticated product route in App.tsx', () => {
     const app = src('../App.tsx');
-    for (const route of ['/home', '/journey', '/account', '/profile']) {
+    for (const route of ['/home', '/journey', '/profile']) {
       const line = app.split('\n').find((l) => l.includes(`path="${route}"`));
       expect(line, route).toBeDefined();
       // /profile spans several lines — check the element block instead.

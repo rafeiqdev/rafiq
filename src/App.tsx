@@ -4,6 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
 import { LanguageSelector } from './components/LanguageSelector';
 import { RequireOnboarded } from './components/Gates';
+import { ChatRedirect } from './components/LegacyRedirects';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
 import { referrals } from './lib/api';
@@ -55,8 +56,6 @@ const MobilePricing = lazyPage(() => import('./pages/mobile/MobilePricing').then
 const Pricing = lazyPage(() => import('./pages/Pricing').then((m) => ({ default: m.Pricing })));
 const Checkout = lazyPage(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
 const MobileCheckout = lazyPage(() => import('./pages/mobile/MobileCheckout').then((m) => ({ default: m.MobileCheckout })));
-const Smart = lazyPage(() => import('./pages/Smart').then((m) => ({ default: m.Smart })));
-const MobileSmart = lazyPage(() => import('./pages/mobile/MobileSmart').then((m) => ({ default: m.MobileSmart })));
 const Premium = lazyPage(() => import('./pages/Premium').then((m) => ({ default: m.Premium })));
 const MobilePremium = lazyPage(() => import('./pages/mobile/MobilePremium').then((m) => ({ default: m.MobilePremium })));
 const HelpRequest = lazyPage(() => import('./pages/HelpRequest').then((m) => ({ default: m.HelpRequest })));
@@ -169,9 +168,9 @@ function Shell() {
             <Route path="/auth" element={isMobile ? <MobileAuth /> : <Auth />} />
             <Route path="/pricing" element={isMobile ? <MobilePricing /> : <Pricing />} />
             <Route path="/checkout" element={isMobile ? <MobileCheckout /> : <Checkout />} />
-            <Route path="/smart" element={isMobile ? <MobileSmart /> : <Smart />} />
             <Route path="/premium" element={isMobile ? <MobilePremium /> : <Premium />} />
-            <Route path="/chat" element={isMobile ? <MobilePremium /> : <Premium />} />
+            {/* Legacy alias — redirects, query string intact. See LegacyRedirects.tsx */}
+            <Route path="/chat" element={<ChatRedirect />} />
             <Route path="/help" element={isMobile ? <MobileHelpRequest /> : <HelpRequest />} />
             <Route path="/services" element={isMobile ? <MobileServices /> : <Services />} />
             <Route path="/services/:slug" element={isMobile ? <MobileGuidePage /> : <GuidePage />} />
@@ -192,8 +191,10 @@ function Shell() {
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/home" element={<RequireOnboarded><UserHome /></RequireOnboarded>} />
             <Route path="/journey" element={<RequireOnboarded><Journey /></RequireOnboarded>} />
-            {/* "حسابي" reuses the existing profile page — no duplicate account system */}
-            <Route path="/account" element={<RequireOnboarded><ProfilePage /></RequireOnboarded>} />
+            {/* "حسابي" is /profile. It used to mount ProfilePage a second time,
+                which meant phones got the DESKTOP page here (the isMobile branch
+                was only on /profile) — so this redirects instead of duplicating. */}
+            <Route path="/account" element={<Navigate to="/profile" replace />} />
             <Route path="/requests" element={isMobile ? <MobileMyRequests /> : <MyRequests />} />
             <Route path="/companies/:id" element={<CompanyPublic />} />
             <Route path="/company" element={<CompanyDashboard />} />
