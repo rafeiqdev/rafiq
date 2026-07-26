@@ -111,7 +111,7 @@ Express/SQLite backend is no longer used by the website.
    passwords **≥ 6 characters** (the old "admin" 5-char password won't be accepted).
 
 > Fastest way to get your **admin** account in: either (a) enable Google and sign
-> in with `goldengt.tr@gmail.com`, or (b) register that email with a ≥6-char
+> in with `rafeiq.dev@gmail.com`, or (b) register that email with a ≥6-char
 > password and click the confirmation email. Either way the trigger auto-grants
 > it admin.
 
@@ -132,7 +132,7 @@ Express/SQLite backend is no longer used by the website.
   leads, referrals, notifications, documents, settings, ai_usage), the
   Row-Level-Security policies, the auto-create-profile trigger, and seeds the
   demo listings/places. If any statement errors, copy the message back to me.
-- **Admin:** the trigger makes `goldengt.tr@gmail.com` an admin automatically on
+- **Admin:** the trigger makes `rafeiq.dev@gmail.com` an admin automatically on
   first sign-in. (Edit the email list in the SQL if you want others.)
 
 ## 3. Get the two public keys → paste into `.env`

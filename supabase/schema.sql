@@ -75,7 +75,7 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data->>'name', nullif(new.raw_user_meta_data->>'full_name',''), split_part(new.email,'@',1)),
     -- bootstrap admins here (edit the list to taste)
-    case when lower(new.email) in ('goldengt.tr@gmail.com','admin@rafiq.ist') then 'admin' else 'user' end,
+    case when lower(new.email) in ('rafeiq.dev@gmail.com','admin@rafiq.ist') then 'admin' else 'user' end,
     upper(substr(md5(random()::text || new.id::text), 1, 6)),
     ref_id
   )

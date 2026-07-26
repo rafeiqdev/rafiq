@@ -24,8 +24,8 @@ export function loadConfig(env = process.env) {
   // The primary admin account is auto-provisioned with these fixed credentials
   // on every startup, so there is no "forgot password" problem — the password
   // is always whatever ADMIN_PASSWORD says (default 'admin').
-  const adminEmail = (env.ADMIN_EMAIL ?? 'goldengt.tr@gmail.com').trim().toLowerCase();
-  const adminEmails = (env.ADMIN_EMAILS ?? 'goldengt.tr@gmail.com,admin@rafiq.ist')
+  const adminEmail = (env.ADMIN_EMAIL ?? 'rafeiq.dev@gmail.com').trim().toLowerCase();
+  const adminEmails = (env.ADMIN_EMAILS ?? 'rafeiq.dev@gmail.com,admin@rafiq.ist')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
