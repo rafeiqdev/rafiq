@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
 import { AdvisorScene } from '../../components/AdvisorScene';
 import { BookingModal } from '../../components/BookingModal';
+import { MobileTabBar } from '../../components/MobileTabBar';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -40,14 +41,6 @@ function MobileHelpRequestInner() {
     }
     setBooking(true);
   };
-
-  const tabs = [
-    { to: '/', icon: 'home', label: mc.home },
-    { to: '/premium', icon: 'message-circle', label: mc.chat },
-    { to: '/map', icon: 'map', label: mc.map },
-    { to: '/services', icon: 'layers', label: mc.services },
-    { to: user ? '/profile' : '/auth', icon: 'user', label: mc.profile },
-  ] as const;
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
@@ -104,22 +97,7 @@ function MobileHelpRequestInner() {
         </main>
       </div>
 
-      {/* ── Bottom tab bar — copied verbatim from MobileHome.tsx (none active) ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
-        <div className="grid grid-cols-5">
-          {tabs.map((tab) => (
-            <button
-              key={tab.icon}
-              type="button"
-              onClick={() => navigate(tab.to)}
-              className="flex flex-col items-center justify-center gap-1 min-h-[56px] pt-2 pb-1.5 text-navy/40"
-            >
-              <AppIcon name={tab.icon} className="w-5 h-5" />
-              <span className="text-[10px] font-medium leading-none">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      <MobileTabBar />
 
       {booking && <BookingModal problemSummary={summary} transcript={[]} onClose={() => setBooking(false)} />}
     </div>

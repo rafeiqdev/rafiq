@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
 import type { IconName } from '../../components/AppIcon';
@@ -6,6 +6,7 @@ import { PageHero } from '../../components/PageHero';
 import { IstanbulApps } from '../../components/IstanbulApps';
 import { BANNERS } from '../../lib/images';
 import { useApp } from '../../context/AppContext';
+import { MobileTabBar } from '../../components/MobileTabBar';
 
 interface Trick {
   id: string;
@@ -87,20 +88,11 @@ function TrickCard({ trick, index }: { trick: Trick; index: number }) {
 export function MobileTricks() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useApp();
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
-
-  const tabs = [
-    { to: '/', icon: 'home', label: mc.home },
-    { to: '/premium', icon: 'message-circle', label: mc.chat },
-    { to: '/map', icon: 'map', label: mc.map },
-    { to: '/services', icon: 'layers', label: mc.services },
-    { to: user ? '/profile' : '/auth', icon: 'user', label: mc.profile },
-  ] as const;
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
@@ -154,27 +146,7 @@ export function MobileTricks() {
         </div>
       </div>
 
-      {/* ── Bottom tab bar — verbatim from MobileHome.tsx; none active ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
-        <div className="grid grid-cols-5">
-          {tabs.map((tab) => {
-            const active =
-              tab.to === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.to);
-            return (
-              <Link
-                key={tab.icon}
-                to={tab.to}
-                className={`flex flex-col items-center justify-center gap-1 min-h-[56px] pt-2 pb-1.5 ${
-                  active ? 'text-navy' : 'text-navy/40'
-                }`}
-              >
-                <AppIcon name={tab.icon} className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-none">{tab.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <MobileTabBar />
     </div>
   );
 }

@@ -51,6 +51,18 @@ vi.mock('./BestOfferSearching', () => ({
 
 const SOURCE = { id: 'ikamet', title: 'İkamet', category: 'residency', type: 'direct' };
 
+/**
+ * NOTE ON THE 5s TIMEOUTS BELOW.
+ *
+ * They exist because of THIS function, not because the assertions are slow or
+ * racy. vi.resetModules() plus the dynamic import costs ~850ms of setup on every
+ * single render, which tips past waitFor's 1s default once the full suite runs
+ * in parallel. The timeouts treat the symptom.
+ *
+ * If these flake again, the fix is to remove the resetModules/dynamic-import
+ * setup — it exists only so each test can restub VITE_WHATSAPP_NUMBER before the
+ * module reads it at import time — not to raise the timeout further.
+ */
 async function renderModal() {
   vi.resetModules();
   const { ServiceRequestModal } = await import('./ServiceRequestModal');

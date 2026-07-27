@@ -5,12 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
 import { useApp } from '../../context/AppContext';
 import { ImageCarousel } from '../../components/ImageCarousel';
+import { NotificationBell } from '../../components/NotificationBell';
 import { CAROUSEL } from '../../lib/images';
 import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/services';
 import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
 import { Testimonials } from '../../components/sections/Testimonials';
 import { LocalBusinessSchema } from '../../components/LocalBusinessSchema';
+// Label only — this screen keeps its own inline bar (see the tabs array below).
+import { tabRequestsLabel } from '../../components/MobileTabBar';
 import { usePageMeta } from '../../lib/seo';
 import { track, normalizeSearchQuery } from '../../lib/analytics';
 
@@ -125,11 +128,22 @@ export function MobileHome() {
     navigate(q ? `/services?q=${encodeURIComponent(q)}` : '/services');
   };
 
-  // ----- bottom tab bar (self-contained block — copy verbatim onto every mobile screen) -----
+  // ----- bottom tab bar -----
+  // THIS IS THE LAST INLINE COPY. Every other mobile screen now renders the
+  // shared <MobileTabBar />; this one still draws its own because the file
+  // belongs to a parallel workstream and a wholesale rewrite would collide with
+  // it. Keep the two in lockstep until it can be consolidated too — a nav bar
+  // that differs between pages is worse than the duplication itself.
   const tabs = [
     { to: '/', icon: 'home', label: mc.tabHome },
     { to: '/premium', icon: 'message-circle', label: mc.tabChat },
-    { to: '/map', icon: 'map', label: mc.tabMap },
+    // Signed in: the one question a returning customer has. Signed out: they
+    // are pre-purchase, have no requests, and would only hit a sign-in wall.
+    // `as const` on each branch: without it the ternary widens `icon` to
+    // string and stops matching AppIcon's name union.
+    user
+      ? ({ to: '/requests', icon: 'inbox', label: tabRequestsLabel(lang) } as const)
+      : ({ to: '/map', icon: 'map', label: mc.tabMap } as const),
     { to: '/services', icon: 'layers', label: mc.tabServices },
     { to: user ? '/profile' : '/auth', icon: 'user', label: mc.tabProfile },
   ] as const;
@@ -159,6 +173,17 @@ export function MobileHome() {
           </div>
 
           <div className="relative px-5 pt-[calc(env(safe-area-inset-top)+40px)] pb-10">
+            {/* Absolutely placed on a WRAPPER, not on the bell itself: the bell
+                sets `relative` for its own badge, and Tailwind emits .relative
+                after .absolute, so an `absolute` passed in via className loses
+                the cascade and the bell drifts to the start of the row.
+                Sitting in the status-bar gap the hero already reserves means
+                the title below does not shift. The site header is hidden on
+                this route, so this is the ONLY way to reach notifications from
+                a phone. */}
+            <div className="absolute top-[calc(env(safe-area-inset-top)+1px)] end-5 z-10">
+              <NotificationBell tone="onNavy" size={38} />
+            </div>
             <h1 className="text-white text-[28px] leading-snug font-bold animate-fade-up text-balance">
               {t('home.heroTitle')}
             </h1>

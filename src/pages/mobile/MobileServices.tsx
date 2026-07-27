@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../../data/services';
 import type { ServiceItem, ServiceType } from '../../data/services';
@@ -9,6 +9,7 @@ import { AppIcon } from '../../components/AppIcon';
 import { ServiceActionModal } from '../../components/ServiceActionModal';
 import { usePageMeta } from '../../lib/seo';
 import { track, normalizeSearchQuery } from '../../lib/analytics';
+import { MobileTabBar } from '../../components/MobileTabBar';
 
 // Same trimmed landing set as the desktop catalog: only these 6 categories show
 // by default; a search or an explicit category pick reveals the full set.
@@ -76,7 +77,6 @@ export function MobileServices() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useApp();
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
@@ -124,14 +124,6 @@ export function MobileServices() {
   const visibleCategories = (trimToPopular ? chipCategories : categories).filter((c) =>
     matches.some((s) => s.category === c.id),
   );
-
-  const tabs = [
-    { to: '/', icon: 'home', label: mc.home },
-    { to: '/premium', icon: 'message-circle', label: mc.chat },
-    { to: '/map', icon: 'map', label: mc.map },
-    { to: '/services', icon: 'layers', label: mc.services },
-    { to: user ? '/profile' : '/auth', icon: 'user', label: mc.profile },
-  ] as const;
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
@@ -269,27 +261,7 @@ export function MobileServices() {
         </div>
       </div>
 
-      {/* ── Bottom tab bar — verbatim from MobileHome.tsx; Services active ── */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
-        <div className="grid grid-cols-5">
-          {tabs.map((tab) => {
-            const isActive =
-              tab.to === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.to);
-            return (
-              <Link
-                key={tab.icon}
-                to={tab.to}
-                className={`flex flex-col items-center justify-center gap-1 min-h-[56px] pt-2 pb-1.5 ${
-                  isActive ? 'text-navy' : 'text-navy/40'
-                }`}
-              >
-                <AppIcon name={tab.icon} className="w-5 h-5" />
-                <span className="text-[10px] font-medium leading-none">{tab.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <MobileTabBar />
 
       {active && <ServiceActionModal service={active} onClose={() => setActive(null)} />}
     </div>
