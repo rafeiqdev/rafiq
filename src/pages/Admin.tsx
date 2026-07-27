@@ -12,6 +12,7 @@ import { AdminNewRequests } from '../components/AdminNewRequests';
 import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
 import { FxRatesPanel } from '../components/admin/FxRatesPanel';
+import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
 
@@ -263,6 +264,11 @@ function AdminInner() {
           Replaced the old free-text rates card, which wrote an unaudited
           override into settings.rates with no reason and no history. */}
       <FxRatesPanel />
+
+      {/* Bank / crypto / gateway details, editable without SQL. Each group
+          reports what a customer actually sees, so a placeholder can never sit
+          live and unnoticed again. */}
+      <PaymentSettingsPanel />
 
       {/* USD/SYP stays hand-set: free FX feeds report a stale or wrong Syrian
           pound, so there is no provider to sync it from. */}

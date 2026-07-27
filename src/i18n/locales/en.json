@@ -1049,6 +1049,48 @@
       "error": "Couldn't load the request queue. This is not an empty queue — try again.",
       "callAria": "Call {{name}} on {{phone}}"
     },
+    "paymentSettings": {
+      "title": "Payment settings",
+      "noSecretsNote": "Public details only — never paste an API key or webhook secret here. Anyone can read this table.",
+      "statusVisible": "Visible to customers",
+      "statusHidden": "Hidden — incomplete",
+      "on": "On",
+      "off": "Off",
+      "save": "Save payment settings",
+      "saved": "Saved",
+      "saveError": "Could not save. Nothing was changed — please try again.",
+      "fixErrors": "Fix the highlighted fields first.",
+      "loadError": "Could not load payment settings.",
+      "bank": {
+        "title": "Bank transfer",
+        "iban": "IBAN",
+        "holder": "Account holder",
+        "bankName": "Bank name"
+      },
+      "crypto": {
+        "title": "Crypto",
+        "network": "Network",
+        "wallet": "Wallet address"
+      },
+      "gateways": {
+        "title": "Payment gateway links",
+        "help": "Public checkout links only. Add or swap providers here without a deploy.",
+        "label": "Label",
+        "url": "Checkout URL (https)",
+        "add": "Add gateway",
+        "remove": "Remove"
+      },
+      "errors": {
+        "iban": "Enter a Turkish IBAN: TR followed by 24 digits.",
+        "ibanPlaceholder": "That is still the placeholder IBAN — enter the real one.",
+        "holder": "Enter the account holder name.",
+        "network": "Enter the network, e.g. TRC20.",
+        "walletPlaceholder": "That is still the placeholder wallet — enter the real address.",
+        "walletNetwork": "That address does not match the chosen network.",
+        "gatewayLabel": "Give the gateway a label.",
+        "gatewayUrl": "Enter an https:// checkout URL."
+      }
+    },
     "serviceRequests": {
       "title": "Service requests",
       "empty": "No service requests yet.",

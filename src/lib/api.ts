@@ -49,6 +49,7 @@ import type {
 } from './types';
 import { COMPANY_PLAN_PRICE } from './types';
 import { classifyError, isSchemaUnavailable, logDiagnostic } from './errors';
+import { PLACEHOLDER_CHECKOUT, isHttpsUrl, isRealIban, isRealWallet } from './checkoutValidation';
 import { familyStatusColumn, resolveOnboarding } from './onboardingSource';
 
 /** Listing/place fields the admin form submits (no id). */
@@ -459,55 +460,132 @@ export const subscriptions = {
   },
 };
 
-/**
- * Shown only when the real details have not been configured. These are dummy
- * values and must never reach a customer as payment instructions — see
- * bankConfigured/cryptoConfigured below.
- */
-const DEFAULT_CHECKOUT = {
-  iban: 'TR00 0000 0000 0000 0000 0000 00',
-  holder: 'Rafiq Istanbul',
-  wallet: 'TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-  network: 'TRC20 (USDT)',
-};
-
-const squash = (s: unknown): string => (typeof s === 'string' ? s : '').replace(/\s+/g, '').toUpperCase();
+const DEFAULT_CHECKOUT = PLACEHOLDER_CHECKOUT;
 
 /**
- * Is this a real IBAN, or the placeholder?
+ * A hosted checkout link. PUBLIC PARTS ONLY.
  *
- * Checked BY VALUE, not merely by whether the settings row exists: the row can
- * be present and still hold the dummy data (created empty, or half-filled), and
- * that reads as "configured" to any row-existence test.
+ * `settings` is anon-readable (`settings public read`, using (true)), so this
+ * type deliberately has no field for an API key, secret or private token —
+ * anyone with the publishable anon key can read every row. A gateway that needs
+ * a secret must keep it in a server-side env var on Vercel; only the public
+ * checkout URL belongs here.
  */
-function isRealIban(iban: unknown): boolean {
-  const v = squash(iban);
-  if (!v) return false;
-  if (v === squash(DEFAULT_CHECKOUT.iban)) return false;
-  if (/^TR0+$/.test(v)) return false; // all-zero filler in any spacing
-  if (/^[A-Z]{2}0+$/.test(v)) return false; // same trick, other country prefix
-  return v.length >= 16; // shorter than any real IBAN
+export interface CheckoutGateway {
+  id: string;
+  label: string;
+  url: string;
+  enabled: boolean;
 }
 
-/** Is this a real wallet address, or the TXXXX… placeholder? */
-function isRealWallet(wallet: unknown): boolean {
-  const v = squash(wallet);
-  if (!v) return false;
-  if (v === squash(DEFAULT_CHECKOUT.wallet)) return false;
-  if (/^[A-Z]?X+$/.test(v)) return false; // TXXXX… / XXXX… filler
-  if (/^(.)\1+$/.test(v)) return false; // any single repeated character
-  return v.length >= 20;
+/** The editable shape behind /admin → Payment settings. */
+export interface CheckoutSettings {
+  bank: { enabled: boolean; iban: string; holder: string; bankName: string };
+  crypto: { enabled: boolean; network: string; wallet: string };
+  gateways: CheckoutGateway[];
 }
 
 export interface CheckoutConfig {
   iban: string;
   holder: string;
+  bankName: string;
   wallet: string;
   network: string;
-  /** Bank transfer may be offered — a real IBAN is on file. */
+  /** Bank transfer may be offered — enabled AND a real IBAN is on file. */
   bankConfigured: boolean;
-  /** Crypto may be offered — a real wallet address is on file. */
+  /** Crypto may be offered — enabled AND a real wallet is on file. */
   cryptoConfigured: boolean;
+  /** Only gateways that are enabled and have an https URL. */
+  gateways: CheckoutGateway[];
+}
+
+const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
+const bool = (v: unknown, fallback: boolean): boolean => (typeof v === 'boolean' ? v : fallback);
+
+/**
+ * Normalise whatever is in the settings row into CheckoutSettings.
+ *
+ * Two shapes are accepted forever:
+ *   - NEW: { bank: {...}, crypto: {...}, gateways: [...] }
+ *   - OLD: { iban, holder, wallet, network } — rows written by hand before the
+ *     admin editor existed. Those had no enabled flag, and the only reason to
+ *     write one was to use it, so a legacy rail counts as enabled.
+ *
+ * Anything unrecognised degrades to disabled-and-empty rather than throwing;
+ * a malformed row must not take the checkout page down.
+ */
+export function toCheckoutSettings(raw: unknown): CheckoutSettings {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const bankRaw = (r.bank ?? {}) as Record<string, unknown>;
+  const cryptoRaw = (r.crypto ?? {}) as Record<string, unknown>;
+  const isLegacy = r.bank === undefined && r.crypto === undefined;
+
+  const gateways = Array.isArray(r.gateways)
+    ? (r.gateways as unknown[]).map((g, i) => {
+        const o = (g ?? {}) as Record<string, unknown>;
+        return {
+          id: str(o.id, `g${i}`),
+          label: str(o.label),
+          url: str(o.url),
+          enabled: bool(o.enabled, false),
+        };
+      })
+    : [];
+
+  return {
+    bank: {
+      enabled: bool(bankRaw.enabled, isLegacy && str(r.iban) !== ''),
+      iban: str(bankRaw.iban, str(r.iban)),
+      holder: str(bankRaw.holder, str(r.holder)),
+      bankName: str(bankRaw.bankName),
+    },
+    crypto: {
+      enabled: bool(cryptoRaw.enabled, isLegacy && str(r.wallet) !== ''),
+      network: str(cryptoRaw.network, str(r.network)),
+      wallet: str(cryptoRaw.wallet, str(r.wallet)),
+    },
+    gateways,
+  };
+}
+
+/**
+ * The persisted JSON: the new nested shape PLUS the legacy flat keys.
+ *
+ * The mirror is not redundancy for its own sake — an older deployed bundle
+ * still reads iban/holder/wallet/network off the top level, and a row saved
+ * from the new admin UI must not break it mid-rollout.
+ */
+export function toCheckoutRow(s: CheckoutSettings): Record<string, unknown> {
+  return {
+    bank: s.bank,
+    crypto: s.crypto,
+    gateways: s.gateways,
+    // legacy mirror — do not remove without checking what is deployed
+    iban: s.bank.iban,
+    holder: s.bank.holder,
+    wallet: s.crypto.wallet,
+    network: s.crypto.network,
+  };
+}
+
+/**
+ * What a customer may actually be shown.
+ *
+ * A rail is visible only when it is BOTH switched on and complete. The toggle
+ * is not permission to display garbage: an enabled rail holding a placeholder
+ * stays hidden, which is the whole point of the original fix.
+ */
+export function toCheckoutConfig(s: CheckoutSettings): CheckoutConfig {
+  return {
+    iban: s.bank.iban || DEFAULT_CHECKOUT.iban,
+    holder: s.bank.holder || DEFAULT_CHECKOUT.holder,
+    bankName: s.bank.bankName,
+    wallet: s.crypto.wallet || DEFAULT_CHECKOUT.wallet,
+    network: s.crypto.network || DEFAULT_CHECKOUT.network,
+    bankConfigured: s.bank.enabled && isRealIban(s.bank.iban) && s.bank.holder.trim() !== '',
+    cryptoConfigured: s.crypto.enabled && isRealWallet(s.crypto.wallet) && s.crypto.network.trim() !== '',
+    gateways: s.gateways.filter((g) => g.enabled && g.label.trim() !== '' && isHttpsUrl(g.url)),
+  };
 }
 
 function planAmount(tier: PlanTier, billing: Billing): number {
@@ -526,13 +604,27 @@ export const checkout = {
    */
   async config(): Promise<CheckoutConfig> {
     const { data } = await sb().from('settings').select('value').eq('key', 'checkout').maybeSingle();
-    const row = (data?.value as Partial<CheckoutConfig> | null) ?? null;
-    const merged = { ...DEFAULT_CHECKOUT, ...(row ?? {}) };
-    return {
-      ...merged,
-      bankConfigured: isRealIban(row?.iban),
-      cryptoConfigured: isRealWallet(row?.wallet),
-    };
+    return toCheckoutConfig(toCheckoutSettings(data?.value ?? null));
+  },
+
+  /** Admin editor: the raw editable shape, including disabled rails. */
+  async adminSettings(): Promise<CheckoutSettings> {
+    const { data, error } = await sb().from('settings').select('value').eq('key', 'checkout').maybeSingle();
+    if (error) fail(error);
+    return toCheckoutSettings(data?.value ?? null);
+  },
+
+  /**
+   * Admin editor: upsert the row. Gated by the "settings admin write" RLS
+   * policy (for all, using is_admin()), so a non-admin cannot reach this even
+   * with a crafted request.
+   */
+  async adminSave(settings: CheckoutSettings): Promise<{ ok: true }> {
+    const { error } = await sb()
+      .from('settings')
+      .upsert({ key: 'checkout', value: toCheckoutRow(settings) }, { onConflict: 'key' });
+    if (error) fail(error);
+    return { ok: true };
   },
 
   async manual(tier: PlanTier, billing: Billing, method: PayMethod, receipt?: File): Promise<{ id: string; status: string }> {
