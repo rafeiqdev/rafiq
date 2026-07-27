@@ -727,6 +727,11 @@ export const bookings = {
     return data?.signedUrl ?? null;
   },
   async mine(): Promise<Booking[]> {
+    // Class B guard: without this, a read fired before the session attaches
+    // returns [] under RLS with HTTP 200 — no error, so no catch fires, and
+    // "you have no bookings" is asserted to someone who does. The session must
+    // be confirmed BEFORE the question is asked, not inferred from the answer.
+    await requireUid();
     const { data, error } = await sb().from('bookings').select('*').order('created_at', { ascending: false });
     if (error) fail(error);
     return (data as BookingRow[]).map(toBooking);
@@ -813,6 +818,10 @@ interface DocRow { id: string; name: string; storage_path: string; mime: string 
 
 export const documents = {
   async list(): Promise<StoredDocument[]> {
+    // Class B guard — see bookings.mine(). The earlier audit miscounted this
+    // one as gated (upload() is; list() was not): an empty document locker
+    // asserted to someone whose residence papers are in it.
+    await requireUid();
     const { data, error } = await sb().from('documents').select('id,name,storage_path,mime,size,created_at').order('created_at', { ascending: false });
     if (error) fail(error);
     return (data as DocRow[]).map((d) => ({ id: d.id, name: d.name, mime: d.mime ?? undefined, size: d.size ?? undefined, uploadedAt: d.created_at }));
@@ -861,6 +870,8 @@ export const leads = {
     return { id: data!.id };
   },
   async mine(): Promise<Lead[]> {
+    // Class B guard — see bookings.mine().
+    await requireUid();
     const { data, error } = await sb().from('leads').select('*').order('created_at', { ascending: false });
     if (error) fail(error);
     return (data as LeadRow[]).map(toLead);
@@ -1301,6 +1312,9 @@ const toFavorite = (r: FavoriteRow): FavoritePlace => ({
 
 export const placeFavorites = {
   async list(): Promise<FavoritePlace[]> {
+    // Class B guard — see bookings.mine(). A saved place silently reading as
+    // unsaved is how a favorite gets "lost" with nothing ever failing.
+    await requireUid();
     const { data, error } = await sb()
       .from('place_favorites')
       .select('*')
