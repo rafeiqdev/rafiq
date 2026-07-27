@@ -455,6 +455,11 @@ export const subscriptions = {
   },
 };
 
+/**
+ * Shown only when the real details have not been configured. These are dummy
+ * values and must never reach a customer as payment instructions — see
+ * bankConfigured/cryptoConfigured below.
+ */
 const DEFAULT_CHECKOUT = {
   iban: 'TR00 0000 0000 0000 0000 0000 00',
   holder: 'Rafiq Istanbul',
@@ -462,15 +467,68 @@ const DEFAULT_CHECKOUT = {
   network: 'TRC20 (USDT)',
 };
 
+const squash = (s: unknown): string => (typeof s === 'string' ? s : '').replace(/\s+/g, '').toUpperCase();
+
+/**
+ * Is this a real IBAN, or the placeholder?
+ *
+ * Checked BY VALUE, not merely by whether the settings row exists: the row can
+ * be present and still hold the dummy data (created empty, or half-filled), and
+ * that reads as "configured" to any row-existence test.
+ */
+function isRealIban(iban: unknown): boolean {
+  const v = squash(iban);
+  if (!v) return false;
+  if (v === squash(DEFAULT_CHECKOUT.iban)) return false;
+  if (/^TR0+$/.test(v)) return false; // all-zero filler in any spacing
+  if (/^[A-Z]{2}0+$/.test(v)) return false; // same trick, other country prefix
+  return v.length >= 16; // shorter than any real IBAN
+}
+
+/** Is this a real wallet address, or the TXXXX… placeholder? */
+function isRealWallet(wallet: unknown): boolean {
+  const v = squash(wallet);
+  if (!v) return false;
+  if (v === squash(DEFAULT_CHECKOUT.wallet)) return false;
+  if (/^[A-Z]?X+$/.test(v)) return false; // TXXXX… / XXXX… filler
+  if (/^(.)\1+$/.test(v)) return false; // any single repeated character
+  return v.length >= 20;
+}
+
+export interface CheckoutConfig {
+  iban: string;
+  holder: string;
+  wallet: string;
+  network: string;
+  /** Bank transfer may be offered — a real IBAN is on file. */
+  bankConfigured: boolean;
+  /** Crypto may be offered — a real wallet address is on file. */
+  cryptoConfigured: boolean;
+}
+
 function planAmount(tier: PlanTier, billing: Billing): number {
   const monthly: Record<string, number> = { light: 799, pro: 1599, elite: 3199 };
   return (monthly[tier] ?? 0) * (billing === 'annual' ? 10 : 1);
 }
 
 export const checkout = {
-  async config(): Promise<{ iban: string; holder: string; wallet: string; network: string }> {
+  /**
+   * Manual-payment details, plus whether each rail is actually usable.
+   *
+   * This used to spread DEFAULT_CHECKOUT and return it as if it were real, so a
+   * missing settings row meant the customer was shown IBAN "TR00 0000…" and
+   * wallet "TXXXX…" as genuine payment instructions. The caller now gets
+   * bankConfigured/cryptoConfigured and must hide the rails that are false.
+   */
+  async config(): Promise<CheckoutConfig> {
     const { data } = await sb().from('settings').select('value').eq('key', 'checkout').maybeSingle();
-    return { ...DEFAULT_CHECKOUT, ...((data?.value as object) ?? {}) };
+    const row = (data?.value as Partial<CheckoutConfig> | null) ?? null;
+    const merged = { ...DEFAULT_CHECKOUT, ...(row ?? {}) };
+    return {
+      ...merged,
+      bankConfigured: isRealIban(row?.iban),
+      cryptoConfigured: isRealWallet(row?.wallet),
+    };
   },
 
   async manual(tier: PlanTier, billing: Billing, method: PayMethod, receipt?: File): Promise<{ id: string; status: string }> {

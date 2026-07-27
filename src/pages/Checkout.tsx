@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { ApiError, checkout } from '../lib/api';
+import type { CheckoutConfig } from '../lib/api';
 import { PLAN_PRICES } from '../lib/types';
 import type { Billing, PayMethod, PlanTier } from '../lib/types';
 import { RequireAuth } from '../components/Gates';
@@ -50,7 +51,20 @@ function CheckoutInner() {
   // which would be a lie when the payment went through and only the receipt
   // upload failed.
   const [failKey, setFailKey] = useState('checkout.result.failed');
-  const [bank, setBank] = useState<{ iban: string; holder: string; wallet: string; network: string } | null>(null);
+  const [bank, setBank] = useState<CheckoutConfig | null>(null);
+
+  // Only rails with real details on file may be offered. Until the config
+  // loads, nothing manual is shown — better a card-only page for a moment than
+  // a placeholder IBAN presented as somewhere to send money. Memoised because
+  // the fallback effect below depends on identity, not just contents.
+  const methods = useMemo<PayMethod[]>(
+    () => [
+      'card',
+      ...(bank?.bankConfigured ? (['bank'] as PayMethod[]) : []),
+      ...(bank?.cryptoConfigured ? (['crypto'] as PayMethod[]) : []),
+    ],
+    [bank?.bankConfigured, bank?.cryptoConfigured],
+  );
 
   const monthly = PLAN_PRICES[plan] ?? PLAN_PRICES.pro;
   const total = billing === 'annual' ? monthly * 10 : monthly;
@@ -60,6 +74,12 @@ function CheckoutInner() {
   useEffect(() => {
     checkout.config().then(setBank).catch(() => {});
   }, []);
+
+  // If the selected rail turns out to be unconfigured, fall back to card rather
+  // than leaving the customer on a tab whose panel has nothing to show.
+  useEffect(() => {
+    if (!methods.includes(tab)) setTab('card');
+  }, [methods, tab]);
 
   // returning from the payment gateway: ?result=success|failed&payment=ID
   useEffect(() => {
@@ -206,7 +226,7 @@ function CheckoutInner() {
         <div className="card mt-6 overflow-hidden">
           {/* payment tabs */}
           <div className="flex border-b border-cream-dark" role="tablist">
-            {(['card', 'bank', 'crypto'] as PayMethod[]).map((m) => (
+            {methods.map((m) => (
               <button
                 key={m}
                 role="tab"

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { ApiError, checkout } from '../../lib/api';
+import type { CheckoutConfig } from '../../lib/api';
 import { PLAN_PRICES } from '../../lib/types';
 import type { Billing, PayMethod, PlanTier } from '../../lib/types';
 import { RequireAuth } from '../../components/Gates';
@@ -65,7 +66,19 @@ function MobileCheckoutInner() {
   // which would be a lie when the payment went through and only the receipt
   // upload failed.
   const [failKey, setFailKey] = useState('checkout.result.failed');
-  const [bank, setBank] = useState<{ iban: string; holder: string; wallet: string; network: string } | null>(null);
+  const [bank, setBank] = useState<CheckoutConfig | null>(null);
+
+  // Only rails with real details on file may be offered — a placeholder IBAN
+  // must never be presented as somewhere to send money. Memoised because the
+  // fallback effect below depends on identity, not just contents.
+  const methods = useMemo<PayMethod[]>(
+    () => [
+      'card',
+      ...(bank?.bankConfigured ? (['bank'] as PayMethod[]) : []),
+      ...(bank?.cryptoConfigured ? (['crypto'] as PayMethod[]) : []),
+    ],
+    [bank?.bankConfigured, bank?.cryptoConfigured],
+  );
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -79,6 +92,11 @@ function MobileCheckoutInner() {
   useEffect(() => {
     checkout.config().then(setBank).catch(() => {});
   }, []);
+
+  // If the selected rail turns out to be unconfigured, fall back to card.
+  useEffect(() => {
+    if (!methods.includes(tab)) setTab('card');
+  }, [methods, tab]);
 
   // returning from the payment gateway: ?result=success|failed&payment=ID
   useEffect(() => {
@@ -249,7 +267,7 @@ function MobileCheckoutInner() {
           <>
             <p className="mt-6 px-1 text-[13px] font-bold text-navy/70">{mc.methods}</p>
             <div role="tablist" aria-label={mc.methods} className="mt-2 flex gap-1 rounded-btn bg-cream-dark p-1">
-              {(['card', 'bank', 'crypto'] as PayMethod[]).map((m) => (
+              {methods.map((m) => (
                 <button
                   key={m}
                   type="button"
