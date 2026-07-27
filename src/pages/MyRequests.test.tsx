@@ -149,3 +149,49 @@ describe('the admin workflow is finally visible to the customer', () => {
     }
   });
 });
+
+/**
+ * COMMIT 4 — the empty state may only ever mean "the fetch succeeded and
+ * returned zero rows".
+ *
+ * `.catch(() => setRows([]))` made a network hiccup indistinguishable from a
+ * customer who has never contacted us: the page confidently told them their
+ * case did not exist. The responses fetch had the same shape, where the false
+ * statement is worse still — "no company wants your work".
+ *
+ * These assert the three states are distinct on both fetches.
+ */
+describe('a failed fetch is never an empty state', () => {
+  it('shows an error with retry, and NOT the empty copy, when the request list fails', async () => {
+    allMineMock.mockRejectedValue(new Error('network'));
+
+    await renderPage();
+
+    expect(await screen.findByRole('button', { name: 'chat.retry' })).toBeInTheDocument();
+    expect(screen.queryByText('requests.empty')).toBeNull();
+  });
+
+  it('retry re-fetches and recovers into the list', async () => {
+    allMineMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce([DIRECT]);
+
+    await renderPage();
+    const retry = await screen.findByRole('button', { name: 'chat.retry' });
+    retry.click();
+
+    expect(await screen.findByText('مراقبة فتح حساب بنكي')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'chat.retry' })).toBeNull();
+    expect(allMineMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows an error, not silence, when the offers fetch fails', async () => {
+    allMineMock.mockResolvedValue([BROADCAST]);
+    responsesMock.mockRejectedValue(new Error('network'));
+
+    await renderPage();
+    (await screen.findByText('استخراج الرقم الضريبي')).closest('button')!.click();
+
+    expect(await screen.findByRole('button', { name: 'chat.retry' })).toBeInTheDocument();
+  });
+});

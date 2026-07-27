@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { customerRequests, reviews } from '../lib/api';
 import { RequestStatusPill } from '../components/RequestStatusPill';
+import { SectionState } from '../components/SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
 import { pickArea } from '../data/istanbulAreas';
 import { RequireAuth } from '../components/Gates';
@@ -60,55 +62,39 @@ function ReviewModal({ companyId, companyName, leadId, onClose, onDone }: { comp
   );
 }
 
-function RequestRow({ req }: { req: CustomerRequest }) {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language;
-  const [open, setOpen] = useState(false);
-  const [responses, setResponses] = useState<CompanyResponse[] | null>(null);
+/**
+ * The offers panel, mounted only while the row is open.
+ *
+ * Conditional mounting IS the lazy load — useAsyncSection fetches when it
+ * mounts — so this needs no extra "have I loaded yet" flag. It also means the
+ * old `.catch(() => setResponses([]))` is gone: a failed offers fetch used to
+ * render exactly as "no offers", which tells a customer that no company wants
+ * their work. That is the most damaging false sentence in this product, and it
+ * is now an error with a retry.
+ */
+function RequestOffers({ req }: { req: CustomerRequest }) {
+  const { t } = useTranslation();
   const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
-
-  const load = () => customerRequests.responses(req.id).then(setResponses).catch(() => setResponses([]));
-
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next && responses === null) load();
-  };
+  const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
 
   const choose = async (responseId: string) => {
     await customerRequests.choose(responseId);
-    await load();
+    offers.reload();
   };
 
   return (
-    <li className="card p-4">
-      <button onClick={toggle} className="w-full flex items-center gap-3 text-start" aria-expanded={open}>
-        <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
-        <span className="flex-1 min-w-0">
-          <span className="font-semibold text-navy block">{req.serviceTitle}</span>
-          <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
-            {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
-            <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
-          </span>
-        </span>
-        {/* What the admin did with it — the only signal the customer gets that
-            anyone has looked at their request. */}
-        <RequestStatusPill status={req.status} />
-      </button>
-
-      {open && (
-        <div className="mt-4 border-t border-cream-dark pt-4">
-          {req.message && <p className="text-sm text-navy/70 break-anywhere mb-3">“{req.message}”</p>}
-          {responses === null ? (
-            <p className="text-sm text-gray-500">{t('common.loading')}</p>
-          ) : responses.length === 0 ? (
-            /* Nothing at all about offers when there are none. The old copy
-               promised that "companies nearby will respond soon", which is
-               false for a direct request and would also have told the customer
-               which kind of request they had made. A request with no offers now
-               looks identical either way. */
-            null
-          ) : (
+    <>
+      {req.message && <p className="text-sm text-navy/70 break-anywhere mb-3">“{req.message}”</p>}
+      <SectionState
+        section={offers}
+        title={t('requests.title')}
+        loading={<p className="text-sm text-gray-500">{t('common.loading')}</p>}
+        /* Zero offers renders NOTHING about offers. The old copy promised
+           "companies nearby will respond soon", which is false for a direct
+           request and disclosed which kind it was. Identical either way. */
+        empty={null}
+      >
+        {(responses) => (
             <>
               <p className="text-xs font-bold text-navy/60 mb-2">{t('requests.responsesTitle', { count: responses.length })}</p>
               <p className="text-[11px] text-navy/40 mb-3">{t('requests.capped')}</p>
@@ -141,9 +127,8 @@ function RequestRow({ req }: { req: CustomerRequest }) {
                 ))}
               </ul>
             </>
-          )}
-        </div>
-      )}
+        )}
+      </SectionState>
 
       {reviewing && (
         <ReviewModal
@@ -151,8 +136,38 @@ function RequestRow({ req }: { req: CustomerRequest }) {
           companyName={reviewing.companyName}
           leadId={req.id}
           onClose={() => setReviewing(null)}
-          onDone={load}
+          onDone={offers.reload}
         />
+      )}
+    </>
+  );
+}
+
+function RequestRow({ req }: { req: CustomerRequest }) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <li className="card p-4">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-3 text-start" aria-expanded={open}>
+        <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <span className="flex-1 min-w-0">
+          <span className="font-semibold text-navy block">{req.serviceTitle}</span>
+          <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
+            {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
+            <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
+          </span>
+        </span>
+        {/* What the admin did with it — the only signal the customer gets that
+            anyone has looked at their request. */}
+        <RequestStatusPill status={req.status} />
+      </button>
+
+      {open && (
+        <div className="mt-4 border-t border-cream-dark pt-4">
+          <RequestOffers req={req} />
+        </div>
       )}
     </li>
   );
@@ -160,30 +175,35 @@ function RequestRow({ req }: { req: CustomerRequest }) {
 
 function MyRequestsInner() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<CustomerRequest[] | null>(null);
-
-  useEffect(() => {
-    customerRequests.allMine().then(setRows).catch(() => setRows([]));
-  }, []);
+  // The empty state below may only ever mean "the fetch succeeded and returned
+  // zero rows". It used to also mean "the fetch failed", because the load was
+  // `.catch(() => setRows([]))` — so a network hiccup told a customer their
+  // case did not exist, on the one page built to prove it did.
+  const requests = useAsyncSection<CustomerRequest[]>(() => customerRequests.allMine(), []);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-2xl font-extrabold text-navy">{t('requests.title')}</h1>
       <p className="mt-2 text-sm text-navy/60">{t('requests.subtitle')}</p>
 
-      {rows === null ? (
-        <RafiqLoader size="sm" className="min-h-[50vh]" />
-      ) : rows.length === 0 ? (
-        <div className="card p-8 mt-6 text-center">
-          <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>
-          <p className="mt-4 text-sm text-navy/60">{t('requests.empty')}</p>
-          <Link to="/services" className="btn-primary mt-6">{t('requests.browseServices')}</Link>
-        </div>
-      ) : (
-        <ul className="mt-6 flex flex-col gap-3">
-          {rows.map((r) => <RequestRow key={r.id} req={r} />)}
-        </ul>
-      )}
+      <SectionState
+        section={requests}
+        title={t('requests.title')}
+        loading={<RafiqLoader size="sm" className="min-h-[50vh]" />}
+        empty={
+          <div className="card p-8 mt-6 text-center">
+            <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>
+            <p className="mt-4 text-sm text-navy/60">{t('requests.empty')}</p>
+            <Link to="/services" className="btn-primary mt-6">{t('requests.browseServices')}</Link>
+          </div>
+        }
+      >
+        {(rows) => (
+          <ul className="mt-6 flex flex-col gap-3">
+            {rows.map((r) => <RequestRow key={r.id} req={r} />)}
+          </ul>
+        )}
+      </SectionState>
     </div>
   );
 }

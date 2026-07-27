@@ -14,6 +14,8 @@ import { SiteImage } from '../../components/SiteImage';
 import { EXPLORE_PHOTOS } from '../../lib/images';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { RequestStatusPill } from '../../components/RequestStatusPill';
+import { SectionState } from '../../components/SectionState';
+import { useAsyncSection } from '../../hooks/useAsyncSection';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -92,19 +94,7 @@ function RequestRow({ req }: { req: CustomerRequest }) {
   const short = (lang || 'en').split('-')[0];
   const isRTL = short === 'ar' || short === 'fa';
   const [open, setOpen] = useState(false);
-  const [responses, setResponses] = useState<CompanyResponse[] | null>(null);
-  const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
-
-  const load = () => customerRequests.responses(req.id).then(setResponses).catch(() => setResponses([]));
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next && responses === null) load();
-  };
-  const choose = async (responseId: string) => {
-    await customerRequests.choose(responseId);
-    await load();
-  };
+  const toggle = () => setOpen((v) => !v);
 
   return (
     <section className="card animate-fade-up overflow-hidden">
@@ -140,17 +130,42 @@ function RequestRow({ req }: { req: CustomerRequest }) {
 
       {open && (
         <div className="border-t border-cream-dark p-4">
-          {req.message && <p className="mb-3 text-[13px] text-navy/70 break-anywhere">“{req.message}”</p>}
-          {responses === null ? (
-            <p className="text-[13px] text-gray-500">{t('common.loading')}</p>
-          ) : responses.length === 0 ? (
-            /* Nothing at all about offers when there are none. The old copy
-               promised that "companies nearby will respond soon", which is
-               false for a direct request and would also have told the customer
-               which kind of request they had made. A request with no offers now
-               looks identical either way. */
-            null
-          ) : (
+          <MobileRequestOffers req={req} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * The offers panel, mounted only while the row is open — the same shape as the
+ * desktop RequestOffers. Conditional mounting IS the lazy load, so no "have I
+ * loaded yet" flag is needed, and the old `.catch(() => setResponses([]))` is
+ * gone: a failed offers fetch used to render exactly as "no offers", telling a
+ * customer no company wants their work when the connection had simply dropped.
+ */
+function MobileRequestOffers({ req }: { req: CustomerRequest }) {
+  const { t } = useTranslation();
+  const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
+  const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
+
+  const choose = async (responseId: string) => {
+    await customerRequests.choose(responseId);
+    offers.reload();
+  };
+
+  return (
+    <>
+      {req.message && <p className="mb-3 text-[13px] text-navy/70 break-anywhere">“{req.message}”</p>}
+      <SectionState
+        section={offers}
+        title={t('requests.title')}
+        loading={<p className="text-[13px] text-gray-500">{t('common.loading')}</p>}
+        /* Zero offers renders NOTHING about offers — identical for a direct and
+           a broadcast request. */
+        empty={null}
+      >
+        {(responses) => (
             <>
               <p className="text-[13px] font-extrabold text-navy">
                 {t('requests.responsesTitle', { count: responses.length })}
@@ -206,20 +221,19 @@ function RequestRow({ req }: { req: CustomerRequest }) {
                 ))}
               </div>
             </>
-          )}
-        </div>
-      )}
+        )}
+      </SectionState>
 
       {reviewing && (
         <ReviewModal
           companyId={reviewing.companyId}
           companyName={reviewing.companyName}
           leadId={req.id}
-          onDone={load}
+          onDone={offers.reload}
           onClose={() => setReviewing(null)}
         />
       )}
-    </section>
+    </>
   );
 }
 
@@ -227,11 +241,9 @@ function MobileMyRequestsInner() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useApp();
-  const [rows, setRows] = useState<CustomerRequest[] | null>(null);
-
-  useEffect(() => {
-    customerRequests.allMine().then(setRows).catch(() => setRows([]));
-  }, []);
+  // The empty state below may only ever mean "the fetch succeeded and returned
+  // zero rows". It used to also mean "the fetch failed".
+  const requests = useAsyncSection<CustomerRequest[]>(() => customerRequests.allMine(), []);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -268,25 +280,30 @@ function MobileMyRequestsInner() {
         </header>
 
         <div className="px-5 pt-5">
-          {rows === null ? (
-            <RafiqLoader size="sm" className="min-h-[50vh]" />
-          ) : rows.length === 0 ? (
-            <div className="card animate-pop p-10 text-center">
-              <div className="icon-chip mx-auto">
-                <AppIcon name="inbox" className="h-5 w-5" />
+          <SectionState
+            section={requests}
+            title={t('requests.title')}
+            loading={<RafiqLoader size="sm" className="min-h-[50vh]" />}
+            empty={
+              <div className="card animate-pop p-10 text-center">
+                <div className="icon-chip mx-auto">
+                  <AppIcon name="inbox" className="h-5 w-5" />
+                </div>
+                <p className="mt-4 text-sm text-gray-500">{t('requests.empty')}</p>
+                <Link to="/services" className="btn-primary mt-5 flex min-h-[50px] w-full text-[15px]">
+                  {t('requests.browseServices')}
+                </Link>
               </div>
-              <p className="mt-4 text-sm text-gray-500">{t('requests.empty')}</p>
-              <Link to="/services" className="btn-primary mt-5 flex min-h-[50px] w-full text-[15px]">
-                {t('requests.browseServices')}
-              </Link>
-            </div>
-          ) : (
-            <div className="stagger flex flex-col gap-3.5">
-              {rows.map((req) => (
-                <RequestRow key={req.id} req={req} />
-              ))}
-            </div>
-          )}
+            }
+          >
+            {(rows) => (
+              <div className="stagger flex flex-col gap-3.5">
+                {rows.map((req) => (
+                  <RequestRow key={req.id} req={req} />
+                ))}
+              </div>
+            )}
+          </SectionState>
         </div>
       </div>
 

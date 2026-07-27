@@ -15,7 +15,7 @@ import { FxRatesPanel } from '../components/admin/FxRatesPanel';
 import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
-import { SectionState } from '../components/admin/SectionState';
+import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];

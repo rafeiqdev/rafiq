@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppIcon } from '../AppIcon';
-import type { AsyncSection } from '../../hooks/useAsyncSection';
+import { AppIcon } from './AppIcon';
+import type { AsyncSection } from '../hooks/useAsyncSection';
 
 /**
  * Renders the three outcomes an admin section can have, so no caller can
@@ -21,6 +21,7 @@ export function SectionState<T>({
   title,
   isEmpty,
   empty,
+  loading,
   children,
 }: {
   section: AsyncSection<T>;
@@ -28,15 +29,22 @@ export function SectionState<T>({
   title: string;
   isEmpty?: (data: T) => boolean;
   empty: ReactNode;
+  /** Overrides the default one-line placeholder — customer-facing pages use
+   *  the branded loader rather than a line of grey text. */
+  loading?: ReactNode;
   children: (data: T) => ReactNode;
 }) {
   const { t } = useTranslation();
 
   if (section.status === 'loading') {
     return (
-      <p className="mt-3 text-sm text-gray-500" aria-busy="true">
-        {t('common.loading')}
-      </p>
+      <>
+        {loading ?? (
+          <p className="mt-3 text-sm text-gray-500" aria-busy="true">
+            {t('common.loading')}
+          </p>
+        )}
+      </>
     );
   }
 
