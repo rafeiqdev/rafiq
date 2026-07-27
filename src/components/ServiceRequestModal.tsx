@@ -91,10 +91,17 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
       });
       setRequestId(res.id);
       setDone(true);
-      // A signed-in customer now watches the live "broadcasting → waiting →
-      // ready" flow in-app, so we do NOT yank them out to WhatsApp. Anonymous
-      // submissions keep the original hand-off.
-      if (!res.id && WA_ENABLED) {
+      // WhatsApp is the ONLY channel that reaches the admin while they are not
+      // looking at /admin — there is no email, push or webhook behind this form.
+      // It used to be skipped for signed-in customers (`!res.id`), which meant
+      // the highest-intent requests reached nobody until an admin happened to
+      // log in. Every submission now pings it, signed in or not.
+      //
+      // WA_ENABLED is false when VITE_WHATSAPP_NUMBER is unset or still the
+      // placeholder, in which case this is skipped cleanly and the admin badge
+      // in Layout is the only channel. We never build a wa.me link from a
+      // missing number.
+      if (WA_ENABLED) {
         window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
       }
     } catch (e) {

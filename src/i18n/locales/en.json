@@ -67,6 +67,7 @@
     "profile": "My Profile",
     "notifications": "Notifications",
     "admin": "Admin",
+    "adminQueue": "Admin — {{requests}} new requests, {{leads}} new leads",
     "bookings": "Bookings",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy (KVKK)",

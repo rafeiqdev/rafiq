@@ -67,6 +67,7 @@
     "profile": "ملفي الشخصي",
     "notifications": "الإشعارات",
     "admin": "الإدارة",
+    "adminQueue": "الإدارة — {{requests}} طلبات جديدة، {{leads}} عملاء محتملون جدد",
     "bookings": "الحجوزات",
     "terms": "شروط الخدمة",
     "privacy": "سياسة الخصوصية (KVKK)",

@@ -67,6 +67,7 @@
     "profile": "پروفایل من",
     "notifications": "اعلان‌ها",
     "admin": "مدیریت",
+    "adminQueue": "مدیریت — {{requests}} درخواست جدید، {{leads}} سرنخ جدید",
     "bookings": "رزروها",
     "terms": "شرایط استفاده",
     "privacy": "حریم خصوصی (KVKK)",

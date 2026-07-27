@@ -669,6 +669,13 @@ export const leads = {
     if (error) fail(error);
     return (data as LeadRow[]).map(toLead);
   },
+  /** Admin badge: leads nobody has picked up yet. 0 on any failure — a broken
+   *  count must never break the chrome it is rendered in. */
+  async newCount(): Promise<number> {
+    const { count, error } = await sb().from('leads').select('id', { count: 'exact', head: true }).eq('status', 'new');
+    if (error) return 0;
+    return count ?? 0;
+  },
 };
 
 // ---------- referrals --------------------------------------------------------
@@ -1188,6 +1195,22 @@ export const serviceRequests = {
     const { error } = await sb().from('service_requests').update({ status }).eq('id', id);
     if (error) fail(error);
     return { ok: true };
+  },
+  /**
+   * Admin badge: requests still awaiting a first response.
+   *
+   * Both 'new' and 'pending' count as unhandled — 'new' is what rows created
+   * before the 20260719 status workflow use, and the two are interchangeable
+   * until an admin accepts or rejects. 0 on any failure, so a count that cannot
+   * load never breaks the chrome it is rendered in.
+   */
+  async newCount(): Promise<number> {
+    const { count, error } = await sb()
+      .from('service_requests')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['new', 'pending']);
+    if (error) return 0;
+    return count ?? 0;
   },
   async adminList(): Promise<ServiceRequest[]> {
     const { data, error } = await sb()
