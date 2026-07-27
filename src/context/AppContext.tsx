@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { AI_FREE_PERIOD, auth, config as configApi, profileApi, referrals } from '../lib/api';
+import { AI_FREE_PERIOD, ApiError, auth, config as configApi, profileApi, referrals } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { AppConfig, PlanTier, Profile, Subscription, User } from '../lib/types';
 import { EMPTY_PROFILE } from '../lib/types';
@@ -39,6 +39,13 @@ interface AppState {
    * can neither skip nor re-trigger the flow.
    */
   onboardingCompleted: boolean;
+  /**
+   * Set when the session is valid but the account is unusable — today only
+   * `profile_missing`. It must be surfaced, not swallowed: the OAuth return path
+   * has no form to show an error on, so without this a Google user is dropped
+   * silently onto the guest home page and has no idea why they are signed out.
+   */
+  authError: string | null;
   langSelected: boolean;
   unread: number;
   appConfig: AppConfig;
@@ -60,6 +67,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<PlanTier>('free');
   const [profile, setProfile] = useState<Profile>(loadLocalProfile);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
   const [appConfig, setAppConfig] = useState<AppConfig>({
     googleClientId: null,
@@ -74,6 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const me = await auth.me();
+      setAuthError(null);
       setUser(me.user);
       setSubscription(me.subscription ?? null);
       setTier(me.tier ?? 'free');
@@ -100,7 +109,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (local.path) profileApi.save(local).catch(() => {});
         }
       }
-    } catch {
+    } catch (e) {
+      // A broken account is not the same as being signed out. Every other
+      // failure here legitimately means "no session", but profile_missing means
+      // the session is fine and the account is not — the user must be told,
+      // whichever route they arrived on (OAuth return included).
+      setAuthError(e instanceof ApiError && e.code === 'profile_missing' ? e.code : null);
       setUser(null);
       setSubscription(null);
       setTier('free');
@@ -196,6 +210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       subscription,
       profile,
       onboardingCompleted,
+      authError,
       langSelected,
       unread,
       appConfig,
@@ -207,7 +222,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signOut,
       refresh,
     }),
-    [user, authLoading, tier, subscription, profile, onboardingCompleted, langSelected, unread, appConfig, setLangSelected, updateProfile, login, register, googleSignIn, signOut, refresh],
+    [user, authLoading, tier, subscription, profile, onboardingCompleted, authError, langSelected, unread, appConfig, setLangSelected, updateProfile, login, register, googleSignIn, signOut, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

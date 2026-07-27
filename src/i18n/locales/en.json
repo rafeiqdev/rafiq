@@ -485,6 +485,8 @@
       "wrongPassword": "Incorrect password. Try again.",
       "emailExists": "This email is already registered — sign in instead.",
       "weakPassword": "Password must be at least 8 characters.",
+      "profileMissingTitle": "Your account needs attention",
+      "profileMissing": "You signed in successfully, but your account setup is incomplete, so we can't open it. Signing in again will not fix this. Please contact support and we'll sort it out for you.",
       "generic": "Sign-in failed. Please try again."
     }
   },

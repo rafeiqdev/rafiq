@@ -25,6 +25,10 @@ const ERROR_KEYS: Record<string, string> = {
   email_exists: 'auth.errors.emailExists',
   weak_password: 'auth.errors.weakPassword',
   bad_email: 'auth.errors.generic',
+  // Sign-in succeeded at Supabase but the account has no readable profile row.
+  // Without this entry the throw fell through to the generic "try again"
+  // message, which invited the user into an endless retry loop.
+  profile_missing: 'auth.errors.profileMissing',
 };
 
 const isValidName = (s: string) => {

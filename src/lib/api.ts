@@ -257,7 +257,42 @@ export const auth = {
       fetchProfileRow(c, u.id),
       c.from('subscriptions').select('tier,billing,status,started_at,expires_at,cancel_reason,cancel_comment').eq('user_id', u.id).maybeSingle(),
     ]);
-    if (!prof) return { user: null };
+    if (!prof) {
+      /**
+       * The session is VALID but the profile row is unreadable.
+       *
+       * Returning `{ user: null }` here — as this used to — makes an
+       * authenticated user look like a guest: sign-in resolves without error,
+       * the UI shows the sign-in wall, the user signs in again, and loops
+       * forever with nothing to explain it. Throwing turns that silent dead end
+       * into a message the caller can render.
+       *
+       * Two different faults produce this, and they are NOT distinguishable
+       * from the client: maybeSingle() returns data:null with error:null both
+       * when the row is genuinely absent (handle_new_user() never fired) and
+       * when RLS refuses it (the "profiles read own/admin" policy is missing or
+       * wrong) — PostgREST reports an RLS-filtered row as an empty result, not
+       * as an error. Any client-side probe hits the same policy, so it would
+       * report the same thing in both cases. The uid is logged so the cause can
+       * be settled with one query against the database.
+       */
+      // Deliberately a direct console.warn rather than logDiagnostic(): that
+      // helper is DEV-only and strips user ids on purpose, and this is exactly
+      // the case where the uid — the user's own, in their own browser — is the
+      // one piece of information that makes the fault diagnosable in production.
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[rafiq:auth] profile_missing — the session is valid but profiles row is unreadable.\n' +
+          `  uid:   ${u.id}\n` +
+          `  email: ${u.email ?? '(none)'}\n` +
+          '  Run BOTH to tell the two causes apart:\n' +
+          '    select id, role from public.profiles where id = \'' + u.id + '\';\n' +
+          '    select policyname, cmd from pg_policies where tablename = \'profiles\';\n' +
+          '  No row  -> handle_new_user() never fired for this signup.\n' +
+          '  Row exists but was invisible here -> the RLS select policy is at fault.',
+      );
+      throw new ApiError('profile_missing', 409);
+    }
 
     const subRow = (sub as SubRow | null) ?? null;
     const tier = entitledTier(subRow);

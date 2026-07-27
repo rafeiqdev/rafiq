@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
 import { LanguageSelector } from './components/LanguageSelector';
@@ -155,11 +156,37 @@ function HomeGate({ isMobile }: { isMobile: boolean }) {
   return isMobile ? <MobileHome /> : <Home />;
 }
 
+/**
+ * Shown when the session is valid but the account is unusable (profile_missing).
+ *
+ * This has to pre-empt the router. The OAuth return path has no form to render
+ * an error on, so without this screen a Google user whose profile row is
+ * missing is dropped silently onto the guest home page — signed in as far as
+ * Supabase is concerned, signed out as far as the app is concerned, with
+ * nothing on screen to explain it. Signing out is offered because it is the one
+ * action that reliably clears the bad session.
+ */
+function AuthErrorScreen({ onSignOut }: { onSignOut: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+      <div className="card p-10 max-w-md text-center" role="alert">
+        <h1 className="text-xl font-extrabold text-navy">{t('auth.errors.profileMissingTitle')}</h1>
+        <p className="mt-3 text-sm text-gray-600">{t('auth.errors.profileMissing')}</p>
+        <button onClick={onSignOut} className="btn-secondary w-full mt-6">
+          {t('common.signOut')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Shell() {
-  const { langSelected } = useApp();
+  const { langSelected, authError, signOut } = useApp();
   const isMobile = useIsMobile();
 
   if (!langSelected) return <LanguageSelector />;
+  if (authError === 'profile_missing') return <AuthErrorScreen onSignOut={signOut} />;
 
   return (
     <>
