@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { GuideContent } from '../lib/api';
 import { AppIcon } from './AppIcon';
+import { track } from '../lib/analytics';
+
+// The only rail this paywall ever offers — hardcoded until there's more than
+// one paid tier's worth of gated content.
+const OFFERED_TIER = 'pro';
 
 /** Shown when a logged-in non-subscriber opens a Pro guide: 1-step preview + upgrade. */
 export function UpgradePaywall({
@@ -16,6 +22,15 @@ export function UpgradePaywall({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const firstStep = preview.steps?.[0];
+
+  useEffect(() => {
+    track('paywall_shown', { target: slug, meta: { tier: OFFERED_TIER } });
+  }, [slug]);
+
+  const upgrade = () => {
+    track('upgrade_clicked', { target: OFFERED_TIER, meta: { source: slug } });
+    navigate('/checkout?plan=pro&billing=monthly');
+  };
 
   return (
     <div className="card p-6 sm:p-8 max-w-2xl mx-auto text-center">
@@ -43,10 +58,7 @@ export function UpgradePaywall({
         </div>
       )}
 
-      <button
-        onClick={() => navigate('/checkout?plan=pro&billing=monthly')}
-        className="btn-gold w-full mt-6"
-      >
+      <button onClick={upgrade} className="btn-gold w-full mt-6">
         {t('guide.paywall.upgrade')}
       </button>
       <button onClick={onGetPerson} className="mt-3 w-full text-sm font-semibold text-navy hover:underline">

@@ -57,6 +57,13 @@
 --   search_performed     target=null, meta={query_len,result_count}.
 --                       NEVER carries the raw query text the user typed — see
 --                       the "never send free text" rule in src/lib/analytics.ts.
+--   paywall_shown         target=gated feature/service id, meta={tier}.
+--                       Fires when a non-subscriber hits the Pro-content
+--                       paywall for a guide (UpgradePaywall). Currently dead
+--                       code client-side — see AI_FREE_PERIOD in src/lib/api.ts.
+--   upgrade_clicked        target=tier being offered, meta={source}.
+--                       Fires when the paywall's upgrade button is tapped,
+--                       before the redirect to /checkout.
 --
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -69,7 +76,8 @@ create table if not exists public.events (
   event_type text not null check (event_type in (
     'page_view', 'service_view', 'service_click', 'request_started', 'request_submitted',
     'chat_opened', 'chat_message_sent', 'login', 'signup', 'checkout_opened',
-    'payment_submitted', 'whatsapp_clicked', 'lang_changed', 'guide_viewed', 'search_performed'
+    'payment_submitted', 'whatsapp_clicked', 'lang_changed', 'guide_viewed', 'search_performed',
+    'paywall_shown', 'upgrade_clicked'
   )),
   path text not null check (char_length(path) <= 300),
   -- Which service/button/method — never free text the visitor typed.

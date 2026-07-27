@@ -33,7 +33,9 @@ export type AnalyticsEventType =
   | 'whatsapp_clicked'
   | 'lang_changed'
   | 'guide_viewed'
-  | 'search_performed';
+  | 'search_performed'
+  | 'paywall_shown'
+  | 'upgrade_clicked';
 
 type MetaValue = string | number | boolean | null;
 export interface TrackOptions {
