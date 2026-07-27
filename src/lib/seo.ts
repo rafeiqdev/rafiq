@@ -16,8 +16,31 @@ import type { Lang } from './types';
  * which is a routing/architecture change out of scope here.
  */
 
-const FALLBACK_SITE_URL = 'https://rafiq-istanbul.vercel.app';
-export const SITE_URL = (import.meta.env.VITE_BASE_URL as string | undefined)?.replace(/\/+$/, '') || FALLBACK_SITE_URL;
+/**
+ * This deployment's own origin, baked in at build time from VITE_BASE_URL.
+ *
+ * There is deliberately NO fallback host here. The previous one was a hardcoded
+ * literal that did not match what VITE_BASE_URL was actually set to, so whenever
+ * the variable went missing the canonical tag, og:url and every hreflang quietly
+ * pointed at the wrong domain — visible to crawlers, invisible to us. A missing
+ * value must break loudly instead. (The removed literal is not repeated here:
+ * src/lib/hostnameHygiene.test.ts bans this repo's own hostname everywhere,
+ * comments included, since a host in a comment is still one to paste back in.)
+ *
+ * The real gate is vite.config.ts, which validates this via scripts/siteUrl.mjs
+ * before a bundle is produced at all; the build cannot succeed without it. The
+ * throw below is only a tripwire for a code path that reaches this module
+ * without going through that gate (a bare `vitest` run, say — vitest.config.ts
+ * supplies its own value for exactly this reason). It is not the enforcement.
+ */
+const RAW_SITE_URL = import.meta.env.VITE_BASE_URL as string | undefined;
+if (!RAW_SITE_URL) {
+  throw new Error(
+    'VITE_BASE_URL is not set. It has no fallback on purpose — see scripts/siteUrl.mjs. ' +
+      'Set it in Vercel (Project → Settings → Environment Variables) or in .env for local dev.',
+  );
+}
+export const SITE_URL: string = RAW_SITE_URL;
 
 export const SEO_LANGS: Lang[] = ['ar', 'en', 'ru', 'fa'];
 

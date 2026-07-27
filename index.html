@@ -22,17 +22,23 @@
     <meta name="theme-color" content="#1d5f9e" />
     <title>Rafiq Istanbul</title>
     <meta name="description" content="Residency, banking, housing, health and daily life in Istanbul — guided step by step in your language." />
-    <link rel="canonical" href="https://rafiq-istanbul.vercel.app" />
+    <!-- Origin comes from VITE_BASE_URL via Vite's %ENV% HTML substitution (same
+         mechanism as the GA id below). These four tags are what a crawler reads
+         BEFORE hydration, so they matter more than the runtime ones in
+         src/lib/seo.ts — they used to be hardcoded to a host that did not match
+         VITE_BASE_URL. The build cannot succeed with the variable unset
+         (vite.config.ts), so the placeholder can never ship unreplaced. -->
+    <link rel="canonical" href="%VITE_BASE_URL%" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://rafiq-istanbul.vercel.app" />
+    <meta property="og:url" content="%VITE_BASE_URL%" />
     <meta property="og:locale" content="ar_AR" />
     <meta property="og:title" content="Rafiq Istanbul — Your companion for life in Istanbul" />
     <meta property="og:description" content="Residency (İkamet), banking, housing, health and daily life in Istanbul — guided step by step in Arabic, English, Russian and Farsi." />
-    <meta property="og:image" content="https://rafiq-istanbul.vercel.app/og-cover.png" />
+    <meta property="og:image" content="%VITE_BASE_URL%/og-cover.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Rafiq Istanbul" />
     <meta name="twitter:description" content="The digital services hub for foreigners in Istanbul — in 4 languages." />
-    <meta name="twitter:image" content="https://rafiq-istanbul.vercel.app/og-cover.png" />
+    <meta name="twitter:image" content="%VITE_BASE_URL%/og-cover.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

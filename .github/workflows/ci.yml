@@ -18,5 +18,15 @@ jobs:
         run: npm run check:i18n
       - name: TypeScript + bundle
         run: npm run build
+        env:
+          # VITE_BASE_URL has no fallback (see scripts/siteUrl.mjs) and .env is
+          # gitignored, so the build would correctly refuse to run here without
+          # one. CI only checks that the bundle compiles — it never deploys and
+          # its sitemap output is thrown away — so it deliberately builds against
+          # a host that CANNOT be real: `.invalid` is reserved by RFC 2606 and
+          # never resolves. Vercel supplies the true origin at deploy time.
+          # Do NOT put the production hostname here; that would recreate exactly
+          # the second-source-of-truth this variable exists to prevent.
+          VITE_BASE_URL: https://ci.invalid
       - name: API integration tests
         run: npm test

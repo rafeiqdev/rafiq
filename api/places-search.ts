@@ -299,12 +299,32 @@ export function candidateKeys(
     .filter((k): k is string => Boolean(k));
 }
 
-/** Our own production origin, for the Referer header above. */
+/**
+ * Our own production origin, for the Referer header above.
+ *
+ * Vercel injects VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL on every deployment,
+ * so those cover production and previews. VITE_BASE_URL is the local-dev answer
+ * and the same single source of truth the rest of the repo uses
+ * (scripts/siteUrl.mjs) — it is a bare origin, hence the same normalisation.
+ *
+ * There is deliberately no hardcoded host left here. The previous one pointed at
+ * a domain that no longer matches VITE_BASE_URL, which meant that after a domain
+ * change this would have sent a Referer the Maps browser key's HTTP-referrer
+ * restriction no longer allows — Places failing with API_KEY_HTTP_REFERRER_BLOCKED
+ * for a reason nothing in the code would explain. Throwing names the cause.
+ */
 export function siteReferer(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): string {
-  const host = env.VERCEL_PROJECT_PRODUCTION_URL || env.VERCEL_URL || 'rafiq-istanbul.vercel.app';
-  return `https://${host.replace(/^https?:\/\//, '')}/`;
+  const host = env.VERCEL_PROJECT_PRODUCTION_URL || env.VERCEL_URL || env.VITE_BASE_URL;
+  if (!host) {
+    throw new Error(
+      'Cannot determine this site\'s own origin for the Google Places Referer header: ' +
+        'none of VERCEL_PROJECT_PRODUCTION_URL, VERCEL_URL or VITE_BASE_URL is set. ' +
+        'Vercel provides the first two automatically; set VITE_BASE_URL in .env for local dev.',
+    );
+  }
+  return `https://${host.replace(/^https?:\/\//, '').replace(/\/+$/, '')}/`;
 }
 
 /**
