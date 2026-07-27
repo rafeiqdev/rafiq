@@ -12,14 +12,13 @@
       name="viewport"
       content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover"
     />
-    <script>
-      // Keep the page locked at "fit to screen" on phones: stop iOS pinch-zoom
-      // (Safari ignores user-scalable=no, so cancel the gesture events too).
-      // Safe now that fixed-positioning works app-wide and inputs are 16px
-      // (no auto-zoom), so the user is never left stuck zoomed-in.
-      document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
-      document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
-    </script>
+    <!-- Pinch-zoom must stay available. A previous version cancelled the iOS
+         pinch gesture events here to lock the page at "fit to screen"; that is
+         the scripted equivalent of user-scalable=no and it fails WCAG 1.4.4,
+         which matters because a large share of this audience is elderly. The
+         problem those handlers were guarding against — iOS auto-zooming when a
+         sub-16px input is focused — is already solved by the 16px input rule in
+         src/index.css, so nothing regresses. See zoomAccessibility.test.ts. -->
     <meta name="theme-color" content="#1d5f9e" />
     <title>Rafiq Istanbul</title>
     <meta name="description" content="Residency, banking, housing, health and daily life in Istanbul — guided step by step in your language." />
