@@ -79,6 +79,14 @@ i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANG,
   interpolation: { escapeValue: false },
   returnNull: false,
+  // An empty string is a MISSING translation, not a valid one.
+  //
+  // i18next's default is to return "" verbatim, which means fallbackLng never
+  // engages and the UI renders nothing at all — strictly worse than showing the
+  // Arabic. Ten bestOffer.* keys were blank in ru and fa, so Russian and Farsi
+  // customers saw an empty screen at the exact moment their request was
+  // submitted. This makes any future blank fall back instead of vanishing.
+  returnEmptyString: false,
 });
 
 // Before first paint, so <html dir> is already correct and RTL layouts don't
