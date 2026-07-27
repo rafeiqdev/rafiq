@@ -18,6 +18,25 @@ const PIN_SEED = 20260723;
 const USER_X = 955;
 const USER_Y = 420;
 
+/**
+ * Shared geometry for the two success-screen CTAs. Identical padding, radius,
+ * size and weight is what makes "track" and "WhatsApp" read as equal choices —
+ * only the colour differs. Also keeps both above the 44px touch minimum.
+ */
+const CTA_BASE: CSSProperties = {
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: 'clamp(16px,1.9vw,19px)',
+  fontWeight: 700,
+  border: 'none',
+  borderRadius: 14,
+  padding: '15px 34px',
+  minHeight: 44,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
 function mixColor(a: string, b: string, t: number): string {
@@ -88,11 +107,16 @@ export function BestOfferSearching({
   officeCount = 134,
   onTrack,
   onBack,
+  waHref = null,
+  onWhatsApp,
 }: {
   serviceName: string;
   officeCount?: number;
   onTrack: () => void;
   onBack: () => void;
+  /** wa.me link, or null when no WhatsApp number is configured. */
+  waHref?: string | null;
+  onWhatsApp?: () => void;
 }) {
   const { t } = useTranslation();
   const [time, setTime] = useState(0);
@@ -428,23 +452,29 @@ export function BestOfferSearching({
                   <span style={{ fontSize: 'clamp(13px,1.6vw,16px)', color: '#12603a', fontWeight: 600 }}>{t('bestOffer.whatsapp')}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginTop: 28 }}>
-                  <button
-                    onClick={onTrack}
-                    style={{
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontSize: 'clamp(16px,1.9vw,19px)',
-                      fontWeight: 700,
-                      color: '#ffffff',
-                      background: '#1b8ae6',
-                      border: 'none',
-                      borderRadius: 14,
-                      padding: '15px 44px',
-                      boxShadow: '0 10px 26px rgba(27,138,230,0.4)',
-                    }}
-                  >
-                    {t('bestOffer.track')}
-                  </button>
+                  {/* Two peers, not a primary and an afterthought. WhatsApp used
+                      to be a window.open() fired at submit, which ejected the
+                      customer from the browser before this screen rendered — so
+                      the track button, the only pointer to /requests in the
+                      product, was never seen. Both are now choices made here,
+                      after reading, and share one geometry so neither reads as
+                      the "real" action. */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
+                    <button onClick={onTrack} style={{ ...CTA_BASE, color: '#ffffff', background: '#1b8ae6', boxShadow: '0 10px 26px rgba(27,138,230,0.4)' }}>
+                      {t('bestOffer.track')}
+                    </button>
+                    {waHref && (
+                      <a
+                        href={waHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={onWhatsApp}
+                        style={{ ...CTA_BASE, color: '#ffffff', background: '#25d366', boxShadow: '0 10px 26px rgba(37,211,102,0.4)', textDecoration: 'none' }}
+                      >
+                        {t('services.modal.whatsapp')}
+                      </a>
+                    )}
+                  </div>
                   <a
                     href="#"
                     onClick={(e) => {

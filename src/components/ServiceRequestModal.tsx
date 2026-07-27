@@ -127,20 +127,20 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
       });
       setRequestId(res.id);
       setDone(true);
-      // WhatsApp is the ONLY channel that reaches the admin while they are not
-      // looking at /admin — there is no email, push or webhook behind this form.
-      // It used to be skipped for signed-in customers (`!res.id`), which meant
-      // the highest-intent requests reached nobody until an admin happened to
-      // log in. Every submission now pings it, signed in or not.
+      // NOTHING ELSE HAPPENS HERE — deliberately.
       //
-      // WA_ENABLED is false when VITE_WHATSAPP_NUMBER is unset or still the
-      // placeholder, in which case this is skipped cleanly and the admin badge
-      // in Layout is the only channel. We never build a wa.me link from a
-      // missing number.
-      if (WA_ENABLED) {
-        track('whatsapp_clicked', { target: 'service_request_modal_auto' });
-        window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
-      }
+      // This used to fire window.open() straight to wa.me, to guarantee the
+      // admin heard about the request. It worked, and it cost us every customer.
+      // On a phone that call is an app switch: the customer is thrown out of the
+      // browser before the confirmation renders, so they never see the "track
+      // your request" button, never learn /requests exists, and in at least one
+      // reported case concluded the request had not been recorded at all.
+      // Nobody who submitted a request had ever seen the screen that tells them
+      // where it went.
+      //
+      // The trade is real and was made knowingly: the admin ping is now a button
+      // the customer chooses after reading, not a redirect done to them. The
+      // admin's safety net is the "needs action" queue at the top of /admin.
     } catch (e) {
       // The database trigger is distinguishable from a generic failure, so the
       // customer is told "we already have your request" rather than "something
@@ -171,6 +171,11 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                 navigate('/requests');
               }}
               onBack={onClose}
+              // Peer to the track button, not a redirect. Null when the number
+              // is unset or still the placeholder — we never build a wa.me link
+              // from a missing number.
+              waHref={WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waText())}` : null}
+              onWhatsApp={() => track('whatsapp_clicked', { target: 'service_request_modal' })}
             />
           ) : done ? (
             <div className="text-center">

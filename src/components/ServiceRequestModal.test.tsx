@@ -37,10 +37,16 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
-// The post-submit animation is exercised elsewhere; it must not swallow the
-// success branch under test.
+// The post-submit animation is exercised in BestOfferSearching.test.tsx; here it
+// is reduced to the props that matter — the WhatsApp link must arrive as a
+// rendered choice on the confirmation, not as a redirect fired at submit.
 vi.mock('./BestOfferSearching', () => ({
-  BestOfferSearching: () => <p>best-offer</p>,
+  BestOfferSearching: ({ waHref }: { waHref?: string | null }) => (
+    <div>
+      <p>best-offer</p>
+      {waHref ? <a href={waHref}>wa-cta</a> : null}
+    </div>
+  ),
 }));
 
 const SOURCE = { id: 'ikamet', title: 'İkamet', category: 'residency', type: 'direct' };
@@ -84,30 +90,65 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+/**
+ * The WhatsApp hand-off is now a CHOICE ON THE CONFIRMATION, never a redirect.
+ *
+ * It used to fire window.open() the instant the insert succeeded, to guarantee
+ * the admin heard about the request. On a phone that is an app switch: the
+ * customer was thrown out of the browser before the confirmation rendered, so
+ * they never saw the "track your request" button and never learned /requests
+ * existed. One customer reported submitting a request and concluding no list of
+ * requests existed — he had never come back to the site to see one.
+ *
+ * These tests previously asserted the opposite (that the open MUST fire). That
+ * requirement is deliberately reversed: reaching the admin does not justify
+ * ejecting the customer from the page that tells them what happens next.
+ */
 describe('WhatsApp hand-off after a successful submission', () => {
-  it('fires for a SIGNED-IN customer (the case the old !res.id gate skipped)', async () => {
+  it('does NOT open WhatsApp automatically for a signed-in customer', async () => {
     vi.stubEnv('VITE_WHATSAPP_NUMBER', '905551112233');
-    // A signed-in customer gets a row id back — this is exactly what used to
-    // suppress the only notification channel.
+    // A signed-in customer gets a row id back — the case that used to redirect.
     createMock.mockResolvedValue({ ok: true, id: 'req-1' });
 
     await renderModal();
     fillValidForm();
     submit();
 
-    await waitFor(() => expect(openSpy).toHaveBeenCalledTimes(1));
-    expect(openSpy.mock.calls[0][0]).toContain('https://wa.me/905551112233');
+    // renderModal() does vi.resetModules() + a dynamic import, which costs
+    // ~850ms alone and tips past waitFor's 1s default under full-suite parallel
+    // load. The generous timeout is about machine speed, not about the
+    // assertion — a slow box must not turn a passing suite red.
+    await waitFor(() => expect(screen.getByText('best-offer')).toBeInTheDocument(), { timeout: 5000 });
+    expect(openSpy).not.toHaveBeenCalled();
   });
 
-  it('still fires for an anonymous submitter (id null)', async () => {
+  it('offers WhatsApp as a link on the confirmation instead', async () => {
     vi.stubEnv('VITE_WHATSAPP_NUMBER', '905551112233');
+    createMock.mockResolvedValue({ ok: true, id: 'req-1' });
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    const cta = await screen.findByText('wa-cta', {}, { timeout: 5000 });
+    expect(cta.getAttribute('href')).toContain('https://wa.me/905551112233');
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('does NOT open WhatsApp automatically for an anonymous submitter either', async () => {
+    vi.stubEnv('VITE_WHATSAPP_NUMBER', '905551112233');
+    useAppMock.mockReturnValue({ user: null });
     createMock.mockResolvedValue({ ok: true, id: null });
 
     await renderModal();
     fillValidForm();
     submit();
 
-    await waitFor(() => expect(openSpy).toHaveBeenCalledTimes(1));
+    // Anonymous takes the plain success branch, which already had a WhatsApp
+    // button rather than a redirect.
+    await waitFor(() => expect(screen.getByText('services.modal.successTitle')).toBeInTheDocument(), { timeout: 5000 });
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(document.querySelector('a[href*="wa.me"]')).not.toBeNull();
   });
 
   it('is skipped cleanly when VITE_WHATSAPP_NUMBER is unset — no wa.me link', async () => {
