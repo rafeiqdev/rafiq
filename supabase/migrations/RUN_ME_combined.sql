@@ -1,6 +1,7 @@
 -- ============================================================================
 -- RUN THIS ONCE in the Supabase SQL editor.
---   https://supabase.com/dashboard/project/iseldofsfhwvpfzltqet/sql/new
+--   https://supabase.com/dashboard/project/jdtspvkhomctqkgdmjdn/sql/new
+--   (the ref in .env line 17 — NOT iseldofsfhwvpfzltqet, which is abandoned)
 --
 -- Combines the two pending migrations:
 --   20260719_service_requests.sql  → broadcast animation + live waiting state

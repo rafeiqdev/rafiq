@@ -2,8 +2,14 @@
 
 ## 🔒 SECURITY HARDENING (2026-06-21) — read first
 
-Project ref confirmed: `.env` `VITE_SUPABASE_URL` → **`iseldofsfhwvpfzltqet`**, anon key is the
+Project ref confirmed: `.env` `VITE_SUPABASE_URL` → **`jdtspvkhomctqkgdmjdn`**, anon key is the
 project's public JWT (browser-safe). ✅
+
+> ⚠️ **`iseldofsfhwvpfzltqet` is an ABANDONED project. Never run anything against it.**
+> This document named it as the live ref in six places until 2026-07-27, which sent
+> migrations into a database nobody uses. `.env` line 17 is the only authority on which
+> project is live — check it, don't trust prose. A third ref, `tzcqnqzltrjemdnkzpzn`,
+> also appeared here historically and is likewise not this app's project.
 
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no
@@ -27,7 +33,7 @@ Confirm **every** table has RLS **enabled WITH policies** (no "RLS enabled, no p
 RPC bodies were created in the dashboard). Don't trust it for a from-scratch rebuild. Regenerate the
 real one and commit it:
 ```bash
-supabase login && supabase link --project-ref iseldofsfhwvpfzltqet
+supabase login && supabase link --project-ref jdtspvkhomctqkgdmjdn
 supabase db dump --schema public --file supabase/schema.sql
 ```
 Keep future changes as files under `supabase/migrations/`.
@@ -43,7 +49,7 @@ sends `area` + `broadcast` (and relies on a `customer_id` default) — columns t
 don't exist until the migration is applied, which would break the existing
 "Help me with this" request flow.
 
-1. **Run the migration** in the **correct project** (`iseldofsfhwvpfzltqet`) →
+1. **Run the migration** in the **correct project** (`jdtspvkhomctqkgdmjdn`) →
    SQL Editor → paste **`supabase/migrations/20260701_companies_b2b.sql`** → Run.
    It's additive + idempotent (companies, company_payments, company_responses,
    reviews, the service_requests columns, RLS, the `register_company` /
@@ -57,10 +63,11 @@ don't exist until the migration is applied, which would break the existing
    editable later). Change it with:
    `update public.settings set value='{"monthly":2500,"currency":"TL"}' where key='company_plan';`
 
-> Note: the Supabase MCP connector available to Claude is authorized only for a
-> different project (`tzcqnqzltrjemdnkzpzn`), so the migration could not be applied
-> automatically — run it yourself in `iseldofsfhwvpfzltqet`, or authorize the
-> connector for that project.
+> Note: the Supabase MCP connector available to Claude is authorized only for the
+> abandoned `iseldofsfhwvpfzltqet` project, so migrations cannot be applied
+> automatically — run them yourself in `jdtspvkhomctqkgdmjdn`, or authorize the
+> connector for that project. Until then, treat any schema claim Claude makes from
+> the connector as describing the wrong database.
 
 ---
 
@@ -70,7 +77,7 @@ The no-login "Help me with this" flow (services + hub guides) now collects an
 optional email, and every new `service_requests` row can ping an external
 webhook instantly instead of relying on someone checking the admin dashboard.
 
-1. **Run the migration** in `iseldofsfhwvpfzltqet` → SQL Editor → paste
+1. **Run the migration** in `jdtspvkhomctqkgdmjdn` → SQL Editor → paste
    **`supabase/migrations/20260709_lead_capture_email.sql`** → Run. Adds the
    `email` column, enables `pg_net`, and installs an `AFTER INSERT` trigger on
    `service_requests`. Additive + idempotent — safe to run any time.
@@ -90,7 +97,7 @@ webhook instantly instead of relying on someone checking the admin dashboard.
 The app now runs **fully on Supabase** (Auth + Postgres + Storage). The old
 Express/SQLite backend is no longer used by the website.
 
-- **Project:** `iseldofsfhwvpfzltqet` — schema + RLS + triggers + RPCs + storage
+- **Project:** `jdtspvkhomctqkgdmjdn` — schema + RLS + triggers + RPCs + storage
   buckets all applied; demo listings/places seeded.
 - **Keys:** already in `.env` and set as **Vercel** production env vars.
 - **Live:** <https://rafiq-istanbul.vercel.app> (re-deployed with Supabase baked in).

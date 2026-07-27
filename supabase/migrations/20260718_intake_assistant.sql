@@ -5,7 +5,8 @@
 --   * phone + uploaded media (photos / video / PDF) attached to each booking
 --   * a private Storage bucket for that media
 --
--- Run ONCE in Supabase → SQL Editor of the app's project (iseldofsfhwvpfzltqet).
+-- Run ONCE in Supabase → SQL Editor of the app's project (jdtspvkhomctqkgdmjdn,
+-- the ref in .env line 17 — NOT iseldofsfhwvpfzltqet, which is abandoned).
 -- Safe to re-run: every statement is idempotent.
 -- ============================================================================
 
