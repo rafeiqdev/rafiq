@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { checkout } from '../lib/api';
+import { ApiError, checkout } from '../lib/api';
 import { PLAN_PRICES } from '../lib/types';
 import type { Billing, PayMethod, PlanTier } from '../lib/types';
 import { RequireAuth } from '../components/Gates';
@@ -46,6 +46,10 @@ function CheckoutInner() {
   const [receipt, setReceipt] = useState<File | null>(null);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [state, setState] = useState<PageState>('idle');
+  // Which copy the 'failed' card shows. The default says "no charge was made",
+  // which would be a lie when the payment went through and only the receipt
+  // upload failed.
+  const [failKey, setFailKey] = useState('checkout.result.failed');
   const [bank, setBank] = useState<{ iban: string; holder: string; wallet: string; network: string } | null>(null);
 
   const monthly = PLAN_PRICES[plan] ?? PLAN_PRICES.pro;
@@ -110,7 +114,12 @@ function CheckoutInner() {
       await refresh();
       setVerifyOpen(false);
       setState('pendingManual');
-    } catch {
+    } catch (e) {
+      setFailKey(
+        e instanceof ApiError && e.code === 'receipt_upload_failed'
+          ? 'checkout.result.receiptFailed'
+          : 'checkout.result.failed',
+      );
       setVerifyOpen(false);
       setState('failed');
     }
@@ -186,7 +195,7 @@ function CheckoutInner() {
           <div className="icon-chip mx-auto">
             <AppIcon name="x-circle" className="w-6 h-6" />
           </div>
-          <p className="mt-4 font-semibold text-navy">{t('checkout.result.failed')}</p>
+          <p className="mt-4 font-semibold text-navy">{t(failKey)}</p>
           <button onClick={() => setState('idle')} className="btn-primary mt-6">
             {t('chat.retry')}
           </button>

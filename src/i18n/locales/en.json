@@ -590,6 +590,7 @@
     "approxMonthly": "≈ {{price}} TL / month",
     "result": {
       "failed": "Payment failed or was cancelled. No charge was made.",
+      "receiptFailed": "We couldn't upload your receipt, so your payment was not submitted for verification. If you already transferred the money it is safe — please try attaching the receipt again, or contact support and we'll confirm it manually.",
       "checking": "Checking your payment..."
     }
   },

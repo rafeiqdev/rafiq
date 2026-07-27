@@ -482,10 +482,22 @@ export const checkout = {
     if (receipt) {
       const path = `${uid}/${Date.now()}-${receipt.name}`;
       const up = await c.storage.from('receipts').upload(path, receipt, { upsert: false });
-      if (!up.error) {
-        receiptPath = path;
-        receiptName = receipt.name;
+      if (up.error) {
+        /**
+         * The customer attached proof of payment and it did not store. Swallowing
+         * this — as this used to — created the payment row anyway with
+         * receipt_path null: the customer saw "submitted, awaiting verification"
+         * while the admin saw a claim with no evidence, and neither knew. A
+         * missing `receipts` bucket or a storage RLS change would have made every
+         * receipt vanish silently.
+         *
+         * Fail before the insert, so no unbacked claim is recorded at all.
+         */
+        logDiagnostic('checkout.receiptUpload', up.error, classifyError(up.error));
+        throw new ApiError('receipt_upload_failed', 502);
       }
+      receiptPath = path;
+      receiptName = receipt.name;
     }
     const { data, error } = await c
       .from('payments')
