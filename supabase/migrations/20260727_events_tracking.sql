@@ -54,9 +54,17 @@
 --   lang_changed         target=new language code, meta={from}.
 --   guide_viewed         target=service slug, meta=null.
 --                       Fires when a full guide page (/services/:slug) mounts.
---   search_performed     target=null, meta={query_len,result_count}.
---                       NEVER carries the raw query text the user typed — see
---                       the "never send free text" rule in src/lib/analytics.ts.
+--   search_performed     target=null, meta={query,result_count}.
+--                       meta.query is the ONE documented exception to
+--                       "identifiers/enums only" below: the visitor's own
+--                       search text, trimmed/collapsed/lowercased and capped
+--                       at 100 chars by normalizeSearchQuery() before it ever
+--                       reaches track(), still screened for an email or
+--                       phone-shaped string like every other field. Knowing
+--                       what people search for and don't find is the point;
+--                       accepted as a real, if residual, privacy exposure on
+--                       a catalog that includes health and immigration
+--                       services — see src/lib/analytics.ts's doc comment.
 --   paywall_shown         target=gated feature/service id, meta={tier}.
 --                       Fires when a non-subscriber hits the Pro-content
 --                       paywall for a guide (UpgradePaywall). Currently dead
@@ -82,8 +90,9 @@ create table if not exists public.events (
   path text not null check (char_length(path) <= 300),
   -- Which service/button/method — never free text the visitor typed.
   target text check (target is null or char_length(target) <= 200),
-  -- Identifiers and enums ONLY — see the client-side hard rule. Small on
-  -- purpose; the size guard trigger below also rejects an oversized payload.
+  -- Identifiers and enums ONLY — see the client-side hard rule — with one
+  -- documented exception: search_performed's meta.query. Small on purpose;
+  -- the size guard trigger below also rejects an oversized payload.
   meta jsonb,
   locale text not null check (char_length(locale) <= 10),
   device text not null check (device in ('mobile', 'desktop')),

@@ -7,7 +7,7 @@ import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceActionModal } from '../components/ServiceActionModal';
 import { usePageMeta } from '../lib/seo';
-import { track } from '../lib/analytics';
+import { track, normalizeSearchQuery } from '../lib/analytics';
 
 // P-simplify2: the catalog has 12 categories / 79 services. Rendering all of
 // them at once (the old default) was the biggest source of "too many
@@ -104,7 +104,7 @@ export function Services() {
     const q = query.trim();
     if (!q) return;
     const id = setTimeout(() => {
-      track('search_performed', { meta: { query_len: q.length, result_count: matches.length } });
+      track('search_performed', { meta: { query: normalizeSearchQuery(q), result_count: matches.length } });
     }, 600);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps

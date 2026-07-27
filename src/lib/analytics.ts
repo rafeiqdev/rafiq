@@ -13,6 +13,15 @@
  *    found. meta must hold identifiers/enums only (flat, no nested
  *    objects/arrays) — never a phone number, email, password, AI chat
  *    message, document content, or any other free text the user typed.
+ *  - ONE documented exception: search_performed's meta.query carries the
+ *    visitor's own search text (normalizeSearchQuery() below), because a
+ *    length integer told the business nothing about unmet demand. It still
+ *    goes through the same email/phone screen as everything else, but a
+ *    screen built for structured fields can't catch a name, an address, or a
+ *    sensitive topic typed into a search box — this is a real, accepted
+ *    residual privacy risk on a site whose catalog includes health and
+ *    immigration services, not an oversight. See the migration's taxonomy
+ *    comment for search_performed.
  */
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -172,6 +181,18 @@ function referrerOrigin(): string | null {
     cachedReferrerOrigin = null;
   }
   return cachedReferrerOrigin;
+}
+
+const MAX_QUERY_LEN = 100;
+
+/**
+ * search_performed's meta.query — call this before track(), not after. Caps
+ * length so a pasted essay can't inflate the row, and normalises case/spacing
+ * so "Residency  Permit" and "residency permit" roll up as the same demand
+ * signal rather than two.
+ */
+export function normalizeSearchQuery(raw: string): string {
+  return raw.trim().replace(/\s+/g, ' ').toLowerCase().slice(0, MAX_QUERY_LEN);
 }
 
 // ── PII guard ─────────────────────────────────────────────────────────────

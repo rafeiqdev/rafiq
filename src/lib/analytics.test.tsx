@@ -207,6 +207,54 @@ describe('PII rejection — the hard rule', () => {
   });
 });
 
+describe('normalizeSearchQuery', () => {
+  it('trims, collapses whitespace, and lowercases', async () => {
+    const { normalizeSearchQuery } = await freshAnalytics();
+    expect(normalizeSearchQuery('  Residency   Permit  ')).toBe('residency permit');
+  });
+
+  it('caps length at 100 characters', async () => {
+    const { normalizeSearchQuery } = await freshAnalytics();
+    expect(normalizeSearchQuery('a'.repeat(500))).toHaveLength(100);
+  });
+});
+
+describe('search_performed carries real query text (the one documented meta exception)', () => {
+  it('sends the normalized query through when it is ordinary search text', async () => {
+    const { track, setConsent, normalizeSearchQuery, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('search_performed', { meta: { query: normalizeSearchQuery('  Residency Permit  '), result_count: 3 } });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(lastBody()[0].meta).toEqual({ query: 'residency permit', result_count: 3 });
+  });
+
+  it('still drops the whole event when the normalized query is phone-shaped', async () => {
+    const { track, setConsent, normalizeSearchQuery, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('search_performed', { meta: { query: normalizeSearchQuery('+90 555 123 45 67'), result_count: 0 } });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('still drops the whole event when the query contains an email', async () => {
+    const { track, setConsent, normalizeSearchQuery, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('search_performed', { meta: { query: normalizeSearchQuery('contact a@b.com please'), result_count: 0 } });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('session id', () => {
   it('is generated once, persisted in sessionStorage, and survives a login', async () => {
     const { track, setConsent, setAnalyticsUser, FLUSH_INTERVAL_MS } = await freshAnalytics();

@@ -8,7 +8,7 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
 import { ServiceActionModal } from '../../components/ServiceActionModal';
 import { usePageMeta } from '../../lib/seo';
-import { track } from '../../lib/analytics';
+import { track, normalizeSearchQuery } from '../../lib/analytics';
 
 // Same trimmed landing set as the desktop catalog: only these 6 categories show
 // by default; a search or an explicit category pick reveals the full set.
@@ -113,7 +113,7 @@ export function MobileServices() {
     const q = query.trim();
     if (!q) return;
     const id = setTimeout(() => {
-      track('search_performed', { meta: { query_len: q.length, result_count: matches.length } });
+      track('search_performed', { meta: { query: normalizeSearchQuery(q), result_count: matches.length } });
     }, 600);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
