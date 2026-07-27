@@ -717,12 +717,13 @@
       "title": "No results",
       "body": "Try another category or widen your search."
     },
-    "error": {
-      "title": "Could not load the map",
-      "body": "The maps service is unavailable right now. Please try again shortly.",
-      "noKey": "The Google Maps key is not configured yet. Please tell the Rafiq team.",
-      "searchKeyTitle": "Search is not enabled yet",
-      "searchKeyBody": "The server search key (GOOGLE_MAPS_SERVER_KEY) is missing or rejected. Tell the Rafiq team — retrying will not fix this."
+    "unavailable": {
+      "title": "Map view isn't available right now",
+      "body": "You can still open our location in Google Maps below.",
+      "addressLabel": "Our address",
+      "openInMaps": "Open in Google Maps",
+      "searchTitle": "Place search isn't available right now",
+      "searchBody": "Please try again a little later, or browse the categories above."
     },
     "locked": {
       "title": "Upgrade to unlock the map",

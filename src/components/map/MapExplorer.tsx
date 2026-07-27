@@ -5,14 +5,22 @@ import { placeFavorites, places as placesApi, placeSearch } from '../../lib/api'
 import type { PlaceSearchError } from '../../lib/api';
 import { PLACE_CATEGORIES } from '../../lib/types';
 import type { FavoritePlace, GooglePlaceResult, PlaceCategory, PlaceOverlay } from '../../lib/types';
-import { useGoogleMaps } from '../../hooks/useGoogleMaps';
+import { useGoogleMaps, isMapUnavailable, devDiagnose } from '../../hooks/useGoogleMaps';
 import { AppIcon } from '../AppIcon';
 import type { IconName } from '../AppIcon';
 import { PlaceCard } from './PlaceCard';
+import { MapUnavailable } from './MapUnavailable';
 
 const ISTANBUL = { lat: 41.0151, lng: 28.9795 };
 const DEFAULT_ZOOM = 12;
 const SEARCH_RADIUS_M = 6000;
+
+/**
+ * How long to wait for a first tile after the SDK reports success. Google gives
+ * no callback for quota/billing degradation, so this timeout is the only way to
+ * notice it — generous enough not to punish a slow connection.
+ */
+const TILE_TIMEOUT_MS = 12000;
 
 /**
  * AdvancedMarkerElement requires a Map ID that actually exists in the Google
@@ -89,6 +97,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [results, setResults] = useState<GooglePlaceResult[]>([]);
   const [overlays, setOverlays] = useState<Map<string, PlaceOverlay>>(new Map());
   const [state, setState] = useState<LoadState>('idle');
+  /** A real tile has painted — only then is it safe to uncover the container. */
+  const [tilesReady, setTilesReady] = useState(false);
+  /** Authenticated but nothing ever rendered; treated as unavailable. */
+  const [tilesTimedOut, setTilesTimedOut] = useState(false);
   // Which kind of failure: a configuration problem (missing/rejected server
   // key) gets its own message — telling the user to "try again later" for a
   // key that will never appear on its own sent them chasing a ghost.
@@ -114,9 +126,16 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   }, [userLocation]);
 
   // ---- map bootstrap --------------------------------------------------------
+  //
+  // The container stays covered by our own placeholder until a tile actually
+  // paints. This is what stops Google's "didn't load Google Maps correctly" card
+  // from ever being seen: constructing the Map is what triggers the rejection,
+  // and gm_authFailure fires in that same moment — but only AFTER the element
+  // exists. Revealing on `tilesloaded` means the container is only uncovered
+  // once Google has genuinely rendered something.
   useEffect(() => {
     if (mapsStatus !== 'ready' || !mapNodeRef.current || mapRef.current) return;
-    mapRef.current = new google.maps.Map(mapNodeRef.current, {
+    const map = new google.maps.Map(mapNodeRef.current, {
       center: ISTANBUL,
       zoom: DEFAULT_ZOOM,
       mapId: MAP_ID,
@@ -125,7 +144,28 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       fullscreenControl: false,
       clickableIcons: false,
     });
+    mapRef.current = map;
+    const listener = google.maps.event.addListenerOnce(map, 'tilesloaded', () => setTilesReady(true));
+    return () => listener?.remove();
   }, [mapsStatus]);
+
+  // Belt-and-braces for the failures Google gives us no signal for at all: if
+  // the SDK authenticated but no tile ever arrives (a degraded/over-quota
+  // project, a silently dropped tile request), the visitor would otherwise sit
+  // in front of our placeholder forever. After this timeout we stop pretending
+  // and show the same fallback.
+  useEffect(() => {
+    if (mapsStatus !== 'ready' || tilesReady) return;
+    const timer = setTimeout(() => {
+      setTilesTimedOut(true);
+      devDiagnose(
+        'ready',
+        `The SDK authenticated but no map tile rendered within ${TILE_TIMEOUT_MS}ms. ` +
+          'Typically a project-level quota/billing problem, which Google exposes no callback for.',
+      );
+    }, TILE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [mapsStatus, tilesReady]);
 
   useEffect(() => {
     placeFavorites.list().then(setFavorites).catch(() => {});
@@ -335,7 +375,11 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             .slice(0, 5)
             .map((p) => ({ placeId: p.placeId, text: p.text.toString() })),
         );
-      } catch {
+      } catch (e) {
+        // Suggestions vanishing is not itself alarming to a visitor (the search
+        // button still works), so this stays silent on screen — but it is often
+        // the FIRST sign of a rejected key, so the owner gets it in dev.
+        devDiagnose('ready', 'Places Autocomplete request failed — often the earliest sign of a key problem.', e);
         if (alive) setSuggestions([]);
       }
     }, 250);
@@ -438,18 +482,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       : t('map.distanceKm', { km: (m / 1000).toFixed(1) });
 
   // ---- SDK-level failures ---------------------------------------------------
-  if (mapsStatus === 'no-key' || mapsStatus === 'error') {
+  // no-key / error / blocked, plus the case where the SDK reported success but
+  // no tile ever painted. All four resolve to the SAME dignified fallback: the
+  // visitor is never told which, and never shown Google's own error card.
+  if (isMapUnavailable(mapsStatus) || tilesTimedOut) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
-        <div className="card p-8">
-          <div className="icon-chip mx-auto">
-            <AppIcon name="alert-triangle" className="w-6 h-6" />
-          </div>
-          <h1 className="mt-4 text-xl font-extrabold text-navy">{t('map.error.title')}</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            {t(mapsStatus === 'no-key' ? 'map.error.noKey' : 'map.error.body')}
-          </p>
-        </div>
+      <div className="mx-auto max-w-2xl px-4 py-16">
+        <MapUnavailable variant="map" />
       </div>
     );
   }
@@ -557,8 +596,24 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             aria-label={t('map.title')}
             className={`w-full rounded-2xl border border-gray-200 overflow-hidden bg-cream ${compact ? 'h-[320px]' : 'h-[560px]'}`}
           />
+          {/* Our own placeholder, covering the container until a tile paints.
+              Two jobs: it is the loading state, and it is the shield that keeps
+              Google's error card off the screen during the moment when a
+              rejected key is being discovered. Deliberately branded rather than
+              an empty grey rectangle. */}
+          {!tilesReady && (
+            <div
+              aria-hidden
+              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-gray-200 bg-cream"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold text-navy/40">
+                <AppIcon name="map-pin" className="w-5 h-5 animate-pulse" />
+                {t('common.loading')}
+              </span>
+            </div>
+          )}
           {/* my-location control, floating over the map */}
-          {mapsStatus === 'ready' && (
+          {mapsStatus === 'ready' && tilesReady && (
             <button
               onClick={locateMe}
               disabled={locating}
@@ -588,28 +643,18 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
           )}
 
           {state === 'error' && (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-center">
-              <AppIcon name="alert-triangle" className="mx-auto w-5 h-5 text-amber-700" />
-              {searchError === 'no_key' || searchError === 'key_rejected' ? (
-                <>
-                  {/* Configuration problem — retrying cannot fix a key that is
-                      missing on the server, so say what is actually wrong. */}
-                  <p className="mt-2 text-sm font-semibold text-navy">{t('map.error.searchKeyTitle')}</p>
-                  <p className="mt-1 text-xs text-gray-600">{t('map.error.searchKeyBody')}</p>
-                </>
-              ) : (
-                <>
-                  <p className="mt-2 text-sm font-semibold text-navy">{t('map.error.title')}</p>
-                  <p className="mt-1 text-xs text-gray-600">{t('map.error.body')}</p>
-                  <button
-                    onClick={() => (category ? runSearch('nearby', category) : submitQuery())}
-                    className="btn-secondary mt-4 min-h-[44px]"
-                  >
-                    {t('map.retry')}
-                  </button>
-                </>
-              )}
-            </div>
+            /* A server-key problem cannot be fixed by retrying, so no retry
+               button is offered for it — but the visitor is told the same
+               plain thing either way. What used to be here named the
+               GOOGLE_MAPS_SERVER_KEY environment variable on screen. */
+            <MapUnavailable
+              variant="search"
+              onRetry={
+                searchError === 'no_key' || searchError === 'key_rejected'
+                  ? undefined
+                  : () => (category ? runSearch('nearby', category) : submitQuery())
+              }
+            />
           )}
 
           {state === 'empty' && (
