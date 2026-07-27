@@ -107,6 +107,10 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
   if (msg.includes('already registered') || msg.includes('already been registered')) throw new ApiError('email_exists', 400);
   if (msg.includes('password should be') || msg.includes('weak')) throw new ApiError('weak_password', 400);
   if (msg.includes('unable to validate email') || msg.includes('invalid email')) throw new ApiError('bad_email', 400);
+  // Raised by trg_service_requests_rate_limit. Distinguishable so the form can
+  // say "we already have your request" instead of a generic failure, which
+  // would invite exactly the retry the limit is refusing.
+  if (msg.includes('service_request_rate_limit')) throw new ApiError('rate_limited', 429);
   if (msg.includes('not_admin')) throw new ApiError('forbidden', 403);
   if (msg.includes('not_authenticated')) throw new ApiError('not_authenticated', 401);
   throw new ApiError(fallback, status);

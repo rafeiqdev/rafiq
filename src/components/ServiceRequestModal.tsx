@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { serviceRequests, ApiError } from '../lib/api';
+import { checkSubmitThrottle, recordSubmit } from '../lib/submitThrottle';
+import { relativeTime } from '../lib/relativeTime';
 import { ISTANBUL_AREAS, pickArea } from '../data/istanbulAreas';
 import { useApp } from '../context/AppContext';
 import { Modal } from './Modal';
@@ -58,6 +60,12 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const [error, setError] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [nameTouched, setNameTouched] = useState(false);
+  /** Honeypot. Never shown, never focusable, never announced — only a bot fills it. */
+  const [website, setWebsite] = useState('');
+  /** Localised "in 2 minutes" while the client cooldown is blocking. */
+  const [throttledWhen, setThrottledWhen] = useState<string | null>(null);
+  /** The database trigger refused the insert (a real flood, or storage cleared). */
+  const [rateLimited, setRateLimited] = useState(false);
 
   const phoneValid = isValidPhone(phone);
   const showPhoneError = phoneTouched && phone.trim().length > 0 && !phoneValid;
@@ -73,8 +81,29 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
       setPhoneTouched(true);
       return;
     }
+
+    // Honeypot tripped. Show the bot exactly what a success looks like and
+    // insert nothing — a visible rejection just teaches the next attempt which
+    // field to leave alone.
+    if (website.trim() !== '') {
+      setDone(true);
+      return;
+    }
+
+    // Client cooldown. Not security (it is the visitor's own localStorage), just
+    // enough to stop double-taps and casual repeats before they reach the
+    // database. Deliberately stricter than the server trigger, so a normal
+    // browser meets this friendly message rather than a database exception.
+    const verdict = checkSubmitThrottle();
+    if (!verdict.allowed) {
+      setThrottledWhen(relativeTime(new Date(Date.now() + verdict.retryInMs).toISOString(), lang));
+      return;
+    }
+
     setBusy(true);
     setError(false);
+    setThrottledWhen(null);
+    setRateLimited(false);
     try {
       const res = await serviceRequests.create({
         name: name.trim(),
@@ -89,6 +118,8 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
         area: broadcast ? area || undefined : undefined,
         broadcast,
       });
+      // Only a genuinely accepted insert counts against the cooldown.
+      recordSubmit();
       setRequestId(res.id);
       setDone(true);
       // WhatsApp is the ONLY channel that reaches the admin while they are not
@@ -105,8 +136,11 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
         window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
       }
     } catch (e) {
-      setError(true);
-      if (e instanceof ApiError && e.status === 503) setError(true);
+      // The database trigger is distinguishable from a generic failure, so the
+      // customer is told "we already have your request" rather than "something
+      // went wrong" — which would invite the retry the limit is refusing.
+      if (e instanceof ApiError && e.code === 'rate_limited') setRateLimited(true);
+      else setError(true);
     } finally {
       setBusy(false);
     }
@@ -241,6 +275,43 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                   {t('services.modal.error')}
                 </p>
               )}
+              {/*
+                Honeypot. Off-screen rather than display:none — plenty of form
+                bots skip hidden inputs but happily fill one that is merely
+                positioned away, and off-screen keeps it in the accessibility
+                tree's reach so aria-hidden is doing real work rather than
+                decorating an already-removed node. Never focusable (tabIndex
+                -1), never announced (aria-hidden), never autofilled
+                (autoComplete off), and excluded from the tab order, so no
+                sighted, keyboard or screen-reader user can reach it.
+              */}
+              <div
+                aria-hidden
+                style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}
+              >
+                <label htmlFor="sr-website">Website</label>
+                <input
+                  id="sr-website"
+                  name="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                />
+              </div>
+
+              {throttledWhen && (
+                <p role="status" className="mt-3 rounded-xl bg-brand-blue/60 px-3 py-2 text-sm text-navy">
+                  {t('services.modal.throttled', { when: throttledWhen })}
+                </p>
+              )}
+              {rateLimited && (
+                <p role="status" className="mt-3 rounded-xl bg-brand-blue/60 px-3 py-2 text-sm text-navy">
+                  {t('services.modal.rateLimited')}
+                </p>
+              )}
+
               <p className="mt-3 text-xs text-center text-navy/50">{t('services.modal.noAccountNote')}</p>
               <div className="mt-5 flex gap-2">
                 <button onClick={onClose} className="btn-secondary flex-1">

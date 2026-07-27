@@ -74,6 +74,9 @@ beforeEach(() => {
   vi.stubGlobal('open', openSpy);
   useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Test' } });
   createMock.mockReset();
+  // The client cooldown persists in localStorage; without this every test
+  // after the first would be blocked by the previous one's submission.
+  localStorage.clear();
 });
 
 afterEach(() => {
@@ -143,5 +146,124 @@ describe('WhatsApp hand-off after a successful submission', () => {
 
     await waitFor(() => expect(createMock).toHaveBeenCalled());
     expect(openSpy).not.toHaveBeenCalled();
+  });
+});
+
+/** The honeypot input — off-screen, aria-hidden, never focusable. */
+const honeypot = () => document.querySelector('input[name="website"]') as HTMLInputElement;
+
+describe('honeypot (S5, bot filter)', () => {
+  it('exists but is hidden from sighted users and from screen readers', async () => {
+    await renderModal();
+    const field = honeypot();
+
+    expect(field).toBeTruthy();
+    expect(field.tabIndex).toBe(-1);
+    expect(field.getAttribute('autocomplete')).toBe('off');
+    // aria-hidden lives on the wrapper, which is what removes it from the tree.
+    expect(field.closest('[aria-hidden]')).not.toBeNull();
+  });
+
+  it('is not reachable in the tab order or by accessible name', async () => {
+    await renderModal();
+
+    // getByRole ignores aria-hidden subtrees — if this finds it, it is announced.
+    expect(screen.queryByRole('textbox', { name: /website/i })).toBeNull();
+  });
+
+  it('does NOT insert when filled, and shows the bot a success screen', async () => {
+    createMock.mockResolvedValue({ ok: true, id: 'req-1' });
+
+    await renderModal();
+    fillValidForm();
+    fireEvent.change(honeypot(), { target: { value: 'http://spam.example' } });
+    submit();
+
+    await waitFor(() => expect(screen.getByText('services.modal.successTitle')).toBeInTheDocument());
+    expect(createMock).not.toHaveBeenCalled();
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('submits normally when the honeypot is left alone', async () => {
+    createMock.mockResolvedValue({ ok: true, id: 'req-1' });
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe('client cooldown (S5)', () => {
+  it('blocks a second submit inside the cooldown with a reassuring message', async () => {
+    createMock.mockResolvedValue({ ok: true, id: 'req-1' });
+
+    // First submission records the timestamp.
+    const first = await renderModal();
+    fillValidForm();
+    submit();
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    first.unmount();
+
+    // Second attempt, same minute.
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    const note = await screen.findByRole('status');
+    expect(note).toHaveTextContent('services.modal.throttled');
+    // Never an error, and never a silent no-op.
+    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('services.modal.error')).toBeNull();
+  });
+
+  it('allows a legitimate second submit once the cooldown has passed', async () => {
+    createMock.mockResolvedValue({ ok: true, id: 'req-1' });
+
+    const first = await renderModal();
+    fillValidForm();
+    submit();
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    first.unmount();
+
+    // Age the stored timestamp past the cooldown.
+    localStorage.setItem('rafiq_sr_submits', JSON.stringify([Date.now() - 61_000]));
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(2));
+  });
+
+  it('does not count a failed submission against the cooldown', async () => {
+    createMock.mockRejectedValueOnce(new Error('network')).mockResolvedValueOnce({ ok: true, id: 'r' });
+
+    const first = await renderModal();
+    fillValidForm();
+    submit();
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    first.unmount();
+
+    // Immediately retrying after a failure must be allowed.
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(2));
+  });
+
+  it('shows the dedicated message when the DATABASE trigger refuses the insert', async () => {
+    const { ApiError } = await import('../lib/api');
+    createMock.mockRejectedValue(new ApiError('rate_limited', 429));
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    const note = await screen.findByRole('status');
+    expect(note).toHaveTextContent('services.modal.rateLimited');
+    expect(screen.queryByText('services.modal.error')).toBeNull();
   });
 });

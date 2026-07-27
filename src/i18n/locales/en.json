@@ -860,6 +860,8 @@
       "send": "Send request",
       "sending": "Sending…",
       "noAccountNote": "No account needed — our team will reach out within 24 hours.",
+      "throttled": "We already have your request and our team is on it. If you need to send another one, you can {{when}}.",
+      "rateLimited": "We've received several requests from this number in the last hour and they're all safely with our team. There's no need to resend — we'll be in touch shortly.",
       "successTitle": "Request received",
       "successBody": "Thank you — our team will contact you shortly.",
       "whatsapp": "Continue on WhatsApp",
