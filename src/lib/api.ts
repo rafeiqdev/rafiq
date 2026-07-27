@@ -1929,17 +1929,33 @@ export const adminCompanies = {
 };
 
 export const customerRequests = {
-  /** The current user's broadcast requests (their "request page"). */
-  async mine(): Promise<CustomerRequest[]> {
+  /**
+   * EVERY request this customer owns — no filter beyond ownership.
+   *
+   * This was `mine()`, and it also carried `.eq('broadcast', true)`. That name
+   * is the actual root cause of a long investigation: "mine" reads as "all of
+   * mine", so nothing about the call site suggested that a direct request —
+   * correctly stored, correctly owned, readable under RLS — was being discarded
+   * by the client. A customer submitted a request and was shown a page saying
+   * he had never made one.
+   *
+   * The rename is the fix; dropping the .eq() is only the symptom. If a
+   * broadcast-only read is ever needed it gets its own explicitly named
+   * function, never this one with a filter smuggled inside.
+   */
+  async allMine(): Promise<CustomerRequest[]> {
     const uid = await requireUid();
     const { data, error } = await sb().from('service_requests')
-      .select('id,service_title,category,area,message,status,created_at')
-      .eq('customer_id', uid).eq('broadcast', true).order('created_at', { ascending: false });
+      .select('id,service_title,category,service_type,area,message,status,broadcast,created_at')
+      .eq('customer_id', uid).order('created_at', { ascending: false });
     if (error) fail(error);
-    interface Row { id: string; service_title: string | null; category: string | null; area: string | null; message: string | null; status: string; created_at: string; }
+    interface Row { id: string; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
     return ((data ?? []) as Row[]).map((r) => ({
       id: r.id, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
       message: r.message ?? null, status: r.status, createdAt: r.created_at,
+      // Carried for behaviour (whether to poll for offers), never for display:
+      // the customer must never see a partner/direct or broadcast distinction.
+      serviceType: r.service_type ?? '', broadcast: r.broadcast === true,
     }));
   },
   /** Top-5 responses on a lead, ranked by company rating (server-side). */

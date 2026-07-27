@@ -13,6 +13,7 @@ import { ReviewStars, StarRatingInput } from '../../components/ReviewStars';
 import { SiteImage } from '../../components/SiteImage';
 import { EXPLORE_PHOTOS } from '../../lib/images';
 import { MobileTabBar } from '../../components/MobileTabBar';
+import { RequestStatusPill } from '../../components/RequestStatusPill';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -132,14 +133,23 @@ function RequestRow({ req }: { req: CustomerRequest }) {
             {new Date(req.createdAt).toLocaleDateString(i18n.language)}
           </p>
         </div>
+        {/* What the admin did with it — the only signal the customer gets that
+            anyone has looked at their request. */}
+        <RequestStatusPill status={req.status} className="shrink-0" />
       </button>
 
       {open && (
         <div className="border-t border-cream-dark p-4">
+          {req.message && <p className="mb-3 text-[13px] text-navy/70 break-anywhere">“{req.message}”</p>}
           {responses === null ? (
             <p className="text-[13px] text-gray-500">{t('common.loading')}</p>
           ) : responses.length === 0 ? (
-            <p className="text-[13px] text-gray-500">{t('requests.noResponses')}</p>
+            /* Nothing at all about offers when there are none. The old copy
+               promised that "companies nearby will respond soon", which is
+               false for a direct request and would also have told the customer
+               which kind of request they had made. A request with no offers now
+               looks identical either way. */
+            null
           ) : (
             <>
               <p className="text-[13px] font-extrabold text-navy">
@@ -220,7 +230,7 @@ function MobileMyRequestsInner() {
   const [rows, setRows] = useState<CustomerRequest[] | null>(null);
 
   useEffect(() => {
-    customerRequests.mine().then(setRows).catch(() => setRows([]));
+    customerRequests.allMine().then(setRows).catch(() => setRows([]));
   }, []);
 
   const lang = (i18n.language || 'en').split('-')[0];

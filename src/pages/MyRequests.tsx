@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { customerRequests, reviews } from '../lib/api';
+import { RequestStatusPill } from '../components/RequestStatusPill';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
 import { pickArea } from '../data/istanbulAreas';
 import { RequireAuth } from '../components/Gates';
@@ -85,19 +86,28 @@ function RequestRow({ req }: { req: CustomerRequest }) {
         <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
         <span className="flex-1 min-w-0">
           <span className="font-semibold text-navy block">{req.serviceTitle}</span>
-          <span className="text-xs text-navy/50 inline-flex items-center gap-2">
+          <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
             {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
             <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
           </span>
         </span>
+        {/* What the admin did with it — the only signal the customer gets that
+            anyone has looked at their request. */}
+        <RequestStatusPill status={req.status} />
       </button>
 
       {open && (
         <div className="mt-4 border-t border-cream-dark pt-4">
+          {req.message && <p className="text-sm text-navy/70 break-anywhere mb-3">“{req.message}”</p>}
           {responses === null ? (
             <p className="text-sm text-gray-500">{t('common.loading')}</p>
           ) : responses.length === 0 ? (
-            <p className="text-sm text-gray-500">{t('requests.noResponses')}</p>
+            /* Nothing at all about offers when there are none. The old copy
+               promised that "companies nearby will respond soon", which is
+               false for a direct request and would also have told the customer
+               which kind of request they had made. A request with no offers now
+               looks identical either way. */
+            null
           ) : (
             <>
               <p className="text-xs font-bold text-navy/60 mb-2">{t('requests.responsesTitle', { count: responses.length })}</p>
@@ -153,7 +163,7 @@ function MyRequestsInner() {
   const [rows, setRows] = useState<CustomerRequest[] | null>(null);
 
   useEffect(() => {
-    customerRequests.mine().then(setRows).catch(() => setRows([]));
+    customerRequests.allMine().then(setRows).catch(() => setRows([]));
   }, []);
 
   return (

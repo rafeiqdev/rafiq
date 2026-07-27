@@ -451,8 +451,16 @@ export interface CustomerRequest {
   category: string;
   area: string | null;
   message?: string | null;
+  /** new | pending | accepted | done | rejected — shown to the customer. */
   status: string;
   createdAt: string;
+  /**
+   * Behaviour only, NEVER rendered. The customer must not be able to tell a
+   * broadcast request from a direct one: a request with no offers looks
+   * identical either way.
+   */
+  serviceType: string;
+  broadcast: boolean;
 }
 
 export interface Review {
