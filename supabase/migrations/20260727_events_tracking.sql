@@ -227,8 +227,57 @@ create trigger trg_events_guard
 -- expect: 1 row, tgenabled = 'O', prosecdef = t
 
 -- ============================================================================
--- RETENTION — run by hand periodically (pg_cron is not installed on this
--- project, so this is NOT scheduled automatically; see the analytics feature
--- notes for the proposed cadence and period).
+-- RETENTION
+-- ----------------------------------------------------------------------------
+-- Two rules, settled:
+--   • meta.query (the visitor's own search text — the single documented free-text
+--     field in this table) is STRIPPED after 90 days. The reason to keep it at
+--     all is to learn what people search for and don't find, and that question
+--     is answered within a quarter. Past that it is only residual exposure on a
+--     catalog covering health and immigration.
+--   • Rows are DELETED entirely after 14 months, which leaves a full year of
+--     history plus a margin for year-over-year comparison.
+--
+-- SECURITY DEFINER is required: there is deliberately no UPDATE or DELETE policy
+-- on this table for anyone, so retention could not run as a normal caller. This
+-- function is the one sanctioned exception, and it is the ONLY way rows are ever
+-- modified — the app never calls it.
+--
+-- NOT SCHEDULED. pg_cron is not installed on this project, so nothing runs this
+-- automatically. Until something does, retention is a claim we are not keeping:
+-- do not state a deletion period in the privacy policy until this is invoked on
+-- a real schedule. Run it by hand, or wire an external scheduler to call it.
 -- ============================================================================
--- delete from public.events where created_at < now() - interval '14 months';
+create or replace function public.events_apply_retention()
+returns table(queries_stripped bigint, rows_deleted bigint)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_stripped bigint;
+  v_deleted  bigint;
+begin
+  if not public.is_admin() then raise exception 'not_admin'; end if;
+
+  update public.events
+     set meta = meta - 'query'
+   where created_at < now() - interval '90 days'
+     and meta ? 'query';
+  get diagnostics v_stripped = row_count;
+
+  delete from public.events
+   where created_at < now() - interval '14 months';
+  get diagnostics v_deleted = row_count;
+
+  return query select v_stripped, v_deleted;
+end;
+$$;
+
+revoke all on function public.events_apply_retention() from public, anon;
+grant execute on function public.events_apply_retention() to authenticated;
+
+comment on function public.events_apply_retention() is
+  'Strips meta.query after 90 days and deletes rows after 14 months. Admin-only. NOT scheduled — pg_cron is not installed; invoke from an external scheduler or by hand.';
+
+-- Run it:  select * from public.events_apply_retention();

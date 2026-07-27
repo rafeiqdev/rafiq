@@ -261,12 +261,14 @@ export interface Listing {
 /** A user row in the admin dashboard, with engagement stats. */
 export interface AdminUser extends User {
   tier: PlanTier;
-  clicks: number;
-  signups: number;
-  earnedTl: number;
-  bookings: number;
-  leads: number;
-  payments: number;
+  /**
+   * null = that table could not be read, NOT zero. Rendered as "—" so an
+   * unreadable source is never reported to the admin as "this customer did
+   * nothing".
+   */
+  bookings: number | null;
+  leads: number | null;
+  payments: number | null;
 }
 
 export interface ChatMessage {

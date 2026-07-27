@@ -350,3 +350,69 @@ describe('page_view auto-capture on route change', () => {
     expect(lastBody()[0]).toMatchObject({ event_type: 'page_view', path: '/services' });
   });
 });
+
+/**
+ * public.events was never created in the live database. Every batch since the
+ * collection layer shipped was POSTed and discarded by the catch at the end of
+ * flush() — a consenting visitor firing a doomed request roughly every 10
+ * seconds of activity plus one on page-hide, invisibly, for zero stored rows.
+ *
+ * PostgREST answers 404 for an unknown relation, so that answer is treated as
+ * "there is nowhere to put this" and collection stops for the page load. It is
+ * NOT persisted: the next page load tries again, so creating the table brings
+ * collection back with no redeploy.
+ */
+describe('missing events table', () => {
+  const missing = () =>
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 404 }) as unknown as Promise<Response>));
+
+  it('stops sending after the sink answers 404', async () => {
+    missing();
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    // Everything after the 404 is dropped before it reaches the network.
+    for (let i = 0; i < 30; i++) track('service_click', { target: 'x' });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS * 5);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT give up on 401/403 — those are RLS or key faults, not a missing table', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: false, status: 401 }) as unknown as Promise<Response>));
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('resets on the next page load, so creating the table needs no redeploy', async () => {
+    missing();
+    const first = await freshAnalytics();
+    first.setConsent('granted');
+    vi.useFakeTimers();
+    first.track('page_view');
+    await vi.advanceTimersByTimeAsync(first.FLUSH_INTERVAL_MS);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    // A fresh module instance is what a new page load looks like.
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, status: 201 }) as unknown as Promise<Response>));
+    const second = await freshAnalytics();
+    second.setConsent('granted');
+    second.track('page_view');
+    await vi.advanceTimersByTimeAsync(second.FLUSH_INTERVAL_MS);
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});

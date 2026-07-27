@@ -234,6 +234,29 @@ function endpointUrl(): string | null {
   return SUPABASE_URL ? `${SUPABASE_URL}/rest/v1/events` : null;
 }
 
+/**
+ * Set once the sink answers "that table does not exist", after which this
+ * module stops collecting entirely for the rest of the page's life.
+ *
+ * public.events was never created in the live database, so every batch since
+ * the collection layer shipped has been POSTed and thrown away — a consenting
+ * visitor generating a doomed request roughly every 10 seconds of activity plus
+ * one more on page-hide, all silently, because flush() ends in a catch that
+ * deliberately never surfaces. That was wasted bandwidth on real phones for
+ * zero stored rows.
+ *
+ * Deliberately module state and NOT persisted: it resets on the next page load,
+ * so the moment the table is created collection resumes on its own with no
+ * redeploy and no flag to remember to flip back.
+ */
+let sinkMissing = false;
+
+/** PostgREST answers 404 for an unknown relation. 401/403 are NOT this — those
+ *  are RLS or key problems, where retrying is legitimate. */
+function isMissingTable(status: number): boolean {
+  return status === 404;
+}
+
 function scheduleFlush(): void {
   if (flushTimer) return;
   flushTimer = setTimeout(() => {
@@ -281,6 +304,10 @@ async function sessionToken(): Promise<string> {
  *  module reloads, would pile up stale listeners on jsdom's single shared
  *  window). Call sites should not call this directly — track() schedules it. */
 export async function flush(reason: 'interval' | 'unload'): Promise<void> {
+  if (sinkMissing) {
+    queue = [];
+    return;
+  }
   if (queue.length === 0) return;
   const batch = queue;
   queue = [];
@@ -304,7 +331,7 @@ export async function flush(reason: 'interval' | 'unload'): Promise<void> {
 
   try {
     const token = await sessionToken();
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       keepalive: true,
       headers: {
@@ -315,6 +342,14 @@ export async function flush(reason: 'interval' | 'unload'): Promise<void> {
       },
       body: JSON.stringify(batch),
     });
+    if (isMissingTable(res.status)) {
+      sinkMissing = true;
+      queue = [];
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.warn('[analytics] public.events does not exist — collection disabled for this page load');
+      }
+    }
   } catch {
     /* best-effort — a lost analytics batch must never surface to the user */
   }
@@ -332,6 +367,7 @@ if (typeof window !== 'undefined') {
 export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): void {
   try {
     if (typeof window === 'undefined') return;
+    if (sinkMissing) return; // nowhere to store it — do not queue, do not send
     if (isDoNotTrackEnabled()) return;
     if (getConsent() !== 'granted') return;
 

@@ -915,15 +915,76 @@ interface OverviewRow {
 }
 
 export const adminUsers = {
+  /**
+   * Built from tables the admin already reads elsewhere on this page, NOT from
+   * an RPC.
+   *
+   * This used to call admin_users_overview(). That function was never committed
+   * to schema.sql or to any migration — it only ever existed as a hand-made
+   * object in the dashboard — and it is absent from the live database, so the
+   * users table had been dead. Every RPC we depend on is another object that can
+   * go missing without the app noticing; `profiles` cannot.
+   *
+   * Not N+1: a fixed five queries regardless of how many users there are.
+   *
+   * `profiles` is the identity spine — if that read fails, the section failed
+   * and says so. The four aggregate reads are best-effort and their counts go
+   * NULL (rendered "—") rather than 0 when unreadable, because a silent zero is
+   * the same lie in miniature.
+   */
   async list(): Promise<AdminUser[]> {
-    const { data, error } = await sb().rpc('admin_users_overview');
+    const c = sb();
+    const { data: profs, error } = await c
+      .from('profiles')
+      .select('id,email,name,role,referral_code,created_at')
+      .order('created_at', { ascending: false });
     if (error) fail(error);
-    return (data as OverviewRow[]).map((r) => ({
-      id: r.id, email: r.email ?? '', name: r.name ?? (r.email ?? '').split('@')[0],
-      provider: r.provider === 'google' ? 'google' : 'email', isAdmin: r.is_admin,
-      role: r.is_admin ? 'admin' : 'user', isCompany: false, onboardingCompleted: false,
-      referralCode: r.referral_code ?? '', createdAt: r.created_at, tier: r.tier,
-      clicks: r.clicks, signups: r.signups, earnedTl: r.earned_tl, bookings: r.bookings, leads: r.leads, payments: r.payments,
+
+    const [subs, bk, ld, pay] = await Promise.allSettled([
+      c.from('subscriptions').select('user_id,tier,status'),
+      c.from('bookings').select('user_id'),
+      c.from('leads').select('user_id'),
+      c.from('payments').select('user_id'),
+    ]);
+
+    /** user_id -> count, or null when that table could not be read at all. */
+    const tally = (r: PromiseSettledResult<{ data: unknown; error: unknown }>): Map<string, number> | null => {
+      if (r.status !== 'fulfilled' || r.value.error) return null;
+      const m = new Map<string, number>();
+      for (const row of (r.value.data as { user_id: string | null }[]) ?? []) {
+        if (row.user_id) m.set(row.user_id, (m.get(row.user_id) ?? 0) + 1);
+      }
+      return m;
+    };
+    const bookingsBy = tally(bk);
+    const leadsBy = tally(ld);
+    const paymentsBy = tally(pay);
+
+    const tierBy = new Map<string, PlanTier>();
+    if (subs.status === 'fulfilled' && !subs.value.error) {
+      for (const s of (subs.value.data as { user_id: string; tier: PlanTier; status: string }[]) ?? []) {
+        if (s.status === 'active') tierBy.set(s.user_id, s.tier);
+      }
+    }
+
+    interface ProfileListRow { id: string; email: string | null; name: string | null; role: string | null; referral_code: string | null; created_at: string }
+    return ((profs ?? []) as ProfileListRow[]).map((p) => ({
+      id: p.id,
+      email: p.email ?? '',
+      name: p.name ?? (p.email ?? '').split('@')[0],
+      // Sign-in provider lives on auth.users, which is not reachable from the
+      // browser at all. It was never rendered; it is no longer invented.
+      provider: 'email' as const,
+      isAdmin: p.role === 'admin',
+      role: p.role === 'admin' ? 'admin' : 'user',
+      isCompany: p.role === 'company',
+      onboardingCompleted: false,
+      referralCode: p.referral_code ?? '',
+      createdAt: p.created_at,
+      tier: tierBy.get(p.id) ?? 'free',
+      bookings: bookingsBy ? (bookingsBy.get(p.id) ?? 0) : null,
+      leads: leadsBy ? (leadsBy.get(p.id) ?? 0) : null,
+      payments: paymentsBy ? (paymentsBy.get(p.id) ?? 0) : null,
     }));
   },
   async setTier(id: string, tier: PlanTier): Promise<{ ok: true }> {

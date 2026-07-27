@@ -15,6 +15,8 @@ import { FxRatesPanel } from '../components/admin/FxRatesPanel';
 import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
+import { SectionState } from '../components/admin/SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];
 const HAS_KEYS = ['turkishPhone', 'taxNumber', 'residencePermit', 'bankAccount'] as const;
@@ -25,20 +27,26 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<{ onboarding: Profile | null; bookings: Booking[]; leads: Lead[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  // A detail panel that failed to load must not present as a customer with no
+  // history. This was `catch { /* ignore */ }`, which did exactly that.
+  const [failed, setFailed] = useState(false);
+
+  const loadDetail = async () => {
+    setLoading(true);
+    setFailed(false);
+    try {
+      setDetail(await adminUsers.detail(u.id));
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggle = async () => {
     const next = !open;
     setOpen(next);
-    if (next && !detail) {
-      setLoading(true);
-      try {
-        setDetail(await adminUsers.detail(u.id));
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-      }
-    }
+    if (next && !detail) await loadDetail();
   };
 
   const ob = detail?.onboarding ?? null;
@@ -60,13 +68,9 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
           </button>
         </td>
         <td className="py-2.5 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString(i18n.language)}</td>
-        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.clicks}</td>
-        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.signups}</td>
-        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.bookings}</td>
-        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.leads}</td>
-        <td className="py-2.5 text-center font-semibold text-navy whitespace-nowrap" dir="ltr">
-          {u.earnedTl.toLocaleString()} {t('common.tl')}
-        </td>
+        {/* "—" means that table could not be read. It is NOT zero. */}
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.bookings ?? '—'}</td>
+        <td className="py-2.5 text-center font-semibold text-navy" dir="ltr">{u.leads ?? '—'}</td>
         <td className="py-2.5">
           <select
             className="input !h-9 !w-auto text-xs"
@@ -84,9 +88,19 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
       </tr>
       {open && (
         <tr className="bg-cream/50">
-          <td colSpan={8} className="px-4 py-4">
+          <td colSpan={5} className="px-4 py-4">
             {loading ? (
-              <p className="text-xs text-gray-500">…</p>
+              <p className="text-xs text-gray-500">{t('common.loading')}</p>
+            ) : failed ? (
+              <div role="alert">
+                <p className="flex items-center gap-2 text-xs font-semibold text-brand-red">
+                  <AppIcon name="alert-triangle" className="w-3.5 h-3.5 shrink-0" />
+                  {t('common.error')}
+                </p>
+                <button onClick={loadDetail} className="btn-secondary mt-2 min-h-[44px] px-4 text-xs">
+                  {t('chat.retry')}
+                </button>
+              </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-3 text-sm">
                 {/* persona / profile */}
@@ -161,35 +175,41 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
 function AdminInner() {
   const { t, i18n } = useTranslation();
   const { refresh } = useApp();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [pending, setPending] = useState<PaymentRequest[]>([]);
   const [news, setNews] = useState('');
-  const [broadcasts, setBroadcasts] = useState<{ id: string; customText: string; createdAt: string }[]>([]);
-  const [allLeads, setAllLeads] = useState<Lead[]>([]);
-  const [cancellations, setCancellations] = useState<{ userId: string; tier: string; reason: string | null; comment: string | null; expiresAt: string }[]>([]);
   // USD/TRY and EUR/TRY moved to fx_rates (daily sync + FxRatesPanel). Only the
   // Syrian pound is still hand-set here, because no free feed prices it reliably.
   const [syp, setSyp] = useState('');
-  const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
   const [ratesSaved, setRatesSaved] = useState(false);
 
-  const load = async () => {
-    const [us, ps, bs, ls, rt, cx] = await Promise.all([
-      adminUsers.list(),
-      adminPayments.pending(),
-      notifications.broadcasts(),
-      leads.adminList(),
-      adminRates.get(),
-      adminUsers.cancellations(),
-    ]);
-    setUsers(us);
-    setPending(ps);
-    setBroadcasts(bs);
-    setAllLeads(ls);
-    setCancellations(cx);
-    setSyp(rt.sypusd != null ? String(rt.sypusd) : '');
-    setRatesUpdatedAt(rt.updatedAt);
-  };
+  /**
+   * Six INDEPENDENT sections, not one Promise.all.
+   *
+   * This was a single Promise.all of all six with `load().catch(() => {})` on
+   * the effect. Promise.all rejects if any member rejects, so nothing after the
+   * await ran and users, payments, broadcasts, leads and cancellations all
+   * stayed at their `[]` initial value at once — with the reason thrown away.
+   * When admin_users_overview turned out not to exist in the live database, the
+   * whole dashboard read as a quiet week. One missing object, five lying
+   * sections.
+   *
+   * Each section now owns its request, its status and its retry, so a failure
+   * is scoped to the thing that failed and is visible as an error rather than
+   * as emptiness.
+   */
+  const usersSec = useAsyncSection(() => adminUsers.list(), []);
+  const paymentsSec = useAsyncSection(() => adminPayments.pending(), []);
+  const broadcastsSec = useAsyncSection(() => notifications.broadcasts(), []);
+  const leadsSec = useAsyncSection(() => leads.adminList(), []);
+  const cancellationsSec = useAsyncSection(() => adminUsers.cancellations(), []);
+  const ratesSec = useAsyncSection(() => adminRates.get(), []);
+
+  // The SYP input is seeded from the rates section once it lands, and only when
+  // untouched — so a reload can never overwrite what the admin is typing.
+  const loadedRates = ratesSec.status === 'ready' ? ratesSec.data : null;
+  const ratesUpdatedAt = loadedRates?.updatedAt ?? null;
+  useEffect(() => {
+    if (loadedRates) setSyp(loadedRates.sypusd != null ? String(loadedRates.sypusd) : '');
+  }, [loadedRates]);
 
   const saveRates = async () => {
     const s = Number(syp);
@@ -199,23 +219,18 @@ function AdminInner() {
     await adminRates.set(0, 0, s);
     setRatesSaved(true);
     setTimeout(() => setRatesSaved(false), 2000);
-    await load();
+    ratesSec.reload();
   };
-
-  useEffect(() => {
-    load().catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const setTier = async (userId: string, tier: PlanTier) => {
     await adminUsers.setTier(userId, tier);
-    await load();
+    usersSec.reload();
     await refresh();
   };
 
   const resolvePayment = async (id: string, status: 'verified' | 'rejected') => {
     await adminPayments.resolve(id, status);
-    await load();
+    paymentsSec.reload();
     await refresh();
   };
 
@@ -223,7 +238,23 @@ function AdminInner() {
     if (!news.trim()) return;
     await notifications.publish(news.trim());
     setNews('');
-    await load();
+    broadcastsSec.reload();
+  };
+
+  // Stats summarise the users section, so they can only be as trustworthy as it
+  // is: while it is loading or failed they show "—" rather than 0. A dashboard
+  // headline reading "0 users" because a fetch failed is the same defect this
+  // whole commit exists to remove, just in larger type.
+  const usersData = usersSec.status === 'ready' ? usersSec.data : null;
+  const sumOf = (pick: (u: AdminUser) => number | null): string => {
+    if (!usersData) return '—';
+    let total = 0;
+    for (const u of usersData) {
+      const v = pick(u);
+      if (v == null) return '—'; // an unreadable source must not read as zero
+      total += v;
+    }
+    return String(total);
   };
 
   return (
@@ -239,10 +270,10 @@ function AdminInner() {
       {/* at-a-glance stats */}
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
         {([
-          ['statUsers', users.length, 'users'],
-          ['statPaying', users.filter((u) => u.tier !== 'free').length, 'star'],
-          ['statBookings', users.reduce((s, u) => s + u.bookings, 0), 'calendar'],
-          ['statLeads', users.reduce((s, u) => s + u.leads, 0), 'mail'],
+          ['statUsers', usersData ? String(usersData.length) : '—', 'users'],
+          ['statPaying', usersData ? String(usersData.filter((u) => u.tier !== 'free').length) : '—', 'star'],
+          ['statBookings', sumOf((u) => u.bookings), 'calendar'],
+          ['statLeads', sumOf((u) => u.leads), 'mail'],
         ] as const).map(([key, value, icon]) => (
           <div key={key} className="card p-4">
             <div className="flex items-center gap-2 text-navy/60 text-xs font-semibold">
@@ -295,38 +326,53 @@ function AdminInner() {
         </p>
       </div>
 
-      {/* users + tier control + engagement */}
+      {/* users + tier control. The referral columns (clicks / signups / earned)
+          are gone with the RPC: referral_clicks stores only a code and carries
+          no user_id, so per-user attribution is not derivable from the tables
+          the browser can read. Showing zeros there would be a guess presented
+          as a fact. */}
       <div className="card p-6 mt-5 overflow-x-auto">
         <h2 className="font-bold text-navy">{t('admin.users.title')}</h2>
-        <table className="mt-4 w-full text-sm min-w-[620px] sm:min-w-[760px]">
-          <thead>
-            <tr className="text-xs text-navy/60 border-b border-cream-dark">
-              <th className="text-start py-2">{t('admin.users.user')}</th>
-              <th className="text-start py-2">{t('admin.users.joined')}</th>
-              <th className="text-center py-2">{t('admin.users.clicks')}</th>
-              <th className="text-center py-2">{t('admin.users.signups')}</th>
-              <th className="text-center py-2">{t('admin.users.bookings')}</th>
-              <th className="text-center py-2">{t('admin.users.leads')}</th>
-              <th className="text-center py-2">{t('admin.users.earned')}</th>
-              <th className="text-start py-2">{t('admin.users.tier')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <UserRow key={u.id} user={u} onSetTier={setTier} />
-            ))}
-          </tbody>
-        </table>
+        <SectionState
+          section={usersSec}
+          title={t('admin.users.title')}
+          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.users.title')} — 0</p>}
+        >
+          {(rows) => (
+            // Measured, not guessed: the five columns need ~574px in fa, ru and
+            // en alike (the email cell alone is 233px), so a smaller min-width
+            // would squeeze columns rather than scroll. fa 572px, ru 574px.
+            <table className="mt-4 w-full text-sm min-w-[600px] sm:min-w-[700px]">
+              <thead>
+                <tr className="text-xs text-navy/60 border-b border-cream-dark">
+                  <th className="text-start py-2">{t('admin.users.user')}</th>
+                  <th className="text-start py-2">{t('admin.users.joined')}</th>
+                  <th className="text-center py-2">{t('admin.users.bookings')}</th>
+                  <th className="text-center py-2">{t('admin.users.leads')}</th>
+                  <th className="text-start py-2">{t('admin.users.tier')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((u) => (
+                  <UserRow key={u.id} user={u} onSetTier={setTier} />
+                ))}
+              </tbody>
+            </table>
+          )}
+        </SectionState>
       </div>
 
       {/* subscription cancellations */}
       <div className="card p-6 mt-5">
         <h2 className="font-bold text-navy">{t('admin.cancellations.title')}</h2>
-        {cancellations.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">{t('admin.cancellations.empty')}</p>
-        ) : (
+        <SectionState
+          section={cancellationsSec}
+          title={t('admin.cancellations.title')}
+          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.cancellations.empty')}</p>}
+        >
+          {(rows) => (
           <ul className="mt-4 flex flex-col gap-3">
-            {cancellations.map((c) => (
+            {rows.map((c) => (
               <li key={c.userId} className="rounded-xl bg-cream px-4 py-3 text-sm flex flex-col gap-1.5">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
@@ -341,17 +387,21 @@ function AdminInner() {
               </li>
             ))}
           </ul>
-        )}
+          )}
+        </SectionState>
       </div>
 
       {/* payment verification */}
       <div className="card p-6 mt-5">
         <h2 className="font-bold text-navy">{t('admin.payments.title')}</h2>
-        {pending.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>
-        ) : (
+        <SectionState
+          section={paymentsSec}
+          title={t('admin.payments.title')}
+          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>}
+        >
+          {(rows) => (
           <ul className="mt-4 flex flex-col gap-3">
-            {pending.map((p) => (
+            {rows.map((p) => (
               <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
                 <span className="font-semibold text-navy break-all">{p.email}</span>
                 <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
@@ -384,17 +434,21 @@ function AdminInner() {
               </li>
             ))}
           </ul>
-        )}
+          )}
+        </SectionState>
       </div>
 
       {/* service request leads (P1-3) */}
       <div className="card p-6 mt-5">
         <h2 className="font-bold text-navy">{t('admin.leads.title')}</h2>
-        {allLeads.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">{t('admin.leads.empty')}</p>
-        ) : (
+        <SectionState
+          section={leadsSec}
+          title={t('admin.leads.title')}
+          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.leads.empty')}</p>}
+        >
+          {(rows) => (
           <ul className="mt-4 flex flex-col gap-2">
-            {allLeads.map((l) => (
+            {rows.map((l) => (
               <li key={l.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
                 <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
                   {t(`leads.kind.${l.kind}`)}
@@ -407,7 +461,8 @@ function AdminInner() {
               </li>
             ))}
           </ul>
-        )}
+          )}
+        </SectionState>
       </div>
 
       {/* incoming service-catalog requests */}
@@ -435,11 +490,14 @@ function AdminInner() {
             {t('admin.news.publish')}
           </button>
         </div>
-        {broadcasts.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">{t('admin.news.empty')}</p>
-        ) : (
+        <SectionState
+          section={broadcastsSec}
+          title={t('admin.news.title')}
+          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.news.empty')}</p>}
+        >
+          {(rows) => (
           <ul className="mt-4 flex flex-col gap-2">
-            {broadcasts.map((b) => (
+            {rows.map((b) => (
               <li key={b.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
                 <AppIcon name="megaphone" className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
                 <span className="flex-1">{b.customText}</span>
@@ -447,7 +505,8 @@ function AdminInner() {
               </li>
             ))}
           </ul>
-        )}
+          )}
+        </SectionState>
       </div>
     </div>
   );
