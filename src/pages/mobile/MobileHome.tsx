@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
 import { useApp } from '../../context/AppContext';
 import { ImageCarousel } from '../../components/ImageCarousel';
+import { NotificationBell } from '../../components/NotificationBell';
 import { CAROUSEL } from '../../lib/images';
 import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/services';
 import { blocksFor } from '../../blocks/registry';
@@ -159,6 +160,17 @@ export function MobileHome() {
           </div>
 
           <div className="relative px-5 pt-[calc(env(safe-area-inset-top)+40px)] pb-10">
+            {/* Absolutely placed on a WRAPPER, not on the bell itself: the bell
+                sets `relative` for its own badge, and Tailwind emits .relative
+                after .absolute, so an `absolute` passed in via className loses
+                the cascade and the bell drifts to the start of the row.
+                Sitting in the status-bar gap the hero already reserves means
+                the title below does not shift. The site header is hidden on
+                this route, so this is the ONLY way to reach notifications from
+                a phone. */}
+            <div className="absolute top-[calc(env(safe-area-inset-top)+1px)] end-5 z-10">
+              <NotificationBell tone="onNavy" size={38} />
+            </div>
             <h1 className="text-white text-[28px] leading-snug font-bold animate-fade-up text-balance">
               {t('home.heroTitle')}
             </h1>

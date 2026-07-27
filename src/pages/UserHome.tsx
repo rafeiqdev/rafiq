@@ -8,6 +8,7 @@ import { bookings as bookingsApi, notifications as notificationsApi } from '../l
 import { SERVICES, pickText } from '../data/services';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import { MobileTabBar } from '../components/MobileTabBar';
+import { NotificationBell } from '../components/NotificationBell';
 import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { AppNotification, Booking, JourneyItem } from '../lib/types';
@@ -215,6 +216,8 @@ export function UserHome() {
           <h1 className="text-xl font-extrabold text-navy truncate">{t('dash.greeting', { name: firstName })}</h1>
           {situationLabel && <p className="text-sm text-gray-500 truncate">{situationLabel}</p>}
         </div>
+        {/* on phones this page draws no site header, so the bell lives here */}
+        <NotificationBell size={38} className="ms-auto" />
       </header>
 
       {/* مسيرتي */}

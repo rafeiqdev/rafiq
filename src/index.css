@@ -453,6 +453,97 @@ html[dir='rtl'] li {
   animation: rqHalo 3.6s ease-in-out infinite;
 }
 
+/* ---- notification bell (see components/NotificationBell.tsx) ----
+   One 3.6s loop: the bell hangs still, then rings near the end of the cycle —
+   body swings, clapper trails it, badge pops, a ring pulses out. All four share
+   the duration so the beats stay locked together. Applied ONLY when something
+   is unread; with an empty inbox the bell is completely static. */
+@keyframes bellShake {
+  0%,
+  62%,
+  100% {
+    transform: rotate(0deg);
+  }
+  66% {
+    transform: rotate(-14deg);
+  }
+  70% {
+    transform: rotate(12deg);
+  }
+  74% {
+    transform: rotate(-10deg);
+  }
+  78% {
+    transform: rotate(8deg);
+  }
+  82% {
+    transform: rotate(-5deg);
+  }
+  86% {
+    transform: rotate(3deg);
+  }
+  92% {
+    transform: rotate(-1deg);
+  }
+}
+/* the clapper lags the body — that offset is what sells the swing */
+@keyframes bellClap {
+  0%,
+  62%,
+  100% {
+    transform: translateX(0);
+  }
+  68% {
+    transform: translateX(4px);
+  }
+  74% {
+    transform: translateX(-3px);
+  }
+  82% {
+    transform: translateX(2px);
+  }
+}
+@keyframes bellBadge {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  66% {
+    transform: scale(1.22);
+  }
+  76% {
+    transform: scale(0.94);
+  }
+  86% {
+    transform: scale(1.04);
+  }
+}
+@keyframes bellRing {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.7);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+.bell-shake {
+  transform-origin: 50% 8%;
+  animation: bellShake 3.6s ease-in-out infinite;
+}
+.bell-clap {
+  animation: bellClap 3.6s ease-in-out infinite;
+}
+.bell-badge {
+  animation: bellBadge 3.6s ease-in-out infinite;
+}
+.bell-ring {
+  animation: bellRing 3.6s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+
 /* scrolling currency ticker (two identical groups, translate -50% = seamless loop) */
 @keyframes ticker {
   from {
@@ -483,7 +574,11 @@ html[dir='rtl'] li {
   .rq-rise,
   .rq-breathe,
   .rq-letter,
-  .rq-halo {
+  .rq-halo,
+  .bell-shake,
+  .bell-clap,
+  .bell-badge,
+  .bell-ring {
     animation: none;
   }
 }

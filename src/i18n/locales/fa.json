@@ -66,6 +66,7 @@
     "referrals": "دعوت و درآمد",
     "profile": "پروفایل من",
     "notifications": "اعلان‌ها",
+    "notificationsUnread": "اعلان‌ها، {{count}} خوانده‌نشده",
     "admin": "مدیریت",
     "adminQueue": "مدیریت — {{requests}} درخواست جدید، {{leads}} سرنخ جدید",
     "bookings": "رزروها",

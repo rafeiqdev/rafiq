@@ -66,6 +66,7 @@
     "referrals": "Invite & Earn",
     "profile": "My Profile",
     "notifications": "Notifications",
+    "notificationsUnread": "Notifications, {{count}} unread",
     "admin": "Admin",
     "adminQueue": "Admin — {{requests}} new requests, {{leads}} new leads",
     "bookings": "Bookings",
