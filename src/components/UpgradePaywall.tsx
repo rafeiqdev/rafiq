@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { GuideContent } from '../lib/api';
 import { AppIcon } from './AppIcon';
-import { track } from '../lib/analytics';
 
 /** Shown when a logged-in non-subscriber opens a Pro guide: 1-step preview + upgrade. */
 export function UpgradePaywall({
@@ -14,7 +13,7 @@ export function UpgradePaywall({
   preview: GuideContent;
   onGetPerson: () => void;
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const firstStep = preview.steps?.[0];
 
@@ -45,10 +44,7 @@ export function UpgradePaywall({
       )}
 
       <button
-        onClick={() => {
-          track('upgrade_clicked', { service_slug: slug, lang: i18n.language });
-          navigate('/checkout?plan=pro&billing=monthly');
-        }}
+        onClick={() => navigate('/checkout?plan=pro&billing=monthly')}
         className="btn-gold w-full mt-6"
       >
         {t('guide.paywall.upgrade')}

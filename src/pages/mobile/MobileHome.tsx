@@ -12,6 +12,7 @@ import { BlockCard } from '../../blocks/BlockCard';
 import { Testimonials } from '../../components/sections/Testimonials';
 import { LocalBusinessSchema } from '../../components/LocalBusinessSchema';
 import { usePageMeta } from '../../lib/seo';
+import { track } from '../../lib/analytics';
 
 const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 
@@ -120,6 +121,7 @@ export function MobileHome() {
 
   const goServices = () => {
     const q = query.trim();
+    if (q) track('search_performed', { meta: { query_len: q.length, result_count: suggestions.length } });
     navigate(q ? `/services?q=${encodeURIComponent(q)}` : '/services');
   };
 

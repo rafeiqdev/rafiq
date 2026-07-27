@@ -38,8 +38,17 @@ export function GuidePage() {
   const isPartner = service ? service.type === 'partner' : (guide?.type?.includes('شريك') ?? false);
 
   useEffect(() => {
-    track('guide_viewed_full', { service_slug: slug, lang });
-  }, [slug, lang]);
+    track('guide_viewed', { target: slug });
+  }, [slug]);
+
+  const requestFromGuide = () => {
+    if (!service) {
+      navigate('/services');
+      return;
+    }
+    track('request_started', { target: service.id, meta: { category: service.category } });
+    setRequesting(true);
+  };
 
   // SEO: per-guide, per-language title + description (+ matching og/twitter tags)
   usePageMeta({
@@ -196,7 +205,7 @@ export function GuidePage() {
             </span>
           </div>
           <p className="mt-3 text-sm text-white/85">{guide.rafiqHelp}</p>
-          <button onClick={() => (service ? setRequesting(true) : navigate('/services'))} className="btn-gold w-full mt-5">
+          <button onClick={requestFromGuide} className="btn-gold w-full mt-5">
             <AppIcon name="message-circle" className="w-4 h-4" />
             {t('services.request')}
           </button>
@@ -207,7 +216,7 @@ export function GuidePage() {
 
       {/* sticky CTA on mobile */}
       <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-cream-dark p-3">
-        <button onClick={() => (service ? setRequesting(true) : navigate('/services'))} className="btn-primary w-full">
+        <button onClick={requestFromGuide} className="btn-primary w-full">
           <AppIcon name="message-circle" className="w-4 h-4" />
           {t('services.request')}
         </button>

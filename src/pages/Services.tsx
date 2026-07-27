@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../data/services';
@@ -7,6 +7,7 @@ import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceActionModal } from '../components/ServiceActionModal';
 import { usePageMeta } from '../lib/seo';
+import { track } from '../lib/analytics';
 
 // P-simplify2: the catalog has 12 categories / 79 services. Rendering all of
 // them at once (the old default) was the biggest source of "too many
@@ -96,6 +97,18 @@ export function Services() {
       return hay.includes(nq) || tokens.some((tk) => hay.includes(tk));
     });
   }, [query, category, typeFilter, services]);
+
+  // Debounced so typing doesn't fire an event per keystroke. Never sends the
+  // query text itself — just its length and how many results it found.
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const id = setTimeout(() => {
+      track('search_performed', { meta: { query_len: q.length, result_count: matches.length } });
+    }, 600);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   // Search or an explicit category pick always shows full results. Only the
   // untouched "all categories, no search" landing state gets trimmed to the
@@ -229,7 +242,14 @@ export function Services() {
                 </div>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
                   {items.map((s) => (
-                    <ServiceCard key={s.id} service={s} onOpen={() => setActive(s)} />
+                    <ServiceCard
+                      key={s.id}
+                      service={s}
+                      onOpen={() => {
+                        track('service_click', { target: s.id, meta: { category: s.category } });
+                        setActive(s);
+                      }}
+                    />
                   ))}
                 </div>
               </section>

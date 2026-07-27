@@ -31,6 +31,7 @@ import { AppIcon } from '../components/AppIcon';
 import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../components/ChatHistory';
 import { SERVICES, pickText } from '../data/services';
+import { track } from '../lib/analytics';
 
 /** BCP-47 speech-recognition locale per app language. */
 const SPEECH_LANG: Record<string, string> = { ar: 'ar-SA', en: 'en-US', ru: 'ru-RU', fa: 'fa-IR' };
@@ -94,6 +95,14 @@ function ChatUI() {
 
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
+
+  // Covers every way of reaching the chat (service action modal, guide page
+  // link, nav bar, direct URL) with one call, rather than tracking each entry
+  // point separately.
+  useEffect(() => {
+    track('chat_opened', { target: topic, meta: { source: topic ? 'service' : 'direct' } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Any paid plan lifts the free topic quota entirely.
   const hasPlan = tier !== 'free';
@@ -239,6 +248,7 @@ function ChatUI() {
       }
     }
 
+    track('chat_message_sent', { meta: { message_count: messages.length + 1 } });
     setInput('');
     ask(text);
   };

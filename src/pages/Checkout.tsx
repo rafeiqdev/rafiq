@@ -9,6 +9,7 @@ import type { Billing, PayMethod, PlanTier } from '../lib/types';
 import { RequireAuth } from '../components/Gates';
 import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
+import { track } from '../lib/analytics';
 
 function CopyField({ label, value }: { label: string; value: string }) {
   const { t } = useTranslation();
@@ -75,6 +76,11 @@ function CheckoutInner() {
     checkout.config().then(setBank).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    track('checkout_opened', { target: plan, meta: { billing } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // If the selected rail turns out to be unconfigured, fall back to card rather
   // than leaving the customer on a tab whose panel has nothing to show.
   useEffect(() => {
@@ -121,6 +127,7 @@ function CheckoutInner() {
     setState('redirecting');
     try {
       await checkout.manual(plan, billing, 'card');
+      track('payment_submitted', { target: 'card', meta: { tier: plan, billing } });
       await refresh();
       setState('pendingManual');
     } catch {
@@ -131,6 +138,7 @@ function CheckoutInner() {
   const confirmManualPaid = async () => {
     try {
       await checkout.manual(plan, billing, tab, receipt ?? undefined);
+      track('payment_submitted', { target: tab, meta: { tier: plan, billing } });
       await refresh();
       setVerifyOpen(false);
       setState('pendingManual');

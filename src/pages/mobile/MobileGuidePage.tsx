@@ -51,8 +51,8 @@ export function MobileGuidePage() {
   const mc = mobileCopy[langCode] ?? mobileCopy.en;
 
   useEffect(() => {
-    track('guide_viewed_full', { service_slug: slug, lang });
-  }, [slug, lang]);
+    track('guide_viewed', { target: slug });
+  }, [slug]);
 
   // SEO: per-guide, per-language title + description (+ matching og/twitter tags)
   usePageMeta({
@@ -110,7 +110,14 @@ export function MobileGuidePage() {
     );
   }
 
-  const request = () => (service ? setRequesting(true) : navigate('/services'));
+  const request = () => {
+    if (!service) {
+      navigate('/services');
+      return;
+    }
+    track('request_started', { target: service.id, meta: { category: service.category } });
+    setRequesting(true);
+  };
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { serviceRequests, ApiError } from '../lib/api';
 import { checkSubmitThrottle, recordSubmit } from '../lib/submitThrottle';
+import { track } from '../lib/analytics';
 import { relativeTime } from '../lib/relativeTime';
 import { ISTANBUL_AREAS, pickArea } from '../data/istanbulAreas';
 import { useApp } from '../context/AppContext';
@@ -120,6 +121,10 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
       });
       // Only a genuinely accepted insert counts against the cooldown.
       recordSubmit();
+      track('request_submitted', {
+        target: source.id,
+        meta: { category: source.category, broadcast, request_id: res.id },
+      });
       setRequestId(res.id);
       setDone(true);
       // WhatsApp is the ONLY channel that reaches the admin while they are not
@@ -133,6 +138,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
       // in Layout is the only channel. We never build a wa.me link from a
       // missing number.
       if (WA_ENABLED) {
+        track('whatsapp_clicked', { target: 'service_request_modal_auto' });
         window.open(`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`, '_blank', 'noopener');
       }
     } catch (e) {
@@ -177,6 +183,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                   href={`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => track('whatsapp_clicked', { target: 'service_request_modal' })}
                   className="btn-primary w-full mt-5"
                 >
                   <AppIcon name="message-circle" className="w-4 h-4" />

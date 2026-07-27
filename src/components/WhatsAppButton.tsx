@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { track } from '../lib/analytics';
 
 /** Floating WhatsApp button. Reads VITE_WHATSAPP_NUMBER (digits only); pass a
  *  per-page prefilled message via the `message` prop. */
@@ -25,6 +26,7 @@ export function WhatsAppButton({ message }: { message?: string }) {
       target="_blank"
       rel="noreferrer"
       aria-label={t('whatsapp.aria')}
+      onClick={() => track('whatsapp_clicked', { target: 'floating_button' })}
       className="fixed bottom-5 end-5 z-40 flex items-center justify-center w-14 h-14 rounded-full text-white shadow-float animate-float-pulse transition-transform hover:scale-105 active:scale-95"
       style={{ backgroundColor: '#25d366' }}
     >

@@ -1282,6 +1282,12 @@
     },
     "updated": "Last updated: June 2026"
   },
+  "consent": {
+    "title": "Cookies & analytics",
+    "body": "We track anonymous visits to see which pages and services help people most, so we can improve them. We never store your name, phone, email, or anything you type in chat.",
+    "accept": "Allow",
+    "decline": "No thanks"
+  },
   "leads": {
     "kind": {
       "realestate": "Real estate",

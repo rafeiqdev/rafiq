@@ -5,6 +5,7 @@ import ar from './locales/ar.json';
 import ru from './locales/ru.json';
 import fa from './locales/fa.json';
 import type { Lang } from '../lib/types';
+import { track } from '../lib/analytics';
 
 export const SUPPORTED_LANGS: Lang[] = ['ar', 'en', 'ru', 'fa'];
 
@@ -94,10 +95,12 @@ i18n.use(initReactI18next).init({
 applyDir(initial);
 
 export async function setLanguage(lang: Lang) {
+  const from = i18n.language;
   localStorage.setItem('i18nextLng', lang);
   localStorage.setItem('rafiq_lang_selected', 'true');
   await i18n.changeLanguage(lang);
   applyDir(lang);
+  if (from !== lang) track('lang_changed', { target: lang, meta: { from } });
 }
 
 export default i18n;

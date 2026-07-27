@@ -11,6 +11,8 @@ import { TopRatesBar } from './TopRatesBar';
 import { SiteFooter } from './SiteFooter';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useFallbackMeta, useSiteWideSeo } from '../lib/seo';
+import { useTrackPageViews } from '../lib/analytics';
+import { ConsentBanner } from './ConsentBanner';
 
 // Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
 // own full-bleed header/nav — on phones we skip the desktop ticker+header+
@@ -189,6 +191,10 @@ export function Layout() {
   // canonical + og:url/og:locale + hreflang — applies to every public route
   // nested under this layout, updates on every route/language change.
   useSiteWideSeo();
+
+  // page_view on every route change — desktop and mobile alike, since both
+  // render through this same Layout. No-ops until analytics consent is granted.
+  useTrackPageViews();
 
   // The admin's only signal that work has arrived. There is no email or push:
   // if a queue has no badge here, nobody learns about it until someone opens
@@ -424,6 +430,7 @@ export function Layout() {
 
       {!hideChrome && <SiteFooter />}
       {showMobileFooter && <SiteFooter variant="mobile" />}
+      <ConsentBanner />
     </div>
   );
 }

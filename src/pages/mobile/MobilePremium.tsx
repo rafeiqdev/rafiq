@@ -30,6 +30,7 @@ import { AppIcon } from '../../components/AppIcon';
 import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
 import { SERVICES, pickText } from '../../data/services';
+import { track } from '../../lib/analytics';
 
 /** BCP-47 speech-recognition locale per app language. */
 const SPEECH_LANG: Record<string, string> = { ar: 'ar-SA', en: 'en-US', ru: 'ru-RU', fa: 'fa-IR' };
@@ -101,6 +102,11 @@ function MobileChatUI() {
 
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
+
+  useEffect(() => {
+    track('chat_opened', { target: topic, meta: { source: topic ? 'service' : 'direct' } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -244,6 +250,7 @@ function MobileChatUI() {
       }
     }
 
+    track('chat_message_sent', { meta: { message_count: messages.length + 1 } });
     setInput('');
     ask(text);
   };

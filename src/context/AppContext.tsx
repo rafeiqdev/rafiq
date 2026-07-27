@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react';
 import { AI_FREE_PERIOD, ApiError, auth, config as configApi, profileApi, referrals } from '../lib/api';
 import { supabase } from '../lib/supabase';
+import { setAnalyticsUser, track } from '../lib/analytics';
 import type { AppConfig, PlanTier, Profile, Subscription, User } from '../lib/types';
 import { EMPTY_PROFILE } from '../lib/types';
 
@@ -146,6 +147,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [refresh]);
 
+  // Events fired after this point carry user_id; earlier ones in the same
+  // browser session (and sign-out) keep it null, but all share session_id.
+  useEffect(() => {
+    setAnalyticsUser(user?.id ?? null);
+  }, [user]);
+
   const updateProfile = useCallback(
     (patch: Partial<Profile>) => {
       setProfile((prev) => {
@@ -173,6 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       await auth.login(email, password);
+      track('login', { target: 'email' });
       await refresh();
     },
     [refresh],
@@ -182,6 +190,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string, name: string) => {
       const refCode = localStorage.getItem('rafiq_ref') ?? undefined;
       const res = await auth.register(email, password, name, refCode);
+      track('signup', { target: 'email' });
       await refresh();
       return { needsConfirmation: res.needsConfirmation };
     },
@@ -189,7 +198,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const googleSignIn = useCallback(async () => {
-    // full-page redirect to Google; the session is detected on return
+    // full-page redirect to Google; the session is detected on return, so
+    // there is no synchronous "it worked" moment to hang a track() call on —
+    // this fires on the click, before the redirect, as a best-effort signal
+    // (it also covers a first-time Google sign-up; the two are indistinguishable
+    // from here since Supabase auto-creates the account either way).
+    track('login', { target: 'google' });
     await auth.loginGoogle();
   }, []);
 

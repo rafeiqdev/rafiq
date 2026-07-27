@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../../data/services';
@@ -8,6 +8,7 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
 import { ServiceActionModal } from '../../components/ServiceActionModal';
 import { usePageMeta } from '../../lib/seo';
+import { track } from '../../lib/analytics';
 
 // Same trimmed landing set as the desktop catalog: only these 6 categories show
 // by default; a search or an explicit category pick reveals the full set.
@@ -107,6 +108,16 @@ export function MobileServices() {
       return hay.includes(nq) || tokens.some((tk) => hay.includes(tk));
     });
   }, [query, category, typeFilter, services]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const id = setTimeout(() => {
+      track('search_performed', { meta: { query_len: q.length, result_count: matches.length } });
+    }, 600);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const trimToPopular = category === 'all' && !query.trim() && !showAllCategories;
   const chipCategories = trimToPopular ? categories.filter((c) => POPULAR_CATEGORY_IDS.includes(c.id)) : categories;
@@ -240,7 +251,14 @@ export function MobileServices() {
                     </div>
                     <div className="mt-3.5 flex flex-col gap-3">
                       {items.map((s) => (
-                        <ServiceCard key={s.id} service={s} onOpen={() => setActive(s)} />
+                        <ServiceCard
+                          key={s.id}
+                          service={s}
+                          onOpen={() => {
+                            track('service_click', { target: s.id, meta: { category: s.category } });
+                            setActive(s);
+                          }}
+                        />
                       ))}
                     </div>
                   </section>

@@ -23,8 +23,8 @@ export function ServiceActionModal({ service, onClose }: { service: ServiceItem;
   const [showRequest, setShowRequest] = useState(false);
 
   useEffect(() => {
-    track('guide_choice_shown', { service_slug: service.id, lang: i18n.language });
-  }, [service.id, i18n.language]);
+    track('service_view', { target: service.id, meta: { category: service.category, type: service.type } });
+  }, [service.id, service.category, service.type]);
 
   if (showRequest) {
     return (
@@ -36,11 +36,12 @@ export function ServiceActionModal({ service, onClose }: { service: ServiceItem;
   }
 
   const goAi = () => {
-    track('ai_clicked', { service_slug: service.id, lang: i18n.language });
+    // chat_opened fires when /premium actually mounts (Premium.tsx), which
+    // also covers every other way of reaching the chat — no separate event here.
     navigate(`/premium?topic=${encodeURIComponent(service.id)}`);
   };
   const getPerson = () => {
-    track('get_person_clicked', { service_slug: service.id, lang: i18n.language });
+    track('request_started', { target: service.id, meta: { category: service.category } });
     setShowRequest(true);
   };
 
