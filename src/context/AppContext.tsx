@@ -8,6 +8,21 @@ import { EMPTY_PROFILE } from '../lib/types';
 
 const PROFILE_KEY = 'rafiq_profile';
 const CHAT_KEY_PREFIX = 'rafiq_chat_history';
+// Set right before the full-page redirect to Google, so refresh() — called
+// from onAuthStateChange when the redirect lands back here — knows this
+// particular "user went from null to non-null" transition is the OAuth
+// return leg, not an ordinary session restore on some unrelated page load.
+const GOOGLE_AUTH_PENDING_KEY = 'rafiq_google_auth_pending';
+// Generous window between the profile row being created and the redirect
+// landing back here — real round-trips are a few seconds; this just needs to
+// comfortably clear network jitter, not be tight.
+const GOOGLE_SIGNUP_WINDOW_MS = 2 * 60_000;
+
+/** Exported for AppContext.test.ts — the one piece of judgement in the
+ *  login-vs-signup call, isolated from everything else refresh() does. */
+export function isFreshAccount(createdAt: string, now: number = Date.now()): boolean {
+  return now - new Date(createdAt).getTime() < GOOGLE_SIGNUP_WINDOW_MS;
+}
 
 function loadLocalProfile(): Profile {
   try {
@@ -93,6 +108,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // server response — the local blob is deliberately not consulted.
       setOnboardingCompleted(Boolean(me.user?.onboardingCompleted) || Boolean(me.profile?.situation));
       if (me.user) {
+        // Resolve the Google login-vs-signup question we couldn't answer
+        // before the redirect: the profile row's own created_at tells us
+        // whether this account existed already or was just created by
+        // handle_new_user() moments ago.
+        if (sessionStorage.getItem(GOOGLE_AUTH_PENDING_KEY)) {
+          sessionStorage.removeItem(GOOGLE_AUTH_PENDING_KEY);
+          track(isFreshAccount(me.user.createdAt) ? 'signup' : 'login', { target: 'google' });
+        }
         // attribute a stored referral code once (works for email + Google signups)
         const ref = localStorage.getItem('rafiq_ref');
         if (ref && !refAttributed.current) {
@@ -116,6 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // the session is fine and the account is not — the user must be told,
       // whichever route they arrived on (OAuth return included).
       setAuthError(e instanceof ApiError && e.code === 'profile_missing' ? e.code : null);
+      sessionStorage.removeItem(GOOGLE_AUTH_PENDING_KEY);
       setUser(null);
       setSubscription(null);
       setTier('free');
@@ -198,12 +222,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const googleSignIn = useCallback(async () => {
-    // full-page redirect to Google; the session is detected on return, so
-    // there is no synchronous "it worked" moment to hang a track() call on —
-    // this fires on the click, before the redirect, as a best-effort signal
-    // (it also covers a first-time Google sign-up; the two are indistinguishable
-    // from here since Supabase auto-creates the account either way).
-    track('login', { target: 'google' });
+    // Full-page redirect to Google — there is no synchronous "it worked"
+    // moment here to track() from. The flag lets the refresh() that runs when
+    // the redirect lands back (via onAuthStateChange) tell login and signup
+    // apart, using the profile's own created_at once it has one to check.
+    sessionStorage.setItem(GOOGLE_AUTH_PENDING_KEY, '1');
     await auth.loginGoogle();
   }, []);
 
