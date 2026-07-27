@@ -1041,6 +1041,12 @@
     }
   },
   "admin": {
+    "newRequests": {
+      "title": "Needs action — {{count}} waiting",
+      "more": "and {{count}} more below",
+      "error": "Couldn't load the request queue. This is not an empty queue — try again.",
+      "callAria": "Call {{name}} on {{phone}}"
+    },
     "serviceRequests": {
       "title": "Service requests",
       "empty": "No service requests yet.",

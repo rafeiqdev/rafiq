@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { AppIcon } from '../components/AppIcon';
 import { ListingsManager, PlacesManager } from '../components/AdminManagers';
 import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
+import { AdminNewRequests } from '../components/AdminNewRequests';
 import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
 import { FxRatesPanel } from '../components/admin/FxRatesPanel';
@@ -251,6 +252,12 @@ function AdminInner() {
           </div>
         ))}
       </div>
+
+      {/* Work waiting on the admin, above everything else. Nothing notifies us
+          out of band, so unhandled requests have to be the first thing on the
+          page rather than buried under users/listings/places/payments.
+          Renders nothing when the queue is empty. */}
+      <AdminNewRequests />
 
       {/* Daily FX sync: health, per-pair override with reason, audit trail.
           Replaced the old free-text rates card, which wrote an unaudited

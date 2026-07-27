@@ -21,7 +21,9 @@ export function ServiceRequestsManager() {
   };
 
   return (
-    <div className="card p-6 mt-5">
+    // scroll-mt keeps the heading clear of the sticky header when the
+    // "and N more" link in AdminNewRequests jumps down here.
+    <div id="service-requests" className="card p-6 mt-5 scroll-mt-24">
       <h2 className="font-bold text-navy">{t('admin.serviceRequests.title')}</h2>
       {rows.length === 0 ? (
         <p className="mt-3 text-sm text-gray-500">{t('admin.serviceRequests.empty')}</p>
