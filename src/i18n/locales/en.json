@@ -1509,11 +1509,10 @@
   },
   "requests": {
     "title": "My requests",
-    "subtitle": "Track requests you've broadcast to nearby companies and choose an offer.",
-    "empty": "You haven't broadcast any requests yet. Open a trusted-partner service and tap 'Help me with this'.",
+    "subtitle": "Track all your requests and their status here.",
+    "empty": "You don't have any requests yet. Choose a service and start one.",
     "browseServices": "Browse services",
     "responsesTitle": "Offers ({{count}})",
-    "noResponses": "No offers yet. Companies nearby will respond soon.",
     "capped": "Showing the top 5 offers, ranked by rating.",
     "choose": "Choose this offer",
     "chosen": "Chosen",
