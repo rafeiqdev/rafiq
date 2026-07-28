@@ -6,12 +6,18 @@ moving to, arriving in, or living in Istanbul.
 ## Stack
 
 - **Web:** React 18 + TypeScript + Vite, React Router 6, Tailwind CSS
-  (brand: navy `#1a3a6b`, cream `#faf8f0`, red `#c0392b`)
+  (brand: navy `#1a3a6b`, cream `#faf8f0`, red `#c0392b`). Every page lives
+  under a language URL segment (`/ar` `/en` `/ru` `/fa`).
 - **i18n:** i18next — 4 fully translated languages with enforced key parity:
-  Arabic (RTL), English, Russian, Farsi (RTL)
-- **API server:** Express 5 + SQLite (built-in `node:sqlite`, zero native deps),
-  bcrypt password hashing, httpOnly cookie sessions, multer uploads
-- **Map:** React-Leaflet with bundled assets (no runtime CDN)
+  Arabic (RTL), English, Russian, Farsi (RTL). Locale bundles are lazy-loaded
+  per language.
+- **Backend (production):** Supabase — Auth (email/password + Google OAuth,
+  password recovery), Postgres reached directly from the browser through
+  PostgREST with **RLS as the enforcement layer**, Storage buckets, RPCs.
+  Plus a handful of Vercel functions (`api/`): AI chat, Places proxy,
+  payment webhook, FX cron.
+- **Map:** Google Maps JS API (`@googlemaps/js-api-loader`), lazy-loaded only
+  past the Pro gate.
 
 ## Required Vercel environment variables
 
@@ -35,54 +41,83 @@ npm install
 cp .env.example .env     # then edit (admin emails, webhook secret, keys)
 npm run dev:all          # web on :5173 + API on :8787 (proxied via /api)
 
-npm run build            # type-check + production bundle
-npm test                 # API integration tests (node:test, in-memory DB)
+npm run build            # sitemap + type-check + production bundle
+npm test                 # vitest unit suite + legacy server contract tests
 npm run check:i18n       # fails if ar/en/ru/fa key sets diverge
 ```
 
 ## Architecture
 
-The client (`src/lib/api.ts`) is a thin typed fetch layer — **all trust
-decisions live server-side** (`server/index.mjs`):
+**What actually ships** (rafiq.ist, Vercel): a static SPA whose browser bundle
+talks to Supabase directly. There is **no Express server in production** — the
+decision, made 2026-07-28, is option (b): commit to Supabase and keep every
+trust decision in the database and in server-side functions. Anything
+`server/index.mjs` enforces is inert in production; treat it as a local dev
+stand-in only (see below).
 
-- **Identity:** real registration/login with bcrypt hashes; sign-in is distinct
-  from sign-up (404 / 401 / 409); sessions are server-stored and invalidated on
-  logout. Google OAuth activates when `GOOGLE_CLIENT_ID` is set.
-- **Authorization:** the admin role is assigned server-side from `ADMIN_EMAILS`
-  (env); `/api/admin/*` returns 403 for non-admins. Paid features (AI chat, map
-  POIs) are enforced by the server — editing client state unlocks nothing.
-- **Payments:** card checkout creates a gateway session and the subscription is
-  activated **only by a signed webhook** (`/api/webhooks/payment`, HMAC-SHA256
-  with `PAYMENT_WEBHOOK_SECRET`). Without real gateway keys, a dev simulator
-  page stands in for the hosted checkout and delivers the same signed webhook.
-  Bank transfer / crypto stay as manual-verification rails (details from env,
-  receipts uploaded and viewable by admin).
-- **Uploads:** receipts and locker documents go through multer (type/size
-  validated, random filenames) and are served only via owner/admin-checked
-  endpoints.
-- **AI assistant:** `/api/ai/chat` streams via SSE. With `ANTHROPIC_API_KEY` it
-  calls the real model using the booking-policy `SYSTEM_PROMPT`
-  (`server/ai-policy.mjs`); without a key it falls back to a deterministic dev
-  engine. Escalation to a free human appointment fires on explicit requests,
-  complexity markers, or a user circling the same topic — with a server-side
-  safety net on top of the model's decision. Free/Light users get
-  `FREE_CHAT_MESSAGES` as a preview, enforced server-side.
-- **Referrals:** `/r/:code` (or `?r=CODE`) records the click; sign-ups carry the
-  attribution and verified payments credit 30% to the referrer.
-- **Notifications:** per-user read state (`notification_reads`); admin alerts go
-  to an `admins` audience queue, not to per-admin copies.
+Where each trust decision lives:
+
+- **Identity:** Supabase Auth — email/password (with `/reset-password`
+  recovery flow) and Google OAuth. Sessions are Supabase JWTs; the client
+  never sees a password hash. Login failure is a single generic message by
+  design: the API cannot distinguish unknown-email from wrong-password, and
+  the copy must not confirm which emails have accounts.
+- **Authorization:** Postgres RLS on every table, `public.is_admin()` for the
+  admin surfaces, `has_pro()`-style checks for paid data (map places). The
+  browser holds only the public anon key; editing client state unlocks
+  nothing that RLS doesn't allow.
+- **Internal RPCs:** `_activate_sub` and friends are revoked from
+  `anon`/`authenticated` and additionally refuse to run unless called by
+  `service_role`/an admin (see
+  `supabase/migrations/20260728_lock_internal_rpcs.sql`). The one-time
+  `checkout_card_demo` backdoor is dropped.
+- **Payments:** bank transfer and crypto are manual rails — the client records
+  a **pending** `payments` row, the admin verifies it in `/admin` (RPC
+  `admin_resolve_payment`). Card payments activate **only** through
+  `api/payments/webhook.ts`: HMAC-SHA256 over the raw body with
+  `PAYMENT_WEBHOOK_SECRET`, idempotent pending→verified transition, activation
+  via `_activate_sub` with the service-role key. Wiring a real gateway
+  (iyzico/Stripe) means pointing its webhook at that endpoint — see
+  SUPABASE-SETUP.md.
+- **AI assistant:** `api/ai-chat.ts` (Vercel function) → Google Gemini with a
+  deterministic fallback (`src/lib/ai-fallback.ts`) when unavailable.
+- **Referrals:** `/r/:code` (or `?r=CODE`) records the click — the insert
+  policy requires a real code and rate-limits per code; commissions are
+  credited on verified payments.
+- **FX rates:** `api/cron/rates-sync.ts` (daily Vercel cron) is the only
+  writer of `fx_rates`; the browser reads them through RLS.
+- **Headers:** clickjacking/MIME/referrer/HSTS protections plus a
+  Content-Security-Policy (report-only until the report stream is clean) live
+  in `vercel.json`.
+
+### `server/` — local dev stand-in, not the product
+
+`server/index.mjs` (Express + SQLite) predates the Supabase migration. It is
+**not deployed** and must not be documented as the security model. It stays in
+the repo for two reasons only: `npm run dev:all` proxies `/api` to it during
+local development, and `server/test.mjs` pins executable contracts (the
+payment-webhook shape now mirrored by `api/payments/webhook.ts`). Do not add
+product features there. When local dev no longer needs it, delete the
+directory.
+
+Known gap of the static-SPA choice: every route returns HTTP 200, so /404 is a
+soft 404 (mitigated with its own title + noindex). A real 404 status and
+reliable Bing/Yandex indexing would require prerendering or SSR — that is the
+next architecture decision, not an oversight.
 
 ## Key files
 
 ```
-server/index.mjs       all API routes, auth, authz, webhooks, uploads
-server/ai-policy.mjs   SYSTEM_PROMPT + escalation triggers + dev fallback
-server/db.mjs          SQLite schema (node:sqlite)
-server/test.mjs        integration tests — run with `npm test`
-src/lib/api.ts         typed fetch client (the seam)
-src/blocks/registry.ts profile-driven homepage blocks (showIf + priority)
+src/lib/api.ts          typed Supabase data layer (the seam — all reads/writes)
+src/lib/supabase.ts     the single Supabase client
+supabase/migrations/    the database as code — run in the dashboard SQL editor
+api/                    Vercel functions: ai-chat, places, payment webhook, cron
+src/i18n/index.ts       language URLs, lazy locale chunks, direction handling
+src/blocks/registry.ts  profile-driven homepage blocks (showIf + priority)
 src/components/Modal.tsx  a11y dialog shell (focus trap, Esc, backdrop)
 scripts/check-i18n-parity.mjs  locale key-set guard (also in CI)
+scripts/generate-sitemap.mjs   per-language sitemap + robots (build step)
+server/                 local dev stand-in + contract tests — NOT deployed
 ```
 
 ## Naming note
