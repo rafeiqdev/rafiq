@@ -1198,7 +1198,15 @@
       "postBody": "Text (optional)",
       "postLink": "Link to the Telegram post (optional)",
       "publish": "Publish",
-      "empty": "No news posts yet."
+      "empty": "No news posts yet.",
+      "errors": {
+        "devOnly": "Telegram sync runs on the deployed site only — open /admin on your live domain and press Sync there.",
+        "noChannel": "Add your Telegram channel link and press Save first.",
+        "unreachable": "Telegram didn't respond. Try again in a minute.",
+        "noPosts": "No posts found — make sure the channel is PUBLIC and has at least one post.",
+        "notConfigured": "The server is missing its Supabase keys — add SUPABASE_SERVICE_ROLE_KEY in Vercel → Settings → Environment Variables and redeploy.",
+        "forbidden": "This account isn't allowed to sync — sign in with the admin account."
+      }
     },
     "payments": {
       "title": "Payment verification",

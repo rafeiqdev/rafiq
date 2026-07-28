@@ -1,9 +1,39 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { news } from '../../lib/api';
+import { ApiError, news } from '../../lib/api';
 import { AppIcon } from '../AppIcon';
 import { SectionState } from '../SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
+
+/**
+ * The sync endpoint reports WHY it failed (no channel saved, Telegram down,
+ * channel private, server env missing, wrong account, or — in local dev —
+ * the Vercel function simply not existing behind Vite's /api proxy). A
+ * generic "something went wrong" hid all of that from the owner; map each
+ * failure to its own instruction instead.
+ */
+function syncErrorKey(e: unknown): string {
+  if (e instanceof ApiError) {
+    // Vite proxies /api to the legacy Express server, which has no
+    // cron/telegram-sync route — the function only exists on Vercel.
+    if (e.status === 404 || e.status === 405) return 'admin.newsFeed.errors.devOnly';
+    switch (e.code) {
+      case 'no_channel':
+        return 'admin.newsFeed.errors.noChannel';
+      case 'telegram_unreachable':
+        return 'admin.newsFeed.errors.unreachable';
+      case 'no_posts_parsed':
+        return 'admin.newsFeed.errors.noPosts';
+      case 'not_configured':
+        return 'admin.newsFeed.errors.notConfigured';
+      case 'not_authenticated':
+      case 'unauthorized':
+      case 'forbidden':
+        return 'admin.newsFeed.errors.forbidden';
+    }
+  }
+  return 'common.error';
+}
 
 /**
  * The PUBLIC news feed on the home page (distinct from the bell broadcasts,
@@ -22,7 +52,8 @@ export function NewsFeedManager() {
   const [body, setBody] = useState('');
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  /** i18n key of the failure to show, or null when all is well. */
+  const [error, setError] = useState<string | null>(null);
   const [syncState, setSyncState] = useState<'idle' | 'busy' | number>('idle');
 
   useEffect(() => {
@@ -30,20 +61,20 @@ export function NewsFeedManager() {
   }, []);
 
   const sync = async () => {
-    setError(false);
+    setError(null);
     setSyncState('busy');
     try {
       const { synced } = await news.syncNow();
       setSyncState(synced);
       postsSec.reload();
-    } catch {
+    } catch (e) {
       setSyncState('idle');
-      setError(true);
+      setError(syncErrorKey(e));
     }
   };
 
   const saveChannel = async () => {
-    setError(false);
+    setError(null);
     setChannelSaved(false);
     try {
       await news.setTelegramChannel(channel);
@@ -51,14 +82,14 @@ export function NewsFeedManager() {
       // a fresh link should show results immediately, not tomorrow at cron time
       if (channel.trim()) await sync();
     } catch {
-      setError(true);
+      setError('common.error');
     }
   };
 
   const publish = async () => {
     if (!title.trim()) return;
     setBusy(true);
-    setError(false);
+    setError(null);
     try {
       await news.create({ title, body, url });
       setTitle('');
@@ -66,19 +97,19 @@ export function NewsFeedManager() {
       setUrl('');
       postsSec.reload();
     } catch {
-      setError(true);
+      setError('common.error');
     } finally {
       setBusy(false);
     }
   };
 
   const remove = async (id: string) => {
-    setError(false);
+    setError(null);
     try {
       await news.remove(id);
       postsSec.reload();
     } catch {
-      setError(true);
+      setError('common.error');
     }
   };
 
@@ -156,7 +187,7 @@ export function NewsFeedManager() {
       {error && (
         <p role="alert" className="amber-note mt-3 flex items-center gap-2 text-sm">
           <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
-          {t('common.error')}
+          {t(error)}
         </p>
       )}
 
