@@ -154,6 +154,43 @@ test('card payment activates only via a correctly signed webhook; amounts match 
   assert.equal((await c2('GET', '/api/me')).json.tier, 'free');
 });
 
+test('admin resolution refuses garbage instead of silently rejecting; ghost users get 404; history adds up', async () => {
+  const buyer = client();
+  await buyer('POST', '/api/auth/register', { email: 'resolve@test.dev', password: 'password123', name: 'B' });
+  const s = await buyer('POST', '/api/checkout/session', { tier: 'pro', billing: 'monthly' });
+  const paymentId = s.json.paymentId;
+
+  const admin = client();
+  await admin('POST', '/api/auth/login', { email: 'admin@test.dev', password: 'password123' });
+
+  // {"action":"approve"} used to answer 200 {ok:true} while silently
+  // REJECTING the payment. It must be a 400 that changes nothing.
+  const garbage = await admin('POST', `/api/admin/payments/${paymentId}/resolve`, { action: 'approve' });
+  assert.equal(garbage.status, 400);
+  assert.equal((await buyer('GET', `/api/payments/${paymentId}`)).json.status, 'pending');
+
+  assert.equal((await admin('POST', '/api/admin/payments/pay_ghost/resolve', { status: 'verified' })).status, 404);
+
+  // a valid resolution reports the resulting status in the response
+  const ok = await admin('POST', `/api/admin/payments/${paymentId}/resolve`, { status: 'verified' });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json.status, 'verified');
+  assert.equal((await buyer('GET', '/api/me')).json.tier, 'pro');
+
+  // setting a tier for a user that does not exist used to answer ok and
+  // leave an orphan subscriptions row behind
+  assert.equal((await admin('POST', '/api/admin/users/ghost-user/tier', { tier: 'elite' })).status, 404);
+
+  // history: the verified slice contains the payment and totals its amount;
+  // the default pending queue no longer shows it; garbage filters are 400
+  const hist = await admin('GET', '/api/admin/payments?status=verified');
+  assert.equal(hist.status, 200);
+  assert.ok(hist.json.payments.some((p) => p.id === paymentId));
+  assert.ok(hist.json.totalVerifiedTl >= 1599, `verified total missing the payment: ${hist.json.totalVerifiedTl}`);
+  assert.ok(!(await admin('GET', '/api/admin/payments')).json.payments.some((p) => p.id === paymentId));
+  assert.equal((await admin('GET', '/api/admin/payments?status=nonsense')).status, 400);
+});
+
 // ---------------- P0-5: uploads ----------------
 
 test('document upload is stored and only retrievable by its owner', async () => {

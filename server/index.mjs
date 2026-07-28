@@ -850,28 +850,58 @@ button{height:44px;border-radius:12px;border:0;font-weight:600;width:100%;margin
   app.post('/api/admin/users/:id/tier', requireAuth, requireAdmin, (req, res) => {
     const { tier } = req.body ?? {};
     if (!['free', 'light', 'pro', 'elite'].includes(tier)) return fail(res, 400, 'bad_tier');
-    if (tier === 'free') db.prepare('DELETE FROM subscriptions WHERE user_id = ?').run(req.params.id);
-    else activateSubscription(req.params.id, tier, 'monthly');
-    res.json({ ok: true });
+    // Answering ok for a made-up id created an orphan subscription row.
+    const target = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+    if (!target) return fail(res, 404, 'user_not_found');
+    if (tier === 'free') db.prepare('DELETE FROM subscriptions WHERE user_id = ?').run(target.id);
+    else activateSubscription(target.id, tier, 'monthly');
+    res.json({ ok: true, tier });
   });
 
-  app.get('/api/admin/payments', requireAuth, requireAdmin, (_req, res) => {
-    const rows = db.prepare("SELECT * FROM payments WHERE status = 'pending' ORDER BY created_at DESC").all();
+  // History, not just the queue: ?status=pending|verified|rejected|all
+  // (default pending, so the existing admin queue keeps its behaviour) plus
+  // optional ?from/?to ISO date bounds, and the verified revenue of the slice.
+  app.get('/api/admin/payments', requireAuth, requireAdmin, (req, res) => {
+    const status = String(req.query.status ?? 'pending');
+    if (!['pending', 'verified', 'rejected', 'all'].includes(status)) return fail(res, 400, 'bad_status');
+    const clauses = [];
+    const args = [];
+    if (status !== 'all') {
+      clauses.push('status = ?');
+      args.push(status);
+    }
+    for (const [param, op] of [['from', '>='], ['to', '<=']]) {
+      const value = req.query[param];
+      if (value !== undefined) {
+        if (Number.isNaN(Date.parse(String(value)))) return fail(res, 400, `bad_${param}`);
+        clauses.push(`created_at ${op} ?`);
+        args.push(new Date(String(value)).toISOString());
+      }
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const rows = db.prepare(`SELECT * FROM payments ${where} ORDER BY created_at DESC`).all(...args);
     res.json({
       payments: rows.map((p) => ({
         id: p.id, email: p.email, tier: p.tier, billing: p.billing, method: p.method,
         amount: p.amount, status: p.status, hasReceipt: !!p.receipt_path,
         receiptName: p.receipt_name ?? undefined, createdAt: p.created_at,
       })),
+      totalVerifiedTl: rows.filter((p) => p.status === 'verified').reduce((sum, p) => sum + p.amount, 0),
     });
   });
 
   app.post('/api/admin/payments/:id/resolve', requireAuth, requireAdmin, (req, res) => {
+    // Explicit allow-list. The old code treated ANY unrecognised body as a
+    // rejection and still answered 200 {ok:true} — {"action":"approve"}
+    // silently rejected a real payment.
+    const { status } = req.body ?? {};
+    if (!['verified', 'rejected'].includes(status)) return fail(res, 400, 'bad_status');
     const p = db.prepare('SELECT * FROM payments WHERE id = ?').get(req.params.id);
     if (!p) return fail(res, 404, 'payment_not_found');
-    if (req.body?.status === 'verified') settleVerifiedPayment(p);
+    if (status === 'verified') settleVerifiedPayment(p);
     else db.prepare("UPDATE payments SET status = 'rejected' WHERE id = ? AND status != 'verified'").run(p.id);
-    res.json({ ok: true });
+    const resolved = db.prepare('SELECT status FROM payments WHERE id = ?').get(p.id);
+    res.json({ ok: true, status: resolved.status });
   });
 
   app.get('/api/admin/payments/:id/receipt', requireAuth, requireAdmin, (req, res) => {

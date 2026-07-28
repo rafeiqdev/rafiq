@@ -34,6 +34,21 @@ Two things it cannot do from SQL:
    `_activate_sub` (the `current_setting('role')` / `is_admin()` check) at the top of its body
    via **Database → Functions**.
 
+### Gateway payments (2026-07-28): the webhook is deployed, the gateway is not yet wired
+`api/payments/webhook.ts` is the only path that activates a card subscription: it verifies an
+HMAC-SHA256 signature (`x-rafiq-signature`, keyed with `PAYMENT_WEBHOOK_SECRET`) over the raw
+body, flips the payment `pending → verified` idempotently, and activates via `_activate_sub`
+with the service-role key. To go live with iyzico/Stripe:
+1. Vercel env vars: `PAYMENT_WEBHOOK_SECRET` (random 32+ bytes) and `SUPABASE_SERVICE_ROLE_KEY`
+   (Project Settings → API → service_role — server-only, never `VITE_*`).
+2. Point the gateway's webhook at `https://rafiq.ist/api/payments/webhook` with body
+   `{"paymentId": "<uuid>", "outcome": "success"|"failure", "amount": <TL>}` signed as above
+   (use a translation function if the gateway's own webhook format differs).
+3. Referral commissions for gateway payments are NOT credited by the webhook yet — the live
+   `_credit_referrer` contract is unverified. Until then commissions follow the admin flow.
+Until a gateway is wired, card checkout stays on the manual bank/crypto rails with admin
+verification — nobody gets a plan without a human confirming a payment.
+
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no
 admin approval**, callable directly with the public anon key. The app no longer calls it; remove it

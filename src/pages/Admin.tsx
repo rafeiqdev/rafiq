@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { adminPayments, adminRates, adminUsers, leads, notifications } from '../lib/api';
+import type { PaymentStatusFilter } from '../lib/api';
 import type { AdminUser, Booking, Lead, PaymentRequest, PlanTier, Profile } from '../lib/types';
 import { RequireAdmin } from '../components/Gates';
 import { useApp } from '../context/AppContext';
@@ -209,7 +210,13 @@ function AdminInner() {
    * as emptiness.
    */
   const usersSec = useAsyncSection(() => adminUsers.list(), []);
-  const paymentsSec = useAsyncSection(() => adminPayments.pending(), []);
+  const [payFilter, setPayFilter] = useState<PaymentStatusFilter>('pending');
+  const [payFrom, setPayFrom] = useState('');
+  const [payTo, setPayTo] = useState('');
+  const paymentsSec = useAsyncSection(
+    () => adminPayments.list({ status: payFilter, from: payFrom || undefined, to: payTo || undefined }),
+    [payFilter, payFrom, payTo],
+  );
   const broadcastsSec = useAsyncSection(() => notifications.broadcasts(), []);
   const leadsSec = useAsyncSection(() => leads.adminList(), []);
   const cancellationsSec = useAsyncSection(() => adminUsers.cancellations(), []);
@@ -403,15 +410,49 @@ function AdminInner() {
         </SectionState>
       </div>
 
-      {/* payment verification */}
+      {/* payment verification + history */}
       <div className="card p-6 mt-5">
         <h2 className="font-bold text-navy">{t('admin.payments.title')}</h2>
+
+        {/* status + date filters: the pending queue alone had no way to see
+            revenue, review a dispute, or trace a referral commission */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {(['pending', 'verified', 'rejected', 'all'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setPayFilter(s)}
+              aria-pressed={payFilter === s}
+              className={`rounded-full px-3 min-h-[36px] text-xs font-bold border transition-colors ${
+                payFilter === s ? 'bg-navy text-white border-navy' : 'bg-white text-navy/70 border-cream-dark'
+              }`}
+            >
+              {t(`admin.payments.filter.${s}`)}
+            </button>
+          ))}
+          <label className="ms-auto flex items-center gap-1 text-xs text-navy/70">
+            {t('admin.payments.from')}
+            <input type="date" value={payFrom} onChange={(e) => setPayFrom(e.target.value)} className="input h-9 text-xs" />
+          </label>
+          <label className="flex items-center gap-1 text-xs text-navy/70">
+            {t('admin.payments.to')}
+            <input type="date" value={payTo} onChange={(e) => setPayTo(e.target.value)} className="input h-9 text-xs" />
+          </label>
+        </div>
+
         <SectionState
           section={paymentsSec}
           title={t('admin.payments.title')}
+          isEmpty={(d) => d.payments.length === 0}
           empty={<p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>}
         >
-          {(rows) => (
+          {({ payments: rows, totalVerifiedTl }) => (
+          <>
+          {payFilter !== 'pending' && (
+            <p className="mt-3 text-sm font-semibold text-navy">
+              {t('admin.payments.total')}: <span dir="ltr">{totalVerifiedTl.toLocaleString()} {t('common.tl')}</span>
+            </p>
+          )}
           <ul className="mt-4 flex flex-col gap-3">
             {rows.map((p) => (
               <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
@@ -421,8 +462,18 @@ function AdminInner() {
                 </span>
                 <span className="text-xs text-gray-500">
                   {t('admin.payments.method')}: {t(`checkout.tabs.${p.method}`)} ·{' '}
-                  <span dir="ltr">{p.amount.toLocaleString()} {t('common.tl')}</span>
+                  <span dir="ltr">{p.amount.toLocaleString()} {t('common.tl')}</span> ·{' '}
+                  <span dir="ltr">{new Date(p.createdAt).toLocaleDateString()}</span>
                 </span>
+                {p.status !== 'pending' && (
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                      p.status === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-brand-red/10 text-brand-red'
+                    }`}
+                  >
+                    {t(`admin.payments.filter.${p.status}`)}
+                  </span>
+                )}
                 {p.hasReceipt && (
                   <button
                     type="button"
@@ -433,19 +484,22 @@ function AdminInner() {
                     {t('admin.payments.receipt')}
                   </button>
                 )}
-                <span className="ms-auto flex gap-2">
-                  <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
-                    <AppIcon name="check" className="w-3.5 h-3.5" />
-                    {t('admin.payments.verify')}
-                  </button>
-                  <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
-                    <AppIcon name="x" className="w-3.5 h-3.5" />
-                    {t('admin.payments.reject')}
-                  </button>
-                </span>
+                {p.status === 'pending' && (
+                  <span className="ms-auto flex gap-2">
+                    <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
+                      <AppIcon name="check" className="w-3.5 h-3.5" />
+                      {t('admin.payments.verify')}
+                    </button>
+                    <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
+                      <AppIcon name="x" className="w-3.5 h-3.5" />
+                      {t('admin.payments.reject')}
+                    </button>
+                  </span>
+                )}
               </li>
             ))}
           </ul>
+          </>
           )}
         </SectionState>
       </div>

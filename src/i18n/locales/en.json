@@ -1181,7 +1181,16 @@
     },
     "payments": {
       "title": "Payment verification",
-      "empty": "No pending payments.",
+      "empty": "No payments here.",
+      "filter": {
+        "pending": "Pending",
+        "verified": "Verified",
+        "rejected": "Rejected",
+        "all": "All"
+      },
+      "from": "From",
+      "to": "To",
+      "total": "Verified revenue",
       "method": "Method",
       "verify": "Verify",
       "reject": "Reject",

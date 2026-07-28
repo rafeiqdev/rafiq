@@ -1203,18 +1203,45 @@ interface PaymentRow {
   status: PaymentRequest['status']; receipt_path: string | null; receipt_name: string | null; created_at: string;
 }
 
+export type PaymentStatusFilter = 'pending' | 'verified' | 'rejected' | 'all';
+
+export interface PaymentHistory {
+  payments: PaymentRequest[];
+  /** Verified revenue of the returned slice, in TL. */
+  totalVerifiedTl: number;
+}
+
 export const adminPayments = {
-  async pending(): Promise<PaymentRequest[]> {
-    const { data, error } = await sb()
+  /**
+   * Payments history. Defaults to the pending verification queue; 'verified',
+   * 'rejected' and 'all' (plus ISO date bounds) exist because the queue alone
+   * left no way to see revenue, review a dispute, or trace a commission.
+   */
+  async list(
+    filter: { status?: PaymentStatusFilter; from?: string; to?: string } = {},
+  ): Promise<PaymentHistory> {
+    const status = filter.status ?? 'pending';
+    let q = sb()
       .from('payments')
       .select('id,email,tier,billing,method,amount,status,receipt_path,receipt_name,created_at')
-      .eq('status', 'pending')
       .order('created_at', { ascending: false });
+    if (status !== 'all') q = q.eq('status', status);
+    if (filter.from) q = q.gte('created_at', filter.from);
+    if (filter.to) q = q.lte('created_at', `${filter.to}T23:59:59.999Z`);
+    const { data, error } = await q;
     if (error) fail(error);
-    return (data as PaymentRow[]).map((p) => ({
-      id: p.id, email: p.email ?? '', tier: p.tier, billing: p.billing, method: p.method, amount: p.amount,
-      status: p.status, hasReceipt: !!p.receipt_path, receiptName: p.receipt_name ?? undefined, createdAt: p.created_at,
-    }));
+    const rows = data as PaymentRow[];
+    return {
+      payments: rows.map((p) => ({
+        id: p.id, email: p.email ?? '', tier: p.tier, billing: p.billing, method: p.method, amount: p.amount,
+        status: p.status, hasReceipt: !!p.receipt_path, receiptName: p.receipt_name ?? undefined, createdAt: p.created_at,
+      })),
+      totalVerifiedTl: rows.filter((p) => p.status === 'verified').reduce((sum, p) => sum + p.amount, 0),
+    };
+  },
+
+  async pending(): Promise<PaymentRequest[]> {
+    return (await adminPayments.list({ status: 'pending' })).payments;
   },
   async resolve(id: string, status: 'verified' | 'rejected'): Promise<{ ok: true }> {
     const { error } = await sb().rpc('admin_resolve_payment', { p_id: id, p_status: status });
