@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bookings } from '../lib/api';
 import type { Booking, BookingStatus } from '../lib/types';
 import { LANGS } from '../lib/types';
 import { RequireAdmin } from '../components/Gates';
 import { AppIcon } from '../components/AppIcon';
+import { SectionState } from '../components/SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const STATUSES: BookingStatus[] = ['new', 'confirmed', 'done', 'cancelled'];
 
@@ -115,30 +117,33 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
 
 function AdminBookingsInner() {
   const { t } = useTranslation();
-  const [list, setList] = useState<Booking[]>([]);
-
-  const load = () => bookings.adminList().then(setList).catch(() => {});
-  useEffect(() => {
-    load();
-  }, []);
+  // Error is a state — a failed load must not read as "no bookings". A booked
+  // appointment nobody shows up to is a real person waiting at a time we chose.
+  const section = useAsyncSection<Booking[]>(() => bookings.adminList(), []);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-2xl font-extrabold text-navy">{t('adminBookings.title')}</h1>
-      {list.length === 0 ? (
-        <div className="card p-10 mt-6 text-center">
-          <div className="icon-chip mx-auto">
-            <AppIcon name="calendar" className="w-6 h-6" />
+      <SectionState
+        section={section}
+        title={t('adminBookings.title')}
+        empty={
+          <div className="card p-10 mt-6 text-center">
+            <div className="icon-chip mx-auto">
+              <AppIcon name="calendar" className="w-6 h-6" />
+            </div>
+            <p className="mt-4 text-sm text-gray-500">{t('adminBookings.empty')}</p>
           </div>
-          <p className="mt-4 text-sm text-gray-500">{t('adminBookings.empty')}</p>
-        </div>
-      ) : (
-        <div className="mt-6 flex flex-col gap-4">
-          {list.map((b) => (
-            <Row key={b.id} booking={b} onChanged={load} />
-          ))}
-        </div>
-      )}
+        }
+      >
+        {(list) => (
+          <div className="mt-6 flex flex-col gap-4">
+            {list.map((b) => (
+              <Row key={b.id} booking={b} onChanged={section.reload} />
+            ))}
+          </div>
+        )}
+      </SectionState>
     </div>
   );
 }

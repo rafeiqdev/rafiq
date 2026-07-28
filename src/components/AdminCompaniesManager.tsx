@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminCompanies } from '../lib/api';
 import type { Company, CompanyStatus } from '../lib/types';
 import { SERVICE_CATEGORIES, pickText } from '../data/services';
 import { pickArea } from '../data/istanbulAreas';
 import { AppIcon } from './AppIcon';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 function CompanyRow({ company, onChanged }: { company: Company; onChanged: () => void }) {
   const { t, i18n } = useTranslation();
@@ -95,20 +97,24 @@ function CompanyRow({ company, onChanged }: { company: Company; onChanged: () =>
 
 export function AdminCompaniesManager() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Company[]>([]);
-  const load = () => adminCompanies.list().then(setRows).catch(() => {});
-  useEffect(() => { load(); }, []);
+  // Error is a state, never an empty list — a failed load must not read as
+  // "no companies registered".
+  const section = useAsyncSection<Company[]>(() => adminCompanies.list(), []);
 
   return (
     <div className="card p-6 mt-5">
       <h2 className="font-bold text-navy">{t('companyAdmin.companies.title')}</h2>
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">{t('companyAdmin.companies.empty')}</p>
-      ) : (
+      <SectionState
+        section={section}
+        title={t('companyAdmin.companies.title')}
+        empty={<p className="mt-3 text-sm text-gray-500">{t('companyAdmin.companies.empty')}</p>}
+      >
+        {(rows) => (
         <ul className="mt-4 flex flex-col gap-3">
-          {rows.map((c) => <CompanyRow key={c.id} company={c} onChanged={load} />)}
+          {rows.map((c) => <CompanyRow key={c.id} company={c} onChanged={section.reload} />)}
         </ul>
-      )}
+        )}
+      </SectionState>
     </div>
   );
 }

@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminPlaces, listings as listingsApi } from '../lib/api';
 import type { ListingInput, PlaceInput } from '../lib/api';
 import type { Listing, Place } from '../lib/types';
 import { AppIcon } from './AppIcon';
 import { Modal } from './Modal';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const PLACE_CATEGORIES = ['dining', 'hotels', 'notary', 'hospitals', 'government', 'shopping'] as const;
 
@@ -177,14 +179,11 @@ function ListingEditor({ initial, onClose, onSaved }: { initial: Listing | null;
 
 export function ListingsManager() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Listing[]>([]);
   const [editing, setEditing] = useState<Listing | null>(null);
   const [adding, setAdding] = useState(false);
-
-  const load = () => listingsApi.adminList().then(setRows).catch(() => {});
-  useEffect(() => {
-    load();
-  }, []);
+  // Error is a state — a failed load must not read as "no listings".
+  const section = useAsyncSection<Listing[]>(() => listingsApi.adminList(), []);
+  const load = section.reload;
 
   const remove = async (id: string) => {
     if (!window.confirm(t('admin.listings.confirmDelete'))) return;
@@ -202,9 +201,12 @@ export function ListingsManager() {
         </button>
       </div>
 
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">{t('admin.listings.empty')}</p>
-      ) : (
+      <SectionState
+        section={section}
+        title={t('admin.listings.title')}
+        empty={<p className="mt-3 text-sm text-gray-500">{t('admin.listings.empty')}</p>}
+      >
+        {(rows) => (
         <ul className="mt-4 flex flex-col gap-2">
           {rows.map((l) => (
             <li key={l.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
@@ -228,7 +230,8 @@ export function ListingsManager() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </SectionState>
 
       {(adding || editing) && (
         <ListingEditor
@@ -324,14 +327,11 @@ function PlaceEditor({ initial, onClose, onSaved }: { initial: Place | null; onC
 
 export function PlacesManager() {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Place[]>([]);
   const [editing, setEditing] = useState<Place | null>(null);
   const [adding, setAdding] = useState(false);
-
-  const load = () => adminPlaces.list().then(setRows).catch(() => {});
-  useEffect(() => {
-    load();
-  }, []);
+  // Error is a state — a failed load must not read as "no places".
+  const section = useAsyncSection<Place[]>(() => adminPlaces.list(), []);
+  const load = section.reload;
 
   const remove = async (id: string) => {
     if (!window.confirm(t('admin.places.confirmDelete'))) return;
@@ -349,9 +349,12 @@ export function PlacesManager() {
         </button>
       </div>
 
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">{t('admin.places.empty')}</p>
-      ) : (
+      <SectionState
+        section={section}
+        title={t('admin.places.title')}
+        empty={<p className="mt-3 text-sm text-gray-500">{t('admin.places.empty')}</p>}
+      >
+        {(rows) => (
         <ul className="mt-4 flex flex-col gap-2">
           {rows.map((p) => (
             <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
@@ -371,7 +374,8 @@ export function PlacesManager() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </SectionState>
 
       {(adding || editing) && (
         <PlaceEditor

@@ -1,23 +1,26 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { serviceRequests } from '../lib/api';
 import type { ServiceRequest } from '../lib/api';
 import { AppIcon } from './AppIcon';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
-/** Admin panel section: incoming "Request service" submissions from /services. */
+/**
+ * Admin panel section: incoming "Request service" submissions from /services.
+ *
+ * The load was `.catch(() => {})`, so a failed fetch rendered "no requests" —
+ * the exact defect AdminNewRequests was built to never commit, three inches
+ * above this on the same page. For the admin that is the costliest lie in the
+ * product: an empty queue reads as "nobody needs me" while requests sit
+ * unanswered. "No requests" may only render after a successful fetch.
+ */
 export function ServiceRequestsManager() {
   const { t, i18n } = useTranslation();
-  const [rows, setRows] = useState<ServiceRequest[]>([]);
-
-  const load = () => serviceRequests.adminList().then(setRows).catch(() => {});
-
-  useEffect(() => {
-    load();
-  }, []);
+  const section = useAsyncSection<ServiceRequest[]>(() => serviceRequests.adminList(), []);
 
   const setStatus = async (id: string, status: 'accepted' | 'done' | 'rejected') => {
     await serviceRequests.adminSetStatus(id, status);
-    await load();
+    section.reload();
   };
 
   return (
@@ -25,9 +28,12 @@ export function ServiceRequestsManager() {
     // "and N more" link in AdminNewRequests jumps down here.
     <div id="service-requests" className="card p-6 mt-5 scroll-mt-24">
       <h2 className="font-bold text-navy">{t('admin.serviceRequests.title')}</h2>
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">{t('admin.serviceRequests.empty')}</p>
-      ) : (
+      <SectionState
+        section={section}
+        title={t('admin.serviceRequests.title')}
+        empty={<p className="mt-3 text-sm text-gray-500">{t('admin.serviceRequests.empty')}</p>}
+      >
+        {(rows) => (
         <ul className="mt-4 flex flex-col gap-2">
           {rows.map((r) => (
             <li key={r.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
@@ -85,7 +91,8 @@ export function ServiceRequestsManager() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </SectionState>
     </div>
   );
 }

@@ -1,27 +1,33 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { companyPayments } from '../lib/api';
 import type { CompanyPayment } from '../lib/types';
 import { AppIcon } from './AppIcon';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
-/** Admin: confirm/reject company subscription payments (mirrors user payments). */
+/**
+ * Admin: confirm/reject company subscription payments (mirrors user payments).
+ * A failed load here used to render "no pending payments" — money owed
+ * presenting as nothing. Error is now a state of its own.
+ */
 export function AdminCompanyPaymentsManager() {
   const { t, i18n } = useTranslation();
-  const [rows, setRows] = useState<CompanyPayment[]>([]);
-  const load = () => companyPayments.pending().then(setRows).catch(() => {});
-  useEffect(() => { load(); }, []);
+  const section = useAsyncSection<CompanyPayment[]>(() => companyPayments.pending(), []);
 
   const resolve = async (id: string, status: 'confirmed' | 'rejected') => {
     await companyPayments.resolve(id, status);
-    await load();
+    section.reload();
   };
 
   return (
     <div className="card p-6 mt-5">
       <h2 className="font-bold text-navy">{t('companyAdmin.payments.title')}</h2>
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">{t('companyAdmin.payments.empty')}</p>
-      ) : (
+      <SectionState
+        section={section}
+        title={t('companyAdmin.payments.title')}
+        empty={<p className="mt-3 text-sm text-gray-500">{t('companyAdmin.payments.empty')}</p>}
+      >
+        {(rows) => (
         <ul className="mt-4 flex flex-col gap-3">
           {rows.map((p) => (
             <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
@@ -50,7 +56,8 @@ export function AdminCompanyPaymentsManager() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </SectionState>
     </div>
   );
 }

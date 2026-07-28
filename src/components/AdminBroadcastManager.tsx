@@ -1,33 +1,36 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminBroadcast } from '../lib/api';
 import { SERVICE_CATEGORIES, pickText } from '../data/services';
 import { pickArea } from '../data/istanbulAreas';
 import { AppIcon } from './AppIcon';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 type Req = Awaited<ReturnType<typeof adminBroadcast.requests>>[number];
 type Resp = Awaited<ReturnType<typeof adminBroadcast.responses>>[number];
 
-/** Admin overview: broadcast customer requests + the offers companies sent. */
+/**
+ * Admin overview: broadcast customer requests + the offers companies sent.
+ * Two INDEPENDENT sections — one failing must not blank or fake-empty the
+ * other, and neither may say "empty" after a failed fetch.
+ */
 export function AdminBroadcastManager() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const [requests, setRequests] = useState<Req[]>([]);
-  const [responses, setResponses] = useState<Resp[]>([]);
-
-  useEffect(() => {
-    adminBroadcast.requests().then(setRequests).catch(() => {});
-    adminBroadcast.responses().then(setResponses).catch(() => {});
-  }, []);
+  const requestsSec = useAsyncSection<Req[]>(() => adminBroadcast.requests(), []);
+  const responsesSec = useAsyncSection<Resp[]>(() => adminBroadcast.responses(), []);
 
   return (
     <div className="card p-6 mt-5">
       <h2 className="font-bold text-navy">{t('companyAdmin.broadcast.title')}</h2>
 
       <h3 className="mt-4 text-xs font-bold uppercase tracking-wider text-navy/40">{t('companyAdmin.broadcast.requestsTitle')}</h3>
-      {requests.length === 0 ? (
-        <p className="mt-2 text-sm text-gray-500">{t('companyAdmin.broadcast.requestsEmpty')}</p>
-      ) : (
+      <SectionState
+        section={requestsSec}
+        title={t('companyAdmin.broadcast.requestsTitle')}
+        empty={<p className="mt-2 text-sm text-gray-500">{t('companyAdmin.broadcast.requestsEmpty')}</p>}
+      >
+        {(requests) => (
         <ul className="mt-3 flex flex-col gap-2">
           {requests.map((r) => {
             const cat = SERVICE_CATEGORIES.find((c) => c.id === r.category);
@@ -41,12 +44,16 @@ export function AdminBroadcastManager() {
             );
           })}
         </ul>
-      )}
+        )}
+      </SectionState>
 
       <h3 className="mt-5 text-xs font-bold uppercase tracking-wider text-navy/40">{t('companyAdmin.broadcast.responsesTitle')}</h3>
-      {responses.length === 0 ? (
-        <p className="mt-2 text-sm text-gray-500">{t('companyAdmin.broadcast.responsesEmpty')}</p>
-      ) : (
+      <SectionState
+        section={responsesSec}
+        title={t('companyAdmin.broadcast.responsesTitle')}
+        empty={<p className="mt-2 text-sm text-gray-500">{t('companyAdmin.broadcast.responsesEmpty')}</p>}
+      >
+        {(responses) => (
         <ul className="mt-3 flex flex-col gap-2">
           {responses.map((r) => (
             <li key={r.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
@@ -63,7 +70,8 @@ export function AdminBroadcastManager() {
             </li>
           ))}
         </ul>
-      )}
+        )}
+      </SectionState>
     </div>
   );
 }
