@@ -6,7 +6,7 @@ import type { Lang } from '../lib/types';
 import { AppIcon } from './AppIcon';
 
 /** Header language switcher with listbox semantics, outside-click and Escape close. */
-export function LangSwitcher() {
+export function LangSwitcher({ dropUp = false }: { dropUp?: boolean }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -39,7 +39,11 @@ export function LangSwitcher() {
         <span className="hidden sm:inline">{current.native}</span>
       </button>
       {open && (
-        <ul className="absolute end-0 mt-2 w-36 card p-1 z-40" role="listbox" aria-label={t('common.language')}>
+        <ul
+          className={`absolute end-0 w-36 card p-1 z-40 ${dropUp ? 'bottom-full mb-2' : 'mt-2'}`}
+          role="listbox"
+          aria-label={t('common.language')}
+        >
           {LANGS.map((l) => (
             <li key={l.code} role="option" aria-selected={l.code === current.code}>
               <button

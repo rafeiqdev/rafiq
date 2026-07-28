@@ -143,7 +143,7 @@ function ServicesMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream"
+        className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/85 hover:text-navy hover:bg-cream"
       >
         {t('nav.services')} ▾
       </button>
@@ -249,7 +249,7 @@ export function Layout() {
       {!hideChrome && (
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-cream-dark">
         <div className="mx-auto max-w-6xl px-4 h-16 flex items-center gap-2 sm:gap-4">
-          <Link to="/" className="flex items-center shrink-0">
+          <Link to="/" className="flex items-center shrink-0" aria-label={t('common.appName')}>
             <Logo size={30} />
           </Link>
 
@@ -260,7 +260,7 @@ export function Layout() {
                 to={n.to}
                 className={({ isActive }) =>
                   `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
+                    isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/85 hover:text-navy hover:bg-cream'
                   }`
                 }
               >
@@ -273,8 +273,8 @@ export function Layout() {
                 <NavLink
                   to="/home"
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
+                    `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/85 hover:text-navy hover:bg-cream'
                     }`
                   }
                 >
@@ -283,8 +283,8 @@ export function Layout() {
                 <NavLink
                   to="/journey"
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/70 hover:text-navy hover:bg-cream'
+                    `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/85 hover:text-navy hover:bg-cream'
                     }`
                   }
                 >
@@ -293,7 +293,7 @@ export function Layout() {
               </>
             )}
             {user?.isCompany && (
-              <NavLink to="/company" className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/70 hover:text-navy hover:bg-cream">
+              <NavLink to="/company" className="px-3 py-2.5 rounded-lg text-sm font-medium text-navy/85 hover:text-navy hover:bg-cream">
                 {t('nav.companyPortal')}
               </NavLink>
             )}
@@ -328,7 +328,9 @@ export function Layout() {
           </nav>
 
           <div className="ms-auto flex items-center gap-2">
-            <NotificationBell size={36} />
+            {/* the bell leads to /notifications, which needs a session — for a
+                guest it was a dead button */}
+            {user && <NotificationBell size={36} />}
             <LangSwitcher />
             {user ? (
               <Link to="/profile" className="btn-secondary h-9 px-3 text-xs shrink-0" aria-label={t('nav.profile')}>
@@ -424,6 +426,16 @@ export function Layout() {
 
       {!hideChrome && <SiteFooter />}
       {showMobileFooter && <SiteFooter variant="mobile" />}
+      {/* The six app-shell routes (/auth /checkout /premium /chat /map /help)
+          have neither header nor footer on phones — without this a visitor
+          landing on /auth in the wrong language had NO way to change it. */}
+      {/* z-[60]: must stay clickable above the consent banner (z-50) — a
+          first-time visitor in the wrong language has both on screen at once */}
+      {hideChrome && !showMobileFooter && (
+        <div className="fixed z-[60] end-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] rounded-btn bg-white/95 shadow-card">
+          <LangSwitcher dropUp />
+        </div>
+      )}
       <ConsentBanner />
     </div>
   );

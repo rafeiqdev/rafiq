@@ -297,7 +297,9 @@
     "sourceManual": "Official rate set by admin",
     "sourceProvider": "Rate provider",
     "statusFresh": "Rates are up to date",
-    "statusStale": "Rates are stale — no new update received"
+    "statusStale": "Rates are stale — no new update received",
+    "pause": "Pause the rates ticker",
+    "resume": "Resume the rates ticker"
   },
   "blocks": {
     "preArrival": {
@@ -504,7 +506,7 @@
     },
     "errors": {
       "userNotFound": "No account found with this email.",
-      "wrongPassword": "Incorrect password. Try again.",
+      "wrongPassword": "Email or password is incorrect.",
       "emailExists": "This email is already registered — sign in instead.",
       "weakPassword": "Password must be at least 8 characters.",
       "profileMissingTitle": "Your account needs attention",
@@ -749,7 +751,7 @@
     },
     "locked": {
       "title": "Upgrade to unlock the map",
-      "body": "The interactive services map with Rafiq recommendations is available on Pro and Elite.",
+      "body": "50+ vetted places — restaurants, hospitals, banks and notaries, each one checked by Rafiq. The full interactive map opens with Pro or Elite.",
       "cta": "Unlock with Pro"
     },
     "directory": {

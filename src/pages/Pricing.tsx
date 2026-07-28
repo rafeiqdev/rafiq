@@ -86,7 +86,7 @@ export function Pricing() {
               key={b}
               onClick={() => setBilling(b)}
               className={`px-5 h-9 rounded-lg text-sm font-semibold transition-colors ${
-                billing === b ? 'bg-navy text-white' : 'text-navy/60 hover:text-navy'
+                billing === b ? 'bg-navy text-white' : 'text-navy/85 hover:text-navy'
               }`}
             >
               {t(`common.${b}`)}

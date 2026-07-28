@@ -42,6 +42,17 @@ export function ConsentBanner() {
         <span className="icon-chip hidden shrink-0 sm:flex">
           <AppIcon name="shield-check" className="w-5 h-5" />
         </span>
+        {/* × hides the strip for this session only: no consent is recorded, so
+            analytics stays off (track() refuses while getConsent() is null),
+            and the banner returns next visit. Dismissing is not deciding. */}
+        <button
+          type="button"
+          onClick={() => setVisible(false)}
+          aria-label={t('common.close')}
+          className="absolute top-2 end-2 flex h-9 w-9 items-center justify-center rounded-full text-navy/60 hover:bg-cream hover:text-navy sm:static sm:order-last sm:shrink-0"
+        >
+          <AppIcon name="x" className="h-4 w-4" />
+        </button>
         <div className="min-w-0 flex-1">
           <p id="consent-title" className="text-sm font-extrabold text-navy">
             {t('consent.title')}

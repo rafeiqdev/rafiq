@@ -238,15 +238,19 @@ export function MobileHome() {
               )}
             </div>
 
-            {/* trust bar — horizontal scroll */}
-            <div className="mt-6 -mx-5 px-5 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* trust bar — wraps instead of scrolling: the old horizontal
+                scroller hid its scrollbar, so the row just looked clipped at
+                the viewport edge with nothing suggesting more to the side */}
+            <div className="mt-6 flex flex-wrap gap-2">
               {TRUST.map((item) => (
                 <span
                   key={item.key}
-                  className="shrink-0 flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 text-white text-[13px] px-3.5 py-2"
+                  className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 text-white text-[13px] px-3.5 py-2"
                 >
                   <AppIcon name={item.icon} className="w-4 h-4" />
-                  {t(item.key)}
+                  {/* bdi isolates Latin runs like (KVKK) inside Arabic text —
+                      without it the parenthesis renders on the wrong side */}
+                  <bdi>{t(item.key)}</bdi>
                 </span>
               ))}
             </div>

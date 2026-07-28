@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSear
 import { useTranslation } from 'react-i18next';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
-import { LanguageSelector } from './components/LanguageSelector';
 import { RequireOnboarded } from './components/Gates';
 import { ChatRedirect } from './components/LegacyRedirects';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -184,10 +183,13 @@ function AuthErrorScreen({ onSignOut }: { onSignOut: () => void }) {
 }
 
 function Shell() {
-  const { langSelected, authError, signOut } = useApp();
+  const { authError, signOut } = useApp();
   const isMobile = useIsMobile();
 
-  if (!langSelected) return <LanguageSelector />;
+  // The full-screen language gate is gone on purpose: a first-time visitor
+  // used to see four buttons and no product. The language now comes from the
+  // URL segment (Accept-Language decided it at the edge — see vercel.json),
+  // and the header/footer switchers remain one tap away.
   if (authError === 'profile_missing') return <AuthErrorScreen onSignOut={signOut} />;
 
   return (
