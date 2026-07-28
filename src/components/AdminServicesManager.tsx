@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminCatalog } from '../lib/api';
 import type { CatalogOverrides } from '../lib/api';
@@ -8,6 +8,8 @@ import { reloadCatalog } from '../data/catalogStore';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
 import { Modal } from './Modal';
+import { SectionState } from './SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const LANGS = ['ar', 'en', 'tr', 'ru', 'fa'] as const;
 type Lang = (typeof LANGS)[number];
@@ -43,14 +45,24 @@ function toDraft(s: ServiceItem, isNew: boolean): Draft {
 export function AdminServicesManager() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const [ov, setOv] = useState<CatalogOverrides>({});
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    adminCatalog.get().then(setOv).catch(() => {});
-  }, []);
+  /**
+   * The list below is derived from the statically bundled SERVICES catalog
+   * merged with these overrides, so a failed fetch never produced an empty
+   * state — it rendered the full catalog WITHOUT the admin's edits, hidden
+   * flags and added services, and nothing looked wrong. A hidden service
+   * appeared live, edited titles reverted to the bundled originals, and the
+   * next hide/unhide would have been computed from `{}` and written over the
+   * real overrides.
+   *
+   * The admin must never operate on a catalog that is not showing their real
+   * edits, so on failure this panel shows error-with-retry and nothing else.
+   */
+  const catalogSec = useAsyncSection<CatalogOverrides>(() => adminCatalog.get(), []);
+  const ov = catalogSec.status === 'ready' ? (catalogSec.data ?? {}) : {};
 
   // working list = static + added, with edits applied, plus hidden/added flags
   const rows = useMemo(() => {
@@ -77,7 +89,11 @@ export function AdminServicesManager() {
     setBusy(true);
     try {
       await adminCatalog.save(next);
-      setOv(next);
+      // Re-read rather than trusting the local copy: what the panel shows after
+      // a save should be what the database actually holds, and a refetch that
+      // fails now surfaces as the error state instead of leaving optimistic
+      // state on screen.
+      catalogSec.reload();
       await reloadCatalog();
     } finally {
       setBusy(false);
@@ -161,6 +177,17 @@ export function AdminServicesManager() {
         </button>
       </div>
 
+      <SectionState
+        section={catalogSec}
+        title={t('admin.catalog.heading')}
+        /* The derived list is never "empty" — SERVICES is bundled — so the
+           empty branch is unreachable by construction; it exists only to
+           satisfy the shared primitive. */
+        isEmpty={() => false}
+        empty={null}
+      >
+        {() => (
+        <>
       <input
         className="input mt-4"
         placeholder={t('common.search')}
@@ -197,6 +224,9 @@ export function AdminServicesManager() {
           </div>
         ))}
       </div>
+        </>
+        )}
+      </SectionState>
 
       {editing && (
         <EditorModal

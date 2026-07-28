@@ -1101,8 +1101,28 @@ export async function fetchCatalogOverrides(): Promise<CatalogOverrides | null> 
 }
 
 export const adminCatalog = {
+  /**
+   * Admin read — deliberately NOT fetchCatalogOverrides().
+   *
+   * That function drops the error object on the floor (`const { data } = ...`)
+   * and returns null, which is right for the customer-facing catalogStore: a
+   * visitor should still see the catalog if the overrides row can't be read.
+   * For the admin it is wrong in a way nothing on screen reveals — the panel
+   * renders the bundled catalog WITHOUT their edits, hidden flags and added
+   * services, so a hidden service looks live and the next toggle is computed
+   * from `{}` and saved over the real overrides.
+   *
+   * So this one surfaces the error and the panel refuses to render a catalog
+   * it cannot prove is current.
+   */
   async get(): Promise<CatalogOverrides> {
-    return (await fetchCatalogOverrides()) ?? {};
+    const { data, error } = await sb()
+      .from('settings')
+      .select('value')
+      .eq('key', 'service_catalog')
+      .maybeSingle();
+    if (error) fail(error);
+    return (data?.value as CatalogOverrides | undefined) ?? {};
   },
   async save(value: CatalogOverrides): Promise<{ ok: true }> {
     const { error } = await sb().from('settings').upsert({ key: 'service_catalog', value }, { onConflict: 'key' });
