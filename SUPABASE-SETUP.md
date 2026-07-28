@@ -50,11 +50,21 @@ Until a gateway is wired, card checkout stays on the manual bank/crypto rails wi
 verification — nobody gets a plan without a human confirming a payment.
 
 ### News feed (2026-07-28): run before using the admin "news" card
-The home page has a public news section mirroring the owner's Telegram channel, authored in
-/admin. Run **`supabase/migrations/20260728_news_posts.sql`** in SQL Editor (creates
-`news_posts` with public-read-published / admin-write RLS). The Telegram channel URL is set in
-the same admin card and stored in the existing `settings` table (key `telegram`). Until the
-migration runs, the home section stays hidden and the admin card shows a load error.
+The home page has a public news section that auto-mirrors the owner's Telegram channel. Run
+BOTH, in order, in SQL Editor:
+1. **`supabase/migrations/20260728_news_posts.sql`** — creates `news_posts`
+   (public-read-published / admin-write RLS);
+2. **`supabase/migrations/20260728_news_telegram_sync.sql`** — adds the sync columns
+   (`tg_id` unique, `image_url`, `source`).
+
+Then in **/admin → the news card**: paste the PUBLIC channel link (`https://t.me/<name>`) and
+save — the server function (`api/cron/telegram-sync.ts`) immediately pulls the latest 5 posts
+(photo + text, with the channel's own links scrubbed out of the text) and re-syncs daily at
+06:35 UTC via Vercel cron. "Sync now" re-runs it on demand. Requirements: the channel must be
+**public** (private channels have no readable web page), and Vercel must have
+`SUPABASE_SERVICE_ROLE_KEY` (already required by the FX cron) — `CRON_SECRET` protects the
+scheduled runs. Until the migrations run, the home section stays hidden and the admin card
+shows a load error.
 
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no

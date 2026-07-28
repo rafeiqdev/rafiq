@@ -1189,7 +1189,9 @@
     },
     "newsFeed": {
       "title": "Home-page news (Telegram mirror)",
-      "hint": "Post on your Telegram channel as usual, then add the same item here — it appears in the news section of the home page. Paste the post's t.me link so 'Read more' opens the original.",
+      "hint": "Paste your PUBLIC channel's link and save — the site pulls its latest 5 posts (picture and text), removes the channel's own links from the text, and keeps syncing daily. Use the form below only for one-off items without a Telegram post.",
+      "sync": "Sync now",
+      "synced": "Synced {{count}} posts",
       "channel": "Telegram channel",
       "channelSaved": "Saved",
       "postTitle": "Post title",

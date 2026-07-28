@@ -33,6 +33,8 @@ const post = {
   title: 'New ikamet rules',
   body: 'Appointments move online from March.',
   url: 'https://t.me/rafiq/42',
+  imageUrl: 'https://cdn4.cdn-telegram.org/file/abc.jpg',
+  source: 'telegram' as const,
   published: true,
   createdAt: '2026-07-28T10:00:00Z',
 };
@@ -58,14 +60,15 @@ describe('NewsSection', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('shows posts, the read-more link, and the Telegram follow button', async () => {
+  it('shows posts, the photo, the read-more link, and the Telegram follow button', async () => {
     latest.mockResolvedValueOnce([post]);
     telegramChannel.mockResolvedValueOnce('https://t.me/rafiq');
 
-    render(<NewsSection />);
+    const { container } = render(<NewsSection />);
 
     expect(await screen.findByText('New ikamet rules')).toBeInTheDocument();
     expect(screen.getByText('Appointments move online from March.')).toBeInTheDocument();
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('https://cdn4.cdn-telegram.org/file/abc.jpg');
     expect(screen.getByRole('link', { name: /home.news.readMore/ })).toHaveAttribute('href', 'https://t.me/rafiq/42');
     expect(screen.getByRole('link', { name: /home.news.follow/ })).toHaveAttribute('href', 'https://t.me/rafiq');
   });

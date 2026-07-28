@@ -7,9 +7,10 @@ import { useAsyncSection } from '../../hooks/useAsyncSection';
 
 /**
  * The PUBLIC news feed on the home page (distinct from the bell broadcasts,
- * which reach signed-in users only). The owner posts on Telegram as usual and
- * mirrors the item here — Telegram has no supported browser-readable feed —
- * pasting the post's t.me link so "read more" lands on the original.
+ * which reach signed-in users only). Paste the PUBLIC channel's link and the
+ * server pulls its latest posts — picture and text, with the channel's own
+ * links scrubbed out — immediately on save/"sync now" and again daily by
+ * cron. The manual form below stays for one-off items with no Telegram post.
  */
 export function NewsFeedManager() {
   const { t, i18n } = useTranslation();
@@ -22,10 +23,24 @@ export function NewsFeedManager() {
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [syncState, setSyncState] = useState<'idle' | 'busy' | number>('idle');
 
   useEffect(() => {
     news.telegramChannel().then((c) => setChannel(c ?? ''), () => {});
   }, []);
+
+  const sync = async () => {
+    setError(false);
+    setSyncState('busy');
+    try {
+      const { synced } = await news.syncNow();
+      setSyncState(synced);
+      postsSec.reload();
+    } catch {
+      setSyncState('idle');
+      setError(true);
+    }
+  };
 
   const saveChannel = async () => {
     setError(false);
@@ -33,6 +48,8 @@ export function NewsFeedManager() {
     try {
       await news.setTelegramChannel(channel);
       setChannelSaved(true);
+      // a fresh link should show results immediately, not tomorrow at cron time
+      if (channel.trim()) await sync();
     } catch {
       setError(true);
     }
@@ -93,9 +110,18 @@ export function NewsFeedManager() {
           <AppIcon name="save" className="w-3.5 h-3.5" />
           {t('common.save')}
         </button>
+        <button onClick={sync} disabled={syncState === 'busy'} className="btn-primary h-10 px-4 text-xs disabled:opacity-60">
+          <AppIcon name="send" className="w-3.5 h-3.5" />
+          {t('admin.newsFeed.sync')}
+        </button>
         {channelSaved && (
           <span role="status" className="text-xs font-semibold text-emerald-700">
             {t('admin.newsFeed.channelSaved')}
+          </span>
+        )}
+        {typeof syncState === 'number' && (
+          <span role="status" className="text-xs font-semibold text-emerald-700">
+            {t('admin.newsFeed.synced', { count: syncState })}
           </span>
         )}
       </div>
@@ -143,7 +169,11 @@ export function NewsFeedManager() {
           <ul className="mt-4 flex flex-col gap-2">
             {rows.map((p) => (
               <li key={p.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
-                <AppIcon name="newspaper" className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt="" loading="lazy" className="mt-0.5 h-10 w-10 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <AppIcon name={p.source === 'telegram' ? 'send' : 'newspaper'} className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
+                )}
                 <span className="flex-1 min-w-0">
                   <span className="font-semibold break-words">{p.title}</span>
                   {p.body && <span className="block text-navy/70 break-words">{p.body}</span>}

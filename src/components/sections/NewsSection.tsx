@@ -47,6 +47,21 @@ export function NewsSection({ compact = false }: { compact?: boolean }) {
 
   const date = (p: NewsPost) => new Date(p.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' });
 
+  // Telegram CDN photo; a broken/expired URL degrades to a text card, never
+  // to a broken-image glyph.
+  const photo = (p: NewsPost, className: string) =>
+    p.imageUrl && (
+      <img
+        src={p.imageUrl}
+        alt=""
+        loading="lazy"
+        className={className}
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    );
+
   if (compact) {
     return (
       <section className="px-5 mt-10">
@@ -58,7 +73,8 @@ export function NewsSection({ compact = false }: { compact?: boolean }) {
         </div>
         <ul className="mt-4 flex flex-col gap-3">
           {posts.map((p) => (
-            <li key={p.id} className="card p-4">
+            <li key={p.id} className="card overflow-hidden p-4">
+              {photo(p, '-mx-4 -mt-4 mb-3 h-40 w-[calc(100%+2rem)] max-w-none object-cover')}
               <p className="text-xs text-gray-500">{date(p)}</p>
               <h3 className="mt-1 font-bold text-navy break-words">{p.title}</h3>
               {p.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{p.body}</p>}
@@ -90,9 +106,10 @@ export function NewsSection({ compact = false }: { compact?: boolean }) {
         </div>
         {follow}
       </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((p) => (
-          <article key={p.id} className="card p-5 flex flex-col">
+          <article key={p.id} className="card overflow-hidden p-5 flex flex-col">
+            {photo(p, '-mx-5 -mt-5 mb-4 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover')}
             <p className="text-xs text-gray-500">{date(p)}</p>
             <h3 className="mt-1.5 font-bold text-navy break-words">{p.title}</h3>
             {p.body && <p className="mt-1.5 text-sm text-navy/70 break-words line-clamp-4">{p.body}</p>}

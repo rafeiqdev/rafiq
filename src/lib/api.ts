@@ -950,16 +950,24 @@ export interface NewsPost {
   body: string | null;
   /** "Read more" target — usually the t.me link of the original post. */
   url: string | null;
+  /** The post's photo (Telegram CDN URL for synced posts). */
+  imageUrl: string | null;
+  /** 'telegram' when written by the channel sync, 'manual' from the form. */
+  source: 'manual' | 'telegram';
   published: boolean;
   createdAt: string;
 }
 
 interface NewsRow {
-  id: string; title: string; body: string | null; url: string | null; published: boolean; created_at: string;
+  id: string; title: string; body: string | null; url: string | null; image_url: string | null;
+  source: string; published: boolean; created_at: string;
 }
 
+const NEWS_COLS = 'id,title,body,url,image_url,source,published,created_at';
+
 const toNewsPost = (r: NewsRow): NewsPost => ({
-  id: r.id, title: r.title, body: r.body, url: r.url, published: r.published, createdAt: r.created_at,
+  id: r.id, title: r.title, body: r.body, url: r.url, imageUrl: r.image_url,
+  source: r.source === 'telegram' ? 'telegram' : 'manual', published: r.published, createdAt: r.created_at,
 });
 
 /**
@@ -970,10 +978,10 @@ const toNewsPost = (r: NewsRow): NewsPost => ({
  */
 export const news = {
   /** Latest published posts, newest first — the public home section. */
-  async latest(limit = 4): Promise<NewsPost[]> {
+  async latest(limit = 5): Promise<NewsPost[]> {
     const { data, error } = await sb()
       .from('news_posts')
-      .select('id,title,body,url,published,created_at')
+      .select(NEWS_COLS)
       .eq('published', true)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -993,10 +1001,28 @@ export const news = {
   async adminList(): Promise<NewsPost[]> {
     const { data, error } = await sb()
       .from('news_posts')
-      .select('id,title,body,url,published,created_at')
+      .select(NEWS_COLS)
       .order('created_at', { ascending: false });
     if (error) fail(error);
     return (data as NewsRow[]).map(toNewsPost);
+  },
+
+  /**
+   * Ask the server to pull the channel's latest posts right now (the daily
+   * cron does the same on schedule). Sends the admin's own session token;
+   * the function verifies it against profiles.role before touching anything.
+   */
+  async syncNow(): Promise<{ synced: number }> {
+    const { data } = await sb().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new ApiError('not_authenticated', 401);
+    const res = await fetch('/api/cron/telegram-sync', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const body = (await res.json().catch(() => ({}))) as { synced?: number; error?: string };
+    if (!res.ok) throw new ApiError(body.error ?? 'sync_failed', res.status);
+    return { synced: body.synced ?? 0 };
   },
 
   async create(input: { title: string; body?: string; url?: string }): Promise<{ ok: true }> {
