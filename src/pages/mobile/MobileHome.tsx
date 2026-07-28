@@ -160,7 +160,7 @@ export function MobileHome() {
         <header className="relative z-20 rounded-b-[28px] bg-navy">
           <div className="absolute inset-0 overflow-hidden rounded-b-[28px]">
             <div className="absolute inset-0">
-              <ImageCarousel images={CAROUSEL} intervalMs={3000} />
+              <ImageCarousel images={CAROUSEL} intervalMs={3000} priority />
             </div>
             <div className="absolute inset-0 bg-navy/80" aria-hidden="true" />
             {/* quiet brand watermark — same trick as MobileAuth */}

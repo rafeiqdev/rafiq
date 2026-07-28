@@ -6,7 +6,16 @@ import { SiteImage } from './SiteImage';
  * smooth crossfade. Direction-agnostic (works the same in RTL). Renders absolute
  * to fill its positioned parent.
  */
-export function ImageCarousel({ images, intervalMs = 3000 }: { images: string[]; intervalMs?: number }) {
+export function ImageCarousel({
+  images,
+  intervalMs = 3000,
+  priority = false,
+}: {
+  images: string[];
+  intervalMs?: number;
+  /** The home hero is the LCP element — its slides must not lazy-load. */
+  priority?: boolean;
+}) {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
@@ -24,7 +33,7 @@ export function ImageCarousel({ images, intervalMs = 3000 }: { images: string[];
           style={{ opacity: i === idx ? 1 : 0 }}
           aria-hidden
         >
-          <SiteImage src={src} alt="" className="w-full h-full" />
+          <SiteImage src={src} alt="" className="w-full h-full" priority={priority} />
         </div>
       ))}
     </div>

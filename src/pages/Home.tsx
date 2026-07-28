@@ -80,7 +80,7 @@ export function Home() {
       <LocalBusinessSchema />
       {/* ── Hero: rotating Turkey photos (auto every 3s) + navy overlay, no buttons ── */}
       <section className="relative overflow-hidden border-b border-cream-dark">
-        <ImageCarousel images={CAROUSEL} intervalMs={3000} />
+        <ImageCarousel images={CAROUSEL} intervalMs={3000} priority />
         <div className="absolute inset-0 bg-navy/80" aria-hidden />
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:py-28 text-center text-white">
           <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight max-w-3xl mx-auto">
