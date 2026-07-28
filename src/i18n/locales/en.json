@@ -1205,6 +1205,7 @@
         "unreachable": "Telegram didn't respond. Try again in a minute.",
         "noPosts": "No posts found — make sure the channel is PUBLIC and has at least one post.",
         "notConfigured": "The server is missing its Supabase keys — add SUPABASE_SERVICE_ROLE_KEY in Vercel → Settings → Environment Variables and redeploy.",
+        "dbError": "The news table is missing in the database — run supabase/migrations/20260728_news_posts.sql and 20260728_news_telegram_sync.sql in the Supabase SQL Editor.",
         "forbidden": "This account isn't allowed to sync — sign in with the admin account."
       }
     },

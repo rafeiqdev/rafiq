@@ -1205,6 +1205,7 @@
         "unreachable": "تلگرام پاسخ نداد. یک دقیقه بعد دوباره امتحان کنید.",
         "noPosts": "پستی پیدا نشد — مطمئن شوید کانال عمومی است و دست‌کم یک پست دارد.",
         "notConfigured": "کلیدهای Supabase روی سرور تنظیم نشده — SUPABASE_SERVICE_ROLE_KEY را در Vercel ← Settings ← Environment Variables اضافه کنید و دوباره دیپلوی کنید.",
+        "dbError": "جدول اخبار در پایگاه داده وجود ندارد — supabase/migrations/20260728_news_posts.sql و سپس 20260728_news_telegram_sync.sql را در SQL Editor سوپابیس اجرا کنید.",
         "forbidden": "این حساب اجازه همگام‌سازی ندارد — با حساب ادمین وارد شوید."
       }
     },

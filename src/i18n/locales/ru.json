@@ -1205,6 +1205,7 @@
         "unreachable": "Telegram не ответил. Попробуйте снова через минуту.",
         "noPosts": "Посты не найдены — убедитесь, что канал ПУБЛИЧНЫЙ и в нём есть хотя бы один пост.",
         "notConfigured": "На сервере нет ключей Supabase — добавьте SUPABASE_SERVICE_ROLE_KEY в Vercel → Settings → Environment Variables и переразверните сайт.",
+        "dbError": "В базе данных нет таблицы новостей — выполните supabase/migrations/20260728_news_posts.sql и 20260728_news_telegram_sync.sql в SQL Editor Supabase.",
         "forbidden": "У этого аккаунта нет прав на синхронизацию — войдите под админом."
       }
     },

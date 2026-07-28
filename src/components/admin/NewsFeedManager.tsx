@@ -26,6 +26,8 @@ function syncErrorKey(e: unknown): string {
         return 'admin.newsFeed.errors.noPosts';
       case 'not_configured':
         return 'admin.newsFeed.errors.notConfigured';
+      case 'db_error':
+        return 'admin.newsFeed.errors.dbError';
       case 'not_authenticated':
       case 'unauthorized':
       case 'forbidden':

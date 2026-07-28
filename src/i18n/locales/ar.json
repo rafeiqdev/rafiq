@@ -1205,6 +1205,7 @@
         "unreachable": "تيليجرام لم يستجب. حاول مجددًا بعد دقيقة.",
         "noPosts": "لم يتم العثور على منشورات — تأكد أن القناة عامة وفيها منشور واحد على الأقل.",
         "notConfigured": "الخادم ينقصه مفاتيح Supabase — أضف SUPABASE_SERVICE_ROLE_KEY في Vercel ← Settings ← Environment Variables ثم أعد النشر.",
+        "dbError": "جدول الأخبار غير موجود في قاعدة البيانات — شغّل supabase/migrations/20260728_news_posts.sql ثم 20260728_news_telegram_sync.sql في محرر SQL في Supabase.",
         "forbidden": "هذا الحساب غير مسموح له بالمزامنة — سجّل الدخول بحساب الأدمن."
       }
     },
