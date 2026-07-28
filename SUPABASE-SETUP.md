@@ -11,6 +11,24 @@ project's public JWT (browser-safe). ✅
 > project is live — check it, don't trust prose. A third ref, `tzcqnqzltrjemdnkzpzn`,
 > also appeared here historically and is likewise not this app's project.
 
+### CRITICAL — run now (2026-07-28): lock the internal RPCs
+A live probe on 2026-07-28 found `_activate_sub`, `_credit_referrer` and `checkout_card_demo`
+still executable by `anon`/`authenticated` through `/rest/v1/rpc/*` — the 2026-06-21 drop below
+was never applied to `jdtspvkhomctqkgdmjdn`. Run
+**`supabase/migrations/20260728_lock_internal_rpcs.sql`** in SQL Editor. It revokes the internal
+helpers from the public API, drops `checkout_card_demo`, adds an in-function authorization guard
+to `_activate_sub`, pins the advisor-flagged `search_path`s, tightens the
+`referral_clicks` / `service_requests` insert policies, drops the file-listing policy on the
+public `listings` bucket, and drops the dead `dukk` table. Verification queries are at the bottom
+of the file; afterwards re-run **Database → Advisors → Security** and confirm the
+`anon_security_definer_function_executable` entries are gone.
+
+Two things it cannot do from SQL:
+1. **Auth → Settings → enable Leaked Password Protection** (dashboard toggle).
+2. `_credit_referrer`'s body lives only in the live DB — paste the same guard used in
+   `_activate_sub` (the `current_setting('role')` / `is_admin()` check) at the top of its body
+   via **Database → Functions**.
+
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no
 admin approval**, callable directly with the public anon key. The app no longer calls it; remove it
