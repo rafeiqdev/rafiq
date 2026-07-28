@@ -13,6 +13,7 @@ import { AdminNewRequests } from '../components/AdminNewRequests';
 import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
 import { FxRatesPanel } from '../components/admin/FxRatesPanel';
+import { NewsFeedManager } from '../components/admin/NewsFeedManager';
 import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
@@ -538,6 +539,9 @@ function AdminInner() {
       <AdminCompaniesManager />
       <AdminCompanyPaymentsManager />
       <AdminBroadcastManager />
+
+      {/* public news feed shown on the home page (mirrors the Telegram channel) */}
+      <NewsFeedManager />
 
       {/* editable services catalog (add / edit text / hide) */}
       <AdminServicesManager />

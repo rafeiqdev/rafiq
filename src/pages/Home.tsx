@@ -12,6 +12,7 @@ import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../data/servic
 import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { AboutSection } from '../components/sections/AboutSection';
+import { NewsSection } from '../components/sections/NewsSection';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
 import { usePageMeta } from '../lib/seo';
 
@@ -207,6 +208,9 @@ export function Home() {
 
       {/* how it works */}
       <HowItWorks />
+
+      {/* latest news (mirrors the Telegram channel; hidden until posts exist) */}
+      <NewsSection />
 
       {/* who we are */}
       <AboutSection />

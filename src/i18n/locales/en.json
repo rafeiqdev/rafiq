@@ -233,6 +233,12 @@
       "title": "Explore everything Rafiq offers",
       "subtitle": "Every service and guide, one tap away."
     },
+    "news": {
+      "eyebrow": "News",
+      "title": "Latest from Rafiq",
+      "follow": "Follow us on Telegram",
+      "readMore": "Read more"
+    },
     "faq": {
       "title": "Frequently asked questions",
       "q1": {
@@ -1180,6 +1186,17 @@
       "address": "Address",
       "invalid": "Please enter a name, category and valid coordinates.",
       "confirmDelete": "Delete this place?"
+    },
+    "newsFeed": {
+      "title": "Home-page news (Telegram mirror)",
+      "hint": "Post on your Telegram channel as usual, then add the same item here — it appears in the news section of the home page. Paste the post's t.me link so 'Read more' opens the original.",
+      "channel": "Telegram channel",
+      "channelSaved": "Saved",
+      "postTitle": "Post title",
+      "postBody": "Text (optional)",
+      "postLink": "Link to the Telegram post (optional)",
+      "publish": "Publish",
+      "empty": "No news posts yet."
     },
     "payments": {
       "title": "Payment verification",

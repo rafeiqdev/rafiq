@@ -11,6 +11,7 @@ import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/ser
 import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
 import { Testimonials } from '../../components/sections/Testimonials';
+import { NewsSection } from '../../components/sections/NewsSection';
 import { LocalBusinessSchema } from '../../components/LocalBusinessSchema';
 // Label only — this screen keeps its own inline bar (see the tabs array below).
 import { tabRequestsLabel } from '../../components/MobileTabBar';
@@ -334,6 +335,9 @@ export function MobileHome() {
             ))}
           </ol>
         </section>
+
+        {/* ================= NEWS (mirrors the Telegram channel) ================= */}
+        <NewsSection compact />
 
         {/* ================= ABOUT ================= */}
         <section className="px-5 mt-10">

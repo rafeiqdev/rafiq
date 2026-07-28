@@ -49,6 +49,13 @@ with the service-role key. To go live with iyzico/Stripe:
 Until a gateway is wired, card checkout stays on the manual bank/crypto rails with admin
 verification — nobody gets a plan without a human confirming a payment.
 
+### News feed (2026-07-28): run before using the admin "news" card
+The home page has a public news section mirroring the owner's Telegram channel, authored in
+/admin. Run **`supabase/migrations/20260728_news_posts.sql`** in SQL Editor (creates
+`news_posts` with public-read-published / admin-write RLS). The Telegram channel URL is set in
+the same admin card and stored in the existing `settings` table (key `telegram`). Until the
+migration runs, the home section stays hidden and the admin card shows a load error.
+
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no
 admin approval**, callable directly with the public anon key. The app no longer calls it; remove it

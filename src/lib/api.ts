@@ -942,6 +942,87 @@ export const referrals = {
   },
 };
 
+// ---------- news (public feed, mirrors the Telegram channel) -----------------
+
+export interface NewsPost {
+  id: string;
+  title: string;
+  body: string | null;
+  /** "Read more" target — usually the t.me link of the original post. */
+  url: string | null;
+  published: boolean;
+  createdAt: string;
+}
+
+interface NewsRow {
+  id: string; title: string; body: string | null; url: string | null; published: boolean; created_at: string;
+}
+
+const toNewsPost = (r: NewsRow): NewsPost => ({
+  id: r.id, title: r.title, body: r.body, url: r.url, published: r.published, createdAt: r.created_at,
+});
+
+/**
+ * Telegram offers no supported way for a browser to read a channel's history,
+ * so the feed is authored in /admin (the owner posts to Telegram, then adds
+ * the same item here) and the channel URL — stored under the public-readable
+ * settings key 'telegram' — powers the "follow us" button.
+ */
+export const news = {
+  /** Latest published posts, newest first — the public home section. */
+  async latest(limit = 4): Promise<NewsPost[]> {
+    const { data, error } = await sb()
+      .from('news_posts')
+      .select('id,title,body,url,published,created_at')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) fail(error);
+    return (data as NewsRow[]).map(toNewsPost);
+  },
+
+  /** The channel URL, validated to actually be a Telegram link, or null. */
+  async telegramChannel(): Promise<string | null> {
+    const { data } = await sb().from('settings').select('value').eq('key', 'telegram').maybeSingle();
+    const url = (data?.value as { channel?: string } | null)?.channel ?? null;
+    return url && /^https:\/\/(t\.me|telegram\.me)\/[A-Za-z0-9_+/-]+$/.test(url) ? url : null;
+  },
+
+  // ---- admin ----
+
+  async adminList(): Promise<NewsPost[]> {
+    const { data, error } = await sb()
+      .from('news_posts')
+      .select('id,title,body,url,published,created_at')
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return (data as NewsRow[]).map(toNewsPost);
+  },
+
+  async create(input: { title: string; body?: string; url?: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('news_posts').insert({
+      title: input.title.trim(),
+      body: input.body?.trim() || null,
+      url: input.url?.trim() || null,
+    });
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async remove(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('news_posts').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async setTelegramChannel(url: string): Promise<{ ok: true }> {
+    const value = url.trim() ? { channel: url.trim() } : {};
+    const { error } = await sb().from('settings').upsert({ key: 'telegram', value }, { onConflict: 'key' });
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
 // ---------- admin: users -----------------------------------------------------
 
 interface OverviewRow {
