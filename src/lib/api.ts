@@ -1011,18 +1011,33 @@ export const adminUsers = {
     if (error) fail(error);
     return (data ?? []).map((r:any) => ({ userId: r.user_id, tier: r.tier, reason: r.cancel_reason ?? null, comment: r.cancel_comment ?? null, expiresAt: r.expires_at }));
   },
-  /** Full per-user detail for the admin: onboarding profile + their activity. */
-  async detail(userId: string): Promise<{ onboarding: Profile | null; bookings: Booking[]; leads: Lead[] }> {
+  /**
+   * Full per-user detail for the admin: onboarding profile + their activity.
+   *
+   * Now includes their service requests. Without them the link between a
+   * customer and what they actually asked for existed in neither direction —
+   * the queue did not name the account, and the account did not list the
+   * requests.
+   */
+  async detail(userId: string): Promise<{ onboarding: Profile | null; bookings: Booking[]; leads: Lead[]; requests: ServiceRequest[] }> {
     const c = sb();
-    const [{ data: prof }, { data: bk }, { data: ld }] = await Promise.all([
+    const [{ data: prof }, { data: bk }, { data: ld }, { data: sr }] = await Promise.all([
       c.from('profiles').select('onboarding').eq('id', userId).maybeSingle(),
       c.from('bookings').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       c.from('leads').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+      c.from('service_requests')
+        .select('id,name,phone,message,service_title,category,service_type,status,customer_id,created_at')
+        .eq('customer_id', userId).order('created_at', { ascending: false }),
     ]);
     return {
       onboarding: (prof?.onboarding as Profile | null) ?? null,
       bookings: ((bk as BookingRow[]) ?? []).map(toBooking),
       leads: ((ld as LeadRow[]) ?? []).map(toLead),
+      requests: ((sr ?? []) as (ServiceRequestRow & { customer_id: string | null })[]).map((r) => ({
+        id: r.id, name: r.name, phone: r.phone, message: r.message ?? undefined,
+        serviceTitle: r.service_title ?? '', category: r.category ?? '', serviceType: r.service_type ?? '',
+        status: r.status, createdAt: r.created_at, customerId: r.customer_id ?? null,
+      })),
     };
   },
 };
@@ -1405,6 +1420,15 @@ export interface ServiceRequest {
   serviceType: string;
   status: string;
   createdAt: string;
+  /** The account that submitted it — null for a logged-out submission. */
+  customerId?: string | null;
+  /**
+   * Owning profile, when the join resolved. null means either no account or a
+   * profile lookup that failed; the row falls back to the typed name, which is
+   * the only identity an anonymous submission ever has.
+   */
+  ownerName?: string | null;
+  ownerEmail?: string | null;
 }
 
 interface ServiceRequestRow {
@@ -1508,17 +1532,53 @@ export const serviceRequests = {
     if (error) return 0;
     return count ?? 0;
   },
+  /**
+   * Admin queue, with the owning account attached.
+   *
+   * customer_id was stored and populated but never selected, so two requests
+   * from one signed-in customer were two unrelated strangers in the dashboard:
+   * no way to see that the person asking about a tax number is the same person
+   * who asked about a bank account last week.
+   *
+   * Joined client-side rather than with a PostgREST embed, exactly like the
+   * users-overview rebuild: two queries regardless of row count, and it does
+   * not depend on the FK being introspectable. The profile lookup is
+   * best-effort — if it fails the requests still render with the name typed
+   * into the form, because a queue that will not load is worse than a queue
+   * without account links.
+   */
   async adminList(): Promise<ServiceRequest[]> {
-    const { data, error } = await sb()
+    const c = sb();
+    const { data, error } = await c
       .from('service_requests')
-      .select('id,name,phone,message,service_title,category,service_type,status,created_at')
+      .select('id,name,phone,message,service_title,category,service_type,status,customer_id,created_at')
       .order('created_at', { ascending: false });
     if (error) fail(error);
-    return (data as ServiceRequestRow[]).map((r) => ({
-      id: r.id, name: r.name, phone: r.phone, message: r.message ?? undefined,
-      serviceTitle: r.service_title ?? '', category: r.category ?? '', serviceType: r.service_type ?? '',
-      status: r.status, createdAt: r.created_at,
-    }));
+
+    const rows = (data ?? []) as (ServiceRequestRow & { customer_id: string | null })[];
+    const ids = [...new Set(rows.map((r) => r.customer_id).filter((v): v is string => !!v))];
+
+    const owners = new Map<string, { name: string | null; email: string | null }>();
+    if (ids.length > 0) {
+      const prof = await c.from('profiles').select('id,name,email').in('id', ids);
+      if (!prof.error) {
+        for (const p of (prof.data ?? []) as { id: string; name: string | null; email: string | null }[]) {
+          owners.set(p.id, { name: p.name, email: p.email });
+        }
+      }
+    }
+
+    return rows.map((r) => {
+      const owner = r.customer_id ? owners.get(r.customer_id) : undefined;
+      return {
+        id: r.id, name: r.name, phone: r.phone, message: r.message ?? undefined,
+        serviceTitle: r.service_title ?? '', category: r.category ?? '', serviceType: r.service_type ?? '',
+        status: r.status, createdAt: r.created_at,
+        customerId: r.customer_id ?? null,
+        ownerName: owner?.name ?? null,
+        ownerEmail: owner?.email ?? null,
+      };
+    });
   },
 };
 

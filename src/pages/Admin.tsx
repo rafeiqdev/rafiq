@@ -16,6 +16,7 @@ import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
 import { SectionState } from '../components/SectionState';
+import { RequestStatusPill } from '../components/RequestStatusPill';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 
 const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];
@@ -25,7 +26,7 @@ const HAS_KEYS = ['turkishPhone', 'taxNumber', 'residencePermit', 'bankAccount']
 function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: string, tier: PlanTier) => void }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [detail, setDetail] = useState<{ onboarding: Profile | null; bookings: Booking[]; leads: Lead[] } | null>(null);
+  const [detail, setDetail] = useState<Awaited<ReturnType<typeof adminUsers.detail>> | null>(null);
   const [loading, setLoading] = useState(false);
   // A detail panel that failed to load must not present as a customer with no
   // history. This was `catch { /* ignore */ }`, which did exactly that.
@@ -144,10 +145,21 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
                 {/* activity */}
                 <div>
                   <p className="font-bold text-navy text-xs mb-2">{t('profile.pipeline.title')}</p>
-                  {detail && detail.bookings.length === 0 && detail.leads.length === 0 ? (
+                  {detail && detail.bookings.length === 0 && detail.leads.length === 0 && detail.requests.length === 0 ? (
                     <p className="text-xs text-gray-500">{t('profile.pipeline.empty')}</p>
                   ) : (
                     <ul className="flex flex-col gap-1">
+                      {/* What this customer actually asked us for. Absent until
+                          now: the detail panel read bookings and leads only, so
+                          a customer's service requests were invisible from
+                          their own account row. */}
+                      {detail?.requests.map((r) => (
+                        <li key={r.id} className="text-xs text-navy flex items-center gap-1.5">
+                          <AppIcon name="inbox" className="w-3 h-3 shrink-0 text-navy/60" />
+                          <span className="min-w-0 flex-1 break-anywhere">{r.serviceTitle}</span>
+                          <RequestStatusPill status={r.status} className="shrink-0" />
+                        </li>
+                      ))}
                       {detail?.bookings.map((b) => (
                         <li key={b.id} className="text-xs text-navy inline-flex items-center gap-1">
                           <AppIcon name="calendar" className="w-3 h-3 text-navy/60" />

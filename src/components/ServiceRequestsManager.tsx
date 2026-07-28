@@ -45,10 +45,17 @@ export function ServiceRequestsManager() {
                 {r.serviceType === 'partner' ? t('services.partnerBadge') : t('services.directBadge')}
               </span>
               <span className="font-semibold text-navy">{r.serviceTitle}</span>
+              {/* Identity. When the request came from a signed-in account the
+                  owning profile is shown, so two requests from one customer are
+                  visibly one customer. An anonymous submission has only the
+                  typed name, and says so by showing exactly that. */}
               <span className="text-xs text-navy/70 inline-flex items-center gap-1">
                 <AppIcon name="user" className="w-3.5 h-3.5" />
-                {r.name}
+                {r.ownerName || r.name}
               </span>
+              {r.ownerEmail && (
+                <span className="text-[11px] text-navy/50 break-all" dir="ltr">{r.ownerEmail}</span>
+              )}
               <a href={`tel:${r.phone}`} dir="ltr" className="text-xs text-navy underline inline-flex items-center gap-1">
                 <AppIcon name="message-circle" className="w-3.5 h-3.5" />
                 {r.phone}
