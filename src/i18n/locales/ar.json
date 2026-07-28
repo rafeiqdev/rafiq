@@ -66,6 +66,7 @@
     "referrals": "ادعُ واربح",
     "profile": "ملفي الشخصي",
     "notifications": "الإشعارات",
+    "notificationsUnread": "الإشعارات، {{count}} غير مقروء",
     "admin": "الإدارة",
     "adminQueue": "الإدارة — {{requests}} طلبات جديدة، {{leads}} عملاء محتملون جدد",
     "bookings": "الحجوزات",

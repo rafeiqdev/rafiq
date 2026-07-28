@@ -66,6 +66,7 @@
     "referrals": "Приглашай и зарабатывай",
     "profile": "Мой профиль",
     "notifications": "Уведомления",
+    "notificationsUnread": "Уведомления, {{count}} непрочитанных",
     "admin": "Админ",
     "adminQueue": "Админ — новых заявок: {{requests}}, новых лидов: {{leads}}",
     "bookings": "Записи",

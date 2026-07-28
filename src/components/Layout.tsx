@@ -7,6 +7,7 @@ import { Logo } from './Logo';
 import { LangSwitcher } from './LangSwitcher';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
+import { NotificationBell } from './NotificationBell';
 import { TopRatesBar } from './TopRatesBar';
 import { SiteFooter } from './SiteFooter';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -167,7 +168,7 @@ function ServicesMenu() {
 
 export function Layout() {
   const { t } = useTranslation();
-  const { user, tier, unread } = useApp();
+  const { user, tier } = useApp();
   const location = useLocation();
   const isMobile = useIsMobile();
   const hideChrome =
@@ -327,14 +328,7 @@ export function Layout() {
           </nav>
 
           <div className="ms-auto flex items-center gap-2">
-            <Link to="/notifications" className="relative icon-chip !w-9 !h-9" aria-label={t('nav.notifications')}>
-              <AppIcon name="bell" className="w-[18px] h-[18px]" />
-              {unread > 0 && (
-                <span className="absolute -top-1 -end-1 min-w-4 h-4 px-1 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">
-                  {unread}
-                </span>
-              )}
-            </Link>
+            <NotificationBell size={36} />
             <LangSwitcher />
             {user ? (
               <Link to="/profile" className="btn-secondary h-9 px-3 text-xs shrink-0" aria-label={t('nav.profile')}>
