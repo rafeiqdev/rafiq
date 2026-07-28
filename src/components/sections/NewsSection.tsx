@@ -11,7 +11,15 @@ import { AppIcon, DirArrow } from '../AppIcon';
  * and a fetch failure on the guest home page must degrade to absence, not an
  * error box (same rule as the places overlay).
  */
-export function NewsSection({ compact = false }: { compact?: boolean }) {
+export function NewsSection({
+  compact = false,
+  className,
+}: {
+  compact?: boolean;
+  /** Wrapper spacing override for the compact variant — MobileHome's sections
+      are full-bleed (need their own px-5), UserHome's column is already padded. */
+  className?: string;
+}) {
   const { t, i18n } = useTranslation();
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [channel, setChannel] = useState<string | null>(null);
@@ -64,7 +72,7 @@ export function NewsSection({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <section className="px-5 mt-10">
+      <section className={className ?? 'px-5 mt-10'}>
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">{t('home.news.eyebrow')}</p>

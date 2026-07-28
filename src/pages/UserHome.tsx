@@ -11,6 +11,7 @@ import { JOURNEY_TASK_KEYS } from '../lib/types';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { MobileTabBar } from '../components/MobileTabBar';
+import { NewsSection } from '../components/sections/NewsSection';
 import { NotificationBell } from '../components/NotificationBell';
 import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -607,6 +608,9 @@ export function UserHome() {
           <DirArrow />
         </Link>
       </Panel>
+
+      {/* latest news (mirrors the Telegram channel; hidden until posts exist) */}
+      <NewsSection compact className="mt-8" />
 
       {/* ادعُ واربح — the page's closing section, right after the guides. */}
       <Panel className="mt-4 border-gold-dark/30 bg-gold-soft/40">
