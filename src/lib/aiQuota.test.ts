@@ -73,13 +73,14 @@ describe('stored history parsing', () => {
 
 describe('countdown formatting', () => {
   it('renders HH:MM:SS zero-padded', () => {
-    expect(formatCountdown(14 * HOUR)).toBe('14:00:00');
-    expect(formatCountdown(9 * 60 * 1000 + 7 * 1000)).toBe('00:09:07');
-    expect(formatCountdown(23 * HOUR + 59 * 60 * 1000 + 59 * 1000)).toBe('23:59:59');
+    expect(formatCountdown(14 * HOUR)).toBe('14:00');
+    // partial minutes round UP — the timer must never understate the wait
+    expect(formatCountdown(9 * 60 * 1000 + 7 * 1000)).toBe('00:10');
+    expect(formatCountdown(23 * HOUR + 59 * 60 * 1000 + 59 * 1000)).toBe('24:00');
   });
 
   it('never shows a negative timer', () => {
-    expect(formatCountdown(-5000)).toBe('00:00:00');
-    expect(formatCountdown(0)).toBe('00:00:00');
+    expect(formatCountdown(-5000)).toBe('00:00');
+    expect(formatCountdown(0)).toBe('00:00');
   });
 });

@@ -127,7 +127,8 @@ function ChatUI() {
   // tick the countdown (and auto-unblock the moment a slot frees up)
   useEffect(() => {
     if (hasPlan || !quota.limitReached) return;
-    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    // minute-precision countdown: 60x fewer full-page re-renders than the old 1s tick
+    const id = setInterval(() => setNowTs(Date.now()), 60_000);
     return () => clearInterval(id);
   }, [hasPlan, quota.limitReached]);
 

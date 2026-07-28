@@ -1,9 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from './locales/en.json';
-import ar from './locales/ar.json';
-import ru from './locales/ru.json';
-import fa from './locales/fa.json';
 import type { Lang } from '../lib/types';
 import { track } from '../lib/analytics';
 
@@ -69,13 +65,29 @@ export function resolveInitialLang(): Lang {
 
 const initial = resolveInitialLang();
 
+/**
+ * Locale bundles are ~100 KB of JSON each. Bundling all four into the entry
+ * chunk shipped ~390 KB of raw JSON to every visitor, three quarters of it in
+ * languages they will never switch to. Each locale is its own async chunk;
+ * only the initial language (plus the Arabic fallback) loads before first
+ * paint — main.tsx awaits `i18nReady` — and switching loads the target first.
+ */
+const LOCALE_LOADERS: Record<Lang, () => Promise<{ default: object }>> = {
+  ar: () => import('./locales/ar.json'),
+  en: () => import('./locales/en.json'),
+  ru: () => import('./locales/ru.json'),
+  fa: () => import('./locales/fa.json'),
+};
+
+export async function loadLocale(lang: Lang): Promise<void> {
+  if (i18n.hasResourceBundle(lang, 'translation')) return;
+  const mod = await LOCALE_LOADERS[lang]();
+  i18n.addResourceBundle(lang, 'translation', mod.default, true, false);
+}
+
 i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    ar: { translation: ar },
-    ru: { translation: ru },
-    fa: { translation: fa },
-  },
+  resources: {},
+  partialBundledLanguages: true,
   lng: initial,
   fallbackLng: DEFAULT_LANG,
   interpolation: { escapeValue: false },
@@ -94,10 +106,24 @@ i18n.use(initReactI18next).init({
 // flash left-to-right on load.
 applyDir(initial);
 
+/**
+ * Resolves once the initial language and the Arabic fallback are loaded.
+ * A failed chunk fetch (flaky network mid-deploy) must not blank the app —
+ * the UI degrades to raw keys instead of never rendering.
+ */
+export const i18nReady: Promise<void> = Promise.all(
+  [...new Set([initial, DEFAULT_LANG])].map((lang) => loadLocale(lang)),
+).then(
+  () => undefined,
+  () => undefined,
+);
+
 export async function setLanguage(lang: Lang) {
   const from = i18n.language;
   localStorage.setItem('i18nextLng', lang);
   localStorage.setItem('rafiq_lang_selected', 'true');
+  // Load before switching so the UI never renders raw keys mid-change.
+  await loadLocale(lang);
   await i18n.changeLanguage(lang);
   applyDir(lang);
   if (from !== lang) track('lang_changed', { target: lang, meta: { from } });

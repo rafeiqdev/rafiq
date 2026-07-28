@@ -96,11 +96,15 @@ export function saveSubject(userId: string, subject: string | null): void {
 }
 
 /** "23:59:07" — always two digits, never negative. */
+/**
+ * HH:MM, rounded UP so it never claims 00:00 while the limit still holds.
+ * Minute precision is deliberate: the wait is hours long, and the seconds
+ * digit forced the whole chat page to re-render every second just to tick.
+ */
 export function formatCountdown(msLeft: number): string {
-  const total = Math.max(0, Math.floor(msLeft / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
+  const totalMinutes = Math.max(0, Math.ceil(msLeft / 60_000));
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  return `${pad(h)}:${pad(m)}`;
 }
