@@ -1696,7 +1696,52 @@
       "insurance": "Health insurance",
       "passport": "Passport"
     },
-    "referralCta": "Start inviting now"
+    "referralCta": "Start inviting now",
+    "startHere": "Start here",
+    "stepsWaiting": "{{count}} steps waiting for you",
+    "stepsCount": "{{count}} steps",
+    "recapTitle": "We built your plan from your answers",
+    "editAnswers": "Edit",
+    "fromAnswers": "from your answers",
+    "askAboutStep": "Ask Rafiq about this step",
+    "factDuration": "Expected time",
+    "factCost": "Approx. cost",
+    "factRemaining": "steps left",
+    "roadTitle": "Your full journey",
+    "roadBody": "Ordered the way the offices actually require it — do not skip a step.",
+    "cityTitle": "You are in {{city}}",
+    "cityBody": "Before signing any rental contract, check that your district is open for new residence registrations — closed districts are what delays newcomers most.",
+    "cityCta": "How to check your district",
+    "whatNowTitle": "What happens now",
+    "whatNow": {
+      "soon": {
+        "when": "Within an hour",
+        "title": "Your plan arrives by email",
+        "body": "A full copy with the required documents and official links — keep it."
+      },
+      "week": {
+        "when": "This week",
+        "title": "Finish your first step",
+        "body": "Start with the step above; everything after it depends on that one."
+      },
+      "after": {
+        "when": "After that",
+        "title": "We follow up with you",
+        "body": "We remind you about appointments and renewals before you fall behind."
+      }
+    },
+    "renewalsManage": "Manage dates",
+    "noDatesTitle": "No dates saved yet",
+    "noDatesBody": "Add the expiry date of your residence permit, insurance or passport — we remind you 60 and 30 days ahead.",
+    "noDatesCta": "Add a date",
+    "lockerTitle": "Document locker",
+    "lockerManage": "Manage locker",
+    "noDocsTitle": "Your locker is empty",
+    "noDocsBody": "Upload your passport once — we reuse it on every form instead of asking you to retype your details.",
+    "noDocsCta": "Upload your passport",
+    "freeCallTitle": "Your first call is free",
+    "freeCallBody": "A local expert who speaks your language reviews your plan with you and tells you what could hold you up. No commitment.",
+    "freeCallCta": "Book a call"
   },
   "journeyPage": {
     "title": "My journey",
@@ -1736,19 +1781,27 @@
   "journeyTasks": {
     "turkishPhone": {
       "title": "Get a Turkish phone number",
-      "desc": "A Turkish SIM in your name — needed to activate official accounts and apps."
+      "desc": "A Turkish SIM in your name — needed to activate official accounts and apps.",
+      "duration": "30 minutes",
+      "cost": "varies"
     },
     "taxNumber": {
       "title": "Get your tax number",
-      "desc": "A tax number (Vergi No) — required to open a bank account and for most procedures."
+      "desc": "A tax number (Vergi No) — required to open a bank account and for most procedures.",
+      "duration": "20 minutes",
+      "cost": "free"
     },
     "residencePermit": {
       "title": "Review your residence status",
-      "desc": "Check your permit: first application, or renewal before it expires."
+      "desc": "Check your permit: first application, or renewal before it expires.",
+      "duration": "4–8 weeks",
+      "cost": "official fees"
     },
     "bankAccount": {
       "title": "Open a bank account",
-      "desc": "A Turkish bank account to receive transfers and pay bills."
+      "desc": "A Turkish bank account to receive transfers and pay bills.",
+      "duration": "1 day",
+      "cost": "free"
     }
   },
   "requestFlow": {

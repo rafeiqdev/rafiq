@@ -11,7 +11,7 @@ export function useIsMobile(breakpoint: number = 768) {
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
     const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
     const handleChange = () => setIsMobile(mql.matches);
     handleChange();
