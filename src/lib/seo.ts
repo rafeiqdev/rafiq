@@ -6,14 +6,11 @@ import type { Lang } from './types';
 /**
  * <head> metadata — SEO/Geo only. No component here renders any visible UI.
  *
- * The site has no per-language URLs (language is a client-only preference in
- * localStorage — see src/i18n/index.ts), so every hreflang/canonical/og:url
- * value below is necessarily self-referencing: all four language variants
- * point at the SAME url. This still satisfies the letter of hreflang (each
- * variant lists itself + its siblings) and is harmless, but it carries none of
- * the usual crawl-budget benefit hreflang provides on sites with distinct
- * per-language URLs. Real benefit would require URL-based language routing,
- * which is a routing/architecture change out of scope here.
+ * Every page lives under a language segment (/ar /en /ru /fa — see
+ * src/i18n/index.ts and App.tsx's basename), so canonical points at THIS
+ * language's URL and each hreflang alternate points at a genuinely different
+ * one. x-default is the Arabic variant: it is the product's primary audience
+ * and the fallback the langless 301s resolve to.
  */
 
 /**
@@ -45,7 +42,9 @@ export const SITE_URL: string = RAW_SITE_URL;
 export const SEO_LANGS: Lang[] = ['ar', 'en', 'ru', 'fa'];
 
 const OG_LOCALE: Record<Lang, string> = {
-  ar: 'ar_AR',
+  // ar_AR is not a valid locale (AR is Argentina's country code, and Arabic
+  // has no "AR" region) — parsers fall back to unknown. ar_SA is.
+  ar: 'ar_SA',
   en: 'en_US',
   ru: 'ru_RU',
   fa: 'fa_IR',
@@ -93,15 +92,18 @@ export function useSiteWideSeo() {
   const location = useLocation();
 
   useEffect(() => {
-    const url = `${SITE_URL}${location.pathname}`;
-    const lang = (i18n.language as Lang) in OG_LOCALE ? (i18n.language as Lang) : 'en';
+    // useLocation() is basename-relative, so the language segment must be
+    // re-attached here — it is the part that makes each alternate distinct.
+    const path = location.pathname === '/' ? '' : location.pathname;
+    const lang = (i18n.language as Lang) in OG_LOCALE ? (i18n.language as Lang) : 'ar';
+    const url = `${SITE_URL}/${lang}${path}`;
 
     upsertLink('canonical', url);
     upsertMeta('property', 'og:url', url);
     upsertMeta('property', 'og:locale', OG_LOCALE[lang]);
 
-    for (const l of SEO_LANGS) upsertLink('alternate', url, l);
-    upsertLink('alternate', url, 'x-default');
+    for (const l of SEO_LANGS) upsertLink('alternate', `${SITE_URL}/${l}${path}`, l);
+    upsertLink('alternate', `${SITE_URL}/ar${path}`, 'x-default');
   }, [location.pathname, i18n.language]);
 }
 

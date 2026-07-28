@@ -10,10 +10,12 @@
  * never gets discovered. robots.txt's previous hardcoded host disagreed with
  * VITE_BASE_URL, which is precisely that failure already in progress.
  *
- * The site has no per-language URLs (language is a client-only localStorage
- * preference — see src/i18n/index.ts), so every hreflang alternate for a
- * given <url> necessarily points at the SAME <loc> (self-referencing). See
- * src/lib/seo.ts for the same note re: the runtime <head> tags.
+ * Every page lives under a language segment (/ar /en /ru /fa — see
+ * src/i18n/index.ts and App.tsx). Each route therefore emits FOUR <url>
+ * entries, one per language, each cross-linking its three siblings via
+ * hreflang plus an x-default pointing at the Arabic variant (the primary
+ * audience and the target of the langless 301s in vercel.json). See
+ * src/lib/seo.ts for the matching runtime <head> tags.
  *
  * Dynamic routes are read straight from the local data files that already
  * drive them at runtime (no Supabase round-trip needed — both /services/:slug
@@ -70,14 +72,17 @@ const dynamicRoutes = [
 
 const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-function urlEntry({ path, changefreq, priority }) {
-  const loc = escapeXml(`${SITE_URL}${path}`);
-  const alternates = [...LANGS, 'x-default']
-    .map((hreflang) => `    <xhtml:link rel="alternate" hreflang="${hreflang}" href="${loc}" />`)
-    .join('\n');
+/** /ar + '/' -> https://…/ar ; /ar + '/services' -> https://…/ar/services */
+const langUrl = (lang, path) => `${SITE_URL}/${lang}${path === '/' ? '' : path}`;
+
+function urlEntry(lang, { path, changefreq, priority }) {
+  const alternates = [
+    ...LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${escapeXml(langUrl(l, path))}" />`),
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(langUrl('ar', path))}" />`,
+  ].join('\n');
   return [
     '  <url>',
-    `    <loc>${loc}</loc>`,
+    `    <loc>${escapeXml(langUrl(lang, path))}</loc>`,
     `    <lastmod>${today}</lastmod>`,
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority}</priority>`,
@@ -86,7 +91,8 @@ function urlEntry({ path, changefreq, priority }) {
   ].join('\n');
 }
 
-const body = [...STATIC_ROUTES, ...dynamicRoutes].map(urlEntry).join('\n');
+const routes = [...STATIC_ROUTES, ...dynamicRoutes];
+const body = LANGS.flatMap((lang) => routes.map((r) => urlEntry(lang, r))).join('\n');
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${body}\n</urlset>\n`;
 
 writeFileSync(join(root, 'public/sitemap.xml'), xml, 'utf8');
@@ -97,5 +103,5 @@ const robots = ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE_URL}/sitemap.x
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
 console.log(
-  `sitemap.xml + robots.txt generated: ${STATIC_ROUTES.length} static + ${dynamicRoutes.length} dynamic routes (${SITE_URL})`,
+  `sitemap.xml + robots.txt generated: ${routes.length} routes x ${LANGS.length} languages (${SITE_URL})`,
 );

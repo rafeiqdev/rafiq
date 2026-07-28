@@ -10,6 +10,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
 import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
+import { DEFAULT_LANG, langFromPath } from './i18n';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -249,10 +250,16 @@ function Shell() {
 }
 
 export default function App() {
+  // The language segment is the router's basename, so every existing Link and
+  // navigate() stays language-relative for free (/services -> /ru/services on
+  // the Russian site). main.tsx guarantees the prefix exists before mount;
+  // switching language navigates to the other prefix (see setLanguage), which
+  // remounts the router with the new basename.
+  const lang = langFromPath(window.location.pathname) ?? DEFAULT_LANG;
   return (
     <ErrorBoundary>
       <AppProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={`/${lang}`}>
           <ScrollToTop />
           <Shell />
         </BrowserRouter>

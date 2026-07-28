@@ -1,8 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { i18nReady } from './i18n';
+import { i18nReady, langFromPath, resolveInitialLang } from './i18n';
 import './index.css';
 import App from './App';
+
+// Every page lives under a language segment (/ar /en /ru /fa). Production
+// 301s langless URLs at the edge (vercel.json); this covers dev and anything
+// that slips through, BEFORE the router mounts so basename sees the prefix.
+{
+  const { pathname, search, hash } = window.location;
+  if (!langFromPath(pathname)) {
+    const suffix = pathname === '/' ? '' : pathname;
+    window.history.replaceState(null, '', `/${resolveInitialLang()}${suffix}${search}${hash}`);
+  }
+}
 
 // Locale bundles are async chunks now; wait for the initial language so the
 // first paint is never a screen of raw translation keys. i18nReady resolves

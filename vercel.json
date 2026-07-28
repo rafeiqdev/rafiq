@@ -2,6 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^en.*" }], "destination": "/en", "permanent": false },
+    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^ru.*" }], "destination": "/ru", "permanent": false },
+    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^fa.*" }], "destination": "/fa", "permanent": false },
+    { "source": "/", "destination": "/ar", "permanent": false },
+    {
+      "source": "/((?!api/|assets/|scene/|ar(?:/|$)|en(?:/|$)|ru(?:/|$)|fa(?:/|$)|.*\\..*).*)",
+      "destination": "/ar/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/((?!api/|assets/|scene/|.*\\..*).*)", "destination": "/index.html" }],
   "crons": [{ "path": "/api/cron/rates-sync", "schedule": "5 6 * * *" }],
   "headers": [

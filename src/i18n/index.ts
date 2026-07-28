@@ -47,6 +47,17 @@ export function detectBrowserLang(): Lang | null {
 }
 
 /**
+ * The language segment of a URL path (/ar/services -> 'ar'), or null when the
+ * path carries none. The URL is the language's source of truth since the
+ * per-language-URL migration: crawlers index /ar/… /en/… /ru/… /fa/… as
+ * distinct pages, so what renders there must not depend on localStorage.
+ */
+export function langFromPath(pathname: string): Lang | null {
+  const m = /^\/(ar|en|ru|fa)(?=\/|$)/.exec(pathname);
+  return m ? (m[1] as Lang) : null;
+}
+
+/**
  * Which language to open in, most specific signal first:
  *   1. what the user explicitly chose before (validated — a stale or hand-edited
  *      value must not put i18next into a locale we have no bundle for),
@@ -63,7 +74,11 @@ export function resolveInitialLang(): Lang {
   return readStoredLang() ?? detectBrowserLang() ?? DEFAULT_LANG;
 }
 
-const initial = resolveInitialLang();
+// The URL's language segment outranks every stored preference: /ru/services
+// must render Russian for whoever opens it, or the four per-language URLs
+// would all show the visitor's own language and hreflang would be a lie.
+const initial =
+  (typeof window !== 'undefined' ? langFromPath(window.location.pathname) : null) ?? resolveInitialLang();
 
 /**
  * Locale bundles are ~100 KB of JSON each. Bundling all four into the entry
@@ -122,11 +137,26 @@ export async function setLanguage(lang: Lang) {
   const from = i18n.language;
   localStorage.setItem('i18nextLng', lang);
   localStorage.setItem('rafiq_lang_selected', 'true');
-  // Load before switching so the UI never renders raw keys mid-change.
+  if (from !== lang) track('lang_changed', { target: lang, meta: { from } });
+
+  // When the URL carries a language segment, switching means navigating to
+  // the same page under the other prefix: the router is mounted with
+  // basename=/<lang>, so this is a real navigation, not a re-render. The
+  // reload is cheap (locales are per-language chunks) and keeps the URL —
+  // the thing crawlers and shares see — as the single source of truth.
+  if (typeof window !== 'undefined') {
+    const current = langFromPath(window.location.pathname);
+    if (current && current !== lang) {
+      const rest = window.location.pathname.slice(current.length + 1);
+      window.location.assign(`/${lang}${rest}${window.location.search}${window.location.hash}`);
+      return;
+    }
+  }
+
+  // No language segment (tests, non-routed contexts): switch in place.
   await loadLocale(lang);
   await i18n.changeLanguage(lang);
   applyDir(lang);
-  if (from !== lang) track('lang_changed', { target: lang, meta: { from } });
 }
 
 export default i18n;
