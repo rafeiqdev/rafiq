@@ -51,7 +51,7 @@ export function Auth() {
   const { t } = useTranslation();
   const { user, login, register, googleSignIn, signOut } = useApp();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'signin' | 'register'>('signin');
+  const [mode, setMode] = useState<'signin' | 'register' | 'forgot'>('signin');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -84,7 +84,10 @@ export function Auth() {
     }
     setBusy(true);
     try {
-      if (mode === 'signin') {
+      if (mode === 'forgot') {
+        await authApi.requestPasswordReset(email);
+        setNotice('auth.reset.sent');
+      } else if (mode === 'signin') {
         await login(email, password);
         navigate(await landingRoute(), { replace: true });
       } else {
@@ -97,7 +100,9 @@ export function Auth() {
         }
       }
     } catch (e) {
-      setError(e instanceof ApiError ? (ERROR_KEYS[e.code] ?? 'auth.errors.generic') : 'auth.errors.generic');
+      const code = e instanceof ApiError ? e.code : '';
+      if (mode === 'forgot' && code === 'rate_limited') setError('auth.reset.rateLimited');
+      else setError(ERROR_KEYS[code] ?? 'auth.errors.generic');
     } finally {
       setBusy(false);
     }
@@ -125,30 +130,34 @@ export function Auth() {
           <Logo size={64} />
         </div>
         <h1 className="mt-4 text-2xl font-extrabold text-navy text-center">
-          {mode === 'signin' ? t('auth.title') : t('auth.registerTitle')}
+          {mode === 'signin' ? t('auth.title') : mode === 'register' ? t('auth.registerTitle') : t('auth.reset.title')}
         </h1>
         <p className="mt-2 text-sm text-gray-500 text-center">
-          {mode === 'signin' ? t('auth.subtitle') : t('auth.registerSubtitle')}
+          {mode === 'signin' ? t('auth.subtitle') : mode === 'register' ? t('auth.registerSubtitle') : t('auth.reset.subtitle')}
         </p>
 
-        <button
-          type="button"
-          onClick={continueWithGoogle}
-          disabled={busy}
-          className="btn-secondary w-full mt-6 disabled:opacity-60"
-        >
-          <GoogleMark />
-          {t('auth.google')}
-        </button>
+        {mode !== 'forgot' && (
+          <>
+            <button
+              type="button"
+              onClick={continueWithGoogle}
+              disabled={busy}
+              className="btn-secondary w-full mt-6 disabled:opacity-60"
+            >
+              <GoogleMark />
+              {t('auth.google')}
+            </button>
 
-        <div className="my-5 flex items-center gap-3 text-xs text-gray-500">
-          <div className="flex-1 h-px bg-cream-dark" />
-          {t('auth.or')}
-          <div className="flex-1 h-px bg-cream-dark" />
-        </div>
+            <div className="my-5 flex items-center gap-3 text-xs text-gray-500">
+              <div className="flex-1 h-px bg-cream-dark" />
+              {t('auth.or')}
+              <div className="flex-1 h-px bg-cream-dark" />
+            </div>
+          </>
+        )}
 
         <form
-          className="flex flex-col gap-3"
+          className={`flex flex-col gap-3 ${mode === 'forgot' ? 'mt-6' : ''}`}
           onSubmit={(e) => {
             e.preventDefault();
             submit();
@@ -186,18 +195,33 @@ export function Auth() {
               autoComplete="email"
             />
           </label>
-          <label className="text-xs font-semibold text-navy/70">
-            {t('common.password')}
-            <input
-              className="input mt-1"
-              type="password"
-              required
-              minLength={mode === 'register' ? 8 : undefined}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-            />
-          </label>
+          {mode !== 'forgot' && (
+            <label className="text-xs font-semibold text-navy/70">
+              {t('common.password')}
+              <input
+                className="input mt-1"
+                type="password"
+                required
+                minLength={mode === 'register' ? 8 : undefined}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+              />
+            </label>
+          )}
+          {mode === 'signin' && (
+            <button
+              type="button"
+              onClick={() => {
+                setMode('forgot');
+                setError(null);
+                setNotice(null);
+              }}
+              className="self-start text-xs text-navy underline-offset-2 hover:underline"
+            >
+              {t('auth.forgot')}
+            </button>
+          )}
           {notice && (
             <p role="status" className="rounded-xl bg-brand-blue/60 text-navy text-sm px-3 py-2 flex items-center gap-2">
               <AppIcon name="mail" className="w-4 h-4 shrink-0" />
@@ -211,7 +235,7 @@ export function Auth() {
             </p>
           )}
           <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
-            {mode === 'signin' ? t('common.signIn') : t('common.register')}
+            {mode === 'signin' ? t('common.signIn') : mode === 'register' ? t('common.register') : t('auth.reset.send')}
           </button>
         </form>
 
@@ -224,7 +248,7 @@ export function Auth() {
           }}
           className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
         >
-          {mode === 'signin' ? t('auth.noAccount') : t('auth.haveAccount')}
+          {mode === 'signin' ? t('auth.noAccount') : mode === 'register' ? t('auth.haveAccount') : t('auth.reset.backToSignIn')}
         </button>
       </div>
     </div>

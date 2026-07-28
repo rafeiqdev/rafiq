@@ -53,6 +53,7 @@ const Auth = lazyPage(() => import('./pages/Auth').then((m) => ({ default: m.Aut
 // Dedicated mobile screens (phone viewports) — same route, different component.
 // See mobile-prompts/ for the design prompts used to generate these.
 const MobileAuth = lazyPage(() => import('./pages/mobile/MobileAuth').then((m) => ({ default: m.MobileAuth })));
+const ResetPassword = lazyPage(() => import('./pages/ResetPassword').then((m) => ({ default: m.ResetPassword })));
 const MobileHome = lazyPage(() => import('./pages/mobile/MobileHome').then((m) => ({ default: m.MobileHome })));
 const MobilePricing = lazyPage(() => import('./pages/mobile/MobilePricing').then((m) => ({ default: m.MobilePricing })));
 const Pricing = lazyPage(() => import('./pages/Pricing').then((m) => ({ default: m.Pricing })));
@@ -197,6 +198,7 @@ function Shell() {
           <Route element={<Layout />}>
             <Route path="/" element={<HomeGate isMobile={isMobile} />} />
             <Route path="/auth" element={isMobile ? <MobileAuth /> : <Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/pricing" element={isMobile ? <MobilePricing /> : <Pricing />} />
             <Route path="/checkout" element={isMobile ? <MobileCheckout /> : <Checkout />} />
             <Route path="/premium" element={isMobile ? <MobilePremium /> : <Premium />} />

@@ -25,6 +25,11 @@ of the file; afterwards re-run **Database → Advisors → Security** and confir
 
 Two things it cannot do from SQL:
 1. **Auth → Settings → enable Leaked Password Protection** (dashboard toggle).
+   While there, add the password-reset landing pages to **Authentication → URL
+   Configuration → Redirect URLs** (the 2026-07-28 reset flow sends recovery
+   emails to them): `https://rafiq.ist/reset-password`,
+   `https://rafiq-istanbul.vercel.app/reset-password`,
+   `http://localhost:5173/reset-password`.
 2. `_credit_referrer`'s body lives only in the live DB — paste the same guard used in
    `_activate_sub` (the `current_setting('role')` / `is_admin()` check) at the top of its body
    via **Database → Functions**.

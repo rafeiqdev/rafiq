@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
+import { auth as authApi } from '../../lib/api';
 import { AppIcon } from '../../components/AppIcon';
 
 const ERROR_KEYS: Record<string, string> = {
@@ -44,6 +45,7 @@ export function MobileAuth() {
   const { user, login, register, googleSignIn, signOut } = useApp();
 
   const [mode, setMode] = useState<'signin' | 'register'>('signin');
+  const [forgot, setForgot] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -58,10 +60,27 @@ export function MobileAuth() {
 
   const switchMode = (next: 'signin' | 'register') => {
     setMode(next);
+    setForgot(false);
     setError(null);
     setNameError(null);
     setNotice(null);
   };
+
+  async function submitForgot(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      await authApi.requestPasswordReset(email);
+      setNotice('auth.reset.sent');
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code;
+      setError(code === 'rate_limited' ? 'auth.reset.rateLimited' : 'auth.errors.generic');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function continueWithGoogle() {
     setError(null);
@@ -155,16 +174,17 @@ export function MobileAuth() {
         {backButton}
         <div className="relative mt-5 animate-fade-up">
           <h1 className="text-[26px] font-extrabold leading-tight text-white">
-            {t(mode === 'signin' ? 'auth.title' : 'auth.registerTitle')}
+            {t(forgot ? 'auth.reset.title' : mode === 'signin' ? 'auth.title' : 'auth.registerTitle')}
           </h1>
           <p className="mt-1.5 text-[15px] leading-relaxed text-white/70">
-            {t(mode === 'signin' ? 'auth.subtitle' : 'auth.registerSubtitle')}
+            {t(forgot ? 'auth.reset.subtitle' : mode === 'signin' ? 'auth.subtitle' : 'auth.registerSubtitle')}
           </p>
         </div>
       </header>
 
       <main className="flex flex-1 flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-6">
         {/* Segmented mode control */}
+        {!forgot && (
         <div role="tablist" aria-label={copy.modeTabs} className="flex shrink-0 gap-1 rounded-btn bg-cream-dark p-1">
           {(['signin', 'register'] as const).map((m) => (
             <button
@@ -181,6 +201,7 @@ export function MobileAuth() {
             </button>
           ))}
         </div>
+        )}
 
         {/* Notice / error banners */}
         {notice && (
@@ -196,6 +217,46 @@ export function MobileAuth() {
           </div>
         )}
 
+        {forgot ? (
+          <form onSubmit={submitForgot} noValidate className="mt-[18px] flex flex-col gap-3.5">
+            <div>
+              <label htmlFor="forgot-email" className="mb-1.5 block text-[13px] font-bold text-navy">
+                {t('common.email')}
+              </label>
+              <input
+                id="forgot-email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input h-[50px] w-full text-base"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn btn-primary mt-1 h-[52px] w-full text-base disabled:opacity-70"
+            >
+              {busy ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-[2.5px] border-white/35 border-t-white" />
+              ) : (
+                t('auth.reset.send')
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setForgot(false);
+                setError(null);
+                setNotice(null);
+              }}
+              className="mt-1 text-center text-sm font-bold text-navy underline-offset-2 active:underline"
+            >
+              {t('auth.reset.backToSignIn')}
+            </button>
+          </form>
+        ) : (
         <form onSubmit={submit} noValidate className="mt-[18px] flex flex-col gap-3.5">
           {mode === 'register' && (
             <div className="animate-fade-up">
@@ -246,6 +307,19 @@ export function MobileAuth() {
               onChange={(e) => setPassword(e.target.value)}
               className="input h-[50px] w-full text-base"
             />
+            {mode === 'signin' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForgot(true);
+                  setError(null);
+                  setNotice(null);
+                }}
+                className="mt-2 text-[13px] font-bold text-navy/70 underline-offset-2 active:underline"
+              >
+                {t('auth.forgot')}
+              </button>
+            )}
           </div>
 
           <button
@@ -260,22 +334,27 @@ export function MobileAuth() {
             )}
           </button>
         </form>
+        )}
 
-        <div aria-hidden="true" className="my-[18px] flex items-center gap-3">
-          <span className="h-px flex-1 bg-navy/10" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-navy/40">{t('auth.or')}</span>
-          <span className="h-px flex-1 bg-navy/10" />
-        </div>
+        {!forgot && (
+          <>
+            <div aria-hidden="true" className="my-[18px] flex items-center gap-3">
+              <span className="h-px flex-1 bg-navy/10" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-navy/40">{t('auth.or')}</span>
+              <span className="h-px flex-1 bg-navy/10" />
+            </div>
 
-        <button
-          type="button"
-          onClick={continueWithGoogle}
-          disabled={busy}
-          className="btn btn-secondary h-[52px] w-full gap-2.5 text-[15px] disabled:opacity-70"
-        >
-          <GoogleIcon />
-          {t('auth.google')}
-        </button>
+            <button
+              type="button"
+              onClick={continueWithGoogle}
+              disabled={busy}
+              className="btn btn-secondary h-[52px] w-full gap-2.5 text-[15px] disabled:opacity-70"
+            >
+              <GoogleIcon />
+              {t('auth.google')}
+            </button>
+          </>
+        )}
       </main>
     </div>
   );

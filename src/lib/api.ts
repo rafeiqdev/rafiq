@@ -112,6 +112,11 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
   // say "we already have your request" instead of a generic failure, which
   // would invite exactly the retry the limit is refusing.
   if (msg.includes('service_request_rate_limit')) throw new ApiError('rate_limited', 429);
+  // Supabase Auth throttles recovery/confirmation emails ("you can only
+  // request this once every 60 seconds" / "email rate limit exceeded").
+  if (msg.includes('rate limit') || msg.includes('once every')) throw new ApiError('rate_limited', 429);
+  // The recovery session expired before the new password was submitted.
+  if (msg.includes('auth session missing')) throw new ApiError('reset_expired', 401);
   if (msg.includes('not_admin')) throw new ApiError('forbidden', 403);
   if (msg.includes('not_authenticated')) throw new ApiError('not_authenticated', 401);
   throw new ApiError(fallback, status);
@@ -247,6 +252,26 @@ export const auth = {
       options: { redirectTo: window.location.origin },
     });
     if (error) fail(error);
+  },
+
+  /**
+   * Emails a recovery link that lands on /reset-password. Supabase answers
+   * 200 whether or not the address has an account, so this cannot be used to
+   * enumerate customers; only rate-limit/config errors surface.
+   */
+  async requestPasswordReset(email: string): Promise<{ ok: true }> {
+    const { error } = await sb().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  /** Sets a new password for the recovery session created by the email link. */
+  async updatePassword(password: string): Promise<{ ok: true }> {
+    const { error } = await sb().auth.updateUser({ password });
+    if (error) fail(error);
+    return { ok: true };
   },
 
   async logout(): Promise<{ ok: true }> {
