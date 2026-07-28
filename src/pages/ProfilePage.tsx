@@ -6,6 +6,9 @@ import { bookings, documents, leads } from '../lib/api';
 import type { Booking, Lead, StoredDocument } from '../lib/types';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon } from '../components/AppIcon';
+import { ActivityCard } from '../components/ActivityCard';
+import { SectionState } from '../components/SectionState';
+import { useAsyncSection } from '../hooks/useAsyncSection';
 import { pickCity } from '../data/turkeyCities';
 
 function isoToDisplay(iso?: string): string {
@@ -70,17 +73,13 @@ function daysUntil(iso?: string): number | null {
 function ProfileInner() {
   const { t, i18n } = useTranslation();
   const { user, profile, updateProfile, signOut } = useApp();
-  const [docs, setDocs] = useState<StoredDocument[]>([]);
-  const [myBookings, setMyBookings] = useState<Booking[]>([]);
-  const [myLeads, setMyLeads] = useState<Lead[]>([]);
-  const [showAllPipeline, setShowAllPipeline] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    documents.list().then(setDocs).catch(() => {});
-    bookings.mine().then(setMyBookings).catch(() => {});
-    leads.mine().then(setMyLeads).catch(() => {});
-  }, [user]);
+  // Bookings, leads and requests now live inside <ActivityCard />, each as its
+  // own independent section. What is left here is the document locker, which
+  // had the same defect: useState([]) plus .catch(() => {}) asserted an empty
+  // locker on first paint and again on any failure — including the
+  // not_authenticated that commit 5 made these reads throw.
+  const docsSec = useAsyncSection<StoredDocument[]>(() => documents.list(), []);
+  const docs = docsSec.status === 'ready' ? (docsSec.data ?? []) : [];
 
   const hasItems = [
     ['turkishPhone', profile.has.turkishPhone],
@@ -93,7 +92,7 @@ function ProfileInner() {
   const upload = async (file?: File) => {
     if (!user || !file) return;
     await documents.upload(file);
-    setDocs(await documents.list());
+    docsSec.reload();
   };
 
   const renewalRows = (['residence', 'insurance', 'passport'] as const).map((k) => ({
@@ -102,12 +101,6 @@ function ProfileInner() {
     days: daysUntil(profile.renewals[k]),
   }));
 
-  // Show only the first 2 transactions by default — a handful of bookings/
-  // leads used to render as one long, heavy-looking list on every visit.
-  const pipelineTotal = myBookings.length + myLeads.length;
-  const visibleBookings = showAllPipeline ? myBookings : myBookings.slice(0, 2);
-  const visibleLeads = showAllPipeline ? myLeads : myLeads.slice(0, Math.max(0, 2 - visibleBookings.length));
-  const hasMorePipeline = !showAllPipeline && pipelineTotal > 2;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -261,9 +254,12 @@ function ProfileInner() {
         {/* document locker */}
         <div className="card p-5 sm:p-6">
           <h2 className="font-bold text-navy">{t('profile.locker.title')}</h2>
-          {docs.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-500">{t('profile.locker.empty')}</p>
-          ) : (
+          <SectionState
+            section={docsSec}
+            title={t('profile.locker.title')}
+            empty={<p className="mt-3 text-sm text-gray-500">{t('profile.locker.empty')}</p>}
+          >
+            {(docs) => (
             <ul className="mt-3 flex flex-col gap-2">
               {docs.map((d) => (
                 <li key={d.id} className="flex items-center gap-2 rounded-xl bg-cream px-3 py-2 text-sm">
@@ -283,7 +279,8 @@ function ProfileInner() {
                 </li>
               ))}
             </ul>
-          )}
+            )}
+          </SectionState>
           <label className="btn-primary w-full mt-4 cursor-pointer">
             <AppIcon name="upload" className="w-4 h-4" />
             {t('profile.locker.upload')}
@@ -297,7 +294,10 @@ function ProfileInner() {
         </div>
       </div>
 
-      {/* transaction pipeline: bookings + service request leads */}
+      {/* Unified activity: bookings + leads + service requests, three
+          independent sections. A service request could never appear here
+          before — the card read two of the three tables a customer's activity
+          lives in, and told them "nothing yet" regardless. */}
       <div className="card p-5 sm:p-6 mt-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-bold text-navy">{t('profile.pipeline.title')}</h2>
@@ -306,37 +306,7 @@ function ProfileInner() {
             {t('nav.myRequests')}
           </Link>
         </div>
-        {myBookings.length === 0 && myLeads.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">{t('profile.pipeline.empty')}</p>
-        ) : (
-          <>
-            <ul className="mt-3 flex flex-col gap-2">
-              {visibleBookings.map((b) => (
-                <li key={b.id} className="flex items-center gap-3 rounded-xl bg-cream px-4 py-3 text-sm">
-                  <AppIcon name="calendar" className="w-4 h-4 shrink-0 text-navy/70" />
-                  <span className="font-semibold text-navy flex-1 min-w-0 break-anywhere">{b.problemSummary}</span>
-                  <span className="rounded-full bg-brand-blue text-navy text-xs font-bold px-3 py-1 shrink-0">
-                    {t(`adminBookings.statuses.${b.status}`)}
-                  </span>
-                </li>
-              ))}
-              {visibleLeads.map((l) => (
-                <li key={l.id} className="flex items-center gap-3 rounded-xl bg-cream px-4 py-3 text-sm">
-                  <AppIcon name="mail" className="w-4 h-4 shrink-0 text-navy/70" />
-                  <span className="font-semibold text-navy flex-1 min-w-0 break-anywhere">
-                    {t(`leads.kind.${l.kind}`)} — {l.item}
-                  </span>
-                  <span className="text-xs text-gray-500 shrink-0">{new Date(l.createdAt).toLocaleDateString(i18n.language)}</span>
-                </li>
-              ))}
-            </ul>
-            {hasMorePipeline && (
-              <button onClick={() => setShowAllPipeline(true)} className="btn-secondary w-full mt-3 text-sm">
-                {t('common.viewAll')} ({pipelineTotal - 2}+)
-              </button>
-            )}
-          </>
-        )}
+        <ActivityCard />
       </div>
     </div>
   );
