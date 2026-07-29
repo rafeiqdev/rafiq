@@ -80,9 +80,15 @@ export function Home() {
     <div>
       <LocalBusinessSchema />
       {/* ── Hero: rotating Turkey photos (auto every 3s) + navy overlay, no buttons ── */}
-      <section className="relative overflow-hidden border-b border-cream-dark">
-        <ImageCarousel images={CAROUSEL} intervalMs={3000} priority />
-        <div className="absolute inset-0 bg-navy/80" aria-hidden />
+      {/* `overflow-hidden` lives on the background wrapper below, NOT on the
+          section itself: on the section it clipped the search suggestions
+          dropdown at the hero's bottom edge, which read as results hidden
+          behind the "for you" section. */}
+      <section className="relative border-b border-cream-dark">
+        <div className="absolute inset-0 overflow-hidden">
+          <ImageCarousel images={CAROUSEL} intervalMs={3000} priority />
+          <div className="absolute inset-0 bg-navy/80" aria-hidden />
+        </div>
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:py-28 text-center text-white">
           <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight max-w-3xl mx-auto">
             {t('home.heroTitle')}

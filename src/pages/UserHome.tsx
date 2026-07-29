@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
 import { errorMessageKey } from '../lib/errors';
+import { shortSummary } from '../lib/bookingSummary';
 import { bookings as bookingsApi, notifications as notificationsApi, documents as documentsApi } from '../lib/api';
 import { SERVICES, pickText } from '../data/services';
 import { pickCity } from '../data/turkeyCities';
@@ -545,7 +546,7 @@ export function UserHome() {
               <li key={b.id} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
                 <AppIcon name="calendar" className="w-4 h-4 shrink-0 text-navy/60" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy truncate">{b.problemSummary}</p>
+                  <p className="text-sm font-semibold text-navy truncate">{shortSummary(b.problemSummary)}</p>
                   <p className="text-xs text-gray-500" dir="ltr">
                     {new Date(b.preferredDatetime).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>

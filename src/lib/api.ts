@@ -802,6 +802,17 @@ export const notifications = {
       read: readSet.has(n.id), createdAt: n.created_at,
     }));
   },
+  /** Just the badge number — cheap enough to poll while the app is open. */
+  async unreadCount(): Promise<number> {
+    const uid = await requireUid();
+    const c = sb();
+    const [{ data: notifs }, { data: reads }] = await Promise.all([
+      c.from('notifications').select('id'),
+      c.from('notification_reads').select('notification_id').eq('user_id', uid),
+    ]);
+    const readSet = new Set((reads ?? []).map((r: { notification_id: string }) => r.notification_id));
+    return (notifs ?? []).filter((n: { id: string }) => !readSet.has(n.id)).length;
+  },
   async markAllRead(): Promise<{ ok: true }> {
     const uid = await requireUid();
     const c = sb();
@@ -987,6 +998,18 @@ export const news = {
       .limit(limit);
     if (error) fail(error);
     return (data as NewsRow[]).map(toNewsPost);
+  },
+
+  /** One published post, for the in-app article page. Null when unpublished/gone. */
+  async byId(id: string): Promise<NewsPost | null> {
+    const { data, error } = await sb()
+      .from('news_posts')
+      .select(NEWS_COLS)
+      .eq('id', id)
+      .eq('published', true)
+      .maybeSingle();
+    if (error) fail(error);
+    return data ? toNewsPost(data as NewsRow) : null;
   },
 
   /** The channel URL, validated to actually be a Telegram link, or null. */

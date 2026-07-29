@@ -1,18 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { ai, ApiError, bookings } from '../lib/api';
+import { ai, ApiError, bookings, news } from '../lib/api';
 import type { ChatSummary } from '../lib/api';
-import {
-  FREE_TOPICS_PER_DAY,
-  formatCountdown,
-  quotaFrom,
-  readTopicStarts,
-  recordTopicStart,
-  readSubject,
-  saveSubject,
-} from '../lib/aiQuota';
+import { readSubject, saveSubject } from '../lib/aiQuota';
 import { detectSubject, isTopicSwitch } from '../lib/subject';
 import {
   archiveTopic,
@@ -67,7 +59,7 @@ function loadJson<T>(key: string, fallback: T): T {
 
 function ChatUI() {
   const { t, i18n } = useTranslation();
-  const { user, tier } = useApp();
+  const { user } = useApp();
   const userId = user?.id ?? 'guest';
   const [messages, setMessages] = useState<UiMessage[]>(() => loadJson<UiMessage[]>(chatKey(userId), []));
   const [media, setMedia] = useState<BookingMedia[]>(() => loadJson<BookingMedia[]>(mediaKey(userId), []));
@@ -95,6 +87,7 @@ function ChatUI() {
 
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
+  const newsId = sp.get('news');
 
   // Covers every way of reaching the chat (service action modal, guide page
   // link, nav bar, direct URL) with one call, rather than tracking each entry
@@ -104,33 +97,14 @@ function ChatUI() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Any paid plan lifts the free topic quota entirely.
-  const hasPlan = tier !== 'free';
-
-  // Free tier: N topics per rolling 24h. Messages inside a topic are unlimited.
-  const [topicStarts, setTopicStarts] = useState<number[]>(() => readTopicStarts(userId, Date.now()));
-  const [nowTs, setNowTs] = useState(() => Date.now());
   const [currentSubject, setCurrentSubject] = useState<string | null>(() => readSubject(userId));
-  const [limitHit, setLimitHit] = useState(false);
-  const quota = quotaFrom(topicStarts, nowTs);
-  const noActiveTopic = messages.length === 0;
-  const blockedNewTopic = !hasPlan && quota.limitReached && noActiveTopic;
-  const showLimitPanel = !hasPlan && quota.limitReached && (limitHit || noActiveTopic);
-  /** Composer is dead while the daily limit blocks a new topic, or once this topic is finished. */
-  const inputLocked = blockedNewTopic || closed;
+  /** Composer is dead once this topic is finished. */
+  const inputLocked = closed;
 
   // does the assistant's latest message ask the user for documents?
   const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && !m.streaming);
   const askingForDocs = !!lastAssistant && wantsMedia(lastAssistant.text);
   const showAttachCard = askingForDocs && !attachDismissed && !readyToBook;
-
-  // tick the countdown (and auto-unblock the moment a slot frees up)
-  useEffect(() => {
-    if (hasPlan || !quota.limitReached) return;
-    // minute-precision countdown: 60x fewer full-page re-renders than the old 1s tick
-    const id = setInterval(() => setNowTs(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, [hasPlan, quota.limitReached]);
 
   const persistMedia = (next: BookingMedia[]) => {
     setMedia(next);
@@ -226,27 +200,13 @@ function ChatUI() {
 
   const send = () => {
     const text = input.trim();
-    if (!text || busy || blockedNewTopic || closed) return;
+    if (!text || busy || closed) return;
 
-    // A topic is charged when the SUBJECT changes — detected from the message.
-    if (!hasPlan) {
-      const incoming = detectSubject(text, currentSubject);
-      if (isTopicSwitch(currentSubject, incoming)) {
-        const now = Date.now();
-        const fresh = readTopicStarts(userId, now);
-        if (quotaFrom(fresh, now).limitReached) {
-          setTopicStarts(fresh);
-          setNowTs(now);
-          setLimitHit(true);
-          return; // refused — the current topic stays usable
-        }
-        recordTopicStart(userId, now);
-        setTopicStarts(readTopicStarts(userId, now));
-        setNowTs(now);
-        setCurrentSubject(incoming);
-        saveSubject(userId, incoming);
-        setLimitHit(false);
-      }
+    // Track which subject the open topic is about (used for history titling).
+    const incoming = detectSubject(text, currentSubject);
+    if (isTopicSwitch(currentSubject, incoming)) {
+      setCurrentSubject(incoming);
+      saveSubject(userId, incoming);
     }
 
     track('chat_message_sent', { meta: { message_count: messages.length + 1 } });
@@ -313,20 +273,8 @@ function ChatUI() {
     if (!topic) return;
     const svc = SERVICES.find((s) => s.id === topic);
     if (!svc) return;
-    if (!hasPlan) {
-      const now = Date.now();
-      const fresh = readTopicStarts(userId, now);
-      if (quotaFrom(fresh, now).limitReached) {
-        setTopicStarts(fresh);
-        setNowTs(now);
-        setLimitHit(true);
-        return;
-      }
-      recordTopicStart(userId, now);
-      setTopicStarts(readTopicStarts(userId, now));
-      setCurrentSubject(svc.category);
-      saveSubject(userId, svc.category);
-    }
+    setCurrentSubject(svc.category);
+    saveSubject(userId, svc.category);
     seededRef.current = topic;
 
     // Put whatever was open into history, then start this service clean.
@@ -344,8 +292,40 @@ function ChatUI() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic]);
 
+  // News prefill: ?news=<postId> (the article page's "ask Rafiq" button) seeds
+  // the chat with the post itself, so the assistant can actually discuss it.
+  useEffect(() => {
+    const seedKey = newsId ? `news:${newsId}` : null;
+    if (!seedKey || seededRef.current === seedKey) return;
+    let live = true;
+    news.byId(newsId!).then((post) => {
+      if (!live || !post || seededRef.current === seedKey) return;
+      const subject = detectSubject(`${post.title} ${post.body ?? ''}`, null);
+      setCurrentSubject(subject);
+      saveSubject(userId, subject);
+      seededRef.current = seedKey;
+
+      if (messages.length > 0) archiveCurrent(closedByBooking);
+      persistMedia([]);
+      setError(null);
+      setBooking(null);
+      setReadyToBook(false);
+      setAttachDismissed(false);
+      setClosedState(false);
+      setClosedByBooking(false);
+      persistClosed(userId, false);
+
+      const body = (post.body ?? '').slice(0, 800);
+      ask(t('chat.newsSeed', { title: post.title, body }).trim(), false, []);
+    }, () => {});
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newsId]);
+
   const startVoice = () => {
-    if (!SR || listening || blockedNewTopic) return;
+    if (!SR || listening) return;
     const recognition = new SR();
     recognition.lang = SPEECH_LANG[i18n.language] ?? 'en-US';
     recognition.interimResults = false;
@@ -365,11 +345,6 @@ function ChatUI() {
           <p className="text-sm text-navy/70">{t('chat.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {!hasPlan && (
-            <span className="rounded-full bg-brand-blue text-navy text-xs font-bold px-3 py-1.5">
-              {t('chat.topicsLeft', { count: quota.remaining, total: FREE_TOPICS_PER_DAY })}
-            </span>
-          )}
           {archive.length > 0 && (
             <button onClick={() => setHistoryOpen(true)} className="btn-secondary !h-9 px-3 text-xs">
               <AppIcon name="message-circle" className="w-3.5 h-3.5" />
@@ -438,24 +413,6 @@ function ChatUI() {
           </div>
         )}
 
-        {/* daily topic limit: countdown to the next free slot + upgrade path */}
-        {showLimitPanel && (
-          <div className="self-center card p-5 text-center max-w-sm" role="status">
-            <div className="icon-chip mx-auto">
-              <AppIcon name="hourglass" />
-            </div>
-            <h2 className="mt-3 font-extrabold text-navy">{t('chat.limit.title')}</h2>
-            <p className="mt-1 text-sm text-gray-500">{t('chat.limit.body', { total: FREE_TOPICS_PER_DAY })}</p>
-            <p className="mt-3 text-3xl font-extrabold text-navy tabular-nums" dir="ltr">
-              {formatCountdown(quota.msUntilReset)}
-            </p>
-            {!noActiveTopic && <p className="mt-2 text-xs text-navy/60">{t('chat.limit.continueHint')}</p>}
-            <Link to="/pricing" className="btn-primary w-full mt-4">
-              <AppIcon name="sparkles" className="w-4 h-4" />
-              {t('chat.limit.cta')}
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* attached files */}

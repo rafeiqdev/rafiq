@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { bookings, profileApi, ApiError } from '../lib/api';
+import { CASE_FILE_DIVIDER } from '../lib/bookingSummary';
 import { useApp } from '../context/AppContext';
 import { LANGS } from '../lib/types';
 import type { BookingMedia, ChatMessage, Lang } from '../lib/types';
@@ -63,7 +64,7 @@ export function BookingModal({
       }
       await bookings.create({
         problemSummary: caseFile
-          ? `${problemSummary}\n\n--- ملف الطلب / CASE FILE ---\n${JSON.stringify(caseFile, null, 2)}`
+          ? `${problemSummary}\n\n${CASE_FILE_DIVIDER}\n${JSON.stringify(caseFile, null, 2)}`
           : problemSummary,
         transcript,
         preferredDatetime: `${date}T${time}`,

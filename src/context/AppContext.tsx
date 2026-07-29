@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { AI_FREE_PERIOD, ApiError, auth, config as configApi, profileApi, referrals } from '../lib/api';
+import { AI_FREE_PERIOD, ApiError, auth, config as configApi, notifications, profileApi, referrals } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { setAnalyticsUser, track } from '../lib/analytics';
 import type { AppConfig, PlanTier, Profile, Subscription, User } from '../lib/types';
@@ -175,6 +175,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // browser session (and sign-out) keep it null, but all share session_id.
   useEffect(() => {
     setAnalyticsUser(user?.id ?? null);
+  }, [user]);
+
+  // Notifications are created by DB triggers while the tab sits open, so the
+  // bell polls its badge instead of waiting for the next full page load.
+  useEffect(() => {
+    if (!user) return;
+    const tick = () =>
+      notifications
+        .unreadCount()
+        .then(setUnread)
+        .catch(() => {});
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
   }, [user]);
 
   const updateProfile = useCallback(

@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تقرير فحص رفيق إسطنبول — 28 يوليو 2026</title>
+<style>
+  :root{
+    --navy:#1a3a6b; --navy-2:#12294c; --cream:#faf8f0; --red:#c0392b;
+    --p0:#b3261e; --p1:#c0392b; --p2:#c77700; --p3:#5b6b7c; --ok:#1e7a4b;
+    --line:#e3e0d6; --ink:#16233a; --muted:#5f6b7d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);
+       font-family:"Segoe UI",system-ui,"Noto Naskh Arabic",Tahoma,sans-serif;line-height:1.75}
+  code,.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;direction:ltr;unicode-bidi:isolate;display:inline-block}
+  pre{background:#0f1c33;color:#e6edf7;padding:14px 16px;border-radius:10px;overflow:auto;
+      direction:ltr;text-align:left;font-size:13px;line-height:1.6}
+  header{background:linear-gradient(160deg,var(--navy),var(--navy-2));color:#fff;padding:38px 24px 30px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  header h1{margin:0 0 6px;font-size:30px}
+  header p{margin:0;opacity:.82;font-size:15px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:24px}
+  .kpi{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:14px}
+  .kpi b{display:block;font-size:26px;line-height:1.2}
+  .kpi span{font-size:12.5px;opacity:.8}
+  main{padding:26px 0 70px}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;z-index:5;
+       background:var(--cream);padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .bar strong{font-size:13px;color:var(--muted);margin-inline-end:4px}
+  button.f{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;
+           padding:7px 15px;font:inherit;font-size:13.5px;cursor:pointer;transition:.15s}
+  button.f:hover{border-color:var(--navy)}
+  button.f[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+  .card>summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;gap:12px;align-items:flex-start}
+  .card>summary::-webkit-details-marker{display:none}
+  .card[open]>summary{border-bottom:1px solid var(--line);background:#fcfbf7}
+  .tag{flex:0 0 auto;font-size:11.5px;font-weight:700;color:#fff;border-radius:6px;padding:3px 9px;margin-top:3px;letter-spacing:.3px}
+  .P0{background:var(--p0)} .P1{background:var(--p1)} .P2{background:var(--p2)} .P3{background:var(--p3)} .OK{background:var(--ok)}
+  .ttl{flex:1}
+  .ttl h3{margin:0;font-size:16.5px;font-weight:700}
+  .meta{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .body{padding:4px 18px 18px}
+  .body h4{margin:16px 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .body p{margin:6px 0}
+  .body ul{margin:6px 0;padding-inline-start:22px}
+  h2.sec{font-size:20px;margin:34px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--navy);display:inline-block}
+  .note{background:#fff6e5;border:1px solid #f0d9a8;border-radius:10px;padding:14px 16px;margin:16px 0}
+  .good{background:#eef8f1;border:1px solid #bfe2cd;border-radius:10px;padding:14px 16px;margin:16px 0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:right}
+  th{background:#f4f1e8;font-weight:700}
+  .score{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+  .sc{flex:1 1 150px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .sc b{display:block;font-size:22px;color:var(--navy)}
+  .sc span{font-size:12.5px;color:var(--muted)}
+  .en{direction:ltr;unicode-bidi:isolate;display:inline-block}
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:24px}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>تقرير فحص شامل — رفيق إسطنبول</h1>
+    <p>فحص المنتج الحيّ على <span class="en">rafiq.ist</span> + النسخة المحلية من المستودع · 28 يوليو 2026</p>
+    <div class="kpis">
+      <div class="kpi"><b>3</b><span>ثغرات حرجة</span></div>
+      <div class="kpi"><b>6</b><span>مشاكل عالية</span></div>
+      <div class="kpi"><b>12</b><span>مشاكل متوسطة</span></div>
+      <div class="kpi"><b>9</b><span>ملاحظات تحسين</span></div>
+      <div class="kpi"><b>490</b><span>اختبار آلي ناجح</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="note">
+    <strong>الخلاصة في سطرين:</strong> واجهة المستخدم والمحتوى والترجمات في مستوى احترافي جيد جدًا،
+    وخادم <span class="en">Express</span> المحلي مكتوب بعناية أمنية ممتازة —
+    لكن <b>الموقع المنشور لا يستخدم هذا الخادم إطلاقًا</b>، بل يتصل بـ<span class="en">Supabase</span>
+    مباشرة من المتصفح، وهناك ثلاث دوال في قاعدة البيانات تسمح بتفعيل اشتراك مدفوع مجانًا.
+    هذه أولوية قصوى قبل أي شيء آخر.
+  </div>
+
+  <div class="bar">
+    <strong>تصفية:</strong>
+    <button class="f" data-f="all" aria-pressed="true">الكل</button>
+    <button class="f" data-f="P0" aria-pressed="false">حرِج</button>
+    <button class="f" data-f="P1" aria-pressed="false">عالٍ</button>
+    <button class="f" data-f="P2" aria-pressed="false">متوسط</button>
+    <button class="f" data-f="P3" aria-pressed="false">تحسين</button>
+    <button class="f" data-f="OK" aria-pressed="false">ما يعمل جيدًا</button>
+  </div>
+
+  <!-- ================= P0 ================= -->
+  <h2 class="sec">١ · ثغرات حرجة — تجاوز الدفع</h2>
+
+  <details class="card" data-sev="P0" open>
+    <summary><span class="tag P0">حرِج</span><div class="ttl">
+      <h3>أي شخص يستطيع تفعيل اشتراك «إيليت» لأي مستخدم — بدون تسجيل دخول أصلًا</h3>
+      <div class="meta">قاعدة البيانات · الدالة <span class="en">_activate_sub</span> · تجاوز كامل للصلاحيات</div>
+    </div></summary>
+    <div class="body">
+      <h4>الوصف</h4>
+      <p>الدالة <span class="en">public._activate_sub(p_uid, p_tier, p_billing, p_days)</span> معرّفة بـ
+      <span class="en">SECURITY DEFINER</span> ولا تحتوي على <b>أي تحقق من الهوية أو الصلاحية</b> — لا
+      <span class="en">is_admin()</span> ولا <span class="en">auth.uid()</span>. ومع ذلك صلاحية التنفيذ عليها ممنوحة
+      للدورين <span class="en">anon</span> و<span class="en">authenticated</span>، أي أنها مكشوفة عبر
+      <span class="en">POST /rest/v1/rpc/_activate_sub</span> باستخدام المفتاح العام الموجود في كود الواجهة.</p>
+      <p>النتيجة: زائر مجهول تمامًا يستطيع منح نفسه — أو أي حساب — أي باقة لأي مدة، وإلغاء أي اشتراك،
+      دون أن يمرّ بأي عملية دفع.</p>
+      <h4>الدليل</h4>
+      <pre>-- تعريف الدالة كما هي على الإنتاج الآن
+CREATE FUNCTION public._activate_sub(p_uid uuid, p_tier text, p_billing text, p_days integer)
+  RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+AS $$ begin
+  insert into public.subscriptions (...) values (p_uid, p_tier, p_billing, 'active', ...)
+  on conflict (user_id) do update set tier = excluded.tier, status = 'active', ...;
+end $$;
+-- لا يوجد أي سطر تحقق صلاحية
+
+has_function_privilege('anon',          '_activate_sub', 'EXECUTE') -> true
+has_function_privilege('authenticated', '_activate_sub', 'EXECUTE') -> true</pre>
+      <p class="meta">ملاحظة: لم أنفّذ الاستغلال على قاعدة البيانات الحيّة — الإثبات مبني على قراءة تعريف
+      الدالة وصلاحياتها فقط.</p>
+      <h4>الإصلاح</h4>
+      <pre>REVOKE EXECUTE ON FUNCTION public._activate_sub(uuid,text,text,integer) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public._credit_referrer(uuid,text,integer)   FROM anon, authenticated;
+-- الدوال الداخلية (المسبوقة بـ _) يجب ألا تكون في الـ API العام إطلاقًا</pre>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P0" open>
+    <summary><span class="tag P0">حرِج</span><div class="ttl">
+      <h3>دالة «الدفع التجريبي» ما زالت تعمل على الإنتاج وتمنح اشتراكًا مدفوعًا مجانًا</h3>
+      <div class="meta">قاعدة البيانات · الدالة <span class="en">checkout_card_demo</span></div>
+    </div></summary>
+    <div class="body">
+      <h4>الوصف</h4>
+      <p>الدالة تتحقق فقط من أن المستخدم مسجّل دخول، ثم <b>تُدرِج دفعة بحالة <span class="en">verified</span></b>
+      وتفعّل الاشتراك وتصرف عمولة الإحالة — دون أي بوابة دفع وبدون أي مبلغ حقيقي.
+      أي مستخدم مسجّل يفتح <span class="en">Console</span> في المتصفح ويستدعيها يحصل على «إيليت سنوي» مجانًا.</p>
+      <pre>declare uid uuid := auth.uid(); ...
+begin
+  if uid is null then raise exception 'not_authenticated'; end if;   -- التحقق الوحيد
+  insert into public.payments (..., status) values (..., 'verified');
+  perform public._activate_sub(uid, p_tier, p_billing, days);
+  perform public._credit_referrer(uid, pid::text, amt);
+end;</pre>
+      <h4>الإصلاح</h4>
+      <pre>DROP FUNCTION IF EXISTS public.checkout_card_demo(text,text);
+-- واستبدالها ببوابة حقيقية (iyzico / Stripe) + Webhook موقّع يفعّل الاشتراك
+-- من الخادم فقط، تمامًا كما هو مطبَّق في server/index.mjs محليًا.</pre>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P0">
+    <summary><span class="tag P0">حرِج</span><div class="ttl">
+      <h3>أي شخص يستطيع صرف عمولات إحالة وهمية (٣٠٪ نقدية) لأي حساب</h3>
+      <div class="meta">قاعدة البيانات · الدالة <span class="en">_credit_referrer</span></div>
+    </div></summary>
+    <div class="body">
+      <p><span class="en">_credit_referrer(p_uid, p_payment_id, p_amount)</span> — نفس المشكلة:
+      <span class="en">SECURITY DEFINER</span>، بلا تحقق صلاحية، ومكشوفة لـ<span class="en">anon</span>.
+      وبما أن برنامج الإحالة يدفع نقدًا (٣٠٪)، فهذه ثغرة مالية مباشرة وليست تجميلية.</p>
+      <p>يزيدها خطورة أن سياسة <span class="en">RLS</span> على جدول <span class="en">referral_clicks</span>
+      هي <span class="en">WITH CHECK (true)</span> للإدراج — أي يمكن تضخيم عدد النقرات بلا حدّ.</p>
+    </div>
+  </details>
+
+  <!-- ================= P1 ================= -->
+  <h2 class="sec">٢ · مشاكل عالية</h2>
+
+  <details class="card" data-sev="P1" open>
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>المعمارية الموثّقة ليست هي المنشورة — كل حماية الخادم غير مفعّلة على الإنتاج</h3>
+      <div class="meta">معمارية · <span class="en">README</span> مقابل الواقع</div>
+    </div></summary>
+    <div class="body">
+      <p>ملف <span class="en">README</span> يصف خادم <span class="en">Express</span> يتخذ «كل قرارات الثقة»:
+      <span class="en">bcrypt</span>، جلسات مخزّنة، <span class="en">Webhook</span> موقّع بـ<span class="en">HMAC</span>،
+      و<span class="en">402</span> على الميزات المدفوعة. اختبرتُ هذا الخادم محليًا و<b>هو ممتاز فعلًا</b>:</p>
+      <table>
+        <tr><th>الاختبار</th><th>النتيجة محليًا</th></tr>
+        <tr><td>تزوير <span class="en">Webhook</span> بلا توقيع</td><td>401 <span class="en">bad_signature</span> ✓</td></tr>
+        <tr><td>مستخدم عادي يطلب <span class="en">/api/admin/*</span></td><td>403 <span class="en">forbidden</span> ✓</td></tr>
+        <tr><td>مستخدم مجاني يطلب <span class="en">/api/places</span></td><td>402 <span class="en">upgrade_required</span> ✓</td></tr>
+        <tr><td>حد رسائل الذكاء الاصطناعي المجانية</td><td>3 رسائل ثم 402 ✓</td></tr>
+        <tr><td>رفع ملف <span class="en">.exe</span></td><td>400 <span class="en">bad_file_type</span> ✓</td></tr>
+        <tr><td>حجز موعد في الماضي</td><td>400 <span class="en">past_datetime</span> ✓</td></tr>
+        <tr><td>إعادة تنفيذ نفس الدفعة</td><td>لا يتكرر التفعيل ✓</td></tr>
+      </table>
+      <p><b>لكن هذا الخادم غير منشور.</b> مجلد <span class="en">api/</span> على <span class="en">Vercel</span>
+      يحتوي فقط على <span class="en">ai-chat</span> و<span class="en">places-search</span> و<span class="en">place-photo</span>
+      و<span class="en">cron</span>. الموقع الحيّ يحمّل <span class="en">supabase-js</span> (212 كيلوبايت)
+      ويتحدث مع القاعدة مباشرة. أي أن كل الحماية أعلاه <b>لا تحمي المستخدم الحقيقي</b> — وهذا هو
+      السبب الجذري للثغرات الثلاث في القسم الأول.</p>
+      <h4>التوصية</h4>
+      <p>اتخذ قرارًا واضحًا: إما نشر خادم <span class="en">Express</span> وجعل الواجهة تتحدث معه فقط،
+      أو الالتزام بـ<span class="en">Supabase</span> ونقل كل منطق الدفع/التفعيل إلى
+      <span class="en">Edge Function</span> بمفتاح <span class="en">service role</span>. الوضع الحالي
+      (الاثنان معًا) هو الأسوأ لأنه يوحي بأمان غير موجود.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P1" open>
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>الصور تختفي في أغلب الزيارات — صورة الغلاف تظهر مستطيلًا أزرق فارغًا</h3>
+      <div class="meta">واجهة · <span class="en">src/components/SiteImage.tsx</span></div>
+    </div></summary>
+    <div class="body">
+      <h4>الوصف</h4>
+      <p>هذا أوضح خلل بصري في الموقع. عند فحص الصفحة الرئيسية وجدتُ الصور الأربع في
+      <span class="en">carousel</span> الغلاف كلها بـ<span class="en">opacity: 0</span> رغم أن
+      <span class="en">complete = true</span> — أي أنها حُمِّلت بالكامل لكنها غير مرئية.
+      ونفس الشيء لصورة قسم «من نحن» التي تظهر مربعًا رماديًا فارغًا.</p>
+      <pre>// النتيجة الفعلية من المتصفح على rafiq.ist
+{ src: "1524231757912-….webp", opacity: "0", complete: true }
+{ src: "1527838832700-….webp", opacity: "0", complete: true }
+{ src: "1541432901042-….webp", opacity: "0", complete: true }
+{ src: "1518105779142-….webp", opacity: "0", complete: true }</pre>
+      <h4>السبب الجذري</h4>
+      <p>المكوّن يبدأ بـ<span class="en">opacity-0</span> ولا ينتقل إلى <span class="en">opacity-100</span>
+      إلا داخل <span class="en">onLoad</span>. وعندما تأتي الصورة من الـ<span class="en">cache</span>
+      (أي في كل زيارة متكررة) يقع حدث <span class="en">load</span> <b>قبل</b> أن يربط
+      <span class="en">React</span> المستمع، فلا يُستدعى <span class="en">onLoad</span> أبدًا وتبقى
+      الصورة شفافة إلى الأبد — مع بقاء هيكل التحميل النابض فوقها.</p>
+      <h4>الإصلاح</h4>
+      <pre>const ref = useRef&lt;HTMLImageElement&gt;(null);
+const [loaded, setLoaded] = useState(false);
+
+useEffect(() =&gt; {
+  if (ref.current?.complete &amp;&amp; ref.current.naturalWidth &gt; 0) setLoaded(true);
+}, []);
+
+&lt;img ref={ref} onLoad={() =&gt; setLoaded(true)} … /&gt;</pre>
+      <p>وأيضًا: صورة الغلاف تستخدم <span class="en">loading="lazy"</span> — وهي عنصر
+      <span class="en">LCP</span>. يجب أن تكون <span class="en">loading="eager"</span> مع
+      <span class="en">fetchpriority="high"</span>.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P1" open>
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>لا توجد ميزة «نسيت كلمة المرور» في المنتج كله</h3>
+      <div class="meta">المصادقة · <span class="en">/auth</span></div>
+    </div></summary>
+    <div class="body">
+      <p>صفحة تسجيل الدخول تعرض: <span class="en">Google</span>، بريد، كلمة مرور، زر دخول، ورابط إنشاء حساب.
+      لا يوجد رابط استعادة كلمة مرور، ولا مسار <span class="en">reset</span> في الخادم، ولا مفتاح ترجمة
+      يقابله في أي من ملفات اللغات الأربعة.</p>
+      <p>لمنتج باشتراك شهري مدفوع، هذا يعني أن كل مستخدم ينسى كلمته يصبح تذكرة دعم يدوية — أو عميلًا مفقودًا.
+      مع <span class="en">Supabase Auth</span> الحل جاهز: <span class="en">resetPasswordForEmail()</span>.</p>
+      <p>ملاحظة مرتبطة: <span class="en">Supabase</span> يبلّغ أن
+      <span class="en">Leaked Password Protection</span> معطّلة — يُنصح بتفعيلها.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P1" open>
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>وسوم <span class="en">hreflang</span> معطّلة — اللغات الأربع تشير كلها لنفس الرابط</h3>
+      <div class="meta">تحسين محركات البحث · <span class="en">sitemap.xml</span></div>
+    </div></summary>
+    <div class="body">
+      <p>هذه أكبر مشكلة تسويقية في المشروع. اللغة محفوظة في <span class="en">localStorage</span> فقط،
+      ولا يوجد مقطع لغة في الرابط. لذلك كل مدخلة في <span class="en">sitemap</span> تبدو هكذا:</p>
+      <pre>&lt;loc&gt;https://rafiq.ist/services&lt;/loc&gt;
+&lt;xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/services" /&gt;
+&lt;xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/services" /&gt;
+&lt;xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/services" /&gt;
+&lt;xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/services" /&gt;</pre>
+      <p>محرك البحث يرى أربع لغات على رابط واحد، فيفهرس نسخة واحدة فقط ويتجاهل الباقي.
+      أنتم تدفعون تكلفة ترجمة ١٢٤٠ مفتاحًا × ٤ لغات ولا تحصدون منها أي زيارات عضوية
+      بالروسية أو الفارسية أو الإنجليزية.</p>
+      <h4>الإصلاح</h4>
+      <p>اعتماد مسار لغة: <span class="en">/ar/services</span>، <span class="en">/en/services</span> …
+      مع إعادة توجيه من الجذر حسب <span class="en">Accept-Language</span>، وتحديث مولّد
+      <span class="en">sitemap</span> ليولّد رابطًا لكل لغة. هذا يفتح ٤ أضعاف السطح للفهرسة.</p>
+      <p class="meta">مرتبط: <span class="en">og:locale</span> مضبوط على <span class="en">ar_AR</span> وهي
+      قيمة غير صالحة (الصحيح <span class="en">ar_SA</span> أو <span class="en">ar_AE</span>).</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P1">
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>لا توجد أي ترويسات أمان — والموقع قابل للتضمين في إطار (<span class="en">clickjacking</span>)</h3>
+      <div class="meta">النشر · <span class="en">vercel.json</span></div>
+    </div></summary>
+    <div class="body">
+      <p>ملف <span class="en">vercel.json</span> يحتوي على <span class="en">rewrites</span> و<span class="en">crons</span> فقط.
+      لا <span class="en">Content-Security-Policy</span>، ولا <span class="en">X-Frame-Options</span>،
+      ولا <span class="en">Referrer-Policy</span>، ولا <span class="en">Permissions-Policy</span>.</p>
+      <p><b>تحققتُ عمليًا:</b> نجحتُ في تحميل <span class="en">rafiq.ist</span> داخل
+      <span class="en">iframe</span> بدون أي منع — أي أن هجوم <span class="en">clickjacking</span>
+      على صفحة الدفع أو تسجيل الدخول ممكن. لمنصّة يرفع عليها المستخدمون صور جوازات وعقود إيجار،
+      هذا نقص أساسي.</p>
+      <pre>{
+  "headers": [{
+    "source": "/(.*)",
+    "headers": [
+      { "key": "X-Frame-Options",           "value": "DENY" },
+      { "key": "X-Content-Type-Options",    "value": "nosniff" },
+      { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
+      { "key": "Permissions-Policy",        "value": "geolocation=(self), camera=(), microphone=()" },
+      { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+    ]
+  }]
+}</pre>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P1">
+    <summary><span class="tag P1">عالٍ</span><div class="ttl">
+      <h3>تجمّد الواجهة عشرات الثواني أثناء التنقّل</h3>
+      <div class="meta">أداء · متكرر على <span class="en">/map</span> وبعد تبديل اللغة</div>
+    </div></summary>
+    <div class="body">
+      <p>خلال الجلسة فشلت محاولات التقاط الشاشة وتنفيذ <span class="en">JavaScript</span> أكثر من ست مرات
+      برسالة «<span class="en">the renderer may be frozen or unresponsive</span>» بعد مهلة ٣٠–٤٥ ثانية،
+      خصوصًا عند فتح <span class="en">/map</span> وبعد تغيير اللغة. هذا يعني أن الخيط الرئيسي محجوز فعليًا.</p>
+      <p>القياسات المؤكدة على الصفحة الرئيسية:</p>
+      <table>
+        <tr><th>المقياس</th><th>القيمة</th><th>الهدف</th></tr>
+        <tr><td><span class="en">load event</span></td><td>7,243 مللي ثانية</td><td>&lt; 3,000</td></tr>
+        <tr><td>إجمالي <span class="en">JS</span> بعد فك الضغط</td><td>≈ 995 كيلوبايت</td><td>&lt; 400</td></tr>
+        <tr><td>أكبر حزمة (<span class="en">index</span>)</td><td>426 ك.ب / 162 ك.ب مضغوطة</td><td>&lt; 100 مضغوطة</td></tr>
+        <tr><td><span class="en">supabase-js</span></td><td>212 ك.ب / 55 ك.ب</td><td>—</td></tr>
+        <tr><td><span class="en">TTFB</span></td><td>130 مللي ثانية</td><td>ممتاز ✓</td></tr>
+      </table>
+      <p>أنصح بتشغيل <span class="en">Performance profiler</span> على <span class="en">/map</span>
+      لتحديد المصدر بدقة، وتقسيم حزمة <span class="en">index</span> البالغة 426 ك.ب.</p>
+    </div>
+  </details>
+
+  <!-- ================= P2 ================= -->
+  <h2 class="sec">٣ · مشاكل متوسطة</h2>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>صفحة الخريطة تُنزّل حزم <span class="en">Google Maps</span> حتى للزائر غير المسجّل</h3>
+      <div class="meta">أداء · <span class="en">src/pages/MapPage.tsx</span></div>
+    </div></summary>
+    <div class="body">
+      <p>البوابة (<span class="en">RequireAuth</span> + <span class="en">UpsellGate</span>) موضوعة
+      <b>داخل</b> المكوّن، لذا يُستورد <span class="en">MapExplorer</span> و<span class="en">google-maps</span>
+      قبل أن يُقرَّر أن الزائر ممنوع. رصدتُ تحميل الحزم الثلاث فعليًا وأنا مسجّل خروج:</p>
+      <pre>MapPage-H8pqB1oJ.js      1000ms
+MapExplorer-C_8781LU.js  1001ms
+google-maps-CUNjWSIN.js  1009ms</pre>
+      <p>الحل: <span class="en">React.lazy</span> لـ<span class="en">MapExplorer</span> واستيراده بعد اجتياز البوابة.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>الأدمن لا يرى أي سجل للدفعات — فقط المعلّقة</h3>
+      <div class="meta">لوحة التحكم · <span class="en">/api/admin/payments</span></div>
+    </div></summary>
+    <div class="body">
+      <pre>SELECT * FROM payments WHERE status = 'pending' ORDER BY created_at DESC</pre>
+      <p>لا توجد أي شاشة لعرض الدفعات المؤكدة أو المرفوضة أو الإيرادات. عمليًا: لا يمكن معرفة كم
+      دخل هذا الشهر، ولا مراجعة نزاع، ولا تتبّع عمولة إحالة. أنصح بإضافة تبويب «كل الدفعات»
+      مع فلتر حالة وتاريخ ومجموع.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>رفض دفعة حقيقية بصمت مع إرجاع <span class="en">200 OK</span></h3>
+      <div class="meta">لوحة التحكم · <span class="en">/api/admin/payments/:id/resolve</span></div>
+    </div></summary>
+    <div class="body">
+      <p>اكتشفتُ هذا بالخطأ أثناء الاختبار: أرسلتُ <span class="en">{"action":"approve"}</span> بدل
+      <span class="en">{"status":"verified"}</span>، فردّ الخادم <span class="en">{"ok":true}</span>
+      بينما كان قد <b>رفض</b> الدفعة فعليًا.</p>
+      <pre>if (req.body?.status === 'verified') settleVerifiedPayment(p);
+else db.prepare("UPDATE payments SET status = 'rejected' …").run(p.id);  // ← الافتراضي: رفض
+res.json({ ok: true });</pre>
+      <p>أي خطأ مطبعي أو تغيير في الواجهة سيرفض دفعات حقيقية دون أن يلاحظ أحد.
+      يجب التحقق الصريح: <span class="en">if (!['verified','rejected'].includes(status)) return 400</span>،
+      وإرجاع الحالة الجديدة في الرد.</p>
+      <p class="meta">مشكلة مشابهة: <span class="en">POST /api/admin/users/:id/tier</span> يُرجع
+      <span class="en">ok:true</span> حتى لمعرّف مستخدم غير موجود، وينشئ صفّ اشتراك يتيم.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>الصفحات المقفلة تعرض بطاقة عامة بلا أي معاينة أو سياق</h3>
+      <div class="meta">تحويل · <span class="en">/map</span>، <span class="en">/journey</span> وغيرها</div>
+    </div></summary>
+    <div class="body">
+      <p>عند فتح الخريطة أو الرحلة يظهر مربع أبيض صغير: قفل + «تسجيل الدخول مطلوب» + زر.
+      نفس البطاقة حرفيًا في كل الصفحات المقفلة — لا صورة، ولا عيّنة، ولا ذكر لما وراء الجدار.</p>
+      <p>الزائر لا يعرف أن الخريطة تحتوي مطاعم ومستشفيات وبنوكًا موصى بها، فلا يجد سببًا للتسجيل.
+      البديل المعتاد: خريطة ضبابية مع ٣ دبابيس مرئية + «افتح ٥٠+ موقعًا موثوقًا». التعليق في الكود
+      يذكر أن نسخة سابقة كانت تفعل ذلك بالضبط — أرى أن إزالتها كانت خسارة تحويل.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>مبدّل اللغة غير موجود إطلاقًا على شاشات الموبايل الأساسية</h3>
+      <div class="meta">موبايل · <span class="en">src/components/Layout.tsx</span></div>
+    </div></summary>
+    <div class="body">
+      <p>على الهاتف تُحذف الترويسة في <span class="en">MOBILE_CHROME_FREE_ROUTES</span>، وأُضيف
+      تذييل تعويضي للصفحات القابلة للتمرير فقط. لكن الصفحات التالية بلا ترويسة <b>وبلا تذييل</b>:</p>
+      <p class="mono">/auth · /checkout · /premium · /chat · /map · /help</p>
+      <p>أي أن مستخدمًا فارسيًا وصل إلى صفحة تسجيل الدخول على هاتفه — وهي غالبًا أول شاشة يراها —
+      لا يملك أي وسيلة لتغيير اللغة. أنصح بأيقونة كرة أرضية عائمة ثابتة على هذه الشاشات الست.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>ملاحظات <span class="en">Supabase</span> الأمنية الأخرى</h3>
+      <div class="meta">قاعدة البيانات · <span class="en">database linter</span></div>
+    </div></summary>
+    <div class="body">
+      <ul>
+        <li><b>سلة <span class="en">listings</span> العامة تسمح بسرد كل الملفات</b> — سياسة
+            <span class="en">SELECT</span> واسعة على <span class="en">storage.objects</span>.
+            الوصول عبر الرابط لا يحتاجها.</li>
+        <li><span class="en">referral_clicks</span> و<span class="en">service_requests</span>:
+            سياسة إدراج <span class="en">WITH CHECK (true)</span> — إدراج بلا قيد.</li>
+        <li>جدول <span class="en">dukk</span>: <span class="en">RLS</span> مفعّل بلا أي سياسة
+            (جدول ميت على الأرجح — يُحذف).</li>
+        <li><span class="en">_plan_price</span> و<span class="en">event_trigger_fn</span>:
+            <span class="en">search_path</span> غير مثبّت.</li>
+        <li><span class="en">Leaked Password Protection</span> معطّلة.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>تباين ألوان أقل من المطلوب في روابط القائمة ومبدّل الفوترة</h3>
+      <div class="meta">إمكانية الوصول · <span class="en">WCAG 2.1 AA</span></div>
+    </div></summary>
+    <div class="body">
+      <table>
+        <tr><th>العنصر</th><th>اللون</th><th>النسبة</th><th>المطلوب</th></tr>
+        <tr><td>روابط القائمة العلوية (14 بكسل)</td><td><span class="en">rgba(26,58,107,.7)</span> على <span class="en">#faf8f0</span></td><td>≈ 4.37 : 1</td><td>4.5 : 1</td></tr>
+        <tr><td>خيار الفوترة غير النشط «شهري»</td><td><span class="en">rgba(26,58,107,.6)</span></td><td>≈ 3.6 : 1</td><td>4.5 : 1</td></tr>
+      </table>
+      <p>الحل بسيط: رفع الشفافية إلى <span class="en">0.85</span> بدل <span class="en">0.7</span>.
+      كما أن ارتفاع روابط القائمة 21 بكسل — أقل من الحد الأدنى 24 بكسل لمساحة اللمس.</p>
+      <p class="meta">نقطة إيجابية: التعليق في <span class="en">index.html</span> يوضح أن تكبير الشاشة
+      بالإصبعين أُبقي عمدًا احترامًا لـ<span class="en">WCAG 1.4.4</span> — قرار ممتاز وموثّق جيدًا.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>شريط العملات: تكرار، تشوّش اتجاه، ولا يمكن إيقافه</h3>
+      <div class="meta">الترويسة · <span class="en">TopRatesBar</span></div>
+    </div></summary>
+    <div class="body">
+      <ul>
+        <li>عبارة «آخر تحديث … المصدر: <span class="en">open.er-api.com</span>» تتكرر مرتين داخل الدورة الواحدة
+            وتتداخل مع أزواج العملات.</li>
+        <li>خلط عربي/لاتيني/أرقام داخل شريط متحرك ينتج ترتيبًا مشوّشًا (لاحظتُ «<span class="en">(KVKK)</span> حماية بياناتك»
+            بالقوس في الجهة الخاطئة في الغلاف أيضًا — يُحلّ بـ<span class="en">&lt;bdi&gt;</span> أو
+            <span class="en">unicode-bidi: isolate</span>).</li>
+        <li>حركة مستمرة أكثر من ٥ ثوانٍ بلا زر إيقاف — مخالفة <span class="en">WCAG 2.2.2</span>،
+            ومزعجة لمن لديه حساسية حركة (<span class="en">prefers-reduced-motion</span> غير محترمة).</li>
+        <li>على صفحة <span class="en">/auth</span> يظهر الشريط عالقًا على «جارٍ تحميل الأسعار».</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>صفحة 404 ترجع <span class="en">HTTP 200</span> وتحتفظ بعنوان الصفحة الرئيسية</h3>
+      <div class="meta">تحسين محركات البحث</div>
+    </div></summary>
+    <div class="body">
+      <p>تصميم الصفحة نفسه نظيف وجيد. لكن الخادم يرجع <span class="en">200</span> (soft 404)
+      وعنوان التبويب يبقى «رفيق إسطنبول — رفيقك في الحياة في إسطنبول». محركات البحث ستفهرس
+      صفحات غير موجودة. يجب ضبط <span class="en">title</span> خاص وإرجاع <span class="en">404</span>.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>رسائل الدخول تكشف وجود الحساب من عدمه</h3>
+      <div class="meta">أمان · <span class="en">/api/auth/login</span></div>
+    </div></summary>
+    <div class="body">
+      <pre>بريد غير مسجّل   -> 404 { "error": "user_not_found" }
+كلمة مرور خاطئة  -> 401 { "error": "wrong_password" }</pre>
+      <p>هذا يسمح بحصر قائمة عملائكم عبر تجربة بُرد إلكترونية. أفهم أن الفصل مقصود لتحسين التجربة
+      (وهو مذكور في <span class="en">README</span>)، لكن الموازنة المعتادة: رسالة موحّدة
+      «البريد أو كلمة المرور غير صحيحة» + تحديد معدّل المحاولات.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P2">
+    <summary><span class="tag P2">متوسط</span><div class="ttl">
+      <h3>محتوى مقصوص وحشوة مكرّرة على الموبايل</h3>
+      <div class="meta">موبايل · عرض 390 بكسل</div>
+    </div></summary>
+    <div class="body">
+      <ul>
+        <li>صف الشارات تحت العنوان («٤ لغات / دعم خبراء / مكالمة مجانية…») مقصوص عند حافة الشاشة
+            بلا مؤشر تمرير أفقي.</li>
+        <li>زر البحث (مربع داكن) يلتصق بحافة حقل البحث بنصف قطر مختلف — يبدو غير محاذٍ.</li>
+        <li>صفحة الخدمات تعرض شريحتَي «الكل» متطابقتين شكلًا في صفّين مختلفين (فلتر المزوّد وفلتر التصنيف)
+            — على سطح المكتب أيضًا. تحتاج عناوين للصفّين.</li>
+      </ul>
+      <p class="meta">إيجابي: شريط التبويب السفلي بخمسة عناصر تجربة أصيلة وجيدة، والشاشات المخصّصة
+      للموبايل (وليس مجرد <span class="en">responsive</span>) قرار قوي.</p>
+    </div>
+  </details>
+
+  <!-- ================= P3 ================= -->
+  <h2 class="sec">٤ · ملاحظات تحسين وتصميم</h2>
+
+  <details class="card" data-sev="P3">
+    <summary><span class="tag P3">تحسين</span><div class="ttl">
+      <h3>بوابة اللغة تحجب كل المحتوى عند أول زيارة</h3>
+      <div class="meta">تجربة · الصفحة الأولى</div>
+    </div></summary>
+    <div class="body">
+      <p>أول ما يراه الزائر شاشة زرقاء فارغة عليها أربعة أزرار في منتصف صفحة شبه خالية.
+      لا شعار قيمة، ولا صورة، ولا أي فكرة عن ماهية الموقع. الفراغ العمودي كبير جدًا
+      والبطاقة غير متوازنة بصريًا.</p>
+      <p>البديل الأفضل: اكتشاف اللغة من <span class="en">Accept-Language</span> تلقائيًا، عرض الموقع
+      مباشرة، ووضع مبدّل اللغة بارزًا في الترويسة (وهو موجود أصلًا). هذا يزيل خطوة كاملة من
+      قمع التحويل ويحسّن الانطباع الأول.</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P3">
+    <summary><span class="tag P3">تحسين</span><div class="ttl">
+      <h3>صفحة الباقات: لا باقة مجانية، ولا جدول مقارنة، ولا سعر بالدولار</h3>
+      <div class="meta">تسعير · <span class="en">/pricing</span></div>
+    </div></summary>
+    <div class="body">
+      <p>التصميم نفسه جيد: ثلاث بطاقات، شارة «موصى به» على «برو»، ومبدّل شهري/سنوي يعمل بشكل صحيح
+      ويُظهر «شهران مجانًا». تحققتُ من الحساب: 1,599 × 10 = 15,990 ÷ 12 = 1,333 ✓ — الرياضيات سليمة.</p>
+      <p>لكن:</p>
+      <ul>
+        <li>الباقة المجانية غير معروضة مطلقًا، فلا يعرف الزائر ماذا يحصل بلا دفع.</li>
+        <li>كل باقة ٤–٥ نقاط فقط، و«إيليت» تقول «كل ما في برو» — لا يوجد جدول مقارنة يوضح الفرق.</li>
+        <li>الأسعار بالليرة فقط، رغم أن الموقع يعرض شريط صرف حيّ في الأعلى والجمهور أجنبي.
+            عرض «≈ 34 دولارًا» بجانب السعر قرار تحويل سهل ومباشر.</li>
+        <li>صياغات مثل «استشارات ذكاء اصطناعي بلا حدود» تحتاج تحديدًا (ما الحدّ العادل؟).</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P3">
+    <summary><span class="tag P3">تحسين</span><div class="ttl">
+      <h3>آراء العملاء حقيقية لكن عرضها لا يُقنع الزائر بذلك</h3>
+      <div class="meta">ثقة · الصفحة الرئيسية</div>
+    </div></summary>
+    <div class="body">
+      <p class="mono" style="display:block;background:#eef8f1;border:1px solid #bfe2cd;border-radius:8px;
+         padding:10px 12px;font-family:inherit;direction:rtl;text-align:right">
+        تصحيح من صاحب المشروع: هذه شهادات عملاء حقيقيين خدمهم بنفسه قبل إطلاق الموقع.
+        الملاحظة أدناه عن <b>طريقة العرض</b> فقط، لا عن صحّة المحتوى.
+      </p>
+      <p>المشكلة أن العرض الحالي يحمل كل علامات الشهادات المُصطنعة: شهادة واحدة بالضبط لكل لغة
+      مستهدفة (سوريا / روسيا / إيران)، خمس نجوم في الثلاث، أحرف أولى فقط، بلا صور ولا تواريخ
+      ولا أي رابط. الزائر الذي لا يعرفك سيقرأها كنص تسويقي مكتوب، فتضيع قيمتها الحقيقية.</p>
+      <h4>كيف تُظهر أنها حقيقية</h4>
+      <ul>
+        <li>الاسم الأول كاملًا + الحرف الأول من العائلة، مع صورة حقيقية أو الأحرف الأولى بخط اليد.</li>
+        <li>تاريخ الخدمة ونوعها تحديدًا: «إقامة سياحية — مارس ٢٠٢٦» بدل «طالب من سوريا».</li>
+        <li>تفصيلة ملموسة داخل النص (اسم الحي، عدد الأيام، عقبة حُلّت) — التفاصيل هي ما يميّز
+            الشهادة الحقيقية عن المكتوبة.</li>
+        <li>عدد فردي وغير متساوٍ من الشهادات (٥ أو ٧)، وليس ٤ تقابل ٤ لغات.</li>
+        <li>الأقوى: رابط تقييم <span class="en">Google Business</span> أو لقطة محادثة
+            <span class="en">WhatsApp</span> بموافقة العميل — دليل خارجي لا يمكن تأليفه.</li>
+      </ul>
+      <p>أما الأرقام «+١٠٠٠ مستخدم» و«+٢٠ معاملة» فتحتاج أن تكون قابلة للدفاع عنها إن سُئلت،
+      ويفضَّل ربطها بفترة زمنية: «أكثر من ١٠٠٠ حالة منذ ٢٠٢٣».</p>
+    </div>
+  </details>
+
+  <details class="card" data-sev="P3">
+    <summary><span class="tag P3">تحسين</span><div class="ttl">
+      <h3>تفاصيل تصميم متفرّقة</h3>
+      <div class="meta">هوية بصرية وتلميع</div>
+    </div></summary>
+    <div class="body">
+      <ul>
+        <li><span class="en">theme-color</span> في <span class="en">index.html</span> هو
+            <span class="en">#1d5f9e</span> بينما لون الهوية الأساسي <span class="en">#1a3a6b</span>
+            — شريط المتصفح على الهاتف يظهر بلون مختلف عن الموقع.</li>
+        <li>شعار الترويسة رابط بلا نص بديل مفيد (<span class="en">alt</span> فارغ عمليًا للقارئ الآلي).</li>
+        <li>جرس الإشعارات يظهر للزائر غير المسجّل ولا يفعل شيئًا مفيدًا.</li>
+        <li>لافتة الكوكيز تحتل شريطًا كبيرًا أسفل الشاشة وتغطي المحتوى على كل صفحة حتى الرد عليها،
+            وليس فيها زر إغلاق (×) — فقط «موافق» أو «لا شكرًا».</li>
+        <li><span class="en">setInterval</span> كل ثانية في <span class="en">Premium</span> و
+            <span class="en">MobilePremium</span> يسبب إعادة رسم مستمرة — يُفضّل تحديث كل دقيقة
+            أو استخدام <span class="en">CSS</span>.</li>
+        <li>سهم زر «العودة إلى الرئيسية» في صفحة 404 يشير يسارًا داخل تخطيط عربي — يُفضّل عكسه في
+            <span class="en">RTL</span>.</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- ================= OK ================= -->
+  <h2 class="sec">٥ · ما يعمل جيدًا فعلًا</h2>
+
+  <details class="card" data-sev="OK" open>
+    <summary><span class="tag OK">جيد</span><div class="ttl">
+      <h3>نقاط قوة حقيقية يجب الحفاظ عليها</h3>
+      <div class="meta">ملخّص إيجابي</div>
+    </div></summary>
+    <div class="body">
+      <div class="good">
+      <ul>
+        <li><b>جودة الكود والاختبارات:</b> ٤٧٩ اختبار وحدة + ١١ اختبار خادم كلها ناجحة،
+            <span class="en">tsc</span> نظيف بلا أخطاء، وتطابق مفاتيح الترجمة ١٢٤٠ مفتاحًا × ٤ لغات
+            مفروض آليًا في <span class="en">CI</span>. هذا انضباط أعلى من أغلب المشاريع المشابهة.</li>
+        <li><b>خادم <span class="en">Express</span> المحلي:</b> نموذج أمني ممتاز — تحقق توقيع
+            <span class="en">HMAC</span>، تفعيل عبر <span class="en">Webhook</span> فقط، حصر الوصول
+            للمالك، تحقق نوع الملف، رفض التواريخ الماضية، ومنع التكرار. يستحق أن يُنشر.</li>
+        <li><b>الترجمة والتخطيط:</b> النسخ الروسية والإنجليزية نظيفة ومنعكسة بشكل صحيح،
+            والعربية <span class="en">RTL</span> سليمة في معظم الشاشات. مستوى الترجمة نفسه
+            (ليست حرفية) جيد جدًا.</li>
+        <li><b>المحتوى:</b> الأدلة (الإقامة، الرقم الضريبي، البنك، الأحياء) مكتوبة بمعرفة حقيقية
+            بالسوق التركي — تحذير «تحقق أن حيّك مفتوح قبل توقيع عقد الإيجار» هو بالضبط النصيحة
+            التي تصنع الفرق. هذا أقوى أصل في المشروع.</li>
+        <li><b>الموبايل:</b> شاشات مخصّصة كاملة وليست مجرد تجاوب، مع شريط تبويب سفلي.</li>
+        <li><b>إمكانية الوصول:</b> إبقاء تكبير الشاشة بالإصبعين عمدًا مع توثيق السبب واختبار يحرسه.</li>
+        <li><b>البنية التقنية:</b> <span class="en">TTFB</span> 130 مللي ثانية، تقسيم حزم منطقي حسب
+            الصفحة، <span class="en">sitemap</span> بـ٩٦ رابطًا، <span class="en">robots.txt</span>
+            مولّد آليًا من متغير البيئة (حل ذكي لمشكلة عدم تطابق النطاق).</li>
+      </ul>
+      </div>
+    </div>
+  </details>
+
+  <h2 class="sec">٦ · خطة العمل المقترحة</h2>
+  <table>
+    <tr><th>الأولوية</th><th>الإجراء</th><th>الجهد التقديري</th></tr>
+    <tr><td>اليوم</td><td>سحب صلاحية التنفيذ من <span class="en">_activate_sub</span> و<span class="en">_credit_referrer</span>، وحذف <span class="en">checkout_card_demo</span></td><td>١٥ دقيقة</td></tr>
+    <tr><td>هذا الأسبوع</td><td>إصلاح <span class="en">SiteImage</span> (الصور المختفية) + ترويسات الأمان في <span class="en">vercel.json</span></td><td>ساعتان</td></tr>
+    <tr><td>هذا الأسبوع</td><td>ربط بوابة دفع حقيقية مع تفعيل من الخادم فقط</td><td>٢–٣ أيام</td></tr>
+    <tr><td>هذا الشهر</td><td>استعادة كلمة المرور + مسارات لغة في الروابط (<span class="en">hreflang</span>)</td><td>٣–٥ أيام</td></tr>
+    <tr><td>هذا الشهر</td><td>معالجة تجمّد الواجهة وتقسيم حزمة 426 ك.ب</td><td>٢ يوم</td></tr>
+    <tr><td>لاحقًا</td><td>معاينة للصفحات المقفلة، جدول مقارنة الباقات، سعر بالدولار، شهادات موثّقة</td><td>تدريجي</td></tr>
+  </table>
+
+  <h2 class="sec">٧ · تقييم عام</h2>
+  <div class="score">
+    <div class="sc"><b>8.5 / 10</b><span>جودة الكود والاختبارات</span></div>
+    <div class="sc"><b>8 / 10</b><span>التصميم البصري</span></div>
+    <div class="sc"><b>7 / 10</b><span>سهولة الاستخدام</span></div>
+    <div class="sc"><b>9 / 10</b><span>جودة المحتوى</span></div>
+    <div class="sc"><b>6 / 10</b><span>الأداء</span></div>
+    <div class="sc"><b>4 / 10</b><span>تحسين محركات البحث</span></div>
+    <div class="sc"><b>3 / 10</b><span>أمان المنتج المنشور</span></div>
+  </div>
+  <p>رأيي بصراحة: هذا مشروع مبنيّ بعناية واضحة — التصميم متماسك، المحتوى ثمين، والانضباط الهندسي
+  في المستودع أعلى من المتوسط بكثير. المشكلة ليست في القدرة، بل في أن النسخة المنشورة تخلّفت عن
+  النسخة المكتوبة: كل الحماية الجيدة موجودة في خادم لا يعمل، والقاعدة المكشوفة تحمل بقايا مرحلة
+  التطوير. إصلاح ثلاثة أسطر <span class="en">SQL</span> يرفع تقييم الأمان من 3 إلى 7 فورًا،
+  وإصلاح <span class="en">SiteImage</span> يرفع الانطباع البصري بشكل ملحوظ. هذان أعلى عائد لأقل جهد.</p>
+
+</main>
+
+<footer>
+  أُعدّ هذا التقرير بفحص الموقع الحيّ عبر متصفح حقيقي، وتشغيل المستودع محليًا مع اختبار
+  واجهات <span class="en">API</span> ولوحة الأدمن ومسار الدفع، ومراجعة تعريفات دوال قاعدة البيانات.
+  لم يُنفَّذ أي استغلال فعلي على بيانات الإنتاج.
+</footer>
+
+<script>
+  const buttons = document.querySelectorAll('button.f');
+  const cards = document.querySelectorAll('.card');
+  buttons.forEach(b => b.addEventListener('click', () => {
+    buttons.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    const f = b.dataset.f;
+    cards.forEach(c => {
+      const show = f === 'all' || c.dataset.sev === f;
+      c.classList.toggle('hide', !show);
+      if (show && f !== 'all') c.open = true;
+    });
+    document.querySelectorAll('h2.sec').forEach(h => {
+      if (f === 'all') { h.classList.remove('hide'); return; }
+      let n = h.nextElementSibling, any = false;
+      while (n && n.tagName !== 'H2') {
+        if (n.classList.contains('card') && !n.classList.contains('hide')) any = true;
+        n = n.nextElementSibling;
+      }
+      h.classList.toggle('hide', !any);
+    });
+  }));
+</script>
+</body>
+</html>

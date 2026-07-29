@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نماذج لوحة المستخدم — رفيق إسطنبول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1a3a6b; --navy-dark:#12294d; --navy-light:#2c4f8a;
+  --navy-50:#eef2f8; --navy-100:#d6e0ee;
+  --cream:#faf8f0; --cream-dark:#efeadb;
+  --blue:#e8f0fb; --red:#c0392b; --ink:#111111; --soft:#f1f1f1;
+  --ok:#1e7a4b; --warn:#b7791f; --warn-bg:#fdf6e7;
+  --line:#e5e7eb; --muted:#6b7280;
+  --r-btn:12px; --r-card:16px; --r-xl:20px;
+  --sh-soft:0 1px 4px rgba(26,58,107,.06);
+  --sh-card:0 2px 12px rgba(26,58,107,.08);
+  --sh-hi:0 10px 30px rgba(26,58,107,.16);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#e9e6dc;color:var(--navy);
+  font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Inter,system-ui,sans-serif}
+button{font-family:inherit}
+
+/* ---------- shell / chooser ---------- */
+.topbar{position:sticky;top:0;z-index:50;background:var(--navy-dark);color:#fff;padding:12px 20px;
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;box-shadow:0 2px 14px rgba(0,0,0,.25)}
+.topbar h1{font-size:15px;margin:0;font-weight:700;opacity:.95}
+.topbar .sp{flex:1}
+.seg{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:#cbd8ea;font-size:13px;font-weight:600;
+  padding:7px 16px;border-radius:999px;cursor:pointer;transition:.15s}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--navy-dark)}
+.stage{padding:26px 20px 70px;display:flex;justify-content:center}
+.frame{width:100%;max-width:1180px;background:var(--cream);border-radius:18px;
+  box-shadow:0 20px 50px rgba(18,41,77,.2);overflow:hidden;border:1px solid rgba(0,0,0,.06)}
+.frame.phone{max-width:392px;border-radius:34px;padding:9px;background:#1c1c1e;border:0}
+.frame.phone .inner{background:var(--cream);border-radius:27px;overflow:hidden}
+.pane{display:none}.pane.on{display:block}
+.note{max-width:1180px;margin:0 auto 18px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:13px 16px;font-size:13.5px;color:#374151;line-height:1.7}
+.note b{color:var(--navy)}
+
+/* ---------- shared UI atoms ---------- */
+.app{padding:0 0 40px}
+.hd{background:#fff;border-bottom:1px solid var(--line);padding:16px 26px;
+  display:flex;align-items:center;gap:14px;position:relative}
+.ava{width:46px;height:46px;border-radius:50%;background:var(--navy);color:#fff;display:flex;
+  align-items:center;justify-content:center;font-weight:700;font-size:18px;flex:0 0 auto}
+.hd h2{margin:0;font-size:18px;font-weight:700}
+.hd .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.hd .rt{margin-inline-start:auto;display:flex;align-items:center;gap:9px}
+.badge{font-size:11px;font-weight:700;padding:4px 11px;border-radius:999px;letter-spacing:.2px}
+.b-pro{background:var(--ink);color:#fff}
+.b-free{background:var(--soft);color:#444}
+.bell{width:38px;height:38px;border-radius:50%;background:var(--blue);display:flex;align-items:center;
+  justify-content:center;position:relative;font-size:16px}
+.bell i{position:absolute;top:-2px;inset-inline-end:-2px;background:var(--red);color:#fff;font-size:10px;
+  font-weight:700;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-style:normal;border:2px solid #fff}
+.ring{width:46px;height:46px;flex:0 0 auto;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700}
+.body{padding:22px 26px}
+.grid2{display:grid;grid-template-columns:1.95fr 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+/* three visual tiers */
+.c{border-radius:var(--r-card);padding:17px 19px}
+.c-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);color:#fff;
+  box-shadow:var(--sh-hi)}
+.c-solid{background:#fff;border:1px solid var(--line);box-shadow:var(--sh-soft)}
+.c-quiet{background:transparent;border:1px dashed #d4cfc0;padding:15px 17px}
+.c+.c{margin-top:14px}
+.ttl{font-size:11px;font-weight:700;letter-spacing:.7px;opacity:.65;margin:0 0 5px}
+.h{font-size:16.5px;font-weight:700;margin:0}
+.h-lg{font-size:21px;font-weight:700;margin:0;line-height:1.4}
+.p{font-size:13.5px;color:var(--muted);margin:5px 0 0}
+.c-hero .p{color:rgba(255,255,255,.82)}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;
+  padding:0 18px;border-radius:var(--r-btn);font-size:14px;font-weight:600;border:0;cursor:pointer;
+  text-decoration:none;transition:.15s}
+.btn-w{background:#fff;color:var(--navy)}
+.btn-w:hover{background:#f0f4fa}
+.btn-n{background:var(--navy);color:#fff}
+.btn-n:hover{background:var(--navy-dark)}
+.btn-g{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.32)}
+.btn-o{background:#fff;color:var(--navy);border:1px solid var(--navy-100)}
+.btn-sm{min-height:34px;padding:0 13px;font-size:12.5px;border-radius:9px}
+.btn-blk{width:100%}
+
+.bar{height:9px;border-radius:99px;background:var(--navy-50);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--navy);border-radius:99px}
+.c-hero .bar{background:rgba(255,255,255,.22)}
+.c-hero .bar i{background:#fff}
+
+ul.list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+ul.list li{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:#fff;
+  border-radius:11px;padding:9px 12px;font-size:13.5px;font-weight:600}
+li.done{color:#9aa3b0}
+li.done .t{text-decoration:line-through}
+li.now{border-color:var(--navy);background:var(--blue);box-shadow:var(--sh-soft)}
+.dot{width:21px;height:21px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:11px;border:2px solid #d5dae2;color:transparent}
+.dot.ok{background:var(--navy);border-color:var(--navy);color:#fff}
+.dot.cur{border-color:var(--navy);color:var(--navy);border-style:solid}
+.t{flex:1;min-width:0}
+.pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#fff;
+  border:1px solid var(--navy-100);color:var(--navy);flex:0 0 auto}
+.pill-r{background:#fdeceb;border-color:#f3c6c1;color:var(--red)}
+.pill-a{background:var(--warn-bg);border-color:#f0dcae;color:var(--warn)}
+
+.fx{display:flex;gap:9px;margin-top:11px}
+.fx div{flex:1;background:var(--navy-50);border-radius:11px;padding:9px 11px;text-align:center}
+.fx b{display:block;font-size:17px;font-weight:700}
+.fx span{font-size:10.5px;color:var(--muted)}
+.up{color:var(--ok)}.dn{color:var(--red)}
+
+.news{border-inline-start:3px solid var(--red);background:#fdf3f2;border-radius:0 11px 11px 0;
+  padding:11px 13px;margin-top:11px}
+.news p{margin:3px 0 0;font-size:12.5px;color:#7a3b34;line-height:1.6}
+.news b{font-size:12.5px;color:var(--red)}
+
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;
+  font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+.tile:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:var(--sh-card)}
+.tile em{display:block;font-size:20px;font-style:normal;margin-bottom:5px}
+.tile small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+
+.qa{display:flex;gap:8px;flex-wrap:wrap;padding:13px 26px;background:#fff;border-bottom:1px solid var(--line)}
+.qa button{border:1px solid var(--navy-100);background:var(--blue);color:var(--navy);border-radius:99px;
+  padding:8px 15px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+.qa button:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.lock{position:relative;overflow:hidden}
+.lockveil{position:absolute;inset:0;background:rgba(250,248,240,.62);backdrop-filter:blur(3px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:14px}
+.map{height:112px;border-radius:11px;margin-top:11px;position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 22% 62%,#cfe0d2 0 16%,transparent 17%),
+    radial-gradient(circle at 74% 32%,#cfe0d2 0 13%,transparent 14%),
+    linear-gradient(150deg,#dbe6f2,#eef2f8)}
+.map .rd{position:absolute;background:#fff;opacity:.9}
+.pin{position:absolute;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:var(--navy);box-shadow:0 2px 6px rgba(0,0,0,.28)}
+.pin.r{background:var(--red)}
+
+.tl{list-style:none;margin:12px 0 0;padding:0}
+.tl li{position:relative;padding-inline-start:22px;padding-bottom:15px;font-size:13.5px}
+.tl li:before{content:"";position:absolute;inset-inline-start:0;top:6px;width:9px;height:9px;
+  border-radius:50%;background:var(--navy)}
+.tl li:after{content:"";position:absolute;inset-inline-start:4px;top:16px;bottom:0;width:1px;background:var(--line)}
+.tl li:last-child{padding-bottom:0}
+.tl li:last-child:after{display:none}
+.tl li.new:before{background:var(--red);box-shadow:0 0 0 4px #fdeceb}
+.tl b{display:block;font-weight:600}
+.tl span{color:var(--muted);font-size:12px}
+
+.tabbar{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 0 9px}
+.tabbar div{flex:1;text-align:center;font-size:10px;color:var(--muted);font-weight:600}
+.tabbar div em{display:block;font-size:17px;font-style:normal;margin-bottom:2px;opacity:.55}
+.tabbar div.on{color:var(--navy)}
+.tabbar div.on em{opacity:1}
+
+.win{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px;
+  margin-top:14px;text-align:center}
+.win .big{font-size:26px}
+.cmp{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.cmp td,.cmp th{border:1px solid var(--line);padding:7px 10px;text-align:right;vertical-align:top}
+.cmp th{background:#f4f1e8;font-weight:700;font-size:12.5px}
+h3.sec{font-size:14px;margin:24px 26px 0;color:var(--muted);font-weight:700;letter-spacing:.4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>نماذج لوحة المستخدم المسجَّل — رفيق إسطنبول</h1>
+  <div class="sp"></div>
+  <div class="seg" id="segA">
+    <button data-v="A" aria-pressed="true">أ · لوحة القيادة</button>
+    <button data-v="B" aria-pressed="false">ب · المسار المركّز</button>
+    <button data-v="C" aria-pressed="false">ج · الموجز اليومي</button>
+  </div>
+  <div class="seg" id="segB">
+    <button data-d="desk" aria-pressed="true">سطح المكتب</button>
+    <button data-d="phone" aria-pressed="false">الهاتف</button>
+  </div>
+</div>
+
+<div class="stage"><div style="width:100%">
+
+<div class="note" id="cap"></div>
+
+<div class="frame" id="frame"><div class="inner">
+
+<!-- ══════════════ النموذج أ — لوحة القيادة ══════════════ -->
+<div class="pane on" id="A">
+  <div class="hd">
+    <div class="ring">
+      <svg width="46" height="46"><circle cx="23" cy="23" r="19" fill="none" stroke="#d6e0ee" stroke-width="5"/>
+      <circle cx="23" cy="23" r="19" fill="none" stroke="#1a3a6b" stroke-width="5" stroke-linecap="round"
+        stroke-dasharray="119" stroke-dashoffset="45"/></svg>
+      <span class="ltr">62%</span>
+    </div>
+    <div>
+      <h2>صباح الخير يا علي 👋</h2>
+      <div class="sub">طالب · في إسطنبول منذ ٣ أشهر</div>
+    </div>
+    <div class="rt">
+      <span class="badge b-pro">برو ✦</span>
+      <div class="bell">🔔<i>3</i></div>
+      <div class="ava">ع</div>
+    </div>
+  </div>
+
+  <div class="qa">
+    <button>💬 اسأل رفيق</button>
+    <button>📅 احجز مكالمة مجانية</button>
+    <button>📎 ارفع مستندًا</button>
+    <button>🧾 اطلب خدمة</button>
+  </div>
+
+  <div class="body"><div class="grid2">
+    <!-- العمود الأساسي -->
+    <div>
+      <div class="c c-hero">
+        <p class="ttl">خطوتك التالية</p>
+        <h2 class="h-lg">سجّل عنوانك بعقد إيجار موثّق</h2>
+        <p class="p">هذه آخر خطوة قبل موعد <span class="ltr">e-İkamet</span>. بدونها يُرفض الطلب في المكتب.</p>
+        <div class="row" style="margin-top:13px;gap:16px;font-size:12.5px;opacity:.9">
+          <span>📄 ٣ مستندات مطلوبة</span><span>⏱ يومان تقريبًا</span><span>💸 ~٥٠٠ ل.ت</span>
+        </div>
+        <div class="row" style="margin-top:15px;gap:9px">
+          <button class="btn btn-w">ابدأ الآن ←</button>
+          <button class="btn btn-g">💬 اسأل رفيق عن هذه الخطوة</button>
+        </div>
+      </div>
+
+      <div class="c c-solid">
+        <div class="between">
+          <h3 class="h">مسيرتي</h3>
+          <span style="font-size:12.5px;color:var(--muted)">٥ من ٨ · متبقٍ ٣</span>
+        </div>
+        <div class="bar" style="margin-top:11px"><i style="width:62%"></i></div>
+        <ul class="list">
+          <li class="done"><span class="dot ok">✓</span><span class="t">الرقم الضريبي <span class="ltr">(Vergi No)</span></span></li>
+          <li class="done"><span class="dot ok">✓</span><span class="t">التأمين الصحي الإلزامي</span></li>
+          <li class="now"><span class="dot cur">●</span><span class="t">تسجيل العنوان</span><span class="pill">الآن</span></li>
+          <li><span class="dot"></span><span class="t">موعد <span class="ltr">e-İkamet</span></span></li>
+        </ul>
+        <button class="btn btn-o btn-sm" style="margin-top:12px">كل المهام الثماني ←</button>
+      </div>
+
+      <div class="c c-solid">
+        <h3 class="h">اقرأ قبل خطوتك التالية</h3>
+        <div class="tiles">
+          <div class="tile"><em>📝</em>عقد الإيجار الموثّق<small>٤ دقائق</small></div>
+          <div class="tile"><em>🏙</em>أي الأحياء مفتوحة؟<small>٦ دقائق</small></div>
+          <div class="tile"><em>🔤</em>الترجمة المحلّفة<small>٣ دقائق</small></div>
+        </div>
+      </div>
+
+      <div class="c c-solid lock">
+        <div class="between"><h3 class="h">أماكن موصى بها قرب الفاتح</h3>
+          <span style="font-size:12px;color:var(--muted)">٥٢ مكانًا</span></div>
+        <div class="map">
+          <div class="rd" style="inset-inline-start:0;top:46%;width:100%;height:5px"></div>
+          <div class="rd" style="inset-inline-start:38%;top:0;width:5px;height:100%"></div>
+          <div class="pin" style="inset-inline-start:26%;top:30%"></div>
+          <div class="pin r" style="inset-inline-start:57%;top:56%"></div>
+          <div class="pin" style="inset-inline-start:73%;top:22%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- العمود الجانبي -->
+    <div>
+      <div class="c c-solid">
+        <h3 class="h">اليوم</h3>
+        <div class="fx">
+          <div><b class="ltr">47.34</b><span>دولار <span class="up">▲ ٠٫٣٪</span></span></div>
+          <div><b class="ltr">53.92</b><span>يورو <span class="dn">▼ ٠٫١٪</span></span></div>
+        </div>
+        <div class="news">
+          <b>📣 تنبيه رفيق</b>
+          <p>أُغلق حيّ <b>الفاتح</b> مؤقتًا لتسجيل الإقامات الجديدة. تحقّق قبل توقيع أي عقد.</p>
+        </div>
+      </div>
+
+      <div class="c c-solid">
+        <h3 class="h">مواعيدك</h3>
+        <ul class="list">
+          <li><span class="dot cur">📅</span><span class="t">موعد <span class="ltr">e-İkamet</span><br>
+            <span style="font-weight:400;font-size:11.5px;color:var(--muted)">الأحد · ١٠:٣٠ ص</span></span>
+            <span class="pill pill-a">بعد ٤ أيام</span></li>
+        </ul>
+      </div>
+
+      <div class="c c-solid">
+        <h3 class="h">تنتهي قريبًا</h3>
+        <ul class="list">
+          <li><span class="dot cur">🪪</span><span class="t">الإقامة</span><span class="pill pill-r">٢١ يومًا</span></li>
+          <li><span class="dot cur">🛡</span><span class="t">التأمين</span><span class="pill pill-a">٦٠ يومًا</span></li>
+        </ul>
+        <button class="btn btn-n btn-sm btn-blk" style="margin-top:11px">جدّد الآن</button>
+      </div>
+
+      <div class="c c-solid">
+        <div class="between"><h3 class="h">خزنتك</h3><span style="font-size:12px;color:var(--muted)">٣ من ٥</span></div>
+        <div class="bar" style="margin-top:9px"><i style="width:60%"></i></div>
+        <p class="p" style="font-size:12.5px">ينقصك: عقد الإيجار، وثيقة التأمين.</p>
+      </div>
+
+      <div class="c c-quiet">
+        <div class="row"><span style="font-size:20px">🎁</span>
+          <div><h3 class="h" style="font-size:14.5px">ادعُ واربح</h3>
+          <p class="p" style="font-size:12.5px;margin-top:2px">ربحت <b class="ltr">450</b> ل.ت من دعوتين</p></div>
+        </div>
+        <button class="btn btn-o btn-sm btn-blk" style="margin-top:11px">شارك رابطك</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ══════════════ النموذج ب — المسار المركّز ══════════════ -->
+<div class="pane" id="B">
+  <div class="hd">
+    <div class="ava">ع</div>
+    <div><h2>أهلًا علي</h2><div class="sub">الخطوة ٦ من ٨ في رحلة الإقامة</div></div>
+    <div class="rt"><span class="badge b-pro">برو ✦</span><div class="bell">🔔<i>3</i></div></div>
+  </div>
+
+  <div class="body" style="max-width:660px;margin:0 auto">
+    <div class="bar" style="height:6px"><i style="width:62%"></i></div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin:8px 0 0">
+      أنجزت ٥ خطوات · بقيت ٣ · تقديرنا: ١١ يومًا</p>
+
+    <div class="c c-hero" style="margin-top:20px;padding:26px 24px;text-align:center">
+      <p class="ttl">الآن</p>
+      <h2 class="h-lg" style="font-size:25px">سجّل عنوانك بعقد إيجار موثّق</h2>
+      <p class="p" style="margin-top:9px">آخر خطوة قبل موعدك. بدون تسجيل العنوان يُرفض الطلب في المكتب —
+        وهذا أكثر سبب لتأخير الإقامة.</p>
+      <div class="row" style="justify-content:center;margin-top:16px;gap:9px">
+        <button class="btn btn-w">افتح الدليل خطوة بخطوة ←</button>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:9px;gap:9px">
+        <button class="btn btn-g btn-sm">💬 اسأل رفيق</button>
+        <button class="btn btn-g btn-sm">📅 احجز مكالمة مجانية</button>
+        <button class="btn btn-g btn-sm">✓ أنجزتها</button>
+      </div>
+    </div>
+
+    <div class="c c-solid" style="border-color:#f0dcae;background:var(--warn-bg)">
+      <div class="row"><span style="font-size:19px">⏰</span>
+        <div class="t"><b style="font-size:14px">موعد <span class="ltr">e-İkamet</span> بعد ٤ أيام</b>
+        <p class="p" style="font-size:12.5px;margin-top:1px">الأحد ١٠:٣٠ ص · مكتب الفاتح</p></div>
+        <button class="btn btn-o btn-sm">التفاصيل</button>
+      </div>
+    </div>
+
+    <div class="c c-solid" style="border-color:#f3c6c1;background:#fdf3f2">
+      <div class="row"><span style="font-size:19px">📣</span>
+        <div class="t"><b style="font-size:14px">أُغلق حيّ الفاتح مؤقتًا لتسجيل الإقامات</b>
+        <p class="p" style="font-size:12.5px;margin-top:1px">تحقّق من الحيّ قبل توقيع أي عقد إيجار.</p></div>
+      </div>
+    </div>
+
+    <h3 class="sec" style="margin:26px 0 0">استعدّ لما بعدها</h3>
+    <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+      <div class="tile"><em>📝</em>عقد الإيجار<small>٤ دقائق</small></div>
+      <div class="tile"><em>🏙</em>الأحياء المفتوحة<small>٦ دقائق</small></div>
+      <div class="tile"><em>🔤</em>الترجمة المحلّفة<small>٣ دقائق</small></div>
+    </div>
+
+    <div class="c c-quiet" style="margin-top:20px">
+      <div class="between">
+        <div><h3 class="h" style="font-size:14px">بقية الرحلة</h3>
+          <p class="p" style="font-size:12.5px">٣ خطوات · تجديدان قادمان · خزنتك ٣ من ٥</p></div>
+        <button class="btn btn-o btn-sm">افتح ←</button>
+      </div>
+    </div>
+
+    <div class="c c-quiet">
+      <div class="between">
+        <div class="row"><span style="font-size:17px">🎁</span>
+          <div><b style="font-size:13.5px">ربحت <span class="ltr">450</span> ل.ت من دعوتين</b></div></div>
+        <button class="btn btn-o btn-sm">شارك</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ النموذج ج — الموجز اليومي ══════════════ -->
+<div class="pane" id="C">
+  <div class="hd">
+    <div class="ava">ع</div>
+    <div><h2>موجزك · الثلاثاء ٢٨ يوليو</h2>
+      <div class="sub">آخر زيارة قبل ٣ أيام · ٤ تحديثات جديدة</div></div>
+    <div class="rt"><span class="badge b-pro">برو ✦</span><div class="bell">🔔<i>3</i></div></div>
+  </div>
+
+  <div class="body"><div class="grid2">
+    <div>
+      <div class="c c-hero">
+        <p class="ttl">ما الجديد منذ زيارتك</p>
+        <ul class="tl" style="--x:0">
+          <li class="new" style="color:#fff"><b>موعد <span class="ltr">e-İkamet</span> اقترب — بعد ٤ أيام</b>
+            <span style="color:rgba(255,255,255,.7)">الأحد ١٠:٣٠ ص · مكتب الفاتح</span></li>
+          <li class="new" style="color:#fff"><b>الفاتح أُغلق مؤقتًا لتسجيل الإقامات</b>
+            <span style="color:rgba(255,255,255,.7)">تنبيه من فريق رفيق · أمس</span></li>
+          <li style="color:rgba(255,255,255,.88)"><b>الدولار ارتفع إلى <span class="ltr">47.34</span></b>
+            <span style="color:rgba(255,255,255,.7)">+٠٫٣٪ عن أمس</span></li>
+          <li style="color:rgba(255,255,255,.88)"><b>دليل جديد: تسجيل العنوان بعد تعديل ٢٠٢٦</b>
+            <span style="color:rgba(255,255,255,.7)">٤ دقائق قراءة</span></li>
+        </ul>
+      </div>
+
+      <div class="c c-solid" style="border:2px solid var(--navy)">
+        <p class="ttl" style="color:var(--navy)">افعل هذا اليوم</p>
+        <h2 class="h-lg">سجّل عنوانك بعقد إيجار موثّق</h2>
+        <p class="p">آخر خطوة قبل موعدك يوم الأحد. ٣ مستندات · يومان تقريبًا.</p>
+        <div class="row" style="margin-top:13px;gap:9px">
+          <button class="btn btn-n">ابدأ الآن ←</button>
+          <button class="btn btn-o">💬 اسأل رفيق</button>
+        </div>
+      </div>
+
+      <div class="c c-solid">
+        <div class="between"><h3 class="h">مسيرتي</h3><span style="font-size:12.5px;color:var(--muted)">٥ من ٨</span></div>
+        <div class="bar" style="margin-top:11px"><i style="width:62%"></i></div>
+        <ul class="list">
+          <li class="done"><span class="dot ok">✓</span><span class="t">الرقم الضريبي</span></li>
+          <li class="now"><span class="dot cur">●</span><span class="t">تسجيل العنوان</span><span class="pill">الآن</span></li>
+          <li><span class="dot"></span><span class="t">موعد <span class="ltr">e-İkamet</span></span></li>
+        </ul>
+      </div>
+
+      <div class="win">
+        <div class="big">🎉</div>
+        <b style="font-size:15px">أنجزت التأمين الصحي هذا الأسبوع</b>
+        <p class="p" style="font-size:12.5px">وفّرت تقريبًا ٣ ساعات وزيارة مكتب واحدة.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="c c-solid">
+        <h3 class="h">أسعار اليوم</h3>
+        <div class="fx">
+          <div><b class="ltr">47.34</b><span>دولار <span class="up">▲</span></span></div>
+          <div><b class="ltr">53.92</b><span>يورو <span class="dn">▼</span></span></div>
+        </div>
+        <p class="p" style="font-size:11.5px;margin-top:8px">تحديث ١٠:٠٣ ص · <span class="ltr">open.er-api.com</span></p>
+      </div>
+
+      <div class="c c-solid">
+        <h3 class="h">تنتهي قريبًا</h3>
+        <ul class="list">
+          <li><span class="dot cur">🪪</span><span class="t">الإقامة</span><span class="pill pill-r">٢١ يومًا</span></li>
+          <li><span class="dot cur">🛡</span><span class="t">التأمين</span><span class="pill pill-a">٦٠ يومًا</span></li>
+        </ul>
+      </div>
+
+      <div class="c c-solid">
+        <h3 class="h">قيمة اشتراكك هذا الشهر</h3>
+        <ul class="list">
+          <li><span class="dot ok">✓</span><span class="t">١٢ سؤالًا للمساعد الذكي</span></li>
+          <li><span class="dot ok">✓</span><span class="t">موعدان مجانيان مع خبير</span></li>
+          <li><span class="dot ok">✓</span><span class="t">٥٢ مكانًا على الخريطة</span></li>
+        </ul>
+      </div>
+
+      <div class="c c-quiet">
+        <div class="row"><span style="font-size:19px">🎁</span>
+          <div><h3 class="h" style="font-size:14px">ادعُ واربح</h3>
+          <p class="p" style="font-size:12.5px">ربحت <b class="ltr">450</b> ل.ت</p></div></div>
+        <button class="btn btn-o btn-sm btn-blk" style="margin-top:10px">شارك رابطك</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+</div></div>
+
+<!-- ═══════ مقارنة ═══════ -->
+<div class="note" style="margin-top:20px">
+  <table class="cmp">
+    <tr><th style="width:11%">النموذج</th><th style="width:26%">الفكرة</th><th>الأقوى فيه</th><th>الأنسب لـ</th></tr>
+    <tr><td><b>أ · لوحة القيادة</b></td><td>شبكة عمودين، ثلاثة مستويات بصرية، كل شيء ظاهر</td>
+        <td>كثافة معلومات عالية بلا فوضى؛ يستخدم كل عرض الشاشة؛ يبرز الخريطة والخزنة</td>
+        <td>المستخدم المتمرّس والمشترك المدفوع</td></tr>
+    <tr><td><b>ب · المسار المركّز</b></td><td>قرار واحد كبير في المنتصف، الباقي مطويّ</td>
+        <td>أقل قلقًا وأوضح؛ مثالي لمن يشعر بالضياع؛ أسرع تنفيذًا</td>
+        <td>الوافد الجديد وأول ٣٠ يومًا</td></tr>
+    <tr><td><b>ج · الموجز اليومي</b></td><td>يبدأ بـ«ما الجديد» ثم الفعل ثم الوحدات</td>
+        <td>أقوى سبب للعودة يوميًا؛ يظهر قيمة الاشتراك صراحة؛ يحتفل بالإنجاز</td>
+        <td>رفع معدّل العودة وتقليل الإلغاء</td></tr>
+  </table>
+  <p style="margin:12px 0 0"><b>اقتراحي:</b> ابنِ <b>أ</b> كهيكل أساسي، وخذ منه بطاقة «ما الجديد» من <b>ج</b>
+  في أعلى العمود الجانبي، واستخدم <b>ب</b> تلقائيًا للمستخدم في أول ٣٠ يومًا أو حين يكون تقدّمه أقل من ٢٥٪.</p>
+</div>
+
+</div></div>
+
+<script>
+const caps={
+ A:"<b>النموذج أ — لوحة القيادة.</b> شبكة عمودين (٢:١) بدل العمود الضيّق الحالي، وثلاثة مستويات بصرية: بطاقة بارزة واحدة بخلفية كحلية (الخطوة التالية)، بطاقات بيضاء عادية، وبطاقات خفيفة بحدّ متقطّع للثانوي. لاحظ اختفاء تكرار «مسيرتي»، وظهور الخريطة والخزنة وأسعار الصرف وتنبيه رفيق — كلها واجهات مبنية بالفعل وغير مستخدَمة.",
+ B:"<b>النموذج ب — المسار المركّز.</b> قرار واحد فقط في الشاشة: الخطوة التالية بحجم كبير في المنتصف مع ثلاثة خيارات فعل. كل ما عداه مطويّ في بطاقات هادئة. الأنسب للوافد الجديد المرهَق، ويجعل الصفحة تبدو نظيفة لا فارغة.",
+ C:"<b>النموذج ج — الموجز اليومي.</b> يبدأ بخطّ زمني «ما الجديد منذ زيارتك» — وهذا ما يخلق سببًا للعودة غدًا. يليه فعل اليوم، ثم المسيرة، ثم بطاقة احتفال بالإنجاز الأخير، وبطاقة «قيمة اشتراكك هذا الشهر» التي تقلّل إلغاء الاشتراك."
+};
+let v="A", d="desk";
+const frame=document.getElementById('frame'), cap=document.getElementById('cap');
+function apply(){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===v));
+  frame.classList.toggle('phone',d==='phone');
+  cap.innerHTML=caps[v]+(d==='phone'?" <br><b style='color:#c0392b'>عرض الهاتف:</b> الشبكة تنهار إلى عمود واحد ويظهر شريط التبويب السفلي.":"");
+  document.querySelectorAll('.tabbar').forEach(t=>t.remove());
+  if(d==='phone'){
+    const bar=document.createElement('div');bar.className='tabbar';
+    bar.innerHTML="<div class='on'><em>🏠</em>الرئيسية</div><div><em>💬</em>المساعد</div><div><em>🗺</em>الخريطة</div><div><em>🧾</em>الخدمات</div><div><em>👤</em>حسابي</div>";
+    document.querySelector('.pane.on').appendChild(bar);
+  }
+}
+document.querySelectorAll('#segA button').forEach(b=>b.onclick=()=>{
+  v=b.dataset.v;document.querySelectorAll('#segA button').forEach(x=>x.setAttribute('aria-pressed',x===b));apply();});
+document.querySelectorAll('#segB button').forEach(b=>b.onclick=()=>{
+  d=b.dataset.d;document.querySelectorAll('#segB button').forEach(x=>x.setAttribute('aria-pressed',x===b));apply();});
+apply();
+</script>
+</body>
+</html>

@@ -237,7 +237,9 @@
       "eyebrow": "News",
       "title": "Latest from Rafiq",
       "follow": "Follow us on Telegram",
-      "readMore": "Read more"
+      "readMore": "Read more",
+      "notFound": "This news post is no longer available.",
+      "askAi": "Ask Rafiq AI about this news"
     },
     "faq": {
       "title": "Frequently asked questions",
@@ -651,6 +653,7 @@
       "cta": "See plans"
     },
     "topicSeed": "I need help with: {{service}}",
+    "newsSeed": "I'd like to ask about this news from Rafiq:\n«{{title}}»\n\n{{body}}",
     "voice": "Voice input",
     "newTopic": "New topic",
     "topicsLeft": "{{count}} of {{total}} topics left today",
@@ -1071,6 +1074,30 @@
     "adminNewLead": {
       "title": "New service lead",
       "body": "A user requested a service quote."
+    },
+    "bookingDone": {
+      "title": "Appointment completed",
+      "body": "Your appointment is marked as done. Thank you!"
+    },
+    "bookingCancelled": {
+      "title": "Appointment cancelled",
+      "body": "Your appointment was cancelled. You can book a new time anytime."
+    },
+    "paymentRejected": {
+      "title": "Payment could not be verified",
+      "body": "We couldn't verify your payment. Please contact us or try again."
+    },
+    "requestAccepted": {
+      "title": "Your request was approved",
+      "body": "Good news — your service request was accepted. Check My requests for the offer."
+    },
+    "requestDone": {
+      "title": "Request completed",
+      "body": "Your service request is finished. Thank you for using Rafiq!"
+    },
+    "requestRejected": {
+      "title": "Request declined",
+      "body": "Unfortunately we couldn't take this request. Contact us for alternatives."
     }
   },
   "admin": {

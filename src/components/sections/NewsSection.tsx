@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { news } from '../../lib/api';
 import type { NewsPost } from '../../lib/api';
-import { AppIcon, DirArrow } from '../AppIcon';
+import { DirArrow } from '../AppIcon';
 
 /**
  * Latest news on the public home page — the on-site mirror of the owner's
@@ -22,15 +23,13 @@ export function NewsSection({
 }) {
   const { t, i18n } = useTranslation();
   const [posts, setPosts] = useState<NewsPost[]>([]);
-  const [channel, setChannel] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    Promise.all([news.latest(4), news.telegramChannel()]).then(
-      ([p, c]) => {
+    news.latest(6).then(
+      (p) => {
         if (!live) return;
         setPosts(p);
-        setChannel(c);
       },
       () => {},
     );
@@ -40,18 +39,6 @@ export function NewsSection({
   }, []);
 
   if (posts.length === 0) return null;
-
-  const follow = channel && (
-    <a
-      href={channel}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="btn-secondary h-10 px-4 text-sm shrink-0"
-    >
-      <AppIcon name="send" className="w-4 h-4" />
-      {t('home.news.follow')}
-    </a>
-  );
 
   const date = (p: NewsPost) => new Date(p.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' });
 
@@ -86,21 +73,17 @@ export function NewsSection({
               <p className="text-xs text-gray-500">{date(p)}</p>
               <h3 className="mt-1 font-bold text-navy break-words">{p.title}</h3>
               {p.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{p.body}</p>}
-              {p.url && (
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
-                >
-                  {t('home.news.readMore')}
-                  <DirArrow className="w-3.5 h-3.5" />
-                </a>
-              )}
+              {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
+              <Link
+                to={`/news/${p.id}`}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
+              >
+                {t('home.news.readMore')}
+                <DirArrow className="w-3.5 h-3.5" />
+              </Link>
             </li>
           ))}
         </ul>
-        {follow && <div className="mt-4">{follow}</div>}
       </section>
     );
   }
@@ -112,7 +95,6 @@ export function NewsSection({
           <span className="eyebrow">{t('home.news.eyebrow')}</span>
           <h2 className="section-title mt-2">{t('home.news.title')}</h2>
         </div>
-        {follow}
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((p) => (
@@ -121,17 +103,13 @@ export function NewsSection({
             <p className="text-xs text-gray-500">{date(p)}</p>
             <h3 className="mt-1.5 font-bold text-navy break-words">{p.title}</h3>
             {p.body && <p className="mt-1.5 text-sm text-navy/70 break-words line-clamp-4">{p.body}</p>}
-            {p.url && (
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
-              >
-                {t('home.news.readMore')}
-                <DirArrow className="w-3.5 h-3.5" />
-              </a>
-            )}
+            <Link
+              to={`/news/${p.id}`}
+              className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
+            >
+              {t('home.news.readMore')}
+              <DirArrow className="w-3.5 h-3.5" />
+            </Link>
           </article>
         ))}
       </div>

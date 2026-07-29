@@ -2,17 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
-import { ai, ApiError, bookings } from '../../lib/api';
+import { ai, ApiError, bookings, news } from '../../lib/api';
 import type { ChatSummary } from '../../lib/api';
-import {
-  FREE_TOPICS_PER_DAY,
-  formatCountdown,
-  quotaFrom,
-  readTopicStarts,
-  recordTopicStart,
-  readSubject,
-  saveSubject,
-} from '../../lib/aiQuota';
+import { readSubject, saveSubject } from '../../lib/aiQuota';
 import { detectSubject, isTopicSwitch } from '../../lib/subject';
 import {
   archiveTopic,
@@ -74,7 +66,7 @@ function loadJson<T>(key: string, fallback: T): T {
 function MobileChatUI() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { user, tier } = useApp();
+  const { user } = useApp();
   const userId = user?.id ?? 'guest';
   const [messages, setMessages] = useState<UiMessage[]>(() => loadJson<UiMessage[]>(chatKey(userId), []));
   const [media, setMedia] = useState<BookingMedia[]>(() => loadJson<BookingMedia[]>(mediaKey(userId), []));
@@ -102,6 +94,7 @@ function MobileChatUI() {
 
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
+  const newsId = sp.get('news');
 
   useEffect(() => {
     track('chat_opened', { target: topic, meta: { source: topic ? 'service' : 'direct' } });
@@ -112,29 +105,13 @@ function MobileChatUI() {
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
 
-  const hasPlan = tier !== 'free';
-
-  const [topicStarts, setTopicStarts] = useState<number[]>(() => readTopicStarts(userId, Date.now()));
-  const [nowTs, setNowTs] = useState(() => Date.now());
   const [currentSubject, setCurrentSubject] = useState<string | null>(() => readSubject(userId));
-  const [limitHit, setLimitHit] = useState(false);
-  const quota = quotaFrom(topicStarts, nowTs);
-  const noActiveTopic = messages.length === 0;
-  const blockedNewTopic = !hasPlan && quota.limitReached && noActiveTopic;
-  const showLimitPanel = !hasPlan && quota.limitReached && (limitHit || noActiveTopic);
-  /** Composer is dead while the daily limit blocks a new topic, or once this topic is finished. */
-  const inputLocked = blockedNewTopic || closed;
+  /** Composer is dead once this topic is finished. */
+  const inputLocked = closed;
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant' && !m.streaming);
   const askingForDocs = !!lastAssistant && wantsMedia(lastAssistant.text);
   const showAttachCard = askingForDocs && !attachDismissed && !readyToBook && !closed;
-
-  useEffect(() => {
-    if (hasPlan || !quota.limitReached) return;
-    // minute-precision countdown: 60x fewer full-page re-renders than the old 1s tick
-    const id = setInterval(() => setNowTs(Date.now()), 60_000);
-    return () => clearInterval(id);
-  }, [hasPlan, quota.limitReached]);
 
   const persistMedia = (next: BookingMedia[]) => {
     setMedia(next);
@@ -229,26 +206,12 @@ function MobileChatUI() {
 
   const send = () => {
     const text = input.trim();
-    if (!text || busy || blockedNewTopic || closed) return;
+    if (!text || busy || closed) return;
 
-    if (!hasPlan) {
-      const incoming = detectSubject(text, currentSubject);
-      if (isTopicSwitch(currentSubject, incoming)) {
-        const now = Date.now();
-        const fresh = readTopicStarts(userId, now);
-        if (quotaFrom(fresh, now).limitReached) {
-          setTopicStarts(fresh);
-          setNowTs(now);
-          setLimitHit(true);
-          return;
-        }
-        recordTopicStart(userId, now);
-        setTopicStarts(readTopicStarts(userId, now));
-        setNowTs(now);
-        setCurrentSubject(incoming);
-        saveSubject(userId, incoming);
-        setLimitHit(false);
-      }
+    const incoming = detectSubject(text, currentSubject);
+    if (isTopicSwitch(currentSubject, incoming)) {
+      setCurrentSubject(incoming);
+      saveSubject(userId, incoming);
     }
 
     track('chat_message_sent', { meta: { message_count: messages.length + 1 } });
@@ -311,20 +274,8 @@ function MobileChatUI() {
     if (!topic) return;
     const svc = SERVICES.find((s) => s.id === topic);
     if (!svc) return;
-    if (!hasPlan) {
-      const now = Date.now();
-      const fresh = readTopicStarts(userId, now);
-      if (quotaFrom(fresh, now).limitReached) {
-        setTopicStarts(fresh);
-        setNowTs(now);
-        setLimitHit(true);
-        return;
-      }
-      recordTopicStart(userId, now);
-      setTopicStarts(readTopicStarts(userId, now));
-      setCurrentSubject(svc.category);
-      saveSubject(userId, svc.category);
-    }
+    setCurrentSubject(svc.category);
+    saveSubject(userId, svc.category);
     seededRef.current = topic;
 
     // Put whatever was open into history, then start this service clean.
@@ -341,6 +292,38 @@ function MobileChatUI() {
     ask(t('chat.topicSeed', { service: pickText(svc.title, i18n.language) }), false, []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic]);
+
+  // News prefill: ?news=<postId> (the article page's "ask Rafiq" button) seeds
+  // the chat with the post itself, so the assistant can actually discuss it.
+  useEffect(() => {
+    const seedKey = newsId ? `news:${newsId}` : null;
+    if (!seedKey || seededRef.current === seedKey) return;
+    let live = true;
+    news.byId(newsId!).then((post) => {
+      if (!live || !post || seededRef.current === seedKey) return;
+      const subject = detectSubject(`${post.title} ${post.body ?? ''}`, null);
+      setCurrentSubject(subject);
+      saveSubject(userId, subject);
+      seededRef.current = seedKey;
+
+      if (messages.length > 0) archiveCurrent(closedByBooking);
+      persistMedia([]);
+      setError(null);
+      setBooking(null);
+      setReadyToBook(false);
+      setAttachDismissed(false);
+      setClosedState(false);
+      setClosedByBooking(false);
+      persistClosed(userId, false);
+
+      const body = (post.body ?? '').slice(0, 800);
+      ask(t('chat.newsSeed', { title: post.title, body }).trim(), false, []);
+    }, () => {});
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newsId]);
 
   const startVoice = () => {
     if (!SR || listening || inputLocked) return;

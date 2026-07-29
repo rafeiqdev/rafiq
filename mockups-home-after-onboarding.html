@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الرئيسية — أول وصول بعد إنهاء الأسئلة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a3a6b;--navy-d:#12294d;--cream:#faf8f0;--cream-d:#efeadb;
+ --line:rgba(26,58,107,.10);--line-2:rgba(26,58,107,.055);
+ --muted:#7c8798;--muted-2:#9ba4b2;--red:#c0392b;--ok:#1e7a4b;--r:18px;--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:#e6e3d9;color:var(--navy);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;
+ line-height:1.65;-webkit-font-smoothing:antialiased}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block;font-family:Inter,system-ui,sans-serif;font-feature-settings:"tnum"}
+button{font-family:inherit;background:none;border:0;color:inherit}
+svg{display:block;flex:0 0 auto}
+:focus-visible{outline:2px solid var(--navy);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.topbar{position:sticky;top:0;z-index:80;background:var(--navy-d);color:#fff;padding:11px 20px;
+ display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.topbar h1{font-size:14px;margin:0;font-weight:600;opacity:.93}
+.sp{flex:1}
+.seg{display:flex;background:rgba(255,255,255,.09);border-radius:999px;padding:3px;gap:2px}
+.seg button{color:#c3d1e6;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;transition:.15s}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--navy-d)}
+.stage{padding:24px 20px 60px}.wrap{max-width:1180px;margin:0 auto}
+.note{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:13.5px;
+ color:#46536a;line-height:1.85;margin-bottom:18px}
+.note b{color:var(--navy)}.note ul{margin:8px 0 0;padding-inline-start:20px}.note li{margin:5px 0}
+.note code{background:#f4f1e8;padding:2px 6px;border-radius:5px;font-size:12px}
+.side{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:start}
+@media(max-width:1040px){.side{grid-template-columns:1fr;justify-items:center}}
+.deskframe{background:var(--cream);border-radius:20px;overflow:hidden;box-shadow:0 20px 50px rgba(18,41,77,.17)}
+.phoneframe{width:392px;border-radius:38px;padding:10px;background:#1c1c1e;box-shadow:0 24px 55px rgba(18,41,77,.26)}
+.screen{background:var(--cream);border-radius:29px;overflow:hidden;height:790px;position:relative;display:flex;flex-direction:column}
+.scroll{flex:1;overflow-y:auto;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 24px}
+.card+.card{margin-top:18px}
+.eyebrow{font-size:10.5px;font-weight:600;letter-spacing:1.2px;color:var(--muted-2);margin:0 0 12px;text-transform:uppercase}
+h2.t{margin:0;font-size:24px;font-weight:700;line-height:1.42;letter-spacing:-.4px}
+h3.t{margin:0;font-size:15.5px;font-weight:700}
+p.d{margin:9px 0 0;font-size:14px;color:var(--muted);line-height:1.78}
+.head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.link{font-size:13px;font-weight:600;opacity:.6;cursor:pointer}.link:hover{opacity:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;
+ border-radius:12px;font-size:14.5px;font-weight:600;border:1px solid transparent;cursor:pointer;transition:.18s var(--ease)}
+.btn-n{background:var(--navy);color:#fff}.btn-n:hover{background:var(--navy-d)}
+.btn-o{border-color:var(--line);color:var(--navy);background:#fff}.btn-o:hover{border-color:rgba(26,58,107,.3)}
+.btn-w{background:#fff;color:var(--navy)}
+.btn-gh{border-color:rgba(255,255,255,.3);color:#fff}.btn-gh:hover{background:rgba(255,255,255,.11)}
+.btn-s{min-height:38px;padding:0 14px;font-size:13px;border-radius:10px}
+.btn-blk{width:100%}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+.shell{display:flex;min-height:680px}.shell .main{flex:1;min-width:0}
+.rail{width:66px;background:#fff;border-inline-start:1px solid var(--line);display:flex;flex-direction:column;
+ align-items:center;padding:18px 0;gap:6px}
+.rail a{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+ opacity:.38;cursor:pointer;transition:.16s}
+.rail a:hover{opacity:.85;background:var(--cream)}
+.rail a.on{opacity:1;background:var(--navy);color:#fff}
+.dhd{padding:22px 30px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:flex-start;gap:14px}
+.dhd h2{margin:0;font-size:21px;font-weight:700;letter-spacing:-.25px}
+.dhd .sub{font-size:13px;color:var(--muted);margin-top:3px}
+.ava{width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;
+ align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:0 0 auto}
+.iconbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;
+ display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dbody{padding:22px 30px 40px}
+.dg{display:grid;grid-template-columns:1.85fr 1fr;gap:22px;align-items:start}
+@media(max-width:980px){.dg{grid-template-columns:1fr}}
+
+/* ملخّص إجاباتك */
+.recap{display:flex;align-items:center;gap:11px;flex-wrap:wrap;background:rgba(26,58,107,.035);
+ border:1px solid var(--line-2);border-radius:14px;padding:12px 15px;margin-bottom:18px}
+.recap .ic{opacity:.42}
+.recap .lbl{font-size:12.5px;color:var(--muted);font-weight:600}
+.tagp{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);
+ border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600}
+.tagp.ok{color:var(--ok);border-color:rgba(30,122,75,.24);background:rgba(30,122,75,.05)}
+.recap .edit{margin-inline-start:auto}
+
+.anchor{background:var(--navy);color:#fff;border-radius:var(--r);padding:27px 29px;position:relative;overflow:hidden}
+.anchor:before{content:"";position:absolute;inset-inline-end:-80px;top:-100px;width:320px;height:320px;
+ border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 62%)}
+.anchor .eyebrow{color:rgba(255,255,255,.5)}
+.anchor p.d{color:rgba(255,255,255,.76)}
+.facts{display:flex;margin-top:20px;border-top:1px solid rgba(255,255,255,.15);padding-top:17px}
+.facts div{flex:1;border-inline-start:1px solid rgba(255,255,255,.13);padding-inline-start:17px}
+.facts div:first-child{border:0;padding-inline-start:0}
+.facts b{display:block;font-size:18px;font-weight:600}
+.facts span{font-size:11.5px;color:rgba(255,255,255,.6)}
+
+.prog{display:flex;align-items:center;gap:11px;margin-top:13px}
+.prog .track{flex:1;height:3px;border-radius:99px;background:var(--cream-d);overflow:hidden}
+.prog .track i{display:block;height:100%;background:var(--navy);border-radius:99px;transition:width .9s var(--ease)}
+.prog .n{font-size:12.5px;color:var(--muted);white-space:nowrap}
+
+.road{list-style:none;margin:15px 0 0;padding:0}
+.road li{display:flex;gap:13px;padding:11px 0;border-top:1px solid var(--line-2);align-items:center}
+.road li:first-child{border-top:0}
+.road .n{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);flex:0 0 auto;display:flex;
+ align-items:center;justify-content:center;font-size:11.5px;font-weight:600;color:var(--muted-2);
+ font-family:Inter,system-ui,sans-serif}
+.road li.done .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.road li.done .lbl{color:var(--muted-2)}
+.road li.first .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.road li.first .lbl{font-weight:600}
+.road li.dim{opacity:.5}
+.road .lbl{flex:1;font-size:14.2px;font-weight:500}
+.road .meta{font-size:11.5px;color:var(--muted-2);white-space:nowrap}
+.road .src{font-size:10.5px;font-weight:600;color:var(--ok);background:rgba(30,122,75,.08);
+ border-radius:999px;padding:3px 9px;white-space:nowrap}
+
+.rows{list-style:none;margin:14px 0 0;padding:0}
+.rows li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line-2)}
+.rows li:first-child{border-top:0;padding-top:0}
+.rows .k{flex:1;min-width:0;font-size:13.8px;font-weight:500}
+.rows .v{font-size:13px;color:var(--muted);font-weight:600}.rows .v.hot{color:var(--red)}
+.rows .ic{color:var(--navy);opacity:.33}
+.rate{display:flex;gap:26px;margin-top:12px}
+.rate b{display:block;font-size:26px;font-weight:600;letter-spacing:-.7px;line-height:1.2}
+.rate span{font-size:12.5px;color:var(--muted)}
+.delta{font-size:11.5px;font-weight:600}.up{color:var(--ok)}.dn{color:var(--red)}
+.spark path{stroke-dasharray:400;stroke-dashoffset:400;animation:draw 1.6s var(--ease) .3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.hairnote{font-size:11.5px;color:var(--muted-2);margin-top:13px;padding-top:12px;border-top:1px solid var(--line-2)}
+.inv{border:1px dashed rgba(26,58,107,.22);background:rgba(255,255,255,.5);border-radius:var(--r);padding:20px 22px}
+.inv .ic{width:38px;height:38px;border-radius:11px;background:var(--cream-d);display:flex;align-items:center;
+ justify-content:center;opacity:.7;margin-bottom:13px}
+.inv b{display:block;font-size:14.5px;font-weight:600}
+.inv p{margin:5px 0 0;font-size:13px;color:var(--muted);line-height:1.7}
+
+/* تنبيه مخصّص بالحي */
+.geo{border:1px solid rgba(192,57,43,.28);background:rgba(192,57,43,.045);border-radius:var(--r);padding:20px 22px}
+.geo .top{display:flex;gap:13px;align-items:flex-start}
+.geo .ic{color:var(--red);opacity:.8}
+.geo b{display:block;font-size:15px;font-weight:700}
+.geo p{margin:6px 0 0;font-size:13.3px;color:#7a3b34;line-height:1.75}
+
+/* ماذا يحدث الآن */
+.next{list-style:none;margin:15px 0 0;padding:0}
+.next li{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line-2)}
+.next li:first-child{border-top:0}
+.next .when{width:78px;flex:0 0 auto;font-size:11.5px;color:var(--muted-2);font-weight:600;padding-top:2px}
+.next b{display:block;font-size:14px;font-weight:600}
+.next small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.65}
+
+/* phone */
+.mhd{padding:16px 18px 12px;display:flex;align-items:center;gap:12px;background:var(--cream);position:sticky;top:0;z-index:9}
+.mhd h2{margin:0;font-size:17px;font-weight:700}
+.mhd .sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.mava{width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:flex;
+ align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 auto}
+.mbell{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;
+ display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.pad{padding:0 18px}
+.manchor{background:var(--navy);color:#fff;border-radius:20px;padding:22px 20px;position:relative;overflow:hidden}
+.manchor:before{content:"";position:absolute;inset-inline-end:-70px;top:-90px;width:260px;height:260px;
+ border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 62%)}
+.manchor .eyebrow{color:rgba(255,255,255,.52);margin-bottom:8px}
+.manchor h2{margin:0;font-size:20px;font-weight:700;line-height:1.45;letter-spacing:-.3px}
+.manchor p{margin:8px 0 0;font-size:13.2px;color:rgba(255,255,255,.74);line-height:1.75}
+.mfacts{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:15px;background:rgba(255,255,255,.13);
+ border-radius:12px;overflow:hidden}
+.mfacts div{background:var(--navy);padding:10px 12px}
+.mfacts b{display:block;font-size:15px;font-weight:600}
+.mfacts span{font-size:10.5px;color:rgba(255,255,255,.6)}
+.msec{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 0;padding:0 18px}
+.msec h3{margin:0;font-size:15px;font-weight:700}
+.msec span{font-size:12.5px;color:var(--muted);font-weight:600}
+.mlist{list-style:none;margin:10px 0 0;padding:0 18px;background:#fff;border-block:1px solid var(--line-2)}
+.mlist li{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line-2)}
+.mlist li:first-child{border-top:0}
+.mcar{display:flex;gap:12px;overflow-x:auto;padding:12px 18px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.mcar::-webkit-scrollbar{display:none}
+.mcar>div{flex:0 0 76%;scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 19px}
+.mcar>div.dash{border-style:dashed;background:rgba(255,255,255,.5)}
+.mcar>div.warn{border-color:rgba(192,57,43,.28);background:rgba(192,57,43,.045)}
+.mrecap{display:flex;gap:7px;flex-wrap:wrap;padding:0 18px;margin-top:12px}
+.mtab{display:flex;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:8px 0 12px;flex:0 0 auto}
+.mtab div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;
+ color:var(--muted-2);font-weight:600;min-height:46px;justify-content:center}
+.mtab div.on{color:var(--navy)}.mtab div svg{opacity:.45}.mtab div.on svg{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>الرئيسية — أول وصول بعد إنهاء الأسئلة</h1>
+  <div class="sp"></div>
+  <div class="seg" id="s">
+    <button data-p="0" aria-pressed="true">طالب · الفاتح</button>
+    <button data-p="1" aria-pressed="false">قادم جديد · إسنيورت</button>
+    <button data-p="2" aria-pressed="false">مستثمر · شيشلي</button>
+  </div>
+</div>
+
+<div class="stage"><div class="wrap">
+<div class="note" id="cap"></div>
+
+<div class="side">
+  <div><div class="deskframe"><div class="shell">
+    <div class="main">
+      <div class="dhd" id="dhd"></div>
+      <div class="dbody"><div class="dg"><div id="dmain"></div><div id="dside"></div></div></div>
+    </div>
+    <div class="rail" id="rail"></div>
+  </div></div></div>
+  <div><div class="phoneframe"><div class="screen">
+    <div class="scroll"><div id="mall"></div><div style="height:40px"></div></div>
+    <div class="mtab" id="mtab"></div>
+  </div></div></div>
+</div>
+
+<div class="note" style="margin-top:20px" id="tail"></div>
+</div></div>
+
+<script>
+const I=(p,s=19,w=1.6)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ic={
+ home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+ msg:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+ map:'<path d="M14.1 4.1 21 2v16l-6.9 2.1M14.1 4.1 9 6M14.1 4.1v16M9 6 3 4v16l6 2M9 6v16"/>',
+ file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h6M9 13h6M9 17h6"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+ folder:'<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+ gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+ bell:'<path d="M10.3 21a2 2 0 0 0 3.4 0"/><path d="M3.3 15.3A1 1 0 0 0 4 17h16a1 1 0 0 0 .7-1.7C19.4 14 18 12.5 18 8A6 6 0 0 0 6 8c0 4.5-1.4 6-2.7 7.3"/>',
+ sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+ pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+ alert:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+ upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8 12 3 7 8M12 3v13"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 15h.01M11 15h4M7 9h4"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ grad:'<path d="M22 10 12 5 2 10l10 5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+ phone:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+ bank:'<path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10h20L12 3Z"/>',
+ arrow:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+ clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+ sparkles:'<path d="M12 3 13.9 8.6 19.5 10.5 13.9 12.4 12 18 10.1 12.4 4.5 10.5 10.1 8.6Z"/><path d="M19 15v4M17 17h4"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+ brief:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+ plane:'<path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8L8 11l-3 3H3l1 2 2 1 1-2 3-3 3.9 3.7a.5.5 0 0 0 .8-.5Z"/>',
+ shield:'<path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1 1 0 0 1 1.6 0C14.6 3.8 17 5 19 5a1 1 0 0 1 1 1Z"/>',
+};
+document.getElementById('rail').innerHTML=
+ `<a class="on">${I(ic.home,20)}</a><a>${I(ic.msg,20)}</a><a>${I(ic.map,20)}</a>
+  <a>${I(ic.file,20)}</a><a>${I(ic.folder,20)}</a><a>${I(ic.gift,20)}</a>
+  <div style="flex:1"></div><a>${I(ic.user,20)}</a>`;
+document.getElementById('mtab').innerHTML=
+ `<div class="on">${I(ic.home,19)}الرئيسية</div><div>${I(ic.msg,19)}المساعد</div>
+  <div>${I(ic.map,19)}الخريطة</div><div>${I(ic.file,19)}الخدمات</div><div>${I(ic.user,19)}حسابي</div>`;
+
+const ratesCard=()=>`<div class="card"><p class="eyebrow">أسعار اليوم</p>
+ <div class="rate"><div><b class="ltr">47.34</b><span>دولار · <span class="delta up">▲ ٠٫٣٪</span></span></div>
+ <div><b class="ltr">53.92</b><span>يورو · <span class="delta dn">▼ ٠٫١٪</span></span></div></div>
+ <svg class="spark" width="100%" height="38" viewBox="0 0 220 38" preserveAspectRatio="none">
+ <path d="M0 29 L28 25 L56 30 L84 19 L112 23 L140 13 L168 17 L196 8 L220 11" fill="none"
+ stroke="#1a3a6b" stroke-width="1.6" stroke-linecap="round" opacity=".5"/></svg>
+ <p class="hairnote">آخر تحديث ١٠:٠٣ ص</p></div>`;
+const callCard=()=>`<div class="inv"><div class="ic">${I(ic.msg,19)}</div><b>مكالمتك الأولى مجانية</b>
+ <p>خبير محلي بلغتك يراجع خطتك معك ويقول لك ما الذي يمكن أن يعطّلك. بلا التزام.</p>
+ <button class="btn btn-o btn-s" style="margin-top:14px">احجز مكالمة</button></div>`;
+const lockerCard=()=>`<div class="inv"><div class="ic">${I(ic.upload,19)}</div><b>ابدأ خزنتك</b>
+ <p>ارفع جواز سفرك مرة واحدة — نستخدمه في كل نموذج بعدها بدل أن تكتب بياناتك كل مرة.</p>
+ <button class="btn btn-o btn-s" style="margin-top:14px">ارفع جوازك</button></div>`;
+const datesCard=()=>`<div class="inv"><div class="ic">${I(ic.cal,19)}</div><b>لم تحفظ أي تواريخ</b>
+ <p>أضف تاريخ انتهاء إقامتك أو تأمينك أو جوازك — نذكّرك قبل ٦٠ يومًا وقبل ٣٠.</p>
+ <button class="btn btn-o btn-s" style="margin-top:14px">أضف تاريخًا</button></div>`;
+
+/* ═══════ الشخصيات ═══════ */
+const P=[
+{ /* طالب · الفاتح · يملك رقمًا ضريبيًا وهاتفًا تركيًا */
+ cap:`<b>الحالة: علي — طالب · الفاتح · يملك الرقم الضريبي وهاتفًا تركيًا · بلا عائلة.</b>
+  أنهى الأسئلة الأربعة قبل ثوانٍ ووصل الرئيسية لأول مرة. أهم قرار في هذه الشاشة:
+  <b>لا تعرض ٠٪</b> — سؤال «ما تملكه بالفعل» أعطاك خطوتين منجزتين، فابدأ من ٢٥٪ لا من الصفر.`,
+ name:'علي', initial:'ع',
+ sub:'طالب · الفاتح · خطتك جاهزة',
+ tags:[[ic.grad,'طالب',0],[ic.pin,'الفاتح',0],[ic.card,'رقم ضريبي',1],[ic.phone,'هاتف تركي',1]],
+ done:2,total:8,pct:25,
+ anchor:{eye:'ابدأ من هنا',h:'اشترِ التأمين الصحي الإلزامي',
+  p:'الخطوة التالية في مسارك. مطلوبة قبل موعد الإقامة — ولطالب في عمرك التأمين الخاص أرخص من <span class="ltr">SGK</span> وأسرع قبولًا.',
+  f:[['يوم واحد','المدة'],['~2,500','ليرة سنويًا'],['أونلاين','بلا زيارة'],['٦','خطوات باقية']]},
+ road:[['الرقم الضريبي <span class="ltr">(Vergi No)</span>','','done','من إجاباتك'],
+       ['شريحة وهاتف تركي','','done','من إجاباتك'],
+       ['التأمين الصحي الإلزامي','يوم واحد','first',''],
+       ['تسجيل العنوان','يومان','dim',''],
+       ['موعد <span class="ltr">e-İkamet</span>','حسب المكتب','dim',''],
+       ['معادلة الشهادة <span class="ltr">(Denklik)</span>','٣–٦ أسابيع','dim',''],
+       ['فتح حساب بنكي','يوم واحد','dim',''],
+       ['استلام بطاقة الإقامة','٢–٦ أسابيع','dim','']],
+ geo:{b:'انتبه — الفاتح مغلق حاليًا لتسجيل الإقامات الجديدة',
+  p:'اخترت الفاتح في إجاباتك، والحيّ مغلق مؤقتًا أمام قيود الإقامة الجديدة. لا توقّع عقد إيجار فيه قبل أن تتأكد — هذا أكثر خطأ يكلّف الوافدين شهورًا.',
+  cta:'الأحياء المفتوحة قربك'},
+ next:[['خلال ساعة','أرسلنا لك خطتك بالبريد','نسخة كاملة بالمستندات والروابط الرسمية — احتفظ بها.'],
+       ['هذا الأسبوع','أنجز التأمين والعنوان','أسبوع واحد يكفي للاثنين لو بدأت بالتأمين اليوم.'],
+       ['بعد ذلك','موعد <span class="ltr">e-İkamet</span>','المواعيد تُفتح كل يوم ٩ صباحًا — نذكّرك قبلها.']],
+ sideExtra:'', mcarExtra:''
+},
+{ /* قادم جديد · إسنيورت · لا يملك شيئًا */
+ cap:`<b>الحالة: مريم — قادمة جديدة · إسنيورت · لا تملك شيئًا بعد · معها عائلة.</b>
+  هنا التقدّم صفر فعلًا، فلا نعرض شريط تقدّم بـ٠٪ — نكتب «٨ خطوات بانتظارك» بدلًا منه.
+  ولأن إجابتها ذكرت عائلة، دخلت خطوة الإقامة العائلية تلقائيًا في الخطة.`,
+ name:'مريم', initial:'م',
+ sub:'قادمة جديدة · إسنيورت · مع العائلة',
+ tags:[[ic.plane,'قادمة جديدة',0],[ic.pin,'إسنيورت',0],[ic.users,'مع العائلة',0]],
+ done:0,total:8,pct:0,
+ anchor:{eye:'ابدأ من هنا',h:'استخرجي رقمك الضريبي <span class="ltr">(Vergi No)</span>',
+  p:'أول خطوة وأسهلها — مجانية وتُنجَز أونلاين في نحو عشرين دقيقة. كل ما بعدها (البنك، العقد، الإقامة) يطلبها.',
+  f:[['٢٠ دقيقة','المدة'],['مجاني','لا رسوم'],['جوازك فقط','ما تحتاجينه'],['أونلاين','بلا زيارة']]},
+ road:[['الرقم الضريبي <span class="ltr">(Vergi No)</span>','٢٠ دقيقة','first',''],
+       ['شريحة وهاتف تركي','٣٠ دقيقة','dim',''],
+       ['التأمين الصحي للعائلة','يوم واحد','dim',''],
+       ['تسجيل العنوان','يومان','dim',''],
+       ['موعد <span class="ltr">e-İkamet</span>','حسب المكتب','dim',''],
+       ['الإقامة العائلية للأطفال','+أسبوعان','dim','من إجاباتك'],
+       ['فتح حساب بنكي','يوم واحد','dim',''],
+       ['تسجيل الأطفال بالمدرسة','حسب الموسم','dim','من إجاباتك']],
+ geo:{b:'إسنيورت مفتوح لتسجيل الإقامات',
+  p:'حيّك مفتوح حاليًا أمام قيود الإقامة الجديدة — لكن الحالة تتغيّر شهريًا. سنُعلمك فورًا إن أُغلق قبل أن توقّعي عقدًا.',
+  cta:'تابعي حالة الحي', ok:1},
+ next:[['خلال ساعة','أرسلنا لكِ خطتكِ بالبريد','نسخة كاملة بالمستندات والروابط الرسمية.'],
+       ['أول ٣ أيام','الرقم الضريبي والشريحة','الاثنان يُنجزان في يوم واحد ويفتحان كل ما بعدهما.'],
+       ['أول أسبوعين','التأمين وعقد الإيجار','ابدئي بالتأمين — عقد الإيجار يحتاج توثيق نوتر.']],
+ sideExtra:`<div style="height:18px"></div><div class="inv"><div class="ic">${I(ic.users,19)}</div>
+  <b>خطة العائلة</b><p>ذكرتِ أن معكِ عائلة — أضفنا خطوتين خاصتين بهم. أضيفي أسماءهم وأعمارهم
+  لنحسب المستندات المطلوبة بدقة.</p>
+  <button class="btn btn-o btn-s" style="margin-top:14px">أضيفي أفراد العائلة</button></div>`,
+ mcarExtra:`<div class="dash"><p class="eyebrow">خطة العائلة</p><b style="font-size:14px">أضيفي أفراد عائلتك</b>
+  <p style="margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7">لنحسب المستندات بدقة.</p>
+  <button class="btn btn-o btn-s btn-blk" style="margin-top:12px">أضيفي</button></div>`
+},
+{ /* مستثمر · شيشلي · يملك رقمًا ضريبيًا وحسابًا بنكيًا وإقامة */
+ cap:`<b>الحالة: عمر — عمل واستثمار · شيشلي · يملك الرقم الضريبي والحساب البنكي والإقامة.</b>
+  ثلاث خطوات منجزة من الأسئلة، فالخطة أقصر (٧ خطوات) وتبدأ من ٤٣٪. لاحظ أن مساره مختلف كليًا:
+  لا معادلة شهادة ولا إقامة عائلية — بل شركة وطابو ومحاسب.`,
+ name:'عمر', initial:'ع',
+ sub:'عمل واستثمار · شيشلي · خطتك جاهزة',
+ tags:[[ic.brief,'عمل واستثمار',0],[ic.pin,'شيشلي',0],[ic.card,'رقم ضريبي',1],[ic.bank,'حساب بنكي',1],[ic.file,'إقامة سارية',1]],
+ done:3,total:7,pct:43,
+ anchor:{eye:'ابدأ من هنا',h:'أسّس شركتك <span class="ltr">(Limited Şirket)</span>',
+  p:'أنت جاهز فعلًا — لديك الرقم الضريبي والحساب والإقامة. الخطوة التالية هي التأسيس عند النوتر ثم القيد الضريبي.',
+  f:[['٥–٧ أيام','المدة'],['~25,000','ليرة تقريبًا'],['نوتر','زيارة واحدة'],['٤','خطوات باقية']]},
+ road:[['الرقم الضريبي <span class="ltr">(Vergi No)</span>','','done','من إجاباتك'],
+       ['حساب بنكي تركي','','done','من إجاباتك'],
+       ['تصريح إقامة ساري','','done','من إجاباتك'],
+       ['تأسيس الشركة <span class="ltr">(Ltd. Şti.)</span>','٥–٧ أيام','first',''],
+       ['القيد الضريبي والمحاسب','٣ أيام','dim',''],
+       ['فحص الطابو قبل الشراء','يومان','dim',''],
+       ['تصريح العمل للموظفين','٤ أسابيع','dim','']],
+ geo:{b:'شيشلي مفتوح — وأسعار الطابو ارتفعت ٨٪ هذا الربع',
+  p:'حيّك مفتوح لتسجيل الإقامات. وبما أن إجاباتك ذكرت الاستثمار: متوسط سعر المتر في شيشلي ارتفع ٨٪ منذ أبريل — راجع تقييمك قبل التوقيع.',
+  cta:'تقرير أسعار شيشلي', ok:1},
+ next:[['خلال ساعة','أرسلنا لك خطتك بالبريد','مع قائمة النوترات المعتمدين في شيشلي.'],
+       ['هذا الأسبوع','اجتماع النوتر','نرتّب لك موعدًا ومترجمًا محلّفًا إن احتجت.'],
+       ['بعد التأسيس','المحاسب والقيد الضريبي','إلزامي خلال ١٠ أيام من التأسيس — لا تتأخر.']],
+ sideExtra:`<div style="height:18px"></div><div class="inv"><div class="ic">${I(ic.file,19)}</div>
+  <b>إقامتك مسجّلة لكن بلا تاريخ</b><p>ذكرت أن لديك إقامة سارية — أضف تاريخ انتهائها
+  لنبدأ تذكيرك قبل ٦٠ يومًا من التجديد.</p>
+  <button class="btn btn-o btn-s" style="margin-top:14px">أضف تاريخ الانتهاء</button></div>`,
+ mcarExtra:`<div class="dash"><p class="eyebrow">ناقص</p><b style="font-size:14px">تاريخ انتهاء إقامتك</b>
+  <p style="margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7">لنذكّرك قبل ٦٠ يومًا.</p>
+  <button class="btn btn-o btn-s btn-blk" style="margin-top:12px">أضف</button></div>`
+}];
+
+const TAIL=`<b>القرارات التي تميّز هذه الشاشة</b>
+<ul>
+ <li><b>أظهِر أن الأسئلة لم تذهب هدرًا.</b> شريط «بنينا خطتك على إجاباتك» أعلى الصفحة يعرض
+  الوضع والحي وما يملكه كشارات، مع رابط تعديل. بدونه يشعر المستخدم أنه أجاب على استبيان في الفراغ —
+  وهذا أسوأ ما يمكن أن يحدث بعد أربع خطوات من الأسئلة.</li>
+ <li><b>لا تبدأ من صفر إن كان لا يبدأ من صفر.</b> سؤال «ما تملكه بالفعل» يعطيك خطوتين أو ثلاثًا منجزة
+  فورًا. اعرضها مشطوبة بشارة <b>«من إجاباتك»</b> — الفرق بين «٠٪» و«٢٥٪ وأنت لم تفعل شيئًا بعد»
+  فرق نفسي ضخم في أول ثانية.</li>
+ <li><b>الحيّ ليس زينة.</b> عرفت حيّه من الأسئلة — فاستخدمه في أهم تحذير لديك: هل الحيّ مفتوح
+  لتسجيل الإقامات؟ هذه أثمن معلومة تملكها ولا تظهر في أي مكان اليوم.</li>
+ <li><b>«ماذا يحدث الآن»</b> — ثلاثة أسطر تشرح ما سيحدث خلال ساعة، هذا الأسبوع، وبعده.
+  المستخدم الجديد أكثر ما يقلقه: «وماذا بعد؟».</li>
+ <li><b>لا بيانات وهمية.</b> لا حجوزات، لا إشعارات، لا أرباح إحالة، لا «ما الجديد» —
+  لم يغب حتى يعود. البطاقات الفارغة تظهر كدعوات لا كفراغ.</li>
+ <li><b>الخطة تختلف فعلًا باختلاف الإجابة.</b> بدّل بين الشخصيات الثلاث أعلاه: الطالب يرى معادلة الشهادة،
+  والعائلة ترى الإقامة العائلية والمدارس، والمستثمر يرى الشركة والطابو والمحاسب — وعدد الخطوات نفسه يتغيّر.
+  هذا ما يجعل الأسئلة تستحق أن تُطرح.</li>
+</ul>`;
+
+function render(k){
+ const p=P[k];
+ document.getElementById('cap').innerHTML=p.cap;
+ document.getElementById('tail').innerHTML=TAIL;
+
+ document.getElementById('dhd').innerHTML=
+  `<div class="ava">${p.initial}</div><div style="flex:1;min-width:0">
+   <h2>أهلًا بك يا ${p.name}</h2><div class="sub">${p.sub}</div>
+   <div class="prog" style="max-width:360px"><div class="track"><i style="width:${p.pct}%"></i></div>
+    <div class="n">${p.done?`<span class="ltr">${p.done}</span> من <span class="ltr">${p.total}</span> · <span class="ltr">${p.pct}%</span>`:`<span class="ltr">${p.total}</span> خطوات بانتظارك`}</div></div>
+   </div><button class="iconbtn">${I(ic.bell,17)}</button>`;
+
+ document.getElementById('dmain').innerHTML=`
+  <div class="recap">
+   <span class="ic">${I(ic.sparkles,18)}</span>
+   <span class="lbl">بنينا خطتك على إجاباتك</span>
+   ${p.tags.map(([i,t,ok])=>`<span class="tagp ${ok?'ok':''}">${ok?I(ic.check,13,3):I(i,14)}${t}</span>`).join('')}
+   <span class="link edit">${I(ic.sliders,15)} عدّل</span>
+  </div>
+
+  <div class="anchor">
+   <p class="eyebrow">${p.anchor.eye}</p>
+   <h2 class="t">${p.anchor.h}</h2>
+   <p class="d">${p.anchor.p}</p>
+   <div class="facts">${p.anchor.f.map(([b,s])=>`<div><b class="${/^[~\d]/.test(b)?'ltr':''}">${b}</b><span>${s}</span></div>`).join('')}</div>
+   <div class="acts"><button class="btn btn-w">افتح الدليل خطوة بخطوة</button>
+    <button class="btn btn-gh">${I(ic.msg,15)} اسأل رفيق عن هذه الخطوة</button></div>
+  </div>
+
+  <div class="geo" style="${p.geo.ok?'border-color:rgba(30,122,75,.24);background:rgba(30,122,75,.045)':''}">
+   <div class="top"><span class="ic" style="${p.geo.ok?'color:var(--ok)':''}">${I(p.geo.ok?ic.check:ic.alert,20)}</span>
+    <div style="flex:1"><b>${p.geo.b}</b>
+     <p style="${p.geo.ok?'color:#2c5c45':''}">${p.geo.p}</p></div></div>
+   <button class="btn btn-o btn-s" style="margin-top:14px">${I(ic.map,15)} ${p.geo.cta}</button>
+  </div>
+
+  <div class="card">
+   <div class="head"><h3 class="t">رحلتك كاملة</h3>
+    <span class="link"><span class="ltr">${p.total}</span> خطوات · مرتّبة لوضعك</span></div>
+   <ul class="road">${p.road.map(([t,m,cls,src],i)=>`<li class="${cls}">
+    <span class="n ltr">${cls==='done'?'✓':i+1}</span><span class="lbl">${t}</span>
+    ${src?`<span class="src">${src}</span>`:''}<span class="meta">${m}</span></li>`).join('')}</ul>
+  </div>
+
+  <div class="card">
+   <h3 class="t">ماذا يحدث الآن</h3>
+   <ul class="next">${p.next.map(([w,b,s])=>`<li><span class="when">${w}</span>
+    <span><b>${b}</b><small>${s}</small></span></li>`).join('')}</ul>
+  </div>`;
+
+ document.getElementById('dside').innerHTML=
+  `${ratesCard()}<div style="height:18px"></div>${lockerCard()}<div style="height:18px"></div>${datesCard()}
+   <div style="height:18px"></div>${callCard()}${p.sideExtra}`;
+
+ document.getElementById('mall').innerHTML=
+  `<div class="mhd"><div class="mava">${p.initial}</div>
+    <div style="flex:1;min-width:0"><h2>أهلًا بك يا ${p.name}</h2>
+    <div class="sub">${p.done?`${p.done} من ${p.total} · ${p.pct}%`:`${p.total} خطوات بانتظارك`}</div></div>
+    <button class="mbell">${I(ic.bell,17)}</button></div>
+   <div class="mrecap">
+    ${p.tags.map(([i,t,ok])=>`<span class="tagp ${ok?'ok':''}" style="font-size:11.5px;padding:4px 10px">
+     ${ok?I(ic.check,12,3):I(i,13)}${t}</span>`).join('')}
+    <span class="link" style="font-size:11.5px">عدّل</span></div>
+   <div class="pad" style="margin-top:14px">
+    <div class="manchor">
+     <p class="eyebrow">${p.anchor.eye}</p><h2>${p.anchor.h}</h2><p>${p.anchor.p}</p>
+     <div class="mfacts">${p.anchor.f.map(([b,s])=>`<div><b class="${/^[~\d]/.test(b)?'ltr':''}">${b}</b><span>${s}</span></div>`).join('')}</div>
+     <button class="btn btn-w btn-blk" style="margin-top:14px">افتح الدليل</button>
+    </div></div>
+   <div class="pad" style="margin-top:14px">
+    <div class="geo" style="padding:16px 17px;${p.geo.ok?'border-color:rgba(30,122,75,.24);background:rgba(30,122,75,.045)':''}">
+     <div class="top"><span class="ic" style="${p.geo.ok?'color:var(--ok)':''}">${I(p.geo.ok?ic.check:ic.alert,18)}</span>
+      <div><b style="font-size:14px">${p.geo.b}</b>
+       <p style="font-size:12.5px;${p.geo.ok?'color:#2c5c45':''}">${p.geo.p}</p></div></div></div></div>
+   <div class="msec"><h3>رحلتك كاملة</h3><span>${p.total} خطوات</span></div>
+   <ul class="mlist">${p.road.map(([t,m,cls],i)=>`<li style="${cls==='dim'?'opacity:.5':''}">
+    <span class="ltr" style="width:24px;height:24px;border-radius:50%;flex:0 0 auto;display:flex;
+     align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-family:Inter,sans-serif;
+     ${cls==='done'||cls==='first'?'background:var(--navy);color:#fff':'border:1.5px solid var(--line);color:var(--muted-2)'}">
+     ${cls==='done'?'✓':i+1}</span>
+    <span style="flex:1;font-size:14.2px;font-weight:500;${cls==='done'?'color:var(--muted-2)':''}">${t}</span>
+    <small style="font-size:11px;color:var(--muted-2)">${m}</small></li>`).join('')}</ul>
+   <div class="msec"><h3>ماذا يحدث الآن</h3><span></span></div>
+   <ul class="mlist">${p.next.map(([w,b,s])=>`<li style="align-items:flex-start">
+    <span style="width:70px;flex:0 0 auto;font-size:11px;color:var(--muted-2);font-weight:600;padding-top:2px">${w}</span>
+    <span style="flex:1"><b style="display:block;font-size:13.8px;font-weight:600">${b}</b>
+    <small style="display:block;font-size:12.2px;color:var(--muted);margin-top:2px;line-height:1.6">${s}</small></span></li>`).join('')}</ul>
+   <div class="msec"><h3>ابدأ من هنا</h3><span></span></div>
+   <div class="mcar">
+    <div class="dash"><p class="eyebrow">خزنتك فارغة</p><b style="font-size:14px">ارفع جواز سفرك</b>
+     <p style="margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7">نستخدمه في كل نموذج بعدها.</p>
+     <button class="btn btn-o btn-s btn-blk" style="margin-top:12px">ارفع</button></div>
+    <div class="dash"><p class="eyebrow">لا تواريخ</p><b style="font-size:14px">أضف تاريخ إقامتك</b>
+     <p style="margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7">نذكّرك قبل ٦٠ يومًا.</p>
+     <button class="btn btn-o btn-s btn-blk" style="margin-top:12px">أضف</button></div>
+    ${p.mcarExtra}
+    <div><p class="eyebrow">أسعار اليوم</p><div class="rate" style="gap:18px">
+     <div><b class="ltr" style="font-size:22px">47.34</b><span>دولار <span class="delta up">▲</span></span></div>
+     <div><b class="ltr" style="font-size:22px">53.92</b><span>يورو <span class="delta dn">▼</span></span></div></div></div>
+    <div class="dash"><p class="eyebrow">مجانًا</p><b style="font-size:14px">مكالمتك الأولى</b>
+     <p style="margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7">خبير بلغتك يراجع خطتك.</p>
+     <button class="btn btn-o btn-s btn-blk" style="margin-top:12px">احجز</button></div>
+   </div>`;
+}
+document.querySelectorAll('#s button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('#s button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+ render(+b.dataset.p);});
+render(0);
+</script>
+</body>
+</html>

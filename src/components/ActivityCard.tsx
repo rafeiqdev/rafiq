@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { bookings, customerRequests, leads } from '../lib/api';
 import type { Booking, CustomerRequest, Lead } from '../lib/types';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+import { shortSummary } from '../lib/bookingSummary';
 import type { AsyncSection } from '../hooks/useAsyncSection';
 import { AppIcon } from './AppIcon';
 import { RequestStatusPill } from './RequestStatusPill';
@@ -119,7 +120,7 @@ export function ActivityCard({ compact = false }: { compact?: boolean }) {
                 return (
                   <li key={`b-${it.id}`} className={row}>
                     <AppIcon name="calendar" className={icon} />
-                    <span className={title}>{it.data.problemSummary}</span>
+                    <span className={title}>{shortSummary(it.data.problemSummary)}</span>
                     <span className="shrink-0 rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
                       {t(`adminBookings.statuses.${it.data.status}`)}
                     </span>

@@ -100,6 +100,7 @@ const MobileMyRequests = lazyPage(() => import('./pages/mobile/MobileMyRequests'
 const Onboarding = lazyPage(() => import('./pages/Onboarding').then((m) => ({ default: m.Onboarding })));
 const UserHome = lazyPage(() => import('./pages/UserHome').then((m) => ({ default: m.UserHome })));
 const Journey = lazyPage(() => import('./pages/Journey').then((m) => ({ default: m.Journey })));
+const NewsArticle = lazyPage(() => import('./pages/NewsArticle').then((m) => ({ default: m.NewsArticle })));
 const Legal = lazyPage(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
 const NotFound = lazyPage(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
@@ -216,6 +217,8 @@ function Shell() {
             <Route path="/real-estate" element={isMobile ? <MobileRealEstate /> : <RealEstate />} />
             <Route path="/health-tourism" element={isMobile ? <MobileHealthTourism /> : <HealthTourism />} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
+            {/* one column of text either way — a single component serves both breakpoints */}
+            <Route path="/news/:id" element={<NewsArticle />} />
             <Route path="/hub" element={isMobile ? <MobileHub /> : <Hub />} />
             <Route path="/hub/:slug" element={isMobile ? <MobileHubDetail /> : <HubDetail />} />
             {/* The authenticated product surface: every one of these routes
