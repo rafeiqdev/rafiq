@@ -8,7 +8,6 @@ const STEPS = ['s1', 's2', 's3'] as const;
 // prepends a "+" for "and counting" style numbers.
 const STATS = [
   { key: 'languages', value: 4, plus: false },
-  { key: 'guides', value: 50, plus: true },
   { key: 'users', value: 1000, plus: true },
   { key: 'services', value: 20, plus: true },
 ] as const;
@@ -59,7 +58,7 @@ export function HowItWorks() {
 
       {/* stats bar */}
       <div className="mt-8 rounded-card bg-gradient-to-l from-navy-dark to-navy text-white shadow-card">
-        <div className="grid grid-cols-2 sm:grid-cols-4 sm:divide-x sm:divide-white/10 gap-y-4 sm:gap-y-0 py-4 sm:py-6">
+        <div className="grid grid-cols-3 sm:divide-x sm:divide-white/10 gap-y-4 sm:gap-y-0 py-4 sm:py-6">
           {STATS.map((s) => (
             <div key={s.key} className="text-center px-4">
               <div dir="ltr" className="text-2xl sm:text-3xl font-extrabold tabular-nums">

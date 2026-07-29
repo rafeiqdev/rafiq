@@ -4,13 +4,7 @@
  * Goal: the admin opens a request already knowing what the customer wants, what
  * they already hold, and — most useful — WHICH DOCUMENTS ARE STILL MISSING,
  * instead of re-asking everything by phone.
- *
- * Everything is derived from data that already exists in the app: the service
- * catalog (categories), the 78 step-by-step guides (their `documents` list per
- * language) and the chat's detected subject. No new content to maintain.
  */
-import { SERVICES } from '../data/services';
-import { getGuideContent, guideSlugForServiceId } from '../data/guides';
 
 /** Residence-permit types we ask about when the chat is about residency. */
 export const PERMIT_TYPES = ['tourist', 'property', 'work', 'student', 'family', 'renewal'] as const;
@@ -42,37 +36,13 @@ export function needsPermitQuestions(subject: string | null): boolean {
 }
 
 /**
- * The document checklist to show, taken from the guide that best matches the
- * conversation. Falls back to the tourist-residence guide, which covers the
- * documents almost every newcomer needs (passport, tax number, insurance…).
+ * The document checklist to show for this conversation. No structured document
+ * data is currently maintained, so this is always empty — the intake UI shows
+ * its "nothing specific" state and just asks what the customer already holds.
  */
-export function documentsForSubject(subject: string | null, lang: string, permitType?: PermitType | null): string[] {
-  const preferred = permitType ? PERMIT_SERVICE[permitType] : undefined;
-  const candidates = [
-    ...(preferred ? [preferred] : []),
-    ...SERVICES.filter((s) => subject && s.category === subject).map((s) => s.id),
-    'res-tourist',
-  ];
-
-  for (const serviceId of candidates) {
-    const slug = guideSlugForServiceId(serviceId);
-    if (!slug) continue;
-    const guide = getGuideContent(slug, lang);
-    const docs = guide?.documents ?? [];
-    if (docs.length > 0) return docs.slice(0, 8);
-  }
+export function documentsForSubject(_subject: string | null, _lang: string, _permitType?: PermitType | null): string[] {
   return [];
 }
-
-/** Permit type → the catalog service whose guide lists the right documents. */
-const PERMIT_SERVICE: Record<PermitType, string> = {
-  tourist: 'res-tourist',
-  property: 'res-property',
-  work: 'res-work',
-  student: 'res-student',
-  family: 'res-family',
-  renewal: 'res-renew',
-};
 
 /** Documents from the checklist the customer did NOT tick. */
 export function missingDocuments(required: string[], held: string[]): string[] {

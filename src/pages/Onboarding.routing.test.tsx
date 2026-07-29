@@ -45,6 +45,7 @@ function renderAt(path: string) {
       <Routes>
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/home" element={<p>user home</p>} />
+        <Route path="/auth" element={<p>auth page</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -61,12 +62,12 @@ describe('/onboarding is the only onboarding surface', () => {
     expect(screen.queryByText('user home')).not.toBeInTheDocument();
   });
 
-  it('never renders for a guest — it shows the sign-in wall', () => {
+  it('never renders for a guest — it redirects to sign in', () => {
     mockState({ user: null });
     renderAt('/onboarding');
 
     expect(questionnaire()).not.toBeInTheDocument();
-    expect(screen.getByText('gates.authRequired.title')).toBeInTheDocument();
+    expect(screen.getByText('auth page')).toBeInTheDocument();
   });
 
   it('bounces a completed user to /home so it cannot re-appear on its own', () => {

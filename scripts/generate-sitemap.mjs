@@ -18,16 +18,15 @@
  * src/lib/seo.ts for the matching runtime <head> tags.
  *
  * Dynamic routes are read straight from the local data files that already
- * drive them at runtime (no Supabase round-trip needed — both /services/:slug
- * and /hub/:slug slugs are static, checked-in data):
- *   - /services/:slug ← src/data/guides-ar.json (`slug` field)
- *   - /hub/:slug       ← the fixed 6-slug list also hardcoded in
- *                        src/pages/Hub.tsx / MobileHub.tsx (keep in sync)
+ * drive them at runtime (no Supabase round-trip needed — /hub/:slug slugs are
+ * static, checked-in data):
+ *   - /hub/:slug ← the fixed 6-slug list also hardcoded in
+ *                  src/pages/Hub.tsx / MobileHub.tsx (keep in sync)
  *
  * Run via `npm run build` (prebuild step) or directly: node scripts/generate-sitemap.mjs
  */
 import 'dotenv/config';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveSiteUrlOrExit } from './siteUrl.mjs';
@@ -49,7 +48,6 @@ const STATIC_ROUTES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/services', changefreq: 'weekly', priority: '0.9' },
   { path: '/hub', changefreq: 'weekly', priority: '0.8' },
-  { path: '/pricing', changefreq: 'monthly', priority: '0.8' },
   { path: '/residency', changefreq: 'monthly', priority: '0.8' },
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8' },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7' },
@@ -60,13 +58,7 @@ const STATIC_ROUTES = [
   { path: '/refund', changefreq: 'yearly', priority: '0.3' },
 ];
 
-function serviceSlugs() {
-  const guides = JSON.parse(readFileSync(join(root, 'src/data/guides-ar.json'), 'utf8'));
-  return guides.map((g) => g.slug);
-}
-
 const dynamicRoutes = [
-  ...serviceSlugs().map((slug) => ({ path: `/services/${slug}`, changefreq: 'monthly', priority: '0.7' })),
   ...HUB_SLUGS.map((slug) => ({ path: `/hub/${slug}`, changefreq: 'monthly', priority: '0.6' })),
 ];
 

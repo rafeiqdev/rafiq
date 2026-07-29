@@ -12,7 +12,7 @@ vi.mock('react-i18next', () => ({
 const useAppMock = vi.fn();
 vi.mock('../context/AppContext', () => ({ useApp: () => useAppMock() }));
 
-import { RequireAdmin, RequireAuth, RequireCompany, RequireOnboarded, UpsellGate } from './Gates';
+import { RequireAdmin, RequireAuth, RequireCompany, RequireOnboarded } from './Gates';
 
 function mockState(over: {
   user?: Partial<User> | null;
@@ -65,27 +65,21 @@ describe('auth-gated routes while the session is still resolving', () => {
     expect(screen.queryByText('company.gate.title')).not.toBeInTheDocument();
   });
 
-  it('UpsellGate does not flash the up-sell at a subscriber', () => {
-    // `tier` defaults to 'free' until the subscription loads, so a Pro user
-    // would otherwise be shown the paywall for their own feature.
-    mockState({ user: { id: 'u1' } as Partial<User>, authLoading: true, tier: 'free' });
-    renderGate(
-      <UpsellGate titleKey="up.title" bodyKey="up.body" ctaKey="up.cta">
-        {PAGE}
-      </UpsellGate>,
-    );
-
-    expect(pending()).toBeInTheDocument();
-    expect(screen.queryByText('up.title')).not.toBeInTheDocument();
-  });
 });
 
 describe('auth-gated routes once the session has resolved', () => {
-  it('RequireAuth still walls off a genuine guest', () => {
+  it('RequireAuth redirects a genuine guest to /auth', () => {
     mockState({ user: null, authLoading: false });
-    renderGate(<RequireAuth>{PAGE}</RequireAuth>);
+    render(
+      <MemoryRouter initialEntries={['/map']}>
+        <Routes>
+          <Route path="/map" element={<RequireAuth>{PAGE}</RequireAuth>} />
+          <Route path="/auth" element={<p>auth page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
-    expect(screen.getByText('gates.authRequired.title')).toBeInTheDocument();
+    expect(screen.getByText('auth page')).toBeInTheDocument();
     expect(screen.queryByText('protected page')).not.toBeInTheDocument();
   });
 
@@ -110,43 +104,6 @@ describe('auth-gated routes once the session has resolved', () => {
 
     expect(screen.getByText('protected page')).toBeInTheDocument();
   });
-
-  it('UpsellGate still walls off a free user', () => {
-    mockState({ user: { id: 'u1' } as Partial<User>, authLoading: false, tier: 'free' });
-    renderGate(
-      <UpsellGate titleKey="up.title" bodyKey="up.body" ctaKey="up.cta">
-        {PAGE}
-      </UpsellGate>,
-    );
-
-    expect(screen.getByText('up.title')).toBeInTheDocument();
-  });
-
-  it('UpsellGate admits a pro user', () => {
-    mockState({ user: { id: 'u1' } as Partial<User>, authLoading: false, tier: 'pro' });
-    renderGate(
-      <UpsellGate titleKey="up.title" bodyKey="up.body" ctaKey="up.cta">
-        {PAGE}
-      </UpsellGate>,
-    );
-
-    expect(screen.getByText('protected page')).toBeInTheDocument();
-  });
-
-  it('UpsellGate admits an admin who has no subscription', () => {
-    // Regression: admins have tier `free`, so the paywall locked them out of
-    // the paid pages they administer — even though RLS already grants them
-    // access (`has_pro() or is_admin()`).
-    mockState({ user: { id: 'u1', isAdmin: true } as Partial<User>, authLoading: false, tier: 'free' });
-    renderGate(
-      <UpsellGate titleKey="up.title" bodyKey="up.body" ctaKey="up.cta">
-        {PAGE}
-      </UpsellGate>,
-    );
-
-    expect(screen.getByText('protected page')).toBeInTheDocument();
-    expect(screen.queryByText('up.title')).not.toBeInTheDocument();
-  });
 });
 
 /**
@@ -165,6 +122,7 @@ describe('RequireOnboarded', () => {
           <Route path="/journey" element={ui} />
           <Route path="/profile" element={ui} />
           <Route path="/onboarding" element={<p>onboarding page</p>} />
+          <Route path="/auth" element={<p>auth page</p>} />
         </Routes>
       </MemoryRouter>,
     );
@@ -183,12 +141,13 @@ describe('RequireOnboarded', () => {
     expect(screen.queryByText('onboarding page')).not.toBeInTheDocument();
   });
 
-  it('walls off a guest instead of redirecting them into onboarding', () => {
-    // Redirecting here would bounce forever: /onboarding is itself auth-gated.
+  it('sends a guest to sign in rather than into onboarding', () => {
+    // Sending them to /onboarding would bounce forever: it's itself
+    // auth-gated. /auth is not, so this is a one-way trip.
     mockState({ user: null, authLoading: false });
     renderAt('/home', GUARDED);
 
-    expect(screen.getByText('gates.authRequired.title')).toBeInTheDocument();
+    expect(screen.getByText('auth page')).toBeInTheDocument();
     expect(screen.queryByText('onboarding page')).not.toBeInTheDocument();
   });
 

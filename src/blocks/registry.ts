@@ -196,7 +196,7 @@ export const BLOCKS: Block[] = [
     priority: 30,
     showIf: (p) => p.path === 'browsing',
     kind: 'services',
-    ctaTo: '/pricing',
+    ctaTo: '/services',
   },
   {
     id: 'relocateNudge',

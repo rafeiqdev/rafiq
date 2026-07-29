@@ -41,7 +41,6 @@ export type AnalyticsEventType =
   | 'payment_submitted'
   | 'whatsapp_clicked'
   | 'lang_changed'
-  | 'guide_viewed'
   | 'search_performed'
   | 'paywall_shown'
   | 'upgrade_clicked';

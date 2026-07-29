@@ -20,17 +20,16 @@ import { ConsentBanner } from './ConsentBanner';
 // footer chrome entirely for these so the mobile screen isn't sandwiched
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
-const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/pricing', '/checkout', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
 
 // Dropping the desktop chrome on phones also dropped the footer, so the terms /
 // privacy / refund block and the language switcher were unreachable from every
 // mobile screen. These are the chrome-free routes that DO scroll normally, so a
-// footer can be appended to them; the app-shell screens (/auth, /checkout,
-// /premium, /chat, /map, /help) are fixed-height flex layouts that own
+// footer can be appended to them; the app-shell screens (/auth, /premium,
+// /chat, /map, /help) are fixed-height flex layouts that own
 // the whole viewport and must stay footer-free.
 const MOBILE_FOOTER_ROUTES = new Set([
   '/',
-  '/pricing',
   '/services',
   '/hub',
   '/tricks',
@@ -61,7 +60,6 @@ const NAV: NavItem[] = [
   { to: '/', key: 'nav.home', icon: 'home' },
   { to: '/premium', key: 'nav.premium', icon: 'message-circle' },
   { to: '/map', key: 'nav.map', icon: 'map' },
-  { to: '/pricing', key: 'nav.pricing', icon: 'credit-card' },
 ];
 
 const SERVICE_LINKS: NavItem[] = [
@@ -426,9 +424,9 @@ export function Layout() {
 
       {!hideChrome && <SiteFooter />}
       {showMobileFooter && <SiteFooter variant="mobile" />}
-      {/* The six app-shell routes (/auth /checkout /premium /chat /map /help)
-          have neither header nor footer on phones — without this a visitor
-          landing on /auth in the wrong language had NO way to change it. */}
+      {/* The app-shell routes (/auth /premium /chat /map /help) have neither
+          header nor footer on phones — without this a visitor landing on
+          /auth in the wrong language had NO way to change it. */}
       {/* z-[60]: must stay clickable above the consent banner (z-50) — a
           first-time visitor in the wrong language has both on screen at once */}
       {hideChrome && !showMobileFooter && (

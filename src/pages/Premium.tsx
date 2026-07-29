@@ -143,12 +143,8 @@ function ChatUI() {
     } catch {
       /* ignore */
     }
-    const now = Date.now();
-    setTopicStarts(readTopicStarts(userId, now));
-    setNowTs(now);
     setCurrentSubject(null);
     saveSubject(userId, null);
-    setLimitHit(false);
   };
 
   // Web Speech API (browser-dependent). Only show the mic button if supported.

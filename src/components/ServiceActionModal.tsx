@@ -13,9 +13,6 @@ import { track } from '../lib/analytics';
  * Shown when a user picks a service. Two ways to handle it:
  *  - AI assistant → the AI chat (/premium), pre-pointed at this service.
  *  - Get a person → the service-request form (field assistant).
- *
- * The old "read the guide yourself" option was removed on request; the guides
- * themselves are untouched and still reachable from /services/:slug and /hub.
  */
 export function ServiceActionModal({ service, onClose }: { service: ServiceItem; onClose: () => void }) {
   const { t, i18n } = useTranslation();
@@ -49,7 +46,7 @@ export function ServiceActionModal({ service, onClose }: { service: ServiceItem;
     <Modal onClose={onClose} labelId="service-action-title" maxWidth="max-w-md">
       <div className="card p-4 sm:p-5">
         <h2 id="service-action-title" className="text-base font-extrabold text-navy text-center">
-          {t('guide.choice.title')}
+          {t('serviceAction.choice.title')}
         </h2>
         <p className="mt-0.5 text-center text-xs text-navy/60">{pickText(service.title, i18n.language)}</p>
 
@@ -57,19 +54,19 @@ export function ServiceActionModal({ service, onClose }: { service: ServiceItem;
           <ChoiceCard
             icon="message-circle"
             iconAccent="bg-gold text-white"
-            badge={t('guide.choice.ai.badge')}
+            badge={t('serviceAction.choice.ai.badge')}
             badgeClass="bg-gold-soft text-gold-dark"
-            label={t('guide.choice.ai.label')}
-            subtitle={t('guide.choice.ai.subtitle')}
+            label={t('serviceAction.choice.ai.label')}
+            subtitle={t('serviceAction.choice.ai.subtitle')}
             onClick={goAi}
           />
           <ChoiceCard
             icon="users"
             iconAccent="bg-brand-red text-white"
-            badge={t('guide.choice.person.badge')}
+            badge={t('serviceAction.choice.person.badge')}
             badgeClass="bg-navy text-white"
-            label={t('guide.choice.person.label')}
-            subtitle={t('guide.choice.person.subtitle')}
+            label={t('serviceAction.choice.person.label')}
+            subtitle={t('serviceAction.choice.person.subtitle')}
             onClick={getPerson}
           />
         </div>

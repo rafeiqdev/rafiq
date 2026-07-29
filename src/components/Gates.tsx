@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { AppIcon, DirArrow } from './AppIcon';
@@ -18,26 +18,18 @@ function GatePending() {
   );
 }
 
-/** Sign-in wall for auth-gated routes. */
+/**
+ * Sign-in wall for auth-gated routes. A guest is sent straight to /auth
+ * (rather than shown an inline "sign in required" card) and Auth.tsx sends
+ * them right back here once they're signed in.
+ */
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { t } = useTranslation();
   const { user, authLoading } = useApp();
+  const location = useLocation();
   if (authLoading) return <GatePending />;
   if (user) return <>{children}</>;
-  return (
-    <div className="mx-auto max-w-md px-4 py-20 text-center">
-      <div className="card p-8">
-        <div className="icon-chip mx-auto">
-          <AppIcon name="lock" className="w-6 h-6" />
-        </div>
-        <h1 className="mt-4 text-xl font-extrabold text-navy">{t('gates.authRequired.title')}</h1>
-        <p className="mt-2 text-sm text-gray-500">{t('gates.authRequired.body')}</p>
-        <Link to="/auth" className="btn-primary w-full mt-6">
-          {t('gates.authRequired.cta')}
-        </Link>
-      </div>
-    </div>
-  );
+  const from = `${location.pathname}${location.search}`;
+  return <Navigate to="/auth" state={{ from }} replace />;
 }
 
 /**
@@ -106,55 +98,5 @@ export function RequireCompany({ children }: { children: ReactNode }) {
         </div>
       </div>
     </RequireAuth>
-  );
-}
-
-/** Up-sell shield for Pro/Elite features. */
-export function UpsellGate({
-  titleKey,
-  bodyKey,
-  ctaKey,
-  children,
-  blurredPreview,
-}: {
-  titleKey: string;
-  bodyKey: string;
-  ctaKey: string;
-  children?: ReactNode;
-  blurredPreview?: ReactNode;
-}) {
-  const { t } = useTranslation();
-  const { tier, user, authLoading } = useApp();
-  // `tier` defaults to 'free', so a paying user would see the up-sell flash
-  // before their subscription loads.
-  if (authLoading) return <GatePending />;
-  // Admins pass without a subscription: they have to be able to QA paid
-  // features, and the database already encodes exactly this (RLS on places is
-  // `has_pro() or is_admin()`). Without it an admin is walled out of the very
-  // pages they administer.
-  const allowed = tier === 'pro' || tier === 'elite' || Boolean(user?.isAdmin);
-  if (allowed) return <>{children}</>;
-
-  return (
-    <div className="relative">
-      {blurredPreview && (
-        <div className="pointer-events-none select-none blur-md opacity-60" aria-hidden>
-          {blurredPreview}
-        </div>
-      )}
-      <div className={blurredPreview ? 'absolute inset-0 flex items-center justify-center' : 'py-16'}>
-        <div className="card p-8 max-w-md mx-auto text-center shadow-cardHover">
-          <div className="icon-chip mx-auto">
-            <AppIcon name="sparkles" className="w-6 h-6" />
-          </div>
-          <h2 className="mt-4 text-xl font-extrabold text-navy">{t(titleKey)}</h2>
-          <p className="mt-2 text-sm text-gray-500">{t(bodyKey)}</p>
-          <Link to="/pricing" className="btn-primary w-full mt-6">
-            {t(ctaKey)}
-            <DirArrow />
-          </Link>
-        </div>
-      </div>
-    </div>
   );
 }

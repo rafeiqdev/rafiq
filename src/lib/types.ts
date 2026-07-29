@@ -116,12 +116,6 @@ export type PlanTier = 'free' | 'light' | 'pro' | 'elite';
 export type Billing = 'monthly' | 'annual';
 export type PayMethod = 'card' | 'bank' | 'crypto';
 
-export const PLAN_PRICES: Record<Exclude<PlanTier, 'free'>, number> = {
-  light: 799,
-  pro: 1599,
-  elite: 3199,
-};
-
 export type UserRole = 'user' | 'admin' | 'company';
 
 export interface User {

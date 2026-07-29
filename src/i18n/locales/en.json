@@ -58,7 +58,6 @@
     "premium": "AI Assistant",
     "map": "Map",
     "hub": "Guides",
-    "pricing": "Pricing",
     "tricks": "Istanbul Tricks",
     "residency": "Residency",
     "realEstate": "Real Estate",
@@ -273,7 +272,6 @@
     },
     "stats": {
       "languages": "Supported languages",
-      "guides": "Practical guides & articles",
       "users": "Users helped by Rafiq",
       "services": "Transactions & fields covered"
     }
@@ -484,8 +482,8 @@
   "auth": {
     "title": "Welcome back",
     "registerTitle": "Create your account",
-    "subtitle": "Sign in to sync your plan, documents and subscription.",
-    "registerSubtitle": "Create a free account to save your plan, documents and subscription.",
+    "subtitle": "Sign in to sync your plan, documents and bookings.",
+    "registerSubtitle": "Create a free account to save your plan, documents and bookings.",
     "google": "Continue with Google",
     "or": "or with email",
     "noAccount": "No account yet? Create one",
@@ -521,67 +519,6 @@
       "profileMissing": "You signed in successfully, but your account setup is incomplete, so we can't open it. Signing in again will not fix this. Please contact support and we'll sort it out for you.",
       "generic": "Sign-in failed. Please try again."
     }
-  },
-  "pricing": {
-    "title": "Choose your plan",
-    "subtitle": "Upgrade anytime. Cancel anytime.",
-    "annualNote": "2 months free with annual billing",
-    "choose": "Choose {{plan}}",
-    "current": "Current plan",
-    "light": {
-      "name": "Light",
-      "desc": "The essentials for getting started",
-      "features": [
-        "All guides in 4 languages",
-        "Personalized checklist",
-        "Renewal reminders",
-        "Email support"
-      ]
-    },
-    "pro": {
-      "name": "Pro",
-      "desc": "Full power: AI assistant + map",
-      "features": [
-        "Everything in Light",
-        "Unlimited AI consultations",
-        "Interactive services map",
-        "Free expert appointments",
-        "Document locker"
-      ]
-    },
-    "elite": {
-      "name": "Elite",
-      "desc": "White-glove relocation support",
-      "features": [
-        "Everything in Pro",
-        "Dedicated personal advisor",
-        "Airport VIP pickup",
-        "Paperwork done for you",
-        "Priority bookings"
-      ]
-    },
-    "active": {
-      "title": "Your subscription",
-      "plan": "Plan",
-      "daysRemaining": "{{count}} days remaining",
-      "renews": "Renews on {{date}}",
-      "cancelBtn": "Cancel subscription"
-    },
-    "cancelFlow": {
-      "title": "We're sorry to see you go",
-      "reasonLabel": "Why are you cancelling?",
-      "tooExpensive": "Too expensive",
-      "notUsing": "Not using it enough",
-      "missingFeatures": "Missing features I need",
-      "movedAway": "I left Turkey",
-      "other": "Other",
-      "comments": "Anything we could do better?",
-      "confirm": "Confirm cancellation",
-      "keep": "Keep my plan",
-      "done": "Your subscription has been cancelled. It stays active until the end of the paid period."
-    },
-    "upgrade": "Upgrade to {{plan}}",
-    "downgrade": "Downgrade to {{plan}}"
   },
   "checkout": {
     "title": "Checkout",
@@ -646,23 +583,10 @@
     "bookCta": "Book a free appointment",
     "error": "The assistant is unavailable right now.",
     "retry": "Retry",
-    "previewLeft": "{{count}} free messages left",
-    "gate": {
-      "title": "AI Assistant is a Pro feature",
-      "body": "Upgrade to Pro or Elite to chat with Rafiq AI without limits and book free expert appointments.",
-      "cta": "See plans"
-    },
     "topicSeed": "I need help with: {{service}}",
     "newsSeed": "I'd like to ask about this news from Rafiq:\n«{{title}}»\n\n{{body}}",
     "voice": "Voice input",
     "newTopic": "New topic",
-    "topicsLeft": "{{count}} of {{total}} topics left today",
-    "limit": {
-      "title": "You've reached today's limit",
-      "body": "Free accounts can open {{total}} topics every 24 hours. You can start a new topic in:",
-      "cta": "Try our plans",
-      "continueHint": "You can still continue your current topic."
-    },
     "attach": "Attach a file",
     "attaching": "Uploading...",
     "attachTooBig": "That file is too large. Maximum 50 MB.",
@@ -757,11 +681,6 @@
       "openInMaps": "Open in Google Maps",
       "searchTitle": "Place search isn't available right now",
       "searchBody": "Please try again a little later, or browse the categories above."
-    },
-    "locked": {
-      "title": "Upgrade to unlock the map",
-      "body": "50+ vetted places — restaurants, hospitals, banks and notaries, each one checked by Rafiq. The full interactive map opens with Pro or Elite.",
-      "cta": "Unlock with Pro"
     },
     "directory": {
       "title": "Service directory",
@@ -906,26 +825,9 @@
       "broadcastNote": "We'll share this request with trusted companies near you so they can compete for it. Your phone number stays private."
     }
   },
-  "serviceGuides": {
-    "learnDetails": "Learn the details",
-    "whoFor": "Who is this for / when you need it",
-    "documents": "Required documents",
-    "steps": "Steps",
-    "duration": "Estimated time",
-    "cost": "Estimated fees",
-    "mistakes": "Common mistakes & tips",
-    "rafiqHelp": "How Rafiq helps you",
-    "disclaimer": "Fees and durations are estimates and change — confirmed by the Rafiq team on request.",
-    "independent": "Rafiq Istanbul is an independent guidance service, not a government body.",
-    "translationNote": "This guide is currently shown in Arabic; full translation is coming soon."
-  },
-  "guide": {
+  "serviceAction": {
     "choice": {
       "title": "How would you like to handle this?",
-      "diy": {
-        "label": "Read how to do it yourself",
-        "subtitle": "A detailed step-by-step guide"
-      },
       "person": {
         "label": "Get help from a person",
         "subtitle": "Our team handles it with you",
@@ -936,32 +838,7 @@
         "subtitle": "Chat about this service, instant answers",
         "badge": "Instant"
       }
-    },
-    "badge": {
-      "pro": "Pro",
-      "free": "Free"
-    },
-    "paywall": {
-      "title": "This detailed guide is exclusive to Pro members",
-      "body": "You've previewed the first step. Upgrade to see all steps, documents and official links — or get a person for free.",
-      "upgrade": "⭐ Upgrade to Pro",
-      "useFree": "Or get a person for free →"
-    },
-    "section": {
-      "steps": "Steps",
-      "documents": "Required documents",
-      "where": "Where to go + official links",
-      "cost": "Fees & duration",
-      "mistakes": "Common mistakes",
-      "whenHelp": "When to use a person"
-    },
-    "diy": {
-      "yes": "You can do this yourself",
-      "partial": "Partly DIY",
-      "expert": "Better with an expert"
-    },
-    "notAvailable": "This guide isn't published yet — our team can do it with you.",
-    "previewLabel": "Preview"
+    }
   },
   "hub": {
     "title": "Guides hub",

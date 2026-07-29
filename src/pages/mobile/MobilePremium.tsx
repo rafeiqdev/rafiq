@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { ai, ApiError, bookings, news } from '../../lib/api';
@@ -150,12 +150,8 @@ function MobileChatUI() {
     } catch {
       /* ignore */
     }
-    const now = Date.now();
-    setTopicStarts(readTopicStarts(userId, now));
-    setNowTs(now);
     setCurrentSubject(null);
     saveSubject(userId, null);
-    setLimitHit(false);
   };
 
   const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -359,11 +355,6 @@ function MobileChatUI() {
           </div>
         </div>
         <div className="relative mt-2.5 flex items-center gap-2 flex-wrap">
-          {!hasPlan && (
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/90">
-              {t('chat.topicsLeft', { count: quota.remaining, total: FREE_TOPICS_PER_DAY })}
-            </span>
-          )}
           {archive.length > 0 && (
             <button onClick={() => setHistoryOpen(true)} className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold text-white">
               <AppIcon name="message-circle" className="w-3.5 h-3.5" />
@@ -436,24 +427,6 @@ function MobileChatUI() {
           </div>
         )}
 
-        {/* daily topic limit: countdown to the next free slot + upgrade path */}
-        {showLimitPanel && (
-          <div className="card animate-pop mt-1.5 w-full max-w-[300px] self-center p-6 text-center" role="status">
-            <div className="icon-chip mx-auto">
-              <AppIcon name="hourglass" />
-            </div>
-            <h2 className="mt-3 text-[16px] font-extrabold text-navy">{t('chat.limit.title')}</h2>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{t('chat.limit.body', { total: FREE_TOPICS_PER_DAY })}</p>
-            <p className="mt-3 text-[28px] font-extrabold tabular-nums text-navy" dir="ltr">
-              {formatCountdown(quota.msUntilReset)}
-            </p>
-            {!noActiveTopic && <p className="mt-2 text-[12px] leading-relaxed text-navy/60">{t('chat.limit.continueHint')}</p>}
-            <Link to="/pricing" className="btn-primary mt-4 flex min-h-[52px] w-full text-[15px]">
-              <AppIcon name="sparkles" className="w-4 h-4" />
-              {t('chat.limit.cta')}
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* ── Input bar: pinned above the safe-area bottom inset ── */}

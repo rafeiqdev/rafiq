@@ -68,6 +68,5 @@ export const EXPLORE_PHOTOS: Record<string, string> = {
   '/map': U('1527838832700-5059252407fa', 800), // Bosphorus
   '/hub': U('1532012197267-da84d127e765', 800), // books / guides
   '/referrals': U('1521737604893-d14cc237f11d', 800), // people / meeting
-  '/pricing': U('1512917774080-9991f1c4c750', 800), // modern interior
 };
 

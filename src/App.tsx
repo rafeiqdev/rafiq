@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
 import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
+import { popPostAuthRedirect } from './lib/authRedirect';
 import { DEFAULT_LANG, langFromPath } from './i18n';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -55,18 +56,12 @@ const Auth = lazyPage(() => import('./pages/Auth').then((m) => ({ default: m.Aut
 const MobileAuth = lazyPage(() => import('./pages/mobile/MobileAuth').then((m) => ({ default: m.MobileAuth })));
 const ResetPassword = lazyPage(() => import('./pages/ResetPassword').then((m) => ({ default: m.ResetPassword })));
 const MobileHome = lazyPage(() => import('./pages/mobile/MobileHome').then((m) => ({ default: m.MobileHome })));
-const MobilePricing = lazyPage(() => import('./pages/mobile/MobilePricing').then((m) => ({ default: m.MobilePricing })));
-const Pricing = lazyPage(() => import('./pages/Pricing').then((m) => ({ default: m.Pricing })));
-const Checkout = lazyPage(() => import('./pages/Checkout').then((m) => ({ default: m.Checkout })));
-const MobileCheckout = lazyPage(() => import('./pages/mobile/MobileCheckout').then((m) => ({ default: m.MobileCheckout })));
 const Premium = lazyPage(() => import('./pages/Premium').then((m) => ({ default: m.Premium })));
 const MobilePremium = lazyPage(() => import('./pages/mobile/MobilePremium').then((m) => ({ default: m.MobilePremium })));
 const HelpRequest = lazyPage(() => import('./pages/HelpRequest').then((m) => ({ default: m.HelpRequest })));
 const MobileHelpRequest = lazyPage(() => import('./pages/mobile/MobileHelpRequest').then((m) => ({ default: m.MobileHelpRequest })));
 const Services = lazyPage(() => import('./pages/Services').then((m) => ({ default: m.Services })));
 const MobileServices = lazyPage(() => import('./pages/mobile/MobileServices').then((m) => ({ default: m.MobileServices })));
-const GuidePage = lazyPage(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
-const MobileGuidePage = lazyPage(() => import('./pages/mobile/MobileGuidePage').then((m) => ({ default: m.MobileGuidePage })));
 const MapPage = lazyPage(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 const MobileMapPage = lazyPage(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
 const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
@@ -153,6 +148,18 @@ function ReferralQueryCapture() {
  */
 function HomeGate({ isMobile }: { isMobile: boolean }) {
   const { user, authLoading, onboardingCompleted } = useApp();
+  const navigate = useNavigate();
+
+  // Google sign-in is a full-page redirect, so a page that sent the guest to
+  // /auth (e.g. /map) stashed its path here rather than in router state — an
+  // effect (not the render body) reads it, so it survives StrictMode's
+  // double-render in dev.
+  useEffect(() => {
+    if (!user || !onboardingCompleted) return;
+    const pending = popPostAuthRedirect();
+    if (pending) navigate(pending, { replace: true });
+  }, [user, onboardingCompleted, navigate]);
+
   if (authLoading) return <Spinner chromeless={false} />;
   if (user) return onboardingCompleted ? <UserHome /> : <Navigate to="/onboarding" replace />;
   return isMobile ? <MobileHome /> : <Home />;
@@ -203,14 +210,11 @@ function Shell() {
             <Route path="/" element={<HomeGate isMobile={isMobile} />} />
             <Route path="/auth" element={isMobile ? <MobileAuth /> : <Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/pricing" element={isMobile ? <MobilePricing /> : <Pricing />} />
-            <Route path="/checkout" element={isMobile ? <MobileCheckout /> : <Checkout />} />
             <Route path="/premium" element={isMobile ? <MobilePremium /> : <Premium />} />
             {/* Legacy alias — redirects, query string intact. See LegacyRedirects.tsx */}
             <Route path="/chat" element={<ChatRedirect />} />
             <Route path="/help" element={isMobile ? <MobileHelpRequest /> : <HelpRequest />} />
             <Route path="/services" element={isMobile ? <MobileServices /> : <Services />} />
-            <Route path="/services/:slug" element={isMobile ? <MobileGuidePage /> : <GuidePage />} />
             <Route path="/map" element={isMobile ? <MobileMapPage /> : <MapPage />} />
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
             <Route path="/residency" element={isMobile ? <MobileResidency /> : <Residency />} />

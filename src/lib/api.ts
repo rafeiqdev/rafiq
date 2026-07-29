@@ -475,16 +475,6 @@ export const journey = {
   },
 };
 
-// ---------- subscriptions / payments ----------------------------------------
-
-export const subscriptions = {
-  async cancel(reason: string, comment: string): Promise<{ subscription: unknown }> {
-    const { error } = await sb().rpc('cancel_my_subscription', { p_reason: reason, p_comment: comment });
-    if (error) fail(error);
-    return { subscription: null };
-  },
-};
-
 const DEFAULT_CHECKOUT = PLACEHOLDER_CHECKOUT;
 
 /**
@@ -1761,43 +1751,6 @@ export const serviceRequests = {
         ownerEmail: owner?.email ?? null,
       };
     });
-  },
-};
-
-// ---------- Pro self-help guides (server-gated content) ---------------------
-
-export interface GuideContent {
-  problem?: string;
-  steps?: string[];
-  documents?: string[];
-  where?: string[];
-  links?: { label: string; url: string }[];
-  cost?: string;
-  duration?: string;
-  mistakes?: string[];
-  whenGetHelp?: string;
-}
-export interface GuideResult {
-  found: boolean;
-  locked?: boolean;
-  slug?: string;
-  lang?: string;
-  diyLevel?: 'yes' | 'partial' | 'expert';
-  content?: GuideContent;
-}
-
-export const guides = {
-  /** Full guide for pro/elite/admin, else a first-step preview — decided server-side. */
-  async get(slug: string, lang: string): Promise<GuideResult> {
-    const { data, error } = await sb().rpc('get_guide', { p_slug: slug, p_lang: lang });
-    if (error) fail(error);
-    return (data ?? { found: false }) as GuideResult;
-  },
-  /** Slugs that have a published guide (for showing a "guide available" hint). */
-  async publishedSlugs(): Promise<Set<string>> {
-    const { data, error } = await sb().rpc('published_guide_slugs');
-    if (error) return new Set();
-    return new Set(((data ?? []) as { service_slug: string }[]).map((r) => r.service_slug));
   },
 };
 

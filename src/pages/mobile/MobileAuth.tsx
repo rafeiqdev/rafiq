@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { auth as authApi } from '../../lib/api';
 import { AppIcon } from '../../components/AppIcon';
+import { stashPostAuthRedirect } from '../../lib/authRedirect';
 
 const ERROR_KEYS: Record<string, string> = {
   user_not_found: 'auth.errors.userNotFound',
@@ -42,6 +43,8 @@ function GoogleIcon() {
 export function MobileAuth() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
   const { user, login, register, googleSignIn, signOut } = useApp();
 
   const [mode, setMode] = useState<'signin' | 'register'>('signin');
@@ -86,6 +89,7 @@ export function MobileAuth() {
     setError(null);
     setBusy(true);
     try {
+      if (from) stashPostAuthRedirect(from);
       // Supabase OAuth full-page redirect — nothing else runs client-side on success.
       await googleSignIn();
     } catch {
@@ -107,14 +111,14 @@ export function MobileAuth() {
     try {
       if (mode === 'signin') {
         await login(email, password);
-        navigate('/');
+        navigate(from ?? '/');
       } else {
         const result = await register(email, password, name);
         if (result?.needsConfirmation) {
           setNotice('auth.checkEmail');
           setMode('signin');
         } else {
-          navigate('/');
+          navigate(from ?? '/');
         }
       }
     } catch (err) {

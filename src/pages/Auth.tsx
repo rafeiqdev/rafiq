@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { ApiError, auth as authApi } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
+import { stashPostAuthRedirect } from '../lib/authRedirect';
 
 /**
  * Where a just-signed-in user lands: onboarding until it's completed, then the
@@ -51,6 +52,8 @@ export function Auth() {
   const { t } = useTranslation();
   const { user, login, register, googleSignIn, signOut } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
   const [mode, setMode] = useState<'signin' | 'register' | 'forgot'>('signin');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -66,6 +69,7 @@ export function Auth() {
     setNotice(null);
     setBusy(true);
     try {
+      if (from) stashPostAuthRedirect(from);
       await googleSignIn();
       // redirect happens; nothing else runs here on success
     } catch {
@@ -89,14 +93,14 @@ export function Auth() {
         setNotice('auth.reset.sent');
       } else if (mode === 'signin') {
         await login(email, password);
-        navigate(await landingRoute(), { replace: true });
+        navigate(from ?? (await landingRoute()), { replace: true });
       } else {
         const { needsConfirmation } = await register(email, password, name);
         if (needsConfirmation) {
           setNotice('auth.checkEmail');
           setMode('signin');
         } else {
-          navigate(await landingRoute(), { replace: true });
+          navigate(from ?? (await landingRoute()), { replace: true });
         }
       }
     } catch (e) {
