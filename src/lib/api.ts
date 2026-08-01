@@ -127,10 +127,25 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
 interface ListingRow {
   id: string; district: string; rooms: string; m2: number; price_usd: number; citizenship: boolean;
   image: string | null; description: string | null; bathrooms: number | null; furnished: boolean; images: string[] | null;
+  // Optional columns (real-estate revamp). Absent on databases that have not
+  // run the migration yet — every reader must treat them as possibly undefined.
+  listing_type?: string | null; floor?: number | null; total_floors?: number | null;
+  build_status?: string | null; yield_pct?: number | null; amenities?: string[] | null;
+  updated_at?: string | null;
 }
 const toListing = (r: ListingRow): Listing => ({
   id: r.id, district: r.district, rooms: r.rooms, m2: r.m2, priceUsd: r.price_usd, citizenship: r.citizenship,
   image: r.image, description: r.description, bathrooms: r.bathrooms, furnished: r.furnished, images: r.images ?? [],
+  // Columns below ship with the real-estate revamp. They are read defensively
+  // so the page keeps working against a database that has not run the
+  // migration yet — `select('*')` just returns undefined for them.
+  listingType: (r.listing_type as Listing['listingType']) ?? 'sale',
+  floor: r.floor ?? null,
+  totalFloors: r.total_floors ?? null,
+  buildStatus: (r.build_status as Listing['buildStatus']) ?? null,
+  yieldPct: r.yield_pct ?? null,
+  amenities: Array.isArray(r.amenities) ? r.amenities : [],
+  updatedAt: r.updated_at ?? null,
 });
 const fromListing = (l: ListingInput) => ({
   district: l.district, rooms: l.rooms, m2: l.m2, price_usd: l.priceUsd, citizenship: l.citizenship,

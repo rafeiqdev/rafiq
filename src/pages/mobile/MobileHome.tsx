@@ -12,6 +12,7 @@ import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
 import { Testimonials } from '../../components/sections/Testimonials';
 import { NewsSection } from '../../components/sections/NewsSection';
+import { RealEstateSection } from '../../components/sections/RealEstateSection';
 import { LocalBusinessSchema } from '../../components/LocalBusinessSchema';
 // Label only — this screen keeps its own inline bar (see the tabs array below).
 import { tabRequestsLabel } from '../../components/MobileTabBar';
@@ -335,6 +336,9 @@ export function MobileHome() {
             ))}
           </ol>
         </section>
+
+        {/* ================= REAL ESTATE ================= */}
+        <RealEstateSection compact />
 
         {/* ================= NEWS (mirrors the Telegram channel) ================= */}
         <NewsSection compact />

@@ -68,6 +68,10 @@ const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ defa
 const MobileReferrals = lazyPage(() => import('./pages/mobile/MobileReferrals').then((m) => ({ default: m.MobileReferrals })));
 const RealEstate = lazyPage(() => import('./pages/RealEstate').then((m) => ({ default: m.RealEstate })));
 const MobileRealEstate = lazyPage(() => import('./pages/mobile/MobileRealEstate').then((m) => ({ default: m.MobileRealEstate })));
+const RealEstateDetail = lazyPage(() => import('./pages/RealEstateDetail').then((m) => ({ default: m.RealEstateDetail })));
+const MobileRealEstateDetail = lazyPage(() => import('./pages/mobile/MobileRealEstateDetail').then((m) => ({ default: m.MobileRealEstateDetail })));
+const MobileListingServices = lazyPage(() => import('./pages/mobile/MobileListingServices').then((m) => ({ default: m.MobileListingServices })));
+const RealEstateInvestments = lazyPage(() => import('./pages/RealEstateInvestments').then((m) => ({ default: m.RealEstateInvestments })));
 const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
 const MobileHealthTourism = lazyPage(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
 const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
@@ -220,6 +224,14 @@ function Shell() {
             <Route path="/map" element={isMobile ? <MobileMapPage /> : <MapPage />} />
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
             <Route path="/real-estate" element={isMobile ? <MobileRealEstate /> : <RealEstate />} />
+            {/* `investments` is declared before `:id` so the literal path wins
+                over the dynamic listing route. */}
+            <Route path="/real-estate/investments" element={<RealEstateInvestments />} />
+            <Route path="/real-estate/:id" element={isMobile ? <MobileRealEstateDetail /> : <RealEstateDetail />} />
+            <Route
+              path="/real-estate/:id/services"
+              element={isMobile ? <MobileListingServices /> : <RealEstateDetail />}
+            />
             <Route path="/health-tourism" element={isMobile ? <MobileHealthTourism /> : <HealthTourism />} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
             <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />

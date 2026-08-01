@@ -1,115 +1,54 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ApiError, leads, listings as listingsApi } from '../lib/api';
-import type { Listing } from '../lib/types';
-import { useApp } from '../context/AppContext';
+import { listings as listingsApi } from '../lib/api';
+import type { Listing, ListingType } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
-import { Modal } from '../components/Modal';
 import { PageHero } from '../components/PageHero';
-import { BANNERS, LISTING_PHOTOS } from '../lib/images';
+import { ListingCard } from '../components/realestate/ListingCard';
+import { FilterPanel } from '../components/realestate/FilterPanel';
+import {
+  EMPTY_FILTERS,
+  activeFilterCount,
+  applyFilters,
+  districtsOf,
+  type ListingFilters,
+} from '../lib/listingFilters';
+import { BANNERS } from '../lib/images';
 import { SITE_URL, usePageMeta } from '../lib/seo';
 
-/**
- * Listing photo with layered fallback: the listing's own image → a curated
- * Istanbul property photo (by index) → the brand gradient. Always shows a photo.
- */
-function ListingImage({ listing, index }: { listing: Listing; index: number }) {
-  const sources = [listing.image, LISTING_PHOTOS[index % LISTING_PHOTOS.length]].filter(Boolean) as string[];
-  const [srcIdx, setSrcIdx] = useState(0);
-  const src = sources[srcIdx];
-  return (
-    <div className="img-zoom relative h-40">
-      {src ? (
-        <img
-          src={src}
-          alt={listing.district}
-          loading="lazy"
-          decoding="async"
-          onError={() => setSrcIdx((i) => i + 1)}
-          className="h-40 w-full object-cover"
-        />
-      ) : (
-        <div className="h-40 w-full bg-gradient-to-br from-navy to-navy-light flex items-center justify-center">
-          <AppIcon name="building" className="w-14 h-14 text-white/40" />
-        </div>
-      )}
-    </div>
-  );
-}
+const TABS: ListingType[] = ['sale', 'rent', 'commercial'];
+const PAGE_SIZE = 12;
 
-const CHIP = 'inline-flex items-center gap-1 rounded-full bg-cream-dark text-navy/80 text-xs font-semibold px-3 py-1';
-
-function imagesOf(l: Listing, index = 0): string[] {
-  const imgs = (l.images && l.images.length ? l.images : [l.image].filter(Boolean)) as string[];
-  return imgs.length ? imgs : [LISTING_PHOTOS[index % LISTING_PHOTOS.length]];
-}
-
-/** Full detail view for a listing: photo gallery + specs + description + request. */
-function ListingDetail({
-  listing, index, requested, onRequest, onClose,
-}: {
-  listing: Listing; index: number; requested: boolean; onRequest: () => void; onClose: () => void;
-}) {
+/** Wide, short banner linking to the investment-opportunities section. */
+export function InvestmentStrip() {
   const { t } = useTranslation();
-  const imgs = imagesOf(listing, index);
-  const [active, setActive] = useState(0);
   return (
-    <Modal onClose={onClose} labelId="listing-detail" maxWidth="max-w-2xl">
-      <div className="card overflow-hidden max-h-[88vh] overflow-y-auto">
-        <div className="relative">
-          <img src={imgs[active]} alt={listing.district} className="w-full h-64 sm:h-80 object-cover" />
-          {listing.citizenship && (
-            <span className="absolute top-3 end-3 rounded-full bg-brand-red text-white text-xs font-bold px-3 py-1">
-              {t('realEstate.citizenshipBadge')}
-            </span>
-          )}
-        </div>
-        {imgs.length > 1 && (
-          <div className="flex gap-2 p-3 overflow-x-auto">
-            {imgs.map((u, i) => (
-              <button
-                key={u}
-                onClick={() => setActive(i)}
-                className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${i === active ? 'border-navy' : 'border-transparent'}`}
-              >
-                <img src={u} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="p-5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <h2 id="listing-detail" className="text-xl font-extrabold text-navy">{listing.district}</h2>
-            <p className="text-xl font-extrabold text-navy" dir="ltr">${listing.priceUsd.toLocaleString()}</p>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className={CHIP}><AppIcon name="building" className="w-3.5 h-3.5" /> {listing.rooms}</span>
-            <span className={CHIP} dir="ltr">{listing.m2} m²</span>
-            {listing.bathrooms ? <span className={CHIP}>{t('realEstate.bathrooms', { count: listing.bathrooms })}</span> : null}
-            {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
-          </div>
-          {listing.description && (
-            <p className="mt-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line">{listing.description}</p>
-          )}
-          <button onClick={onRequest} disabled={requested} className="btn-primary w-full mt-5 disabled:opacity-60">
-            {requested && <AppIcon name="check" className="w-4 h-4" />}
-            {requested ? t('realEstate.requested') : t('realEstate.cta')}
-          </button>
-        </div>
+    <Link
+      to="/real-estate/investments"
+      className="mt-5 flex items-center gap-4 rounded-card bg-gradient-to-r from-gold-dark via-gold to-navy text-white px-5 py-4 shadow-card hover:shadow-cardHover transition-shadow"
+    >
+      <span className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 border border-white/25 shrink-0">
+        <AppIcon name="trending-up" className="w-5 h-5" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <h2 className="font-extrabold leading-snug">{t('realEstate.invest.title')}</h2>
+        <p className="text-sm text-white/75 line-clamp-2">{t('realEstate.invest.body')}</p>
       </div>
-    </Modal>
+      <span className="hidden sm:inline-flex items-center gap-1 rounded-btn bg-white text-navy font-bold px-4 h-10 shrink-0">
+        {t('realEstate.invest.cta')}
+        <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
+      </span>
+    </Link>
   );
 }
 
 export function RealEstate() {
   const { t } = useTranslation();
-  const { user } = useApp();
-  const navigate = useNavigate();
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [requested, setRequested] = useState<Record<string, boolean>>({});
-  const [detail, setDetail] = useState<Listing | null>(null);
+  const [filters, setFilters] = useState<ListingFilters>(EMPTY_FILTERS);
+  const [limit, setLimit] = useState(PAGE_SIZE);
 
   usePageMeta({
     title: `${t('realEstate.title')} — ${t('common.appName')}`,
@@ -120,39 +59,24 @@ export function RealEstate() {
   useEffect(() => {
     listingsApi
       .list()
-      .then(setListings)
+      .then(setAll)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  // requests are persisted leads — reflect existing ones after reload
-  useEffect(() => {
-    if (!user || listings.length === 0) return;
-    leads
-      .mine()
-      .then((mine) => {
-        const map: Record<string, boolean> = {};
-        for (const l of mine.filter((x) => x.kind === 'realestate')) {
-          const match = listings.find((li) => l.item.includes(li.district) && l.item.includes(li.rooms));
-          if (match) map[match.id] = true;
-        }
-        setRequested(map);
-      })
-      .catch(() => {});
-  }, [user, listings]);
+  const districts = useMemo(() => districtsOf(all), [all]);
+  const results = useMemo(() => applyFilters(all, filters), [all, filters]);
+  const shown = results.slice(0, limit);
+  const activeCount = activeFilterCount(filters);
 
-  const request = async (l: Listing) => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    try {
-      await leads.create('realestate', `${l.district} ${l.rooms} · $${l.priceUsd.toLocaleString()}`);
-      setRequested((r) => ({ ...r, [l.id]: true }));
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 401) navigate('/auth');
-    }
+  // Any change to the filters starts the list over — otherwise a user who had
+  // paged deep into one result set would land mid-way through the next.
+  const update = (next: ListingFilters) => {
+    setFilters(next);
+    setLimit(PAGE_SIZE);
   };
+
+  const reset = () => update({ ...EMPTY_FILTERS, type: filters.type, sort: filters.sort });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -161,76 +85,100 @@ export function RealEstate() {
       </div>
 
       <div className="mt-5 rounded-xl bg-brand-blue px-4 py-3 text-sm text-navy flex gap-2 items-start animate-fade-up">
-        <AppIcon name="shield-check" className="w-4 h-4 mt-0.5 shrink-0" />
-        <span>{t('realEstate.note')}</span>
+        <AppIcon name="info" className="w-4 h-4 mt-0.5 shrink-0" />
+        <span>{t('realEstate.citizenshipNotice')}</span>
       </div>
 
-      {loading ? (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="card h-80 animate-pulse bg-cream-dark/40" />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch stagger">
-          {listings.map((l, i) => (
-            <div
-              key={l.id}
-              onClick={() => setDetail(l)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setDetail(l)}
-              className="card card-hover flex flex-col overflow-hidden cursor-pointer"
-              style={{ '--i': i } as React.CSSProperties}
-            >
-              <ListingImage listing={l} index={i} />
-              <div className="p-4 flex flex-col flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="font-bold text-navy">{l.district}</h2>
-                  {l.citizenship && (
-                    <span className="rounded-full bg-brand-red/10 text-brand-red text-[10px] font-bold px-2 py-1">
-                      {t('realEstate.citizenshipBadge')}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-gray-500" dir="ltr">
-                  {l.rooms} · {l.m2} {t('realEstate.perM2')}
-                  {l.bathrooms ? ` · ${l.bathrooms} 🚿` : ''}
-                </p>
-                <p className="mt-2 text-lg font-extrabold text-navy" dir="ltr">
-                  ${l.priceUsd.toLocaleString()}
-                </p>
-                <span className="mt-1 text-xs font-semibold text-navy/60 inline-flex items-center gap-1">
-                  {t('realEstate.viewDetails')}
-                  <AppIcon name="arrow-right" className="w-3 h-3 dir-arrow" />
-                </span>
-                <div className="flex-1" />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    request(l);
-                  }}
-                  disabled={requested[l.id]}
-                  className="btn-primary w-full mt-4 disabled:opacity-60"
-                >
-                  {requested[l.id] && <AppIcon name="check" className="w-4 h-4" />}
-                  {requested[l.id] ? t('realEstate.requested') : t('realEstate.cta')}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* sale / rent / commercial */}
+      <div className="mt-5 inline-flex gap-1.5 rounded-card bg-white p-1.5 shadow-card">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => update({ ...filters, type: tab })}
+            className={`rounded-btn px-5 py-2 text-sm font-bold transition-colors ${
+              filters.type === tab ? 'bg-navy text-white' : 'text-gray-500 hover:text-navy'
+            }`}
+          >
+            {t(`realEstate.tabs.${tab}`)}
+          </button>
+        ))}
+      </div>
 
-      {detail && (
-        <ListingDetail
-          listing={detail}
-          index={Math.max(0, listings.indexOf(detail))}
-          requested={!!requested[detail.id]}
-          onRequest={() => request(detail)}
-          onClose={() => setDetail(null)}
-        />
-      )}
+      <InvestmentStrip />
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_272px] items-start">
+        {/* Results come first in the DOM on purpose: in an RTL grid the first
+            column lands on the right, which puts the filter column on the
+            left exactly as the design calls for — without absolute hacks. */}
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-sm text-gray-500">
+              <b className="text-navy text-base">{t('realEstate.results.count', { count: results.length })}</b>
+            </p>
+            <div className="flex-1" />
+            <select
+              aria-label={t('realEstate.sort.label')}
+              className="rounded-btn border-2 border-cream-dark bg-white px-3 py-2 text-sm text-navy"
+              value={filters.sort}
+              onChange={(e) => update({ ...filters, sort: e.target.value as ListingFilters['sort'] })}
+            >
+              {(['newest', 'priceAsc', 'priceDesc', 'yield'] as const).map((s) => (
+                <option key={s} value={s}>{t(`realEstate.sort.${s}`)}</option>
+              ))}
+            </select>
+          </div>
+
+          {activeCount > 0 && (
+            <button
+              type="button"
+              onClick={reset}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-navy-50 border border-navy-100 px-3 py-1.5 text-xs font-bold text-navy"
+            >
+              {t('realEstate.filters.clearCount', { count: activeCount })}
+              <AppIcon name="x" className="w-3 h-3" />
+            </button>
+          )}
+
+          {loading ? (
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="card h-80 animate-pulse bg-cream-dark/40" />
+              ))}
+            </div>
+          ) : shown.length === 0 ? (
+            <div className="mt-5 card p-10 text-center">
+              <AppIcon name="building" className="w-10 h-10 mx-auto text-navy/25" />
+              <h2 className="mt-3 font-bold text-navy">{t('realEstate.results.emptyTitle')}</h2>
+              <p className="mt-1 text-sm text-gray-500">{t('realEstate.results.emptyBody')}</p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-5 grid gap-5 sm:grid-cols-2 items-stretch stagger">
+                {shown.map((l, i) => (
+                  <ListingCard key={l.id} listing={l} index={i} to={`/real-estate/${l.id}`} />
+                ))}
+              </div>
+              {results.length > shown.length && (
+                <button onClick={() => setLimit((n) => n + PAGE_SIZE)} className="btn-secondary w-full mt-5">
+                  {t('realEstate.results.loadMore')}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* vertical filter column — sits on the left in RTL */}
+        <aside className="card p-4 lg:sticky lg:top-4">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-cream-dark">
+            <h2 className="font-bold text-navy">{t('realEstate.filters.title')}</h2>
+            <button type="button" onClick={reset} className="text-xs font-bold text-gray-500 hover:text-navy">
+              {t('realEstate.filters.clear')}
+            </button>
+          </div>
+          <FilterPanel filters={filters} onChange={update} districts={districts} />
+        </aside>
+      </div>
     </div>
   );
 }

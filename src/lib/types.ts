@@ -250,7 +250,29 @@ export interface Listing {
   furnished?: boolean;
   /** uploaded photo URLs (public bucket); first one is the cover */
   images?: string[];
+
+  // ── Optional columns added by the real-estate revamp ──
+  // Every one of these is optional on purpose: rows written before the
+  // migration simply do not carry them, and the UI falls back to a safe
+  // default instead of rendering an empty card.
+  /** sale (default) | rent | commercial — drives the top tabs */
+  listingType?: ListingType;
+  /** floor number, e.g. 4 */
+  floor?: number | null;
+  /** total floors in the building, e.g. 12 */
+  totalFloors?: number | null;
+  /** ready | under-construction — unknown when absent */
+  buildStatus?: BuildStatus | null;
+  /** expected annual rental yield in percent, e.g. 7 */
+  yieldPct?: number | null;
+  /** free-form amenity keys: 'parking' | 'elevator' | 'security' | ... */
+  amenities?: string[];
+  /** ISO date of the last time this listing was refreshed from its source */
+  updatedAt?: string | null;
 }
+
+export type ListingType = 'sale' | 'rent' | 'commercial';
+export type BuildStatus = 'ready' | 'under-construction';
 
 /** A user row in the admin dashboard, with engagement stats. */
 export interface AdminUser extends User {

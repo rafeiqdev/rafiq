@@ -50,7 +50,9 @@
     "all": "All",
     "error": "Something went wrong. Please try again.",
     "tl": "TL",
-    "nameInvalid": "Please enter your full name."
+    "nameInvalid": "Please enter your full name.",
+    "more": "Read more",
+    "less": "Show less"
   },
   "nav": {
     "home": "Home",
@@ -721,17 +723,137 @@
     }
   },
   "realEstate": {
-    "title": "Real estate in Istanbul",
-    "subtitle": "Curated listings with legal checks done for you.",
-    "citizenshipBadge": "Meets citizenship threshold",
+    "title": "Istanbul real estate",
+    "subtitle": "Selected listings, showing which ones meet the Turkish citizenship threshold and which are unverified.",
+    "citizenshipBadge": "Citizenship eligible",
+    "citizenshipUnknown": "Citizenship unknown",
+    "citizenshipNotice": "The “citizenship eligible” tag is indicative and needs confirmation from the title deed and an official valuation. Listings tagged “unknown” have not been checked yet — Rafiq can verify one for you before you commit.",
     "perM2": "m²",
     "rooms": "Rooms",
+    "bathLabel": "Bathrooms",
+    "bathShort": "bath",
+    "floor": "Floor",
+    "status": "Status",
+    "yieldLabel": "Expected yield",
+    "yieldBadge": "{{pct}}% yield",
     "cta": "Request details",
-    "note": "Every listing is verified: title deed (tapu), debts, and zoning status checked by our legal team.",
-    "requested": "Request sent! Our advisor will contact you.",
-    "bathrooms": "{{count}} bath",
+    "requested": "Request sent — we’ll be in touch",
+    "note": "Every listing is documented: title deed, debts and zoning checked by our legal team.",
+    "bathrooms": "{{count}} bathroom",
     "furnished": "Furnished",
-    "viewDetails": "View details"
+    "viewDetails": "View details",
+    "trustNote": "Rafiq is a service intermediary — we never ask for payment before a formal contract and a title-deed check.",
+    "tabs": {
+      "sale": "For sale",
+      "rent": "For rent",
+      "commercial": "Shops & offices"
+    },
+    "build": {
+      "ready": "Ready to move in",
+      "under-construction": "Under construction"
+    },
+    "amenity": {
+      "furnished": "Furnished",
+      "parking": "Parking",
+      "elevator": "Elevator",
+      "security": "24/7 security"
+    },
+    "filters": {
+      "title": "Filter results",
+      "clear": "Clear all",
+      "clearCount": "Clear {{count}} filters",
+      "apply": "Show {{count}} results",
+      "search": "Quick search",
+      "searchPlaceholder": "District or listing reference",
+      "district": "District",
+      "allDistricts": "All Istanbul districts",
+      "price": "Price (USD)",
+      "from": "From",
+      "to": "To",
+      "rooms": "Rooms",
+      "area": "Area (m²)",
+      "citizenship": "Turkish citizenship eligibility",
+      "citizenship_yes": "Citizenship eligible",
+      "citizenship_unknown": "Unknown — needs checking",
+      "investment": "Investment",
+      "investment_yield": "Expected rental yield",
+      "investment_under-construction": "Under construction",
+      "investment_ready": "Ready to move in",
+      "extras": "Extra features"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "yield": "Highest yield"
+    },
+    "results": {
+      "count": "{{count}} listings",
+      "loadMore": "Show more",
+      "emptyTitle": "No matching listings",
+      "emptyBody": "Try widening the price range or removing a filter."
+    },
+    "invest": {
+      "title": "Investment opportunities in Istanbul",
+      "body": "Detailed files: expected yield, payback period, project photos and the risks of each opportunity.",
+      "cta": "See opportunities",
+      "emptyTitle": "Opportunities are being prepared",
+      "emptyBody": "We are putting the opportunity files together one by one. They will all appear here once ready. To hear what is available right now, talk to a Rafiq advisor.",
+      "point": {
+        "yield": "Expected rental yield and where the number comes from",
+        "payback": "Capital payback period",
+        "photos": "Project photos and construction status",
+        "risks": "The risks stated plainly, not just the upside"
+      },
+      "contact": "Talk to an advisor"
+    },
+    "services": {
+      "title": "Rafiq services for this property",
+      "body": "Pick a service — the request reaches our team with the property details attached.",
+      "short": "Viewing · Contracts · Lawyer · Citizenship",
+      "advisor": "Talk to a Rafiq advisor"
+    },
+    "service": {
+      "viewing": {
+        "title": "Book a viewing with an escort",
+        "body": "A Rafiq rep takes you there and translates on site"
+      },
+      "contracts": {
+        "title": "Contracts & sworn translation",
+        "body": "Sale or rental contract plus a sworn translation"
+      },
+      "legal": {
+        "title": "Legal advice & valuation",
+        "body": "A lawyer plus an official valuation report"
+      },
+      "citizenship": {
+        "title": "Citizenship & residence file",
+        "body": "Verify the property’s eligibility and open the file"
+      }
+    },
+    "detail": {
+      "interestedTitle": "Interested in this property?",
+      "interestedBody": "Your request reaches the Rafiq team and we reply within 24 hours.",
+      "similar": "Similar properties",
+      "lastUpdate": "Listing last updated: {{date}}",
+      "photo": "Photo {{n}}",
+      "missingTitle": "This listing is no longer available",
+      "missingBody": "It may have been removed or its link changed. Browse the rest of the offers.",
+      "backToList": "Back to listings"
+    },
+    "home": {
+      "title": "Istanbul real estate",
+      "body": "Selected apartments and shops, showing which meet the Turkish citizenship threshold and which are unverified.",
+      "cta": "Browse properties",
+      "featured": "Featured properties",
+      "featuredBody": "Picked by the Rafiq team",
+      "tag": {
+        "citizenship": "Citizenship eligible",
+        "invest": "Investment opportunities",
+        "filters": "Advanced filters"
+      }
+    }
   },
   "health": {
     "title": "Health tourism",

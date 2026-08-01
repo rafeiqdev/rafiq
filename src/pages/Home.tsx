@@ -13,6 +13,7 @@ import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { AboutSection } from '../components/sections/AboutSection';
 import { NewsSection } from '../components/sections/NewsSection';
+import { RealEstateSection } from '../components/sections/RealEstateSection';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
 import { usePageMeta } from '../lib/seo';
 
@@ -211,6 +212,9 @@ export function Home() {
           </span>
         </Link>
       </section>
+
+      {/* real estate: wide strip + three featured listings */}
+      <RealEstateSection />
 
       {/* how it works */}
       <HowItWorks />
