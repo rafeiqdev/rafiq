@@ -5,17 +5,17 @@ import { AppIcon } from '../AppIcon';
 import { LISTING_PHOTOS } from '../../lib/images';
 import {
   type Eligibility,
-  type InvestmentOpportunity,
   citizenshipEligibility,
   priceRange,
   residencyEligibility,
 } from '../../data/investments';
+import type { InvestmentRecord, LocalizedText } from '../../lib/types';
 
 /** Picks the localised side of a `{ar,en,fa,ru}` field for the active language. */
 export function useLocalized() {
   const { i18n } = useTranslation();
   const lang = ((i18n.language || 'en').split('-')[0] as 'ar' | 'en' | 'fa' | 'ru');
-  return <T extends Record<string, string>>(field: T): string => field[lang] ?? field.en;
+  return (field: LocalizedText): string => field[lang] ?? field.en;
 }
 
 /**
@@ -32,7 +32,7 @@ export function InvestmentPhoto({
   index = 0,
   className = '',
 }: {
-  opp: InvestmentOpportunity;
+  opp: InvestmentRecord;
   index?: number;
   className?: string;
 }) {
@@ -85,7 +85,7 @@ export function EligibilityValue({ state, kind }: { state: Eligibility; kind: 'c
  * it never reads as just another apartment card — mixing an editorial
  * investment file in with priced units without that separation would mislead.
  */
-export function InvestmentCard({ opp }: { opp: InvestmentOpportunity }) {
+export function InvestmentCard({ opp }: { opp: InvestmentRecord }) {
   const { t } = useTranslation();
   const L = useLocalized();
 
