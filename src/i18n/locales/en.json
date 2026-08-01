@@ -1269,38 +1269,183 @@
     "ctaTitle": "Stuck on something specific?",
     "ctaBody": "Ask Rafiq AI — it knows the apps, the offices and the shortcuts.",
     "ctaButton": "Ask the assistant",
+    "readMore": "See how it works",
+    "howTitle": "How to do it",
+    "benefitTitle": "What you get",
     "items": {
       "edevlet": {
         "title": "e-Devlet — the master key",
-        "body": "Turkey's official government app. With your foreigner ID (Yabancı Kimlik No) you can view your residence permit, book appointments, download official documents, check your address registration and more — all in one place."
+        "body": "Turkey's official government app. With your foreigner ID (Yabancı Kimlik No) you can view your residence permit, book appointments, download official documents, check your address registration and more — all in one place.",
+        "steps": [
+          "Get your Foreigner Identification Number (Yabancı Kimlik Numarası) — it's assigned once your residence permit application is registered.",
+          "Visit any PTT (post office) branch in person with your passport and residence paperwork.",
+          "Ask for an \"e-Devlet şifresi\" (e-Devlet password) — it's issued on paper on the spot.",
+          "Log in at turkiye.gov.tr with your ID number and password to activate your account."
+        ],
+        "benefit": "One login for tracking your residence permit, tax records, address registration, health appointments and dozens of other official services — most available with an in-site translation into your language."
       },
       "eikamet": {
         "title": "e-İkamet (Göç İdaresi)",
-        "body": "The migration office portal: apply for or extend your residence permit, book your appointment, and track your card. Always verify your district is open before applying."
+        "body": "The migration office portal: apply for or extend your residence permit, book your appointment, and track your card. Always verify your district is open before applying.",
+        "steps": [
+          "Get your tax number and mandatory health insurance ready first — the form asks for both.",
+          "Fill in the application at e-ikamet.goc.gov.tr with your address and passport details.",
+          "Pick the earliest available appointment slot at your local migration office.",
+          "Attend with your documents; your card status can then be tracked from the same portal."
+        ],
+        "benefit": "You control your own residence-permit timeline online instead of relying on a third party, and you can watch your card's status change from application to delivery."
       },
       "istanbulkart": {
         "title": "Istanbulkart app",
-        "body": "Top up your transport card straight from your phone — no kiosk needed. It also shows your balance and the nearest ferry, metro and bus lines."
+        "body": "Top up your transport card straight from your phone — no kiosk needed. It also shows your balance and the nearest ferry, metro and bus lines.",
+        "steps": [
+          "Download the official İstanbulkart app for your phone.",
+          "Turn on NFC in your phone's settings and register your physical card in the app.",
+          "Add balance in-app using a bank card.",
+          "Hold your physical card against the back of your phone to transfer the new balance onto it."
+        ],
+        "benefit": "No more searching for a working kiosk or carrying exact change — top up anywhere, any time, and see your balance and the nearest transport lines from the same app."
       },
       "bitaksi": {
         "title": "BiTaksi / iTaksi",
-        "body": "Hail a licensed, metered taxi from the app so you always pay the real fare. The trip and driver are logged — far safer than flagging one on the street."
+        "body": "Hail a licensed, metered taxi from the app so you always pay the real fare. The trip and driver are logged — far safer than flagging one on the street.",
+        "steps": [
+          "Install BiTaksi or iTaksi and set your pickup location.",
+          "Confirm the driver and plate number shown in the app before boarding.",
+          "Watch the metered fare update live during the ride.",
+          "Pay in-app or in cash for the exact metered amount shown."
+        ],
+        "benefit": "A traceable trip with a real metered fare, instead of negotiating a flat price with a stranger on the street."
       },
       "getir": {
         "title": "Getir & Yemeksepeti",
-        "body": "Groceries in minutes and food delivery from almost anywhere. Pay by card in-app — handy before your Turkish bank account is ready."
+        "body": "Groceries in minutes and food delivery from almost anywhere. Pay by card in-app — handy before your Turkish bank account is ready.",
+        "steps": [
+          "Download the app and set your delivery address.",
+          "Browse nearby restaurants or the grocery catalog and add items to your cart.",
+          "Pay with an international card if your Turkish account isn't ready yet.",
+          "Track your courier live on the map until they arrive."
+        ],
+        "benefit": "Groceries and meals delivered fast without needing cash or a Turkish bank account on day one."
       },
       "esim": {
         "title": "Buy an eSIM before you land",
-        "body": "An eSIM bought online is far cheaper than SIM cards sold at the airport, and you arrive already connected to book taxis and find your way."
+        "body": "An eSIM bought online is far cheaper than SIM cards sold at the airport, and you arrive already connected to book taxis and find your way.",
+        "steps": [
+          "Check your phone supports eSIM (most phones released since around 2020 do).",
+          "Buy a Turkish data eSIM from a reputable provider's app or website before you fly.",
+          "Follow the QR code or activation link the provider emails you to install the eSIM profile.",
+          "After landing, turn on data roaming for the new eSIM line and you're online immediately."
+        ],
+        "benefit": "You arrive already connected — book a taxi, use maps and translate on the spot — and skip the queue at the airport SIM counter entirely."
       },
       "vergi": {
         "title": "Get your Vergi No online first",
-        "body": "Your tax number is free from the İnteraktif Vergi Dairesi portal in minutes. Get it before the bank visit — most branches ask for it."
+        "body": "Your tax number is free from the İnteraktif Vergi Dairesi portal in minutes. Get it before the bank visit — most branches ask for it.",
+        "steps": [
+          "Go to the İnteraktif Vergi Dairesi website (gib.gov.tr).",
+          "Choose the foreign-national tax number application option.",
+          "Enter your passport details and upload your passport photo page.",
+          "Receive your number instantly online, or get it in person at any Vergi Dairesi with your passport."
+        ],
+        "benefit": "A free tax number in minutes — required for renting a home, opening a bank account and applying for your residence permit."
       },
       "taxiCaution": {
         "title": "Never ride an unmetered taxi",
-        "body": "Insist on the meter (\"taksimetre\") or use a taxi app. Agreeing a price by hand on day one is the most common way newcomers overpay."
+        "body": "Insist on the meter (\"taksimetre\") or use a taxi app. Agreeing a price by hand on day one is the most common way newcomers overpay.",
+        "steps": [
+          "Ask the driver to switch on the \"taksimetre\" (meter) before the car moves.",
+          "Prefer app-based rides (BiTaksi, iTaksi, Uber), where the fare, driver and route are all logged.",
+          "If a driver refuses the meter or names a flat price, step out and take a different taxi.",
+          "Keep the receipt or the app's trip summary until you reach your destination."
+        ],
+        "benefit": "You pay the real metered fare instead of an inflated \"tourist price,\" with a digital record if a dispute ever comes up."
+      },
+      "istanbulkartTopup": {
+        "title": "Top up İstanbulkart from your phone",
+        "body": "Skip the kiosk queue: recharge your transport card straight from your phone, anywhere, any time.",
+        "steps": [
+          "Download the official İstanbulkart app matching your phone's operating system.",
+          "Enable NFC in your phone's settings and register your physical card inside the app.",
+          "Load balance onto the app using a bank card.",
+          "Tap your physical card against your phone's NFC reader to transfer the new balance."
+        ],
+        "benefit": "No more hunting for a working kiosk or carrying exact change — top up anywhere, and check your balance plus the nearest bus, metro and ferry lines in the same app."
+      },
+      "imeiRegistration": {
+        "title": "Register your foreign phone before day 120",
+        "body": "Planning to keep using a Turkish SIM in a phone you brought from abroad past the first few months? Register it early — the clock starts from your first local SIM use.",
+        "steps": [
+          "Confirm you hold a Foreigner Identification Number (YKN) and an active e-Devlet login.",
+          "Log in to e-Devlet and open the mobile phone (IMEI) registration service.",
+          "Find your phone's IMEI by dialing *#06# on the handset, then enter it in the form.",
+          "Complete the registration before your 120th day of using a Turkish SIM in that phone, or the network blocks the device."
+        ],
+        "benefit": "Your own phone keeps working on a Turkish number for the long term, instead of being locked out of local networks once the grace period ends."
+      },
+      "moneyExchange": {
+        "title": "Exchange money the safe way",
+        "body": "Skip hotel counters and airport booths — a little homework before you exchange cash keeps more of it in your pocket.",
+        "steps": [
+          "Compare the buy/sell rate board at a few licensed exchange offices (\"döviz\") in the city center rather than the first one you see.",
+          "Avoid exchanging at airports, hotels or street touts — their posted rates are consistently worse than city-center offices.",
+          "Count your cash at the counter before you walk away, and ask for a receipt.",
+          "For larger amounts, compare against your own bank card's conversion rate — sometimes an ATM withdrawal works out better."
+        ],
+        "benefit": "You keep more of your money instead of losing a chunk of it to inflated tourist-zone exchange rates."
+      },
+      "freeWifi": {
+        "title": "Use free municipal Wi-Fi (İBB WiFi)",
+        "body": "Istanbul's metropolitan municipality runs a free public Wi-Fi network across parks, squares, metro stations and ferries.",
+        "steps": [
+          "Look for the \"İBB WiFi\" network in the list of available Wi-Fi networks in public areas.",
+          "Connect to it and open any browser — you'll be redirected to a registration page.",
+          "Verify with your phone number (an SMS code is sent) to unlock free access."
+        ],
+        "benefit": "Free internet in most public spaces around the city — handy for maps and messaging while you top up your own data plan."
+      },
+      "marmaray": {
+        "title": "Cross continents on the Marmaray",
+        "body": "The Marmaray rail line runs under the Bosphorus, linking the European and Asian sides of the city in one uninterrupted ride.",
+        "steps": [
+          "Tap in with your İstanbulkart at any Marmaray station along the Halkalı–Gebze line.",
+          "Ride straight under the strait — no ferry, traffic or bridge crossing needed.",
+          "Transfer to metro or bus lines at major interchange stations like Üsküdar, Sirkeci or Ayrılık Çeşmesi."
+        ],
+        "benefit": "A fast, weatherproof way to cross between Europe and Asia at any hour, skipping bridge traffic and ferry schedules entirely."
+      },
+      "museumPass": {
+        "title": "Skip museum lines with the Museum Pass",
+        "body": "A single pass gives timed, one-time entry to a wide list of Istanbul's major museums and palaces across several consecutive days.",
+        "steps": [
+          "Buy the Museum Pass Istanbul online or at a participating museum before your first visit.",
+          "Its validity window starts the moment you use it for the first time, so time your purchase accordingly.",
+          "Visit any of the included museums and palaces once each within that validity window.",
+          "Go straight to the entrance with your pass instead of queueing at the standalone ticket counter."
+        ],
+        "benefit": "You avoid the ticket line at popular sites like Topkapı Palace, and one pass replaces many separate admission tickets during your stay."
+      },
+      "dolmus": {
+        "title": "Ride a dolmuş like a local",
+        "body": "Dolmuş are shared minibuses running fixed routes, filling up before they leave and dropping passengers off anywhere along the way.",
+        "steps": [
+          "Find the route board on the minibus windshield showing its start and end points.",
+          "Flag it down anywhere along its route, or wait at a recognized dolmuş stop.",
+          "Pay the driver in cash as you board, or pass your fare forward through other passengers if you're seated further back.",
+          "Call out \"inecek var\" (someone's getting off) when you want the driver to stop."
+        ],
+        "benefit": "You reach routes and neighborhoods that regular buses or metro lines don't cover directly, often faster than waiting for a full-size bus."
+      },
+      "addressRegistration": {
+        "title": "Register your address before your residence appointment",
+        "body": "Your address record has to match your paperwork before the migration office will approve your residence permit application.",
+        "steps": [
+          "Sign a rental contract for your address, ideally notarized or through a registered agent.",
+          "Ask your landlord or building manager to confirm the address matches official building records.",
+          "Update your registered address on e-Devlet once everything lines up.",
+          "Only then submit or continue your residence permit (e-İkamet) application using that address."
+        ],
+        "benefit": "You avoid the single most common rejection reason for residence-permit applications — an address record that doesn't match your file."
       }
     }
   },

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
-import { ai, ApiError, bookings, news } from '../../lib/api';
+import { ai, ApiError, bookings, news, localizeNewsPost } from '../../lib/api';
 import type { ChatSummary } from '../../lib/api';
 import { readSubject, saveSubject } from '../../lib/aiQuota';
 import { detectSubject, isTopicSwitch } from '../../lib/subject';
@@ -297,7 +297,8 @@ function MobileChatUI() {
     let live = true;
     news.byId(newsId!).then((post) => {
       if (!live || !post || seededRef.current === seedKey) return;
-      const subject = detectSubject(`${post.title} ${post.body ?? ''}`, null);
+      const localized = localizeNewsPost(post, i18n.language);
+      const subject = detectSubject(`${localized.title} ${localized.body ?? ''}`, null);
       setCurrentSubject(subject);
       saveSubject(userId, subject);
       seededRef.current = seedKey;
@@ -312,8 +313,8 @@ function MobileChatUI() {
       setClosedByBooking(false);
       persistClosed(userId, false);
 
-      const body = (post.body ?? '').slice(0, 800);
-      ask(t('chat.newsSeed', { title: post.title, body }).trim(), false, []);
+      const body = (localized.body ?? '').slice(0, 800);
+      ask(t('chat.newsSeed', { title: localized.title, body }).trim(), false, []);
     }, () => {});
     return () => {
       live = false;

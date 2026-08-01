@@ -19,12 +19,47 @@
  */
 
 import { channelSlug, parseChannelPage, splitTitleBody } from '../../src/lib/telegramNews';
+import { MODEL_CHAIN, callWithFallback, extractJson } from '../_lib/gemini';
 
 export const config = { runtime: 'edge' };
 
 /** How many of the channel's newest posts the site mirrors. */
 const SYNC_COUNT = 5;
 const FETCH_TIMEOUT_MS = 8000;
+
+/** Languages the channel (Arabic-only) gets machine-translated into. */
+const TRANSLATE_TARGETS = ['en', 'ru', 'fa'] as const;
+
+const TRANSLATE_SYSTEM_PROMPT = [
+  'You translate short news posts for a Turkey-based service that helps foreigners living in Istanbul.',
+  `Translate the given Arabic title and body into each of: ${TRANSLATE_TARGETS.join(', ')} (English, Russian, Persian/Farsi).`,
+  'Preserve the meaning and tone exactly. Do not add facts, opinions, or context that is not in the original text. Keep line breaks in the body as \\n.',
+  'Output ONLY a single compact JSON object, no markdown fences, shaped exactly like:',
+  '{"en":{"title":"...","body":"..."},"ru":{"title":"...","body":"..."},"fa":{"title":"...","body":"..."}}',
+  'If body is empty, translate title only and use an empty string for body.',
+].join('\n');
+
+/**
+ * Best-effort translation of one post into en/ru/fa. Never throws: a failed
+ * or unconfigured translation just leaves `translations` empty, and the site
+ * falls back to the Arabic original (src/lib/api.ts pickLocalized).
+ */
+async function translatePost(key: string | undefined, title: string, body: string | null): Promise<Record<string, { title: string; body: string }>> {
+  if (!key) return {};
+  const userText = `Title: ${title}\nBody: ${body ?? ''}`;
+  const res = await callWithFallback(key, MODEL_CHAIN[0], TRANSLATE_SYSTEM_PROMPT, [{ role: 'user', parts: [{ text: userText }] }]);
+  if (!res.text) return {};
+  const parsed = extractJson(res.text);
+  if (!parsed) return {};
+  const out: Record<string, { title: string; body: string }> = {};
+  for (const lang of TRANSLATE_TARGETS) {
+    const entry = parsed[lang] as { title?: unknown; body?: unknown } | undefined;
+    if (entry && typeof entry.title === 'string' && entry.title.trim()) {
+      out[lang] = { title: entry.title.trim(), body: typeof entry.body === 'string' ? entry.body.trim() : '' };
+    }
+  }
+  return out;
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -101,19 +136,27 @@ export default async function handler(req: Request): Promise<Response> {
     return json({ error: 'no_posts_parsed', hint: 'Channel empty, private, or t.me markup changed.' }, 422);
   }
 
-  const rows = parsed.slice(-SYNC_COUNT).map((p) => {
-    const { title, body } = splitTitleBody(p.text);
-    return {
-      tg_id: p.tgId,
-      title: title || 'Telegram',
-      body,
-      url: p.url,
-      image_url: p.imageUrl,
-      source: 'telegram',
-      published: true,
-      ...(p.createdAt ? { created_at: p.createdAt } : {}),
-    };
-  });
+  const geminiKey = env('GEMINI_API_KEY');
+  const rows = await Promise.all(
+    parsed.slice(-SYNC_COUNT).map(async (p) => {
+      const { title, body } = splitTitleBody(p.text);
+      const finalTitle = title || 'Telegram';
+      const translations = await translatePost(geminiKey, finalTitle, body);
+      return {
+        tg_id: p.tgId,
+        title: finalTitle,
+        body,
+        url: p.url,
+        image_url: p.imageUrl,
+        source: 'telegram',
+        published: true,
+        // Omit on failure so the upsert's partial SET leaves any translation
+        // from a previous sync in place, instead of clobbering it with {}.
+        ...(Object.keys(translations).length > 0 ? { translations } : {}),
+        ...(p.createdAt ? { created_at: p.createdAt } : {}),
+      };
+    }),
+  );
 
   const upsert = await supa('news_posts?on_conflict=tg_id', {
     method: 'POST',

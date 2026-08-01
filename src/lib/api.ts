@@ -945,6 +945,12 @@ export const referrals = {
 
 // ---------- news (public feed, mirrors the Telegram channel) -----------------
 
+/** Machine-translated title/body for one non-Arabic language. */
+export interface NewsTranslation {
+  title: string;
+  body: string;
+}
+
 export interface NewsPost {
   id: string;
   title: string;
@@ -957,19 +963,34 @@ export interface NewsPost {
   source: 'manual' | 'telegram';
   published: boolean;
   createdAt: string;
+  /** Machine translations keyed by language code (e.g. 'en', 'ru', 'fa'). The
+      Arabic original lives in title/body, never in here. Empty when the sync
+      hasn't translated this post yet (or it's a manual admin post). */
+  translations: Record<string, NewsTranslation>;
 }
 
 interface NewsRow {
   id: string; title: string; body: string | null; url: string | null; image_url: string | null;
-  source: string; published: boolean; created_at: string;
+  source: string; published: boolean; created_at: string; translations: Record<string, NewsTranslation> | null;
 }
 
-const NEWS_COLS = 'id,title,body,url,image_url,source,published,created_at';
+const NEWS_COLS = 'id,title,body,url,image_url,source,published,created_at,translations';
 
 const toNewsPost = (r: NewsRow): NewsPost => ({
   id: r.id, title: r.title, body: r.body, url: r.url, imageUrl: r.image_url,
   source: r.source === 'telegram' ? 'telegram' : 'manual', published: r.published, createdAt: r.created_at,
+  translations: r.translations ?? {},
 });
+
+/**
+ * The post's title/body in the given UI language — the machine translation
+ * when one exists, otherwise the Arabic original (source of truth; also the
+ * behavior for manual admin posts, which are never translated).
+ */
+export function localizeNewsPost(post: NewsPost, lang: string): { title: string; body: string | null } {
+  const t = post.translations?.[lang];
+  return t ? { title: t.title, body: t.body || null } : { title: post.title, body: post.body };
+}
 
 /**
  * Telegram offers no supported way for a browser to read a channel's history,

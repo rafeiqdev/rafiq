@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { news } from '../lib/api';
+import { news, localizeNewsPost } from '../lib/api';
 import type { NewsPost } from '../lib/api';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import { usePageMeta } from '../lib/seo';
@@ -43,9 +43,11 @@ export function NewsArticle() {
     };
   }, [id]);
 
+  const text = post ? localizeNewsPost(post, i18n.language) : null;
+
   usePageMeta({
-    title: post ? `${post.title} — Rafiq` : `${t('home.news.title')} — Rafiq`,
-    description: post?.body?.slice(0, 160) ?? t('home.news.title'),
+    title: text ? `${text.title} — Rafiq` : `${t('home.news.title')} — Rafiq`,
+    description: text?.body?.slice(0, 160) ?? t('home.news.title'),
     image: post?.imageUrl ?? undefined,
   });
 
@@ -71,7 +73,7 @@ export function NewsArticle() {
         </div>
       )}
 
-      {state === 'ready' && post && (
+      {state === 'ready' && post && text && (
         <article className="card mt-6 overflow-hidden">
           {post.imageUrl && (
             <img
@@ -87,10 +89,10 @@ export function NewsArticle() {
             <p className="text-xs text-gray-500">
               {new Date(post.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' })}
             </p>
-            <h1 className="mt-2 text-xl font-extrabold text-navy break-words sm:text-2xl">{post.title}</h1>
-            {post.body && (
+            <h1 className="mt-2 text-xl font-extrabold text-navy break-words sm:text-2xl">{text.title}</h1>
+            {text.body && (
               <p className="mt-4 text-[15px] leading-relaxed text-navy/85 whitespace-pre-line break-words">
-                {post.body}
+                {text.body}
               </p>
             )}
             <Link to={`/premium?news=${post.id}`} className="btn-primary mt-6 w-full sm:w-auto sm:px-6">

@@ -1,34 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
-import type { IconName } from '../../components/AppIcon';
 import { PageHero } from '../../components/PageHero';
 import { IstanbulApps } from '../../components/IstanbulApps';
 import { BANNERS } from '../../lib/images';
 import { useApp } from '../../context/AppContext';
 import { MobileTabBar } from '../../components/MobileTabBar';
+import { TRICK_SLUGS, TRICK_ICONS } from '../Tricks';
+import type { TrickSlug } from '../Tricks';
 
-interface Trick {
-  id: string;
-  icon: IconName;
-  kind: 'app' | 'tip';
-  /** external link for app tricks */
-  url?: string;
-  /** featured (full-width, highlighted) */
-  featured?: boolean;
-  /** accent tint token (mobile polish) */
-  accent: 'navy-light' | 'navy' | 'brand-red';
-}
+// Cycles through three accent tints for visual rhythm across the 12 cards.
+const ACCENTS = ['navy-light', 'navy', 'brand-red'] as const;
+type Accent = (typeof ACCENTS)[number];
 
-// Tips only — the apps themselves live once in the IstanbulApps directory below.
-const TRICKS: Trick[] = [
-  { id: 'esim', icon: 'smartphone', kind: 'tip', accent: 'navy-light' },
-  { id: 'vergi', icon: 'receipt', kind: 'tip', accent: 'navy' },
-  { id: 'taxiCaution', icon: 'alert-triangle', kind: 'tip', accent: 'brand-red' },
-];
-
-// Per-accent tinted icon-chip + accent bar (Tailwind-safe literal classes).
-const ACCENT: Record<Trick['accent'], { chip: string; bar: string }> = {
+const ACCENT: Record<Accent, { chip: string; bar: string }> = {
   'navy-light': { chip: 'bg-navy-light/10 text-navy-light', bar: 'bg-navy-light' },
   navy: { chip: 'bg-navy/10 text-navy', bar: 'bg-navy' },
   'brand-red': { chip: 'bg-brand-red/10 text-brand-red', bar: 'bg-brand-red' },
@@ -42,45 +27,36 @@ const mobileCopy: Record<string, { back: string; home: string; chat: string; map
   ru: { back: 'Назад', home: 'Главная', chat: 'ИИ-чат', map: 'Карта', services: 'Услуги', profile: 'Профиль' },
 };
 
-function TrickCard({ trick, index }: { trick: Trick; index: number }) {
+function TrickCard({ id, index }: { id: TrickSlug; index: number }) {
   const { t } = useTranslation();
-  const isApp = trick.kind === 'app';
-  const a = ACCENT[trick.accent];
+  const a = ACCENT[ACCENTS[index % ACCENTS.length]];
   return (
     <article
-      className={`card card-hover relative flex flex-col overflow-hidden p-[18px] ${trick.featured ? 'bg-brand-blue/40' : ''}`}
+      className="card card-hover relative flex flex-col overflow-hidden p-[18px]"
       style={{ '--i': index } as React.CSSProperties}
     >
       <span aria-hidden className={`absolute start-0 top-0 h-full w-1 ${a.bar}`} />
       <div className="flex items-start gap-3.5">
         <span className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[13px] ${a.chip}`}>
-          <AppIcon name={trick.icon} className="h-6 w-6" />
+          <AppIcon name={TRICK_ICONS[id]} className="h-6 w-6" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[15.5px] font-extrabold text-navy">{t(`tricks.items.${trick.id}.title`)}</h3>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                isApp ? 'bg-navy text-white' : 'bg-amber-100 text-amber-800'
-              }`}
-            >
-              {t(isApp ? 'tricks.appBadge' : 'tricks.tipBadge')}
+            <h3 className="text-[15.5px] font-extrabold text-navy">{t(`tricks.items.${id}.title`)}</h3>
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800">
+              {t('tricks.tipBadge')}
             </span>
           </div>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{t(`tricks.items.${trick.id}.body`)}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">{t(`tricks.items.${id}.body`)}</p>
         </div>
       </div>
-      {isApp && trick.url && (
-        <a
-          href={trick.url}
-          target="_blank"
-          rel="noreferrer"
-          className="btn-primary mt-3.5 flex min-h-[48px] w-full transition-transform active:scale-[0.98]"
-        >
-          <AppIcon name="download" className="h-4 w-4" />
-          {t('tricks.openApp')}
-        </a>
-      )}
+      <Link
+        to={`/tricks/${id}`}
+        className="btn-primary mt-3.5 flex min-h-[48px] w-full transition-transform active:scale-[0.98]"
+      >
+        {t('tricks.readMore')}
+        <DirArrow />
+      </Link>
     </article>
   );
 }
@@ -118,8 +94,8 @@ export function MobileTricks() {
         <div className="flex flex-col gap-6 px-5 pt-5">
           {/* ── Trick cards (single column, polished) ── */}
           <div className="stagger flex flex-col gap-3.5">
-            {TRICKS.map((trick, i) => (
-              <TrickCard key={trick.id} trick={trick} index={i} />
+            {TRICK_SLUGS.map((id, i) => (
+              <TrickCard key={id} id={id} index={i} />
             ))}
           </div>
 

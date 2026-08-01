@@ -17,6 +17,8 @@
  * Every failure returns 200 with `{ error }` so the client falls back gracefully.
  */
 
+import { MODEL_CHAIN, callWithFallback, extractJson, type GeminiContent } from './_lib/gemini';
+
 export const config = { runtime: 'edge' };
 
 const LANG_NAME: Record<string, string> = {
@@ -36,7 +38,7 @@ function intakePrompt(lang: string): string {
   const language = LANG_NAME[lang] ?? 'the same language as the user';
   return [
     'You are "رفيق الاستقبال" (Rafiq Reception), the intake assistant for a service that helps foreigners living in or moving to Istanbul, Turkey.',
-    `Always reply in ${language}.`,
+    `LANGUAGE: reply in whichever language the user's LATEST message is written in — never the site's interface language. If the user switches language mid-conversation, switch with them starting from your very next reply. Only when there is no user message yet (the very first turn you generate) default to ${language}.`,
     '',
     'YOUR PURPOSE',
     'You do NOT provide legal, financial, or medical solutions, and you never promise that any service will be carried out.',
@@ -114,18 +116,7 @@ function summaryPrompt(lang: string): string {
 
 /** Pull the JSON object out of a model reply, tolerating stray fences/prose. */
 export function parseCase(text: string): Record<string, unknown> | null {
-  const fenced = text.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
-  const start = fenced.indexOf('{');
-  const end = fenced.lastIndexOf('}');
-  if (start === -1 || end <= start) return null;
-  try {
-    const parsed = JSON.parse(fenced.slice(start, end + 1)) as unknown;
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
+  return extractJson(text);
 }
 
 function json(body: unknown, status = 200): Response {
@@ -140,69 +131,7 @@ interface InMessage {
   text: string;
 }
 
-interface GeminiContent {
-  role: 'user' | 'model';
-  parts: { text: string }[];
-}
-
-// Free-tier quotas differ a LOT per model (the flagship flash allows only ~20
-// requests/day; the lite models allow 1000+). So we DEFAULT to a lite model and
-// fall through this chain whenever one is rate-limited (429) or retired (404).
-const MODEL_CHAIN = [
-  'gemini-2.5-flash-lite',
-  'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
-];
 const ALLOWED_MODELS = new Set([...MODEL_CHAIN, 'gemini-flash-latest']);
-
-interface GeminiResult {
-  text: string;
-  /** set when the call failed (text is '' then) */
-  failStatus?: number;
-  failDetail?: string;
-}
-
-/** One Gemini generateContent call. Never throws on HTTP errors. */
-async function callGemini(key: string, model: string, systemText: string, contents: GeminiContent[]): Promise<GeminiResult> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  const upstream = await fetch(url, {
-    method: 'POST',
-    // The key goes in the x-goog-api-key header — the method Google recommends
-    // and the one that works for the new "AQ." auth-key format (Jul 2026).
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemText }] },
-      contents,
-      generationConfig: {
-        temperature: 0.6,
-        // Generous cap so the answer is never cut short. Gemini 3.x "thinking"
-        // tokens also count against this limit, so keep it comfortably high.
-        maxOutputTokens: 2048,
-        // Practical intake, not puzzles — turn thinking off for faster, cheaper,
-        // complete replies. (Ignored by models without it.)
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    }),
-  });
-  if (!upstream.ok) return { text: '', failStatus: upstream.status, failDetail: (await upstream.text()).slice(0, 500) };
-  const data = (await upstream.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-  const text = data?.candidates?.[0]?.content?.parts?.map((p) => p?.text ?? '').join('').trim() ?? '';
-  return { text };
-}
-
-/** Try the preferred model, then walk the chain past quota/retirement errors. */
-async function callWithFallback(key: string, preferred: string, systemText: string, contents: GeminiContent[]): Promise<GeminiResult> {
-  const chain = [preferred, ...MODEL_CHAIN.filter((m) => m !== preferred)];
-  let last: GeminiResult = { text: '', failStatus: 500, failDetail: 'no_models' };
-  for (const model of chain) {
-    last = await callGemini(key, model, systemText, contents);
-    if (last.text) return last;
-    // only quota (429) and gone-model (404/400) errors are worth retrying
-    if (last.failStatus !== 429 && last.failStatus !== 404 && last.failStatus !== 400) return last;
-  }
-  return last;
-}
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);

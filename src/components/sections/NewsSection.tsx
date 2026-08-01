@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { news } from '../../lib/api';
+import { news, localizeNewsPost } from '../../lib/api';
 import type { NewsPost } from '../../lib/api';
 import { DirArrow } from '../AppIcon';
 
@@ -67,22 +67,25 @@ export function NewsSection({
           </div>
         </div>
         <ul className="mt-4 flex flex-col gap-3">
-          {posts.map((p) => (
-            <li key={p.id} className="card overflow-hidden p-4">
-              {photo(p, '-mx-4 -mt-4 mb-3 h-40 w-[calc(100%+2rem)] max-w-none object-cover')}
-              <p className="text-xs text-gray-500">{date(p)}</p>
-              <h3 className="mt-1 font-bold text-navy break-words">{p.title}</h3>
-              {p.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{p.body}</p>}
-              {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
-              <Link
-                to={`/news/${p.id}`}
-                className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
-              >
-                {t('home.news.readMore')}
-                <DirArrow className="w-3.5 h-3.5" />
-              </Link>
-            </li>
-          ))}
+          {posts.map((p) => {
+            const text = localizeNewsPost(p, i18n.language);
+            return (
+              <li key={p.id} className="card overflow-hidden p-4">
+                {photo(p, '-mx-4 -mt-4 mb-3 h-40 w-[calc(100%+2rem)] max-w-none object-cover')}
+                <p className="text-xs text-gray-500">{date(p)}</p>
+                <h3 className="mt-1 font-bold text-navy break-words">{text.title}</h3>
+                {text.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{text.body}</p>}
+                {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
+                <Link
+                  to={`/news/${p.id}`}
+                  className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
+                >
+                  {t('home.news.readMore')}
+                  <DirArrow className="w-3.5 h-3.5" />
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </section>
     );
@@ -97,21 +100,24 @@ export function NewsSection({
         </div>
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((p) => (
-          <article key={p.id} className="card overflow-hidden p-5 flex flex-col">
-            {photo(p, '-mx-5 -mt-5 mb-4 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover')}
-            <p className="text-xs text-gray-500">{date(p)}</p>
-            <h3 className="mt-1.5 font-bold text-navy break-words">{p.title}</h3>
-            {p.body && <p className="mt-1.5 text-sm text-navy/70 break-words line-clamp-4">{p.body}</p>}
-            <Link
-              to={`/news/${p.id}`}
-              className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
-            >
-              {t('home.news.readMore')}
-              <DirArrow className="w-3.5 h-3.5" />
-            </Link>
-          </article>
-        ))}
+        {posts.map((p) => {
+          const text = localizeNewsPost(p, i18n.language);
+          return (
+            <article key={p.id} className="card overflow-hidden p-5 flex flex-col">
+              {photo(p, '-mx-5 -mt-5 mb-4 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover')}
+              <p className="text-xs text-gray-500">{date(p)}</p>
+              <h3 className="mt-1.5 font-bold text-navy break-words">{text.title}</h3>
+              {text.body && <p className="mt-1.5 text-sm text-navy/70 break-words line-clamp-4">{text.body}</p>}
+              <Link
+                to={`/news/${p.id}`}
+                className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
+              >
+                {t('home.news.readMore')}
+                <DirArrow className="w-3.5 h-3.5" />
+              </Link>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

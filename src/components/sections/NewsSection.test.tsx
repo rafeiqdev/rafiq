@@ -29,6 +29,7 @@ vi.mock('../../lib/api', () => ({
   news: {
     latest: (...a: unknown[]) => latest(...a),
   },
+  localizeNewsPost: (post: { title: string; body: string | null }) => ({ title: post.title, body: post.body }),
 }));
 
 const post = {

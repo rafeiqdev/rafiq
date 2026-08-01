@@ -74,6 +74,10 @@ const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) =>
 const MobileHealthTourism = lazyPage(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
 const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
 const MobileTricks = lazyPage(() => import('./pages/mobile/MobileTricks').then((m) => ({ default: m.MobileTricks })));
+const TrickDetail = lazyPage(() => import('./pages/TrickDetail').then((m) => ({ default: m.TrickDetail })));
+const MobileTrickDetail = lazyPage(() =>
+  import('./pages/mobile/MobileTrickDetail').then((m) => ({ default: m.MobileTrickDetail })),
+);
 const Hub = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.Hub })));
 const MobileHub = lazyPage(() => import('./pages/mobile/MobileHub').then((m) => ({ default: m.MobileHub })));
 const HubDetail = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.HubDetail })));
@@ -221,6 +225,7 @@ function Shell() {
             <Route path="/real-estate" element={isMobile ? <MobileRealEstate /> : <RealEstate />} />
             <Route path="/health-tourism" element={isMobile ? <MobileHealthTourism /> : <HealthTourism />} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
+            <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />
             {/* one column of text either way — a single component serves both breakpoints */}
             <Route path="/news/:id" element={<NewsArticle />} />
             <Route path="/hub" element={isMobile ? <MobileHub /> : <Hub />} />

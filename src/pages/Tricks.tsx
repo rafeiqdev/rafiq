@@ -6,55 +6,63 @@ import { PageHero } from '../components/PageHero';
 import { IstanbulApps } from '../components/IstanbulApps';
 import { BANNERS } from '../lib/images';
 
-interface Trick {
-  id: string;
-  icon: IconName;
-  kind: 'app' | 'tip';
-  /** external link for app tricks */
-  url?: string;
-  /** featured (full-width, highlighted) */
-  featured?: boolean;
-}
+/** Every trick has its own detail page at /tricks/:id — steps + benefit. */
+export const TRICK_SLUGS = [
+  'esim',
+  'vergi',
+  'taxiCaution',
+  'edevlet',
+  'istanbulkartTopup',
+  'imeiRegistration',
+  'moneyExchange',
+  'freeWifi',
+  'marmaray',
+  'museumPass',
+  'dolmus',
+  'addressRegistration',
+] as const;
+export type TrickSlug = (typeof TRICK_SLUGS)[number];
 
-// Tips only — the apps themselves now live once in the IstanbulApps directory below.
-const TRICKS: Trick[] = [
-  { id: 'esim', icon: 'smartphone', kind: 'tip' },
-  { id: 'vergi', icon: 'receipt', kind: 'tip' },
-  { id: 'taxiCaution', icon: 'alert-triangle', kind: 'tip' },
-];
+export const TRICK_ICONS: Record<TrickSlug, IconName> = {
+  esim: 'smartphone',
+  vergi: 'receipt',
+  taxiCaution: 'alert-triangle',
+  edevlet: 'id-card',
+  istanbulkartTopup: 'credit-card',
+  imeiRegistration: 'phone',
+  moneyExchange: 'trending-up',
+  freeWifi: 'globe',
+  marmaray: 'navigation',
+  museumPass: 'star',
+  dolmus: 'car',
+  addressRegistration: 'home',
+};
 
-function TrickCard({ trick, index }: { trick: Trick; index: number }) {
+function TrickCard({ id, index }: { id: TrickSlug; index: number }) {
   const { t } = useTranslation();
-  const isApp = trick.kind === 'app';
   return (
     <article
-      className={`card card-hover flex flex-col p-5 ${trick.featured ? 'sm:col-span-2 lg:col-span-3 bg-brand-blue/40' : ''}`}
+      className="card card-hover flex flex-col p-5"
       style={{ '--i': index } as React.CSSProperties}
     >
       <div className="flex items-start gap-3">
         <span className="icon-chip shrink-0">
-          <AppIcon name={trick.icon} />
+          <AppIcon name={TRICK_ICONS[id]} />
         </span>
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-navy">{t(`tricks.items.${trick.id}.title`)}</h3>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                isApp ? 'bg-navy text-white' : 'bg-amber-100 text-amber-800'
-              }`}
-            >
-              {t(isApp ? 'tricks.appBadge' : 'tricks.tipBadge')}
+            <h3 className="font-bold text-navy">{t(`tricks.items.${id}.title`)}</h3>
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800">
+              {t('tricks.tipBadge')}
             </span>
           </div>
-          <p className="mt-1 text-sm text-gray-500">{t(`tricks.items.${trick.id}.body`)}</p>
+          <p className="mt-1 text-sm text-gray-500">{t(`tricks.items.${id}.body`)}</p>
         </div>
       </div>
-      {isApp && trick.url && (
-        <a href={trick.url} target="_blank" rel="noreferrer" className="btn-primary w-full mt-4">
-          <AppIcon name="download" className="w-4 h-4" />
-          {t('tricks.openApp')}
-        </a>
-      )}
+      <Link to={`/tricks/${id}`} className="btn-primary w-full mt-4">
+        {t('tricks.readMore')}
+        <DirArrow />
+      </Link>
     </article>
   );
 }
@@ -68,8 +76,8 @@ export function Tricks() {
       </div>
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch stagger">
-        {TRICKS.map((trick, i) => (
-          <TrickCard key={trick.id} trick={trick} index={i} />
+        {TRICK_SLUGS.map((id, i) => (
+          <TrickCard key={id} id={id} index={i} />
         ))}
       </div>
 
