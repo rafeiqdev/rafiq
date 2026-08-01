@@ -2017,5 +2017,55 @@
       "missing": "Still needs",
       "none": "None"
     }
+  },
+  "invest": {
+    "title": "Investment opportunities in Istanbul",
+    "body": "A detailed file per project: price range, citizenship and residence eligibility, the upside, and the risks stated plainly.",
+    "badge": "Investment opportunity",
+    "priceRange": "Price range",
+    "from": "from",
+    "openFile": "Open the file",
+    "requestFile": "Request the full file",
+    "priceCaveat": "Prices are indicative and move with the unit and the market — we confirm them before any step.",
+    "citizenshipShort": "Turkish citizenship",
+    "residencyShort": "Property residence",
+    "citizenshipWith": "Turkish citizenship ({{amount}})",
+    "residencyWith": "Property residence ({{amount}})",
+    "thresholdNotice": "Turkish citizenship requires $400,000 with a 3-year resale ban; the property residence permit requires $200,000 recorded on the title deed. The eligibility below is derived from each project's price range and needs confirmation from an official valuation.",
+    "illustrative": "Illustrative image",
+    "risksNote": "We publish the risks in full rather than hiding them — an investment decision needs both sides.",
+    "others": "Other opportunities in Istanbul",
+    "servicesTitle": "Rafiq services for this opportunity",
+    "disclaimer": "Rafiq is a service intermediary. Figures and specifications come from developer and market sources and must be confirmed against the title deed and an official valuation before any payment. Source:",
+    "missingTitle": "This opportunity is no longer available",
+    "backToList": "Back to all opportunities",
+    "tab": {
+      "overview": "Overview",
+      "pros": "Upside",
+      "cons": "Risks"
+    },
+    "side": {
+      "european": "European side",
+      "asian": "Asian side"
+    },
+    "facts": {
+      "developer": "Developer",
+      "location": "Location",
+      "type": "Property type",
+      "price": "Price range",
+      "unknown": "Not stated"
+    },
+    "eligibility": {
+      "citizenship": {
+        "yes": "Eligible",
+        "partial": "Depends on the unit",
+        "no": "Not eligible"
+      },
+      "residency": {
+        "yes": "Eligible",
+        "partial": "Depends on the unit",
+        "no": "Not eligible"
+      }
+    }
   }
 }

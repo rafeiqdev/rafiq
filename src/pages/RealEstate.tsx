@@ -15,6 +15,9 @@ import {
   type ListingFilters,
 } from '../lib/listingFilters';
 import { BANNERS } from '../lib/images';
+import { INVESTMENTS } from '../data/investments';
+import { InvestmentCard } from '../components/realestate/InvestmentCard';
+import { interleaveInvestments } from '../lib/feed';
 import { SITE_URL, usePageMeta } from '../lib/seo';
 
 const TABS: ListingType[] = ['sale', 'rent', 'commercial'];
@@ -68,6 +71,8 @@ export function RealEstate() {
   const results = useMemo(() => applyFilters(all, filters), [all, filters]);
   const shown = results.slice(0, limit);
   const activeCount = activeFilterCount(filters);
+  // Investment files are woven into the results one per ten listings.
+  const feed = useMemo(() => interleaveInvestments(shown, INVESTMENTS, 10), [shown]);
 
   // Any change to the filters starts the list over — otherwise a user who had
   // paged deep into one result set would land mid-way through the next.
@@ -155,9 +160,18 @@ export function RealEstate() {
           ) : (
             <>
               <div className="mt-5 grid gap-5 sm:grid-cols-2 items-stretch stagger">
-                {shown.map((l, i) => (
-                  <ListingCard key={l.id} listing={l} index={i} to={`/real-estate/${l.id}`} />
-                ))}
+                {feed.map((item) =>
+                  item.kind === 'listing' ? (
+                    <ListingCard
+                      key={item.listing.id}
+                      listing={item.listing}
+                      index={item.index}
+                      to={`/real-estate/${item.listing.id}`}
+                    />
+                  ) : (
+                    <InvestmentCard key={`inv-${item.opp.slug}`} opp={item.opp} />
+                  ),
+                )}
               </div>
               {results.length > shown.length && (
                 <button onClick={() => setLimit((n) => n + PAGE_SIZE)} className="btn-secondary w-full mt-5">

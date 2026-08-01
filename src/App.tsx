@@ -72,6 +72,7 @@ const RealEstateDetail = lazyPage(() => import('./pages/RealEstateDetail').then(
 const MobileRealEstateDetail = lazyPage(() => import('./pages/mobile/MobileRealEstateDetail').then((m) => ({ default: m.MobileRealEstateDetail })));
 const MobileListingServices = lazyPage(() => import('./pages/mobile/MobileListingServices').then((m) => ({ default: m.MobileListingServices })));
 const RealEstateInvestments = lazyPage(() => import('./pages/RealEstateInvestments').then((m) => ({ default: m.RealEstateInvestments })));
+const InvestmentDetail = lazyPage(() => import('./pages/InvestmentDetail').then((m) => ({ default: m.InvestmentDetail })));
 const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
 const MobileHealthTourism = lazyPage(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
 const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
@@ -227,6 +228,7 @@ function Shell() {
             {/* `investments` is declared before `:id` so the literal path wins
                 over the dynamic listing route. */}
             <Route path="/real-estate/investments" element={<RealEstateInvestments />} />
+            <Route path="/real-estate/investments/:slug" element={<InvestmentDetail />} />
             <Route path="/real-estate/:id" element={isMobile ? <MobileRealEstateDetail /> : <RealEstateDetail />} />
             <Route
               path="/real-estate/:id/services"
