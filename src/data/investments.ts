@@ -15,6 +15,8 @@
  * commercial site, and these developers do enforce it.
  */
 
+import type { InvestmentRecord } from '../lib/types';
+
 /** Statutory thresholds, in USD. Verified against 2026 sources — see README. */
 export const CITIZENSHIP_THRESHOLD_USD = 400_000;
 export const RESIDENCY_THRESHOLD_USD = 200_000;
@@ -88,10 +90,13 @@ export function eligibilityFor(minUsd: number, maxUsd: number | null, threshold:
   return 'no';
 }
 
-export const citizenshipEligibility = (o: InvestmentOpportunity): Eligibility =>
+/** Accepts either the built-in file or a database record — both carry a range. */
+type PricedLikeAnOpportunity = { minUsd: number; maxUsd: number | null };
+
+export const citizenshipEligibility = (o: PricedLikeAnOpportunity): Eligibility =>
   eligibilityFor(o.minUsd, o.maxUsd, CITIZENSHIP_THRESHOLD_USD);
 
-export const residencyEligibility = (o: InvestmentOpportunity): Eligibility =>
+export const residencyEligibility = (o: PricedLikeAnOpportunity): Eligibility =>
   eligibilityFor(o.minUsd, o.maxUsd, RESIDENCY_THRESHOLD_USD);
 
 export const INVESTMENTS: InvestmentOpportunity[] = [
@@ -513,8 +518,38 @@ export const INVESTMENTS: InvestmentOpportunity[] = [
 export const investmentBySlug = (slug: string): InvestmentOpportunity | null =>
   INVESTMENTS.find((o) => o.slug === slug) ?? null;
 
+/**
+ * The built-in catalogue as database-shaped records.
+ *
+ * Used two ways: as the fallback the public pages render before the migration
+ * has run (or if the table is unreadable), and as the one-click seed the admin
+ * imports so the eleven files become editable rows instead of being retyped.
+ */
+export function seedRecords(): InvestmentRecord[] {
+  return INVESTMENTS.map((o, i) => ({
+    id: o.slug,
+    slug: o.slug,
+    brand: o.brand,
+    name: o.name,
+    district: o.district,
+    type: o.type,
+    summary: o.summary,
+    developer: o.developer,
+    side: o.side,
+    minUsd: o.minUsd,
+    maxUsd: o.maxUsd,
+    pros: o.pros,
+    cons: o.cons,
+    extraFacts: o.extraFacts ?? [],
+    images: o.images,
+    source: o.source,
+    sort: i,
+    published: true,
+  }));
+}
+
 /** Price range formatted for display, e.g. "$320,000 – $1,100,000" or "from $353,000". */
-export function priceRange(o: InvestmentOpportunity, fromLabel: string): string {
+export function priceRange(o: PricedLikeAnOpportunity, fromLabel: string): string {
   const fmt = (n: number) => `$${n.toLocaleString('en-US')}`;
   return o.maxUsd === null ? `${fromLabel} ${fmt(o.minUsd)}` : `${fmt(o.minUsd)} – ${fmt(o.maxUsd)}`;
 }

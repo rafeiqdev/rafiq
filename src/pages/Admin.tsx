@@ -8,6 +8,7 @@ import { RequireAdmin } from '../components/Gates';
 import { useApp } from '../context/AppContext';
 import { AppIcon } from '../components/AppIcon';
 import { ListingsManager, PlacesManager } from '../components/AdminManagers';
+import { InvestmentsManager } from '../components/admin/InvestmentsManager';
 import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
 import { AdminNewRequests } from '../components/AdminNewRequests';
 import { AdminServicesManager } from '../components/AdminServicesManager';
@@ -548,6 +549,7 @@ function AdminInner() {
 
       {/* content management: real-estate listings + map services */}
       <ListingsManager />
+      <InvestmentsManager />
       <PlacesManager />
 
       {/* global news signals */}

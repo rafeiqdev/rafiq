@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { interleaveInvestments } from './feed';
-import type { Listing } from './types';
-import type { InvestmentOpportunity } from '../data/investments';
+import type { InvestmentRecord, Listing } from './types';
 
 const listings = (n: number): Listing[] =>
   Array.from({ length: n }, (_, i) => ({
     id: String(i), district: 'D', rooms: '2+1', m2: 100, priceUsd: 100_000, citizenship: false,
   }));
 
-const opp = (slug: string) => ({ slug }) as InvestmentOpportunity;
+const opp = (slug: string) => ({ slug }) as InvestmentRecord;
 const opps = [opp('a'), opp('b')];
 
-const shape = (n: number, o: InvestmentOpportunity[], every?: number) =>
+const shape = (n: number, o: InvestmentRecord[], every?: number) =>
   interleaveInvestments(listings(n), o, every).map((x) => (x.kind === 'listing' ? 'L' : `I:${x.opp.slug}`));
 
 describe('interleaveInvestments', () => {

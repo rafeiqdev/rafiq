@@ -46,6 +46,10 @@ import type {
   StoredDocument,
   Subscription,
   User,
+  InvestmentRecord,
+  InvestmentInput,
+  InvestmentContact,
+  LocalizedText,
 } from './types';
 import { COMPANY_PLAN_PRICE } from './types';
 import { classifyError, isSchemaUnavailable, logDiagnostic } from './errors';
@@ -1255,6 +1259,117 @@ export const listings = {
   },
   async remove(id: string): Promise<{ ok: true }> {
     const { error } = await sb().from('listings').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+// ---------- investment opportunities (public read, admin write) --------------
+
+/**
+ * Opportunities live in the database so the admin can edit them without a
+ * deploy. The built-in catalogue in `src/data/investments.ts` stays as the
+ * seed and as the fallback: if the table is missing or empty — which is the
+ * case until the migration runs — the public pages keep rendering the eleven
+ * files rather than showing an empty section.
+ */
+interface InvestmentRow {
+  id: string; slug: string; brand: string; name: LocalizedText; district: LocalizedText;
+  type: LocalizedText; summary: LocalizedText; developer: string; side: string;
+  min_usd: number; max_usd: number | null; pros: LocalizedText[]; cons: LocalizedText[];
+  extra_facts: { key: string; value: string | LocalizedText }[] | null;
+  images: string[] | null; source: { label: string; url: string } | null;
+  sort: number; published: boolean;
+}
+
+const toInvestment = (r: InvestmentRow): InvestmentRecord => ({
+  id: r.id, slug: r.slug, brand: r.brand, name: r.name, district: r.district, type: r.type,
+  summary: r.summary, developer: r.developer, side: r.side === 'asian' ? 'asian' : 'european',
+  minUsd: Number(r.min_usd), maxUsd: r.max_usd === null ? null : Number(r.max_usd),
+  pros: Array.isArray(r.pros) ? r.pros : [], cons: Array.isArray(r.cons) ? r.cons : [],
+  extraFacts: Array.isArray(r.extra_facts) ? r.extra_facts : [],
+  images: Array.isArray(r.images) ? r.images : [],
+  source: r.source ?? { label: '', url: '' },
+  sort: r.sort, published: r.published,
+});
+
+const fromInvestment = (i: InvestmentInput) => ({
+  slug: i.slug, brand: i.brand, name: i.name, district: i.district, type: i.type,
+  summary: i.summary, developer: i.developer, side: i.side, min_usd: i.minUsd,
+  max_usd: i.maxUsd, pros: i.pros, cons: i.cons, extra_facts: i.extraFacts,
+  images: i.images, source: i.source, sort: i.sort, published: i.published,
+});
+
+export const investments = {
+  /** Public list. Returns [] on any failure so callers can fall back. */
+  async list(): Promise<InvestmentRecord[]> {
+    const { data, error } = await sb()
+      .from('investment_opportunities')
+      .select('*')
+      .eq('published', true)
+      .order('sort', { ascending: true });
+    if (error) return [];
+    return (data as InvestmentRow[]).map(toInvestment);
+  },
+  /** Admin list — includes unpublished rows. Throws, so admin fails loud. */
+  async adminList(): Promise<InvestmentRecord[]> {
+    const { data, error } = await sb()
+      .from('investment_opportunities')
+      .select('*')
+      .order('sort', { ascending: true });
+    if (error) fail(error);
+    return (data as InvestmentRow[]).map(toInvestment);
+  },
+  async create(input: InvestmentInput): Promise<{ id: string }> {
+    const { data, error } = await sb().from('investment_opportunities').insert(fromInvestment(input)).select('id').single();
+    if (error) fail(error);
+    return { id: data!.id };
+  },
+  async update(id: string, input: InvestmentInput): Promise<{ ok: true }> {
+    const { error } = await sb().from('investment_opportunities').update(fromInvestment(input)).eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async remove(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('investment_opportunities').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  /** Reuses the public `listings` bucket — no second bucket to police. */
+  uploadImage(file: File): Promise<string> {
+    return listings.uploadImage(file);
+  },
+};
+
+/**
+ * Sales-office contact details. INTERNAL ONLY.
+ *
+ * These are the numbers our team calls to request a photo pack. They belong to
+ * partner companies, are not ours to publish, and the public pages never import
+ * this object. RLS denies anon at the table level as a second line of defence.
+ */
+export const investmentContacts = {
+  async get(opportunityId: string): Promise<InvestmentContact | null> {
+    const { data, error } = await sb()
+      .from('investment_contacts')
+      .select('*')
+      .eq('opportunity_id', opportunityId)
+      .maybeSingle();
+    if (error) fail(error);
+    if (!data) return null;
+    const r = data as Record<string, string>;
+    return {
+      opportunityId: r.opportunity_id, salesEmail: r.sales_email ?? '', salesPhone: r.sales_phone ?? '',
+      whatsapp: r.whatsapp ?? '', officialUrl: r.official_url ?? '', pressUrl: r.press_url ?? '',
+      permission: (r.permission as InvestmentContact['permission']) ?? 'none', notes: r.notes ?? '',
+    };
+  },
+  async save(c: InvestmentContact): Promise<{ ok: true }> {
+    const { error } = await sb().from('investment_contacts').upsert({
+      opportunity_id: c.opportunityId, sales_email: c.salesEmail, sales_phone: c.salesPhone,
+      whatsapp: c.whatsapp, official_url: c.officialUrl, press_url: c.pressUrl,
+      permission: c.permission, notes: c.notes,
+    });
     if (error) fail(error);
     return { ok: true };
   },

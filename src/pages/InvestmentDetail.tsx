@@ -5,13 +5,12 @@ import { AppIcon } from '../components/AppIcon';
 import { usePageMeta } from '../lib/seo';
 import {
   CITIZENSHIP_THRESHOLD_USD,
-  INVESTMENTS,
   RESIDENCY_THRESHOLD_USD,
   citizenshipEligibility,
-  investmentBySlug,
   priceRange,
   residencyEligibility,
 } from '../data/investments';
+import { useInvestments } from '../hooks/useInvestments';
 import {
   EligibilityValue,
   InvestmentPhoto,
@@ -29,7 +28,8 @@ export function InvestmentDetail() {
   const { t } = useTranslation();
   const L = useLocalized();
   const { slug } = useParams<{ slug: string }>();
-  const opp = investmentBySlug(slug ?? '');
+  const { items, loading } = useInvestments();
+  const opp = items.find((o) => o.slug === slug) ?? null;
   const [tab, setTab] = useState<'overview' | 'pros' | 'cons'>('overview');
 
   usePageMeta({
@@ -43,6 +43,14 @@ export function InvestmentDetail() {
     opp ? { id: opp.slug, district: L(opp.name), rooms: opp.developer, m2: 0, priceUsd: opp.minUsd, citizenship: false } : null,
   );
 
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="card h-96 animate-pulse bg-cream-dark/40" />
+      </div>
+    );
+  }
+
   if (!opp) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
@@ -55,7 +63,7 @@ export function InvestmentDetail() {
 
   const cit = citizenshipEligibility(opp);
   const res = residencyEligibility(opp);
-  const others = INVESTMENTS.filter((o) => o.slug !== opp.slug).slice(0, 3);
+  const others = items.filter((o) => o.slug !== opp.slug).slice(0, 3);
   const brand = { ['--brand' as string]: opp.brand };
 
   // A bare figure ("$1.5 – $2.5 / m² / month") must render left-to-right even

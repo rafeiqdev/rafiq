@@ -17,9 +17,9 @@ import {
   type ListingFilters,
 } from '../../lib/listingFilters';
 import { BANNERS } from '../../lib/images';
-import { INVESTMENTS } from '../../data/investments';
 import { InvestmentCard } from '../../components/realestate/InvestmentCard';
 import { interleaveInvestments } from '../../lib/feed';
+import { useInvestments } from '../../hooks/useInvestments';
 import { SITE_URL, usePageMeta } from '../../lib/seo';
 
 const TABS: ListingType[] = ['sale', 'rent', 'commercial'];
@@ -53,6 +53,7 @@ export function MobileRealEstate() {
       .finally(() => setLoading(false));
   }, []);
 
+  const { items: opportunities } = useInvestments();
   const districts = useMemo(() => districtsOf(all), [all]);
   const results = useMemo(() => applyFilters(all, filters), [all, filters]);
   const draftResults = useMemo(() => applyFilters(all, draft), [all, draft]);
@@ -60,7 +61,7 @@ export function MobileRealEstate() {
   const activeCount = activeFilterCount(filters);
   // One investment file per five listings on mobile: the feed is a single
   // column, so ten cards is a much longer scroll than it is on desktop.
-  const feed = useMemo(() => interleaveInvestments(shown, INVESTMENTS, 5), [shown]);
+  const feed = useMemo(() => interleaveInvestments(shown, opportunities, 5), [shown, opportunities]);
 
   const update = (next: ListingFilters) => {
     setFilters(next);

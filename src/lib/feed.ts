@@ -1,9 +1,8 @@
-import type { InvestmentOpportunity } from '../data/investments';
-import type { Listing } from './types';
+import type { InvestmentRecord, Listing } from './types';
 
 export type FeedItem =
   | { kind: 'listing'; listing: Listing; index: number }
-  | { kind: 'invest'; opp: InvestmentOpportunity };
+  | { kind: 'invest'; opp: InvestmentRecord };
 
 /**
  * Interleaves investment opportunities into the listings feed — one after every
@@ -23,7 +22,7 @@ export type FeedItem =
  */
 export function interleaveInvestments(
   listings: Listing[],
-  opportunities: InvestmentOpportunity[],
+  opportunities: InvestmentRecord[],
   every = 10,
 ): FeedItem[] {
   const out: FeedItem[] = [];

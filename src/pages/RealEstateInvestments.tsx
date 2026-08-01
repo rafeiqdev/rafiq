@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { usePageMeta } from '../lib/seo';
-import { INVESTMENTS } from '../data/investments';
+import { useInvestments } from '../hooks/useInvestments';
 import { InvestmentCard } from '../components/realestate/InvestmentCard';
 
 /** Index of every investment opportunity, reached from the strip on /real-estate. */
 export function RealEstateInvestments() {
   const { t } = useTranslation();
+  const { items, loading } = useInvestments();
   usePageMeta({
     title: `${t('invest.title')} — ${t('common.appName')}`,
     description: t('invest.body'),
@@ -33,9 +34,9 @@ export function RealEstateInvestments() {
       </div>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
-        {INVESTMENTS.map((opp) => (
-          <InvestmentCard key={opp.slug} opp={opp} />
-        ))}
+        {loading
+          ? [0, 1, 2, 3].map((i) => <div key={i} className="card h-40 animate-pulse bg-cream-dark/40 sm:col-span-2" />)
+          : items.map((opp) => <InvestmentCard key={opp.slug} opp={opp} />)}
       </div>
     </div>
   );

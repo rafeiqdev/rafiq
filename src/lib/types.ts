@@ -499,3 +499,50 @@ export interface CompanyPublic {
   rating: number;
   reviewsCount: number;
 }
+
+// ── investment opportunities ────────────────────────────────────────────────
+
+export interface LocalizedText { ar: string; en: string; fa: string; ru: string }
+
+/** A row of `investment_opportunities` — everything the public pages render. */
+export interface InvestmentRecord {
+  id: string;
+  slug: string;
+  brand: string;
+  name: LocalizedText;
+  district: LocalizedText;
+  type: LocalizedText;
+  summary: LocalizedText;
+  developer: string;
+  side: 'european' | 'asian';
+  minUsd: number;
+  maxUsd: number | null;
+  pros: LocalizedText[];
+  cons: LocalizedText[];
+  extraFacts: { key: string; value: string | LocalizedText }[];
+  images: string[];
+  source: { label: string; url: string };
+  sort: number;
+  published: boolean;
+}
+
+export type InvestmentInput = Omit<InvestmentRecord, 'id'>;
+
+/**
+ * Sales-office contact details for one opportunity — INTERNAL ONLY.
+ *
+ * Deliberately a separate type from `InvestmentRecord` so it is impossible to
+ * spread one into a public component by accident. Nothing under src/pages that
+ * renders to a visitor may import this.
+ */
+export interface InvestmentContact {
+  opportunityId: string;
+  salesEmail: string;
+  salesPhone: string;
+  whatsapp: string;
+  officialUrl: string;
+  pressUrl: string;
+  /** where the photo-permission request stands */
+  permission: 'none' | 'requested' | 'granted' | 'refused';
+  notes: string;
+}
