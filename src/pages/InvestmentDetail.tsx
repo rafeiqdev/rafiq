@@ -58,18 +58,27 @@ export function InvestmentDetail() {
   const others = INVESTMENTS.filter((o) => o.slug !== opp.slug).slice(0, 3);
   const brand = { ['--brand' as string]: opp.brand };
 
+  // A bare figure ("$1.5 – $2.5 / m² / month") must render left-to-right even
+  // inside an RTL page, or the currency and units end up on the wrong side.
+  const rows: { label: string; value: string; ltr: boolean }[] = [
+    { label: t('invest.facts.developer'), value: opp.developer === '—' ? t('invest.facts.unknown') : opp.developer, ltr: true },
+    { label: t('invest.facts.location'), value: `${L(opp.district)} — ${t(`invest.side.${opp.side}`)}`, ltr: false },
+    { label: t('invest.facts.type'), value: L(opp.type), ltr: false },
+    { label: t('invest.facts.price'), value: priceRange(opp, t('invest.from')), ltr: true },
+    ...(opp.extraFacts ?? []).map((f) => ({
+      label: t(`invest.facts.${f.key}`),
+      value: typeof f.value === 'string' ? f.value : L(f.value),
+      ltr: typeof f.value === 'string',
+    })),
+  ];
+
   const Facts = (
     <table className="w-full text-sm mt-3">
       <tbody>
-        {[
-          [t('invest.facts.developer'), opp.developer === '—' ? t('invest.facts.unknown') : opp.developer],
-          [t('invest.facts.location'), `${L(opp.district)} — ${t(`invest.side.${opp.side}`)}`],
-          [t('invest.facts.type'), L(opp.type)],
-          [t('invest.facts.price'), priceRange(opp, t('invest.from'))],
-        ].map(([k, v]) => (
-          <tr key={k} className="border-b border-cream-dark last:border-0">
-            <td className="py-2.5 pe-3 text-gray-500 font-semibold align-top w-[38%]">{k}</td>
-            <td className="py-2.5 text-navy">{v}</td>
+        {rows.map((r) => (
+          <tr key={r.label} className="border-b border-cream-dark last:border-0">
+            <td className="py-2.5 pe-3 text-gray-500 font-semibold align-top w-[38%]">{r.label}</td>
+            <td className="py-2.5 text-navy" dir={r.ltr ? 'ltr' : undefined}>{r.value}</td>
           </tr>
         ))}
       </tbody>

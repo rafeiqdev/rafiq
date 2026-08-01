@@ -2053,7 +2053,19 @@
       "location": "Location",
       "type": "Property type",
       "price": "Price range",
-      "unknown": "Not stated"
+      "unknown": "Not stated",
+      "delivery": "Delivery",
+      "buildYear": "Year built",
+      "units": "Total units",
+      "unitTypes": "Unit types",
+      "mix": "Unit mix",
+      "aidat": "Service charge (aidat)",
+      "yield": "Rental yield",
+      "occupancy": "Average occupancy",
+      "mgmtCut": "Hotel management cut",
+      "payment": "Payment terms",
+      "shortLet": "Short-let licence",
+      "residencyUnit": "Qualifying unit"
     },
     "eligibility": {
       "citizenship": {

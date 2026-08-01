@@ -2053,7 +2053,19 @@
       "location": "موقعیت",
       "type": "نوع ملک",
       "price": "بازه قیمت",
-      "unknown": "نامشخص"
+      "unknown": "نامشخص",
+      "delivery": "زمان تحویل",
+      "buildYear": "سال ساخت",
+      "units": "تعداد واحدها",
+      "unitTypes": "انواع واحد",
+      "mix": "ترکیب واحدها",
+      "aidat": "شارژ ماهانه",
+      "yield": "بازده اجاره",
+      "occupancy": "میانگین اشغال",
+      "mgmtCut": "سهم مدیریت هتل",
+      "payment": "شرایط پرداخت",
+      "shortLet": "مجوز اجاره کوتاه‌مدت",
+      "residencyUnit": "واحد واجد شرایط"
     },
     "eligibility": {
       "citizenship": {

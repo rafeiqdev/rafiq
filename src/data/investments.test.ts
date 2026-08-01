@@ -64,13 +64,36 @@ describe('the opportunity catalogue', () => {
   });
 
   it('marks the sub-threshold projects honestly', () => {
-    const avcilar = investmentBySlug('avcilar-coastal')!;
-    expect(citizenshipEligibility(avcilar)).toBe('no');
-    expect(residencyEligibility(avcilar)).toBe('no');
+    const allure = investmentBySlug('allure-tower-avcilar')!;
+    expect(citizenshipEligibility(allure)).toBe('no');
+    expect(residencyEligibility(allure)).toBe('no');
 
-    const basaksehir = investmentBySlug('basaksehir-projects')!;
-    expect(citizenshipEligibility(basaksehir)).toBe('no');
-    expect(residencyEligibility(basaksehir)).toBe('yes');
+    const basakPort = investmentBySlug('basak-port')!;
+    expect(citizenshipEligibility(basakPort)).toBe('partial');
+    expect(residencyEligibility(basakPort)).toBe('yes');
+
+    // Deluxia's entry unit is $227k — well under citizenship, over residence.
+    const deluxia = investmentBySlug('residence-inn-deluxia')!;
+    expect(citizenshipEligibility(deluxia)).toBe('partial');
+    expect(residencyEligibility(deluxia)).toBe('yes');
+  });
+
+  it('resolves every district to a single named project, not a whole area', () => {
+    // "Başakşehir complexes" and "Avcılar coastal" used to be area entries with
+    // no developer and no buildable photo set. Every file must name a project.
+    for (const o of INVESTMENTS) {
+      expect(o.developer, `${o.slug} has no named developer`).not.toBe('—');
+    }
+  });
+
+  it('labels every extra fact with a known key', () => {
+    const known = new Set([
+      'delivery', 'buildYear', 'units', 'unitTypes', 'mix', 'aidat',
+      'yield', 'occupancy', 'mgmtCut', 'payment', 'shortLet', 'residencyUnit',
+    ]);
+    for (const o of INVESTMENTS) {
+      for (const f of o.extraFacts ?? []) expect(known.has(f.key), `${o.slug}: ${f.key}`).toBe(true);
+    }
   });
 });
 
@@ -80,6 +103,6 @@ describe('priceRange', () => {
   });
 
   it('renders an open range with the "from" label', () => {
-    expect(priceRange(investmentBySlug('casablu-vadi-beylikduzu')!, 'from')).toBe('from $266,000');
+    expect(priceRange(investmentBySlug('babacan-lagoon-gaziosmanpasa')!, 'from')).toBe('from $180,000');
   });
 });

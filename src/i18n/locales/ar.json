@@ -2053,7 +2053,19 @@
       "location": "الموقع",
       "type": "نوع العقار",
       "price": "نطاق السعر",
-      "unknown": "غير محدّد"
+      "unknown": "غير محدّد",
+      "delivery": "موعد التسليم",
+      "buildYear": "سنة البناء",
+      "units": "عدد الوحدات",
+      "unitTypes": "أنواع الوحدات",
+      "mix": "توزيع الوحدات",
+      "aidat": "رسوم الخدمات (Aidat)",
+      "yield": "العائد الإيجاري",
+      "occupancy": "متوسط الإشغال",
+      "mgmtCut": "اقتطاع الإدارة الفندقية",
+      "payment": "طريقة الدفع",
+      "shortLet": "ترخيص التأجير اليومي",
+      "residencyUnit": "الوحدة المؤهلة"
     },
     "eligibility": {
       "citizenship": {
