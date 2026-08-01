@@ -25,7 +25,6 @@ const GROUPS: FooterGroup[] = [
     icon: 'layers',
     links: [
       { to: '/services', key: 'nav.allServices' },
-      { to: '/residency', key: 'nav.residency' },
       { to: '/real-estate', key: 'nav.realEstate' },
       { to: '/health-tourism', key: 'nav.health' },
       { to: '/hub', key: 'nav.hub' },

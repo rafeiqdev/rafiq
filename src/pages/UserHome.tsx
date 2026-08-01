@@ -408,7 +408,7 @@ export function UserHome() {
               <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.cityBody')}</p>
             </div>
           </div>
-          <Link to="/residency" className="btn-ghost mt-4 min-h-[44px]">
+          <Link to="/services" className="btn-ghost mt-4 min-h-[44px]">
             {t('dash.cityCta')}
             <DirArrow />
           </Link>

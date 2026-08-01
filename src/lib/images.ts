@@ -17,7 +17,6 @@ export const CAROUSEL = [
 
 /** Per-page photo banners (verified Istanbul scenery). */
 export const BANNERS = {
-  residency: U('1541432901042-2d8bd64b4a9b'),
   tricks: U('1518105779142-d975f22f1b0a'),
   realEstate: U('1524231757912-21f4fe3a7200'),
 };
@@ -62,7 +61,6 @@ export const ONBOARDING_PHOTOS: Record<string, string> = {
 /** Background photo per "Explore" card, themed to its subject (keyed by route). */
 export const EXPLORE_PHOTOS: Record<string, string> = {
   '/tricks': U('1524231757912-21f4fe3a7200', 800), // Istanbul old city
-  '/residency': U('1450101499163-c8848c66ca85', 800), // documents / desk
   '/real-estate': U('1545324418-cc1a3fa10c00', 800), // apartment building
   '/health-tourism': U('1538108149393-fbbd81895907', 800), // hospital
   '/map': U('1527838832700-5059252407fa', 800), // Bosphorus

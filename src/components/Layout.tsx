@@ -20,7 +20,7 @@ import { ConsentBanner } from './ConsentBanner';
 // footer chrome entirely for these so the mobile screen isn't sandwiched
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
-const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/residency', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
 
 // Dropping the desktop chrome on phones also dropped the footer, so the terms /
 // privacy / refund block and the language switcher were unreachable from every
@@ -33,7 +33,6 @@ const MOBILE_FOOTER_ROUTES = new Set([
   '/services',
   '/hub',
   '/tricks',
-  '/residency',
   '/real-estate',
   '/health-tourism',
   '/referrals',
@@ -66,7 +65,6 @@ const SERVICE_LINKS: NavItem[] = [
   { to: '/services', key: 'nav.allServices', icon: 'layers' },
   { to: '/hub', key: 'nav.hub', icon: 'compass' },
   { to: '/tricks', key: 'nav.tricks', icon: 'lightbulb' },
-  { to: '/residency', key: 'nav.residency', icon: 'id-card' },
   { to: '/real-estate', key: 'nav.realEstate', icon: 'building' },
   { to: '/health-tourism', key: 'nav.health', icon: 'heart-pulse' },
   { to: '/referrals', key: 'nav.referrals', icon: 'gift' },

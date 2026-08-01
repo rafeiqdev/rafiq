@@ -128,7 +128,6 @@ function CityDistricts() {
 function ServicesGrid() {
   const { t } = useTranslation();
   const items: { to: string; icon: IconName; key: string }[] = [
-    { to: '/residency', icon: 'id-card', key: 'residency' },
     { to: '/real-estate', icon: 'building', key: 'realEstate' },
     { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
     { to: '/map', icon: 'map', key: 'map' },

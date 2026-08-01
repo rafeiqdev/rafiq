@@ -59,7 +59,6 @@
     "map": "Map",
     "hub": "Guides",
     "tricks": "Istanbul Tricks",
-    "residency": "Residency",
     "realEstate": "Real Estate",
     "health": "Health Tourism",
     "referrals": "Invite & Earn",
@@ -453,7 +452,6 @@
     "serviceOverview": {
       "title": "Our services",
       "body": "Explore what Rafiq can do for you.",
-      "residency": "Residency",
       "realEstate": "Real Estate",
       "health": "Health Tourism",
       "map": "Services Map"
@@ -720,36 +718,6 @@
     "terms": {
       "title": "Referral program terms",
       "body": "You earn 30% commission on payments made by people who sign up with your link, for as long as they remain an active paying customer.\n\nCommissions are tracked in your dashboard; payout is arranged directly with our team — contact us to request a settlement.\n\nRafiq Istanbul may set a maximum payout, cap, or eligibility limit for the program at its discretion, and may withhold or reverse commissions in cases of fraud, self-referral, or fake accounts.\n\nMoving or living outside Turkey does not cancel commissions you've already earned. We may update or end the referral program for future referrals at any time; commissions already earned remain payable under these terms."
-    }
-  },
-  "residency": {
-    "title": "Residence permits (İkamet)",
-    "subtitle": "Every permit type, explained step by step.",
-    "warning": "A number of Istanbul districts are closed to new residence registrations at any given time. Always verify the district before signing a rental contract.",
-    "types": {
-      "shortTerm": {
-        "title": "Short-term residence",
-        "body": "The most common first permit — usually 1–2 years, based on tourism, property ownership or business ties."
-      },
-      "family": {
-        "title": "Family residence",
-        "body": "For spouses and children of a Turkish citizen or a foreigner with a valid permit. Civil documents need apostille + sworn translation."
-      },
-      "student": {
-        "title": "Student residence",
-        "body": "For enrolled university students. The university enrollment letter replaces most other justifications."
-      },
-      "longTerm": {
-        "title": "Long-term residence",
-        "body": "After 8 years of uninterrupted legal residence — indefinite, with no need to renew."
-      }
-    },
-    "steps": {
-      "title": "The application flow",
-      "s1": "Get your tax number and health insurance.",
-      "s2": "Register your address (notarized rental contract).",
-      "s3": "Apply online at e-İkamet and book the appointment.",
-      "s4": "Attend with your documents; card arrives by mail."
     }
   },
   "realEstate": {

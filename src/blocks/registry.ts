@@ -58,7 +58,7 @@ export const BLOCKS: Block[] = [
     priority: 30,
     showIf: (p) => p.path === 'planning' && (p.reason === 'live' || p.reason === 'work'),
     kind: 'info',
-    ctaTo: '/residency',
+    ctaTo: '/services',
   },
   {
     id: 'studyBlock',
@@ -66,7 +66,7 @@ export const BLOCKS: Block[] = [
     priority: 30,
     showIf: (p) => p.path === 'planning' && p.reason === 'study',
     kind: 'info',
-    ctaTo: '/residency',
+    ctaTo: '/services',
   },
 
   // ---- PATH = arrived (14-day checklist; hidden if already owned) ----

@@ -28,7 +28,7 @@ function categoryOf(e: unknown): ErrorCategory {
 const LOCAL_TASK_ROUTE: Record<string, string> = {
   turkishPhone: '/services',
   taxNumber: '/services',
-  residencePermit: '/residency',
+  residencePermit: '/services',
   bankAccount: '/services',
 };
 

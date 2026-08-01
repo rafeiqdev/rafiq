@@ -100,7 +100,7 @@ describe('the bar lives in one file', () => {
       .filter((f) => f.endsWith('.tsx') && !f.endsWith('.test.tsx') && f !== 'MobileHome.tsx')
       .filter((f) => fs.readFileSync(path.join(MOBILE_DIR, f), 'utf8').includes('<MobileTabBar />'));
 
-    expect(consolidated.length).toBeGreaterThanOrEqual(13);
+    expect(consolidated.length).toBeGreaterThanOrEqual(12);
     for (const f of consolidated) {
       expect(fs.readFileSync(path.join(MOBILE_DIR, f), 'utf8')).toContain(
         "from '../../components/MobileTabBar'",
