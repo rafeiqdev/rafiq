@@ -155,7 +155,7 @@ export function MobileRealEstateDetail() {
             </div>
           )}
 
-          <DescriptionBox text={listing.description} />
+          <DescriptionBox listing={listing} />
 
           <ListingTrustNote />
 

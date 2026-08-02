@@ -269,6 +269,14 @@ export interface Listing {
   amenities?: string[];
   /** ISO date of the last time this listing was refreshed from its source */
   updatedAt?: string | null;
+  /**
+   * Per-locale translations of the (condensed) title/description, keyed by
+   * language code ('ar' | 'en' | 'fa' | 'ru'). Produced once at import time —
+   * never in a component or hook, since that would re-translate on every
+   * render. Absent or missing a locale means that row has not been
+   * translated yet; the UI falls back to the raw `description`.
+   */
+  translations?: Partial<Record<'ar' | 'en' | 'fa' | 'ru', { title?: string; description?: string }>>;
 }
 
 export type ListingType = 'sale' | 'rent' | 'commercial';

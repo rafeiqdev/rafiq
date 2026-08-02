@@ -2,12 +2,22 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../AppIcon';
 import { condenseDescription } from '../../lib/listingText';
+import type { Listing } from '../../lib/types';
 
-/** Collapsible box for a listing description. Renders nothing when condensing leaves no text. */
-export function DescriptionBox({ text }: { text: string | null | undefined }) {
-  const { t } = useTranslation();
+/**
+ * Collapsible box for a listing description. Renders nothing when condensing
+ * leaves no text.
+ *
+ * Prefers the current locale's translated description (translated once at
+ * import time — see scripts/translate-listings.mjs) and falls back to the raw
+ * Turkish text so an untranslated row still renders instead of going blank.
+ */
+export function DescriptionBox({ listing }: { listing: Pick<Listing, 'description' | 'translations'> }) {
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
-  const condensed = condenseDescription(text);
+  const lang = (i18n.language || 'en').split('-')[0] as 'ar' | 'en' | 'fa' | 'ru';
+  const source = listing.translations?.[lang]?.description || listing.description;
+  const condensed = condenseDescription(source);
 
   if (!condensed) return null;
 

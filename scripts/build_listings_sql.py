@@ -6,6 +6,10 @@ OUT = r"C:\Users\muhmm\Downloads\CLAUDE1\rafiq-istanbul\supabase\migrations\2026
 
 USD_TRY = 41  # approximate — adjust if you have a more current rate, then re-run
 CITIZENSHIP_THRESHOLD_USD = 400_000  # Turkey's citizenship-by-investment minimum
+# Nobody scrolls 60 photos. Also caps what a fresh import hotlinks from the
+# source CDN before scripts/rehost-listing-photos.mjs replaces it with our
+# own re-encoded WebP copies (which enforce the same cap independently).
+MAX_IMAGES = 12
 
 
 def esc(s):
@@ -71,7 +75,7 @@ def main():
         price_usd = int(round(float(price_try) / USD_TRY)) if price_try else 0
         citizenship = price_usd >= CITIZENSHIP_THRESHOLD_USD
 
-        images = rec.get("images", [])
+        images = rec.get("images", [])[:MAX_IMAGES]
         image = images[0] if images else None
 
         description = clean_desc(rec.get("title"), rec.get("description"))
@@ -102,11 +106,16 @@ def main():
 
     sql = f"""-- Import {len(recs)} sahibinden.com listings scraped {'2026-08-01'} into public.listings.
 -- Source photos are hotlinked from sahibinden's own CDN (i0.shbdn.com /
--- image5.sahibinden.com) — they were NOT re-hosted, so treat them as
--- temporary: replace with your own photos per listing from /admin when you
--- can, since a third-party CDN link can disappear or block hotlinking at any
--- time, and republishing another site's listing photos as your own carries a
+-- image5.sahibinden.com) at insert time, capped at {MAX_IMAGES} per listing.
+-- Run `node scripts/rehost-listing-photos.mjs` right after this migration —
+-- it downloads each photo, re-encodes it to WebP and re-uploads it to our
+-- own Supabase storage bucket, then rewrites images/image to point at our
+-- URLs. Until that script runs, treat these hotlinked URLs as temporary: a
+-- third-party CDN link can disappear or block hotlinking at any time, and
+-- republishing another site's listing photos as our own carries a
 -- ToS/copyright risk.
+-- Run `node scripts/translate-listings.mjs` afterwards too, to fill in
+-- listings.translations for the new rows.
 --
 -- priceUsd was converted from TRY at an approximate rate of {USD_TRY} TRY/USD —
 -- correct individual prices from /admin if you have exact figures.

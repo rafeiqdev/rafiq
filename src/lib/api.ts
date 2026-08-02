@@ -136,6 +136,7 @@ interface ListingRow {
   listing_type?: string | null; floor?: number | null; total_floors?: number | null;
   build_status?: string | null; yield_pct?: number | null; amenities?: string[] | null;
   updated_at?: string | null;
+  translations?: Listing['translations'] | null;
 }
 const toListing = (r: ListingRow): Listing => ({
   id: r.id, district: r.district, rooms: r.rooms, m2: r.m2, priceUsd: r.price_usd, citizenship: r.citizenship,
@@ -150,6 +151,7 @@ const toListing = (r: ListingRow): Listing => ({
   yieldPct: r.yield_pct ?? null,
   amenities: Array.isArray(r.amenities) ? r.amenities : [],
   updatedAt: r.updated_at ?? null,
+  translations: r.translations ?? undefined,
 });
 const fromListing = (l: ListingInput) => ({
   district: l.district, rooms: l.rooms, m2: l.m2, price_usd: l.priceUsd, citizenship: l.citizenship,

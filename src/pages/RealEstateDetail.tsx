@@ -180,7 +180,7 @@ export function RealEstateDetail() {
               </div>
             )}
 
-            <DescriptionBox text={listing.description} />
+            <DescriptionBox listing={listing} />
 
             {listing.updatedAt && (
               <p className="mt-4 text-xs text-gray-400">
