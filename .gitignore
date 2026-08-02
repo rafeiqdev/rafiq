@@ -10,3 +10,6 @@ server/uploads/
 
 # TypeScript incremental build artifacts
 *.tsbuildinfo
+
+__pycache__/
+*.pyc
