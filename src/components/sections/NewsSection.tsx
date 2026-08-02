@@ -31,7 +31,11 @@ export function NewsSection({
         if (!live) return;
         setPosts(p);
       },
-      () => {},
+      (err) => {
+        // Visitors still see nothing rather than an error box — but a silent
+        // catch is why a 400 on this query went unnoticed. Log it.
+        console.error('[NewsSection] news.latest failed', err);
+      },
     );
     return () => {
       live = false;
