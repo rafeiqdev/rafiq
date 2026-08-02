@@ -7,8 +7,8 @@ import { AppIcon } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { LISTING_PHOTOS } from '../../lib/images';
 import { usePageMeta } from '../../lib/seo';
-import { condenseDescription, wasCondensed } from '../../lib/listingText';
 import { CitizenshipBadge } from '../../components/realestate/ListingCard';
+import { DescriptionBox } from '../../components/realestate/DescriptionBox';
 import { ListingTrustNote, useListingService } from '../../components/realestate/ListingServices';
 
 function photosOf(l: Listing, index = 0): string[] {
@@ -34,7 +34,6 @@ export function MobileRealEstateDetail() {
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [photo, setPhoto] = useState(0);
-  const [expanded, setExpanded] = useState(false);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -81,7 +80,13 @@ export function MobileRealEstateDetail() {
       {/* the price bar is pinned, so leave room for it plus the tab bar */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+160px)]">
         <div className="relative">
-          <img src={photos[photo]} alt={listing.district} width={800} height={450} className="h-48 w-full object-cover" />
+          <img
+            src={photos[photo]}
+            alt={listing.district}
+            width={800}
+            height={450}
+            className="h-44 w-full max-h-[38vh] object-cover bg-navy-50"
+          />
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -150,18 +155,7 @@ export function MobileRealEstateDetail() {
             </div>
           )}
 
-          {listing.description && (
-            <div>
-              <p className="text-sm leading-relaxed text-gray-600 whitespace-pre-line">
-                {expanded ? listing.description : condenseDescription(listing.description, 220)}
-              </p>
-              {wasCondensed(listing.description, 220) && (
-                <button onClick={() => setExpanded((v) => !v)} className="mt-1 text-sm font-bold text-navy">
-                  {expanded ? t('common.less') : t('common.more')}
-                </button>
-              )}
-            </div>
-          )}
+          <DescriptionBox text={listing.description} />
 
           <ListingTrustNote />
 

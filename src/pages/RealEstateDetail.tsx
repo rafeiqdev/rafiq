@@ -6,8 +6,8 @@ import type { Listing } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
 import { LISTING_PHOTOS } from '../lib/images';
 import { usePageMeta } from '../lib/seo';
-import { condenseDescription, wasCondensed } from '../lib/listingText';
 import { CitizenshipBadge, ListingCard } from '../components/realestate/ListingCard';
+import { DescriptionBox } from '../components/realestate/DescriptionBox';
 import {
   LISTING_SERVICES,
   ListingTrustNote,
@@ -37,7 +37,7 @@ export function RealEstateDetail() {
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
-  const [fullText, setFullText] = useState(false);
+  const [visiblePhotos, setVisiblePhotos] = useState(8);
 
   useEffect(() => {
     listingsApi
@@ -101,23 +101,45 @@ export function RealEstateDetail() {
         <div>
           <div className="card overflow-hidden">
             <div className="relative">
-              <img src={photos[active]} alt={listing.district} width={1200} height={675} className="w-full h-56 sm:h-80 object-cover" />
+              <img
+                src={photos[active]}
+                alt={listing.district}
+                width={1200}
+                height={675}
+                className="w-full h-52 sm:h-72 max-h-[60vh] object-cover bg-navy-50"
+              />
               <span className="absolute top-3 end-3">
                 <CitizenshipBadge listing={listing} />
               </span>
             </div>
             {photos.length > 1 && (
               <div className="flex gap-2 p-3 overflow-x-auto">
-                {photos.map((u, i) => (
+                {photos.slice(0, visiblePhotos).map((u, i) => (
                   <button
                     key={u}
                     onClick={() => setActive(i)}
                     aria-label={t('realEstate.detail.photo', { n: i + 1 })}
                     className={`shrink-0 w-[70px] h-14 rounded-btn overflow-hidden border-2 ${i === active ? 'border-navy' : 'border-transparent'}`}
                   >
-                    <img src={u} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={u}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      width={70}
+                      height={56}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
+                {visiblePhotos < photos.length && (
+                  <button
+                    onClick={() => setVisiblePhotos((v) => v + 16)}
+                    className="shrink-0 rounded-btn bg-cream px-3 h-14 text-xs font-bold text-navy whitespace-nowrap"
+                  >
+                    {t('realEstate.detail.morePhotos', { count: photos.length - visiblePhotos })}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -158,18 +180,7 @@ export function RealEstateDetail() {
               </div>
             )}
 
-            {listing.description && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                  {fullText ? listing.description : condenseDescription(listing.description)}
-                </p>
-                {wasCondensed(listing.description) && (
-                  <button onClick={() => setFullText((v) => !v)} className="mt-1.5 text-sm font-bold text-navy">
-                    {fullText ? t('common.less') : t('common.more')}
-                  </button>
-                )}
-              </div>
-            )}
+            <DescriptionBox text={listing.description} />
 
             {listing.updatedAt && (
               <p className="mt-4 text-xs text-gray-400">

@@ -840,7 +840,9 @@
       "photo": "Photo {{n}}",
       "missingTitle": "This listing is no longer available",
       "missingBody": "It may have been removed or its link changed. Browse the rest of the offers.",
-      "backToList": "Back to listings"
+      "backToList": "Back to listings",
+      "aboutBox": "About this property",
+      "morePhotos": "Show {{count}} more photos"
     },
     "home": {
       "title": "Istanbul real estate",
