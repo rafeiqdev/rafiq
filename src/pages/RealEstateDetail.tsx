@@ -6,6 +6,7 @@ import type { Listing } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
 import { LISTING_PHOTOS } from '../lib/images';
 import { usePageMeta } from '../lib/seo';
+import { condenseDescription, wasCondensed } from '../lib/listingText';
 import { CitizenshipBadge, ListingCard } from '../components/realestate/ListingCard';
 import {
   LISTING_SERVICES,
@@ -36,6 +37,7 @@ export function RealEstateDetail() {
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
+  const [fullText, setFullText] = useState(false);
 
   useEffect(() => {
     listingsApi
@@ -99,7 +101,7 @@ export function RealEstateDetail() {
         <div>
           <div className="card overflow-hidden">
             <div className="relative">
-              <img src={photos[active]} alt={listing.district} className="w-full h-64 sm:h-96 object-cover" />
+              <img src={photos[active]} alt={listing.district} width={1200} height={675} className="w-full h-56 sm:h-80 object-cover" />
               <span className="absolute top-3 end-3">
                 <CitizenshipBadge listing={listing} />
               </span>
@@ -157,7 +159,16 @@ export function RealEstateDetail() {
             )}
 
             {listing.description && (
-              <p className="mt-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line">{listing.description}</p>
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                  {fullText ? listing.description : condenseDescription(listing.description)}
+                </p>
+                {wasCondensed(listing.description) && (
+                  <button onClick={() => setFullText((v) => !v)} className="mt-1.5 text-sm font-bold text-navy">
+                    {fullText ? t('common.less') : t('common.more')}
+                  </button>
+                )}
+              </div>
             )}
 
             {listing.updatedAt && (

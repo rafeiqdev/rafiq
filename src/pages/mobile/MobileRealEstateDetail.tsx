@@ -7,6 +7,7 @@ import { AppIcon } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { LISTING_PHOTOS } from '../../lib/images';
 import { usePageMeta } from '../../lib/seo';
+import { condenseDescription, wasCondensed } from '../../lib/listingText';
 import { CitizenshipBadge } from '../../components/realestate/ListingCard';
 import { ListingTrustNote, useListingService } from '../../components/realestate/ListingServices';
 
@@ -80,7 +81,7 @@ export function MobileRealEstateDetail() {
       {/* the price bar is pinned, so leave room for it plus the tab bar */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+160px)]">
         <div className="relative">
-          <img src={photos[photo]} alt={listing.district} className="h-56 w-full object-cover" />
+          <img src={photos[photo]} alt={listing.district} width={800} height={450} className="h-48 w-full object-cover" />
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -151,12 +152,14 @@ export function MobileRealEstateDetail() {
 
           {listing.description && (
             <div>
-              <p className={`text-sm leading-relaxed text-gray-600 whitespace-pre-line ${expanded ? '' : 'line-clamp-4'}`}>
-                {listing.description}
+              <p className="text-sm leading-relaxed text-gray-600 whitespace-pre-line">
+                {expanded ? listing.description : condenseDescription(listing.description, 220)}
               </p>
-              <button onClick={() => setExpanded((v) => !v)} className="mt-1 text-sm font-bold text-navy">
-                {expanded ? t('common.less') : t('common.more')}
-              </button>
+              {wasCondensed(listing.description, 220) && (
+                <button onClick={() => setExpanded((v) => !v)} className="mt-1 text-sm font-bold text-navy">
+                  {expanded ? t('common.less') : t('common.more')}
+                </button>
+              )}
             </div>
           )}
 

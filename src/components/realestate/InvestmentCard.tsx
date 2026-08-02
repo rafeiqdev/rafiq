@@ -95,7 +95,11 @@ export function InvestmentCard({ opp }: { opp: InvestmentRecord }) {
       style={{ ['--brand' as string]: opp.brand }}
       className="sm:col-span-2 card overflow-hidden flex flex-col sm:flex-row card-hover"
     >
-      <div className="relative w-full h-40 sm:h-auto sm:w-[38%] sm:min-w-[180px] shrink-0">
+      {/* A fixed height on both axes. `sm:h-auto` here let the <img> inside
+          resolve `h-full` against an auto-height parent, so the photo rendered
+          at its intrinsic size and stretched the whole card — and with it the
+          page. Never pair an auto-height parent with an h-full image. */}
+      <div className="relative w-full h-40 sm:h-52 sm:w-[38%] sm:min-w-[180px] shrink-0 overflow-hidden bg-navy-50">
         <InvestmentPhoto opp={opp} />
         <span
           className="absolute inset-0 opacity-30"

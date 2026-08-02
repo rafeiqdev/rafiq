@@ -33,6 +33,11 @@ export function ListingPhoto({ listing, index, className = 'h-44' }: { listing: 
       loading="lazy"
       decoding="async"
       onError={() => setSrcIdx((i) => i + 1)}
+      // Imported photos arrive at whatever size the source portal stored. The
+      // width/height hints reserve the box before the bytes land (no layout
+      // jump) and object-cover keeps a 4000px original inside the card.
+      width={800}
+      height={450}
       className={`${className} w-full object-cover`}
     />
   );
