@@ -9,6 +9,7 @@ import { LISTING_PHOTOS } from '../../lib/images';
 import { usePageMeta } from '../../lib/seo';
 import { CitizenshipBadge } from '../../components/realestate/ListingCard';
 import { DescriptionBox } from '../../components/realestate/DescriptionBox';
+import { PhotoLightbox } from '../../components/realestate/PhotoLightbox';
 import { ListingTrustNote, useListingService } from '../../components/realestate/ListingServices';
 
 function photosOf(l: Listing, index = 0): string[] {
@@ -34,6 +35,7 @@ export function MobileRealEstateDetail() {
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [photo, setPhoto] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -80,13 +82,20 @@ export function MobileRealEstateDetail() {
       {/* the price bar is pinned, so leave room for it plus the tab bar */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+160px)]">
         <div className="relative">
-          <img
-            src={photos[photo]}
-            alt={listing.district}
-            width={800}
-            height={450}
-            className="h-44 w-full max-h-[38vh] object-cover bg-navy-50"
-          />
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label={t('realEstate.detail.photo', { n: photo + 1 })}
+            className="block w-full"
+          >
+            <img
+              src={photos[photo]}
+              alt={listing.district}
+              width={800}
+              height={450}
+              className="h-44 w-full max-h-[38vh] object-cover bg-navy-50"
+            />
+          </button>
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -109,6 +118,15 @@ export function MobileRealEstateDetail() {
             </button>
           )}
         </div>
+
+        {lightboxOpen && (
+          <PhotoLightbox
+            photos={photos}
+            index={photo}
+            alt={listing.district}
+            onClose={() => setLightboxOpen(false)}
+          />
+        )}
 
         <div className="flex flex-col gap-4 px-5 pt-4">
           <div>

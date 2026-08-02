@@ -838,6 +838,8 @@
       "similar": "Similar properties",
       "lastUpdate": "Listing last updated: {{date}}",
       "photo": "Photo {{n}}",
+      "nextPhoto": "Next photo",
+      "prevPhoto": "Previous photo",
       "missingTitle": "This listing is no longer available",
       "missingBody": "It may have been removed or its link changed. Browse the rest of the offers.",
       "backToList": "Back to listings",

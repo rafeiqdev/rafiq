@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../lib/api';
 import type { Listing } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
-import { LISTING_PHOTOS } from '../lib/images';
+import { LISTING_PHOTOS, listingThumbUrl } from '../lib/images';
 import { usePageMeta } from '../lib/seo';
 import { CitizenshipBadge, ListingCard } from '../components/realestate/ListingCard';
 import { DescriptionBox } from '../components/realestate/DescriptionBox';
+import { PhotoLightbox } from '../components/realestate/PhotoLightbox';
 import {
   LISTING_SERVICES,
   ListingTrustNote,
@@ -37,7 +38,8 @@ export function RealEstateDetail() {
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
-  const [visiblePhotos, setVisiblePhotos] = useState(8);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const visiblePhotos = 8;
 
   useEffect(() => {
     listingsApi
@@ -101,13 +103,20 @@ export function RealEstateDetail() {
         <div>
           <div className="card overflow-hidden">
             <div className="relative">
-              <img
-                src={photos[active]}
-                alt={listing.district}
-                width={1200}
-                height={675}
-                className="w-full h-52 sm:h-72 max-h-[60vh] object-cover bg-navy-50"
-              />
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(active)}
+                aria-label={t('realEstate.detail.photo', { n: active + 1 })}
+                className="block w-full"
+              >
+                <img
+                  src={photos[active]}
+                  alt={listing.district}
+                  width={1200}
+                  height={675}
+                  className="w-full h-52 sm:h-72 max-h-[60vh] object-cover bg-navy-50"
+                />
+              </button>
               <span className="absolute top-3 end-3">
                 <CitizenshipBadge listing={listing} />
               </span>
@@ -122,7 +131,7 @@ export function RealEstateDetail() {
                     className={`shrink-0 w-[70px] h-14 rounded-btn overflow-hidden border-2 ${i === active ? 'border-navy' : 'border-transparent'}`}
                   >
                     <img
-                      src={u}
+                      src={listingThumbUrl(u)}
                       alt=""
                       loading="lazy"
                       decoding="async"
@@ -134,7 +143,7 @@ export function RealEstateDetail() {
                 ))}
                 {visiblePhotos < photos.length && (
                   <button
-                    onClick={() => setVisiblePhotos((v) => v + 16)}
+                    onClick={() => setLightboxIndex(visiblePhotos)}
                     className="shrink-0 rounded-btn bg-cream px-3 h-14 text-xs font-bold text-navy whitespace-nowrap"
                   >
                     {t('realEstate.detail.morePhotos', { count: photos.length - visiblePhotos })}
@@ -143,6 +152,15 @@ export function RealEstateDetail() {
               </div>
             )}
           </div>
+
+          {lightboxIndex !== null && (
+            <PhotoLightbox
+              photos={photos}
+              index={lightboxIndex}
+              alt={listing.district}
+              onClose={() => setLightboxIndex(null)}
+            />
+          )}
 
           <div className="card p-5 mt-5">
             <div className="flex justify-between gap-3 flex-wrap">

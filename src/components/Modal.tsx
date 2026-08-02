@@ -37,9 +37,17 @@ export function Modal({
     const focusables = panel?.querySelectorAll<HTMLElement>(FOCUSABLE);
     (focusables?.[0] ?? panel)?.focus();
 
-    // lock background scroll while the modal is open
+    // lock background scroll while the modal is open — compensate for the
+    // vanishing scrollbar's width, otherwise the now-wider viewport reflows
+    // in-flow content and shifts everything sideways under the modal.
     const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      const currentPadding = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+      document.body.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -65,6 +73,7 @@ export function Modal({
     return () => {
       document.removeEventListener('keydown', onKeyDown, true);
       document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
       previouslyFocused?.focus?.();
     };
   }, [onClose]);

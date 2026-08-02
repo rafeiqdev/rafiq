@@ -7,6 +7,19 @@
  */
 const U = (id: string, _w = 0) => `/img/${id}.webp`;
 
+/**
+ * Rehosted listing photos (see scripts/rehost-listing-photos.mjs) are stored
+ * as two sibling files, `<n>-1200.webp` (gallery) and `<n>-400.webp` (thumb),
+ * but only the 1200px gallery URL is saved on the listing row. Derive the
+ * smaller variant from it for contexts that don't need full size (the
+ * thumbnail strip) instead of shipping the 1200px file everywhere. Anything
+ * not rehosted yet (still hotlinked, or a local placeholder) doesn't match
+ * the pattern and passes through unchanged.
+ */
+export function listingThumbUrl(url: string): string {
+  return url.replace(/-1200\.webp$/, '-400.webp');
+}
+
 /** Home hero background slideshow — Istanbul / Turkey scenery (all verified). */
 export const CAROUSEL = [
   U('1524231757912-21f4fe3a7200'), // Hagia Sophia / old city

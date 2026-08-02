@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { Listing } from '../../lib/types';
-import { LISTING_PHOTOS } from '../../lib/images';
+import { LISTING_PHOTOS, listingThumbUrl } from '../../lib/images';
 import { AppIcon } from '../AppIcon';
 
 /**
@@ -17,7 +17,7 @@ export function ListingPhoto({ listing, index, className = 'h-44' }: { listing: 
     LISTING_PHOTOS[index % LISTING_PHOTOS.length],
   ].filter(Boolean) as string[];
   const [srcIdx, setSrcIdx] = useState(0);
-  const src = sources[srcIdx];
+  const src = sources[srcIdx] ? listingThumbUrl(sources[srcIdx]) : undefined;
 
   if (!src) {
     return (
