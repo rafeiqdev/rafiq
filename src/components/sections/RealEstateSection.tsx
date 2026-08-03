@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
 import type { Listing } from '../../lib/types';
 import { AppIcon } from '../AppIcon';
 import { ListingCard } from '../realestate/ListingCard';
 import { BANNERS } from '../../lib/images';
+
+// Finger-pixels of continued drag (after damping) needed for a full reveal.
+const OVERPULL_MAX = 88;
+// Damping applied while actively dragging past the end — matches the
+// "rubber band" feel of native pull-to-refresh instead of a 1:1 drag.
+const OVERPULL_RUBBER_BAND = 0.55;
 
 /**
  * Real-estate entry point on the home page: one wide short strip plus three
@@ -27,6 +33,12 @@ export function RealEstateSection({
 }) {
   const { t } = useTranslation();
   const [featured, setFeatured] = useState<Listing[]>([]);
+  const navigate = useNavigate();
+  const railRef = useRef<HTMLUListElement>(null);
+  // 0..1 reveal progress for the "keep dragging past the last card to see
+  // all listings" affordance below.
+  const [pull, setPull] = useState(0);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     listingsApi
@@ -34,6 +46,87 @@ export function RealEstateSection({
       .then((rows) => setFeatured(rows.filter((l) => (l.listingType ?? 'sale') === 'sale').slice(0, 3)))
       .catch(() => {});
   }, []);
+
+  // Dragging past the last card used to do nothing — the rail just stopped.
+  // This turns that dead-end into a "keep pulling to see all listings"
+  // gesture: past-the-edge drag distance fills a circular reveal that
+  // navigates to /real-estate once fully pulled, and springs back if
+  // released early.
+  //
+  // "Forward" (the finger direction that counts as pulling further into the
+  // list) depends on which edge the last card sits at, which flips under
+  // RTL: in LTR the last card is at the visual right, reached by dragging
+  // left; in RTL it's at the visual left, reached by dragging right. Seeded
+  // once per gesture from the container's computed `direction` rather than
+  // inferred from `scrollLeft`, whose sign convention for RTL is not
+  // consistent enough across browsers to derive it from mid-scroll deltas.
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el || !compact) return;
+
+    const gesture = { lastX: 0, forwardSign: 1, overpull: 0 };
+
+    const atMaxScroll = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 2) return true;
+      return max - Math.abs(el.scrollLeft) <= 2;
+    };
+
+    const onStart = (e: TouchEvent) => {
+      gesture.lastX = e.touches[0].clientX;
+      gesture.forwardSign = getComputedStyle(el).direction === 'rtl' ? -1 : 1;
+      gesture.overpull = 0;
+      setDragging(true);
+    };
+
+    const onMove = (e: TouchEvent) => {
+      const x = e.touches[0].clientX;
+      const dx = gesture.lastX - x; // > 0 means the finger moved toward -x
+      gesture.lastX = x;
+
+      if (!atMaxScroll()) {
+        if (gesture.overpull > 0) {
+          gesture.overpull = 0;
+          setPull(0);
+        }
+        return;
+      }
+
+      const forwardDx = dx * gesture.forwardSign;
+      if (forwardDx <= 0) {
+        gesture.overpull = Math.max(0, gesture.overpull + forwardDx * OVERPULL_RUBBER_BAND);
+        setPull(gesture.overpull / OVERPULL_MAX);
+        return;
+      }
+
+      e.preventDefault();
+      gesture.overpull = Math.min(OVERPULL_MAX, gesture.overpull + forwardDx * OVERPULL_RUBBER_BAND);
+      setPull(gesture.overpull / OVERPULL_MAX);
+    };
+
+    const onEnd = () => {
+      setDragging(false);
+      if (gesture.overpull >= OVERPULL_MAX) {
+        setPull(1);
+        navigator.vibrate?.(12);
+        window.setTimeout(() => navigate('/real-estate'), 140);
+      } else {
+        gesture.overpull = 0;
+        setPull(0);
+      }
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, [compact, navigate, featured.length > 0]);
 
   if (featured.length === 0) return null;
 
@@ -76,16 +169,48 @@ export function RealEstateSection({
         // Horizontal, swipeable rail — same fix as NewsSection: without a
         // grid-cols-1 fallback below `sm`, the featured cards stacked into a
         // long vertical block on mobile instead of scrolling sideways.
-        <ul
-          className="mt-4 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-5 -mx-5 px-5 sm:-mx-1 sm:px-1 stagger"
-          style={{ scrollbarWidth: 'thin' }}
-        >
-          {featured.map((l, i) => (
-            <li key={l.id} className="shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72">
-              <ListingCard listing={l} index={i} to={`/real-estate/${l.id}`} />
-            </li>
-          ))}
-        </ul>
+        <div className="relative mt-4">
+          <ul
+            ref={railRef}
+            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-5 -mx-5 px-5 sm:-mx-1 sm:px-1 stagger"
+            style={{ scrollbarWidth: 'thin' }}
+          >
+            {featured.map((l, i) => (
+              <li key={l.id} className="shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72">
+                <ListingCard listing={l} index={i} to={`/real-estate/${l.id}`} />
+              </li>
+            ))}
+          </ul>
+          {/* Pull-past-the-end reveal — purely a visual gesture affordance,
+              not a tap target (navigation fires from the drag itself). */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 end-0 z-10 flex items-center pe-3"
+            style={{
+              opacity: pull,
+              transform: `scale(${0.55 + pull * 0.45})`,
+              transition: dragging ? 'none' : 'opacity 260ms ease-out, transform 260ms ease-out',
+            }}
+          >
+            <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-navy text-white shadow-cardHover">
+              <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90">
+                <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+                <circle
+                  cx="22"
+                  cy="22"
+                  r="18"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 18}
+                  strokeDashoffset={2 * Math.PI * 18 * (1 - Math.min(1, pull))}
+                />
+              </svg>
+              <AppIcon name="arrow-right" className="w-5 h-5 dir-arrow" />
+            </span>
+          </div>
+        </div>
       ) : (
         <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch stagger">
           {featured.map((l, i) => (
