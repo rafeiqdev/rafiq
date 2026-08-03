@@ -72,11 +72,27 @@ export function RealEstateSection({
         </Link>
       </div>
 
-      <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch stagger">
-        {featured.map((l, i) => (
-          <ListingCard key={l.id} listing={l} index={i} to={`/real-estate/${l.id}`} />
-        ))}
-      </div>
+      {compact ? (
+        // Horizontal, swipeable rail — same fix as NewsSection: without a
+        // grid-cols-1 fallback below `sm`, the featured cards stacked into a
+        // long vertical block on mobile instead of scrolling sideways.
+        <ul
+          className="mt-4 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-5 -mx-5 px-5 sm:-mx-1 sm:px-1 stagger"
+          style={{ scrollbarWidth: 'thin' }}
+        >
+          {featured.map((l, i) => (
+            <li key={l.id} className="shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72">
+              <ListingCard listing={l} index={i} to={`/real-estate/${l.id}`} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 items-stretch stagger">
+          {featured.map((l, i) => (
+            <ListingCard key={l.id} listing={l} index={i} to={`/real-estate/${l.id}`} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
