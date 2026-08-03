@@ -62,6 +62,10 @@ export function NewsSection({
     );
 
   if (compact) {
+    // Horizontal, swipeable rail instead of a stacked list — a vertical list
+    // of up to 6 cards used to push everything below it off the first
+    // screen, on both mobile and desktop. Scroll-snap keeps each card
+    // aligned as the user swipes/drags, on touch and with a mouse alike.
     return (
       <section className={className ?? 'px-5 mt-10'}>
         <div className="flex items-center justify-between gap-3">
@@ -70,14 +74,17 @@ export function NewsSection({
             <h2 className="section-title">{t('home.news.title')}</h2>
           </div>
         </div>
-        <ul className="mt-4 flex flex-col gap-3">
+        <ul
+          className="mt-4 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-5 -mx-5 px-5 sm:-mx-1 sm:px-1"
+          style={{ scrollbarWidth: 'thin' }}
+        >
           {posts.map((p) => {
             const text = localizeNewsPost(p, i18n.language);
             return (
-              <li key={p.id} className="card overflow-hidden p-4">
-                {photo(p, '-mx-4 -mt-4 mb-3 h-40 w-[calc(100%+2rem)] max-w-none object-cover')}
+              <li key={p.id} className="card overflow-hidden p-4 shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72">
+                {photo(p, '-mx-4 -mt-4 mb-3 h-36 w-[calc(100%+2rem)] max-w-none object-cover')}
                 <p className="text-xs text-gray-500">{date(p)}</p>
-                <h3 className="mt-1 font-bold text-navy break-words">{text.title}</h3>
+                <h3 className="mt-1 font-bold text-navy break-words line-clamp-2">{text.title}</h3>
                 {text.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{text.body}</p>}
                 {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
                 <Link

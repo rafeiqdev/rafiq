@@ -15,7 +15,16 @@ import { BANNERS } from '../../lib/images';
  * "featured properties" rail reads as a broken site, and the strip alone
  * would promise a catalogue that is not there yet.
  */
-export function RealEstateSection({ compact = false }: { compact?: boolean }) {
+export function RealEstateSection({
+  compact = false,
+  className,
+}: {
+  compact?: boolean;
+  /** Wrapper override for callers that already provide their own outer
+      padding (e.g. UserHome's single-column dashboard) — avoids doubling
+      the horizontal padding from the default `mx-auto max-w-6xl px-4`. */
+  className?: string;
+}) {
   const { t } = useTranslation();
   const [featured, setFeatured] = useState<Listing[]>([]);
 
@@ -29,7 +38,7 @@ export function RealEstateSection({ compact = false }: { compact?: boolean }) {
   if (featured.length === 0) return null;
 
   return (
-    <section className={`mx-auto max-w-6xl px-4 ${compact ? 'py-8' : 'py-14'}`}>
+    <section className={className ?? `mx-auto max-w-6xl px-4 ${compact ? 'py-8' : 'py-14'}`}>
       <Link
         to="/real-estate"
         className="relative flex items-center gap-4 overflow-hidden rounded-card px-5 py-5 sm:px-7 shadow-card hover:shadow-cardHover transition-shadow"

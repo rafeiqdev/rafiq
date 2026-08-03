@@ -13,6 +13,7 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
+import { RealEstateSection } from '../components/sections/RealEstateSection';
 import { NotificationBell } from '../components/NotificationBell';
 import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -609,6 +610,11 @@ export function UserHome() {
           <DirArrow />
         </Link>
       </Panel>
+
+      {/* real-estate entry point — was missing here entirely, so signed-in
+          users never saw the listings/investments rail that guests get on
+          the public home page. Hides itself when there are no listings. */}
+      <RealEstateSection compact className="mt-8" />
 
       {/* latest news (mirrors the Telegram channel; hidden until posts exist) */}
       <NewsSection compact className="mt-8" />

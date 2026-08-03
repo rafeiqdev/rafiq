@@ -46,6 +46,8 @@ vi.mock('../lib/api', () => ({
   documents: { list: () => docsMock() },
   // NewsSection renders nothing on an empty feed — these tests assert the plan, not the news.
   news: { latest: () => Promise.resolve([]), telegramChannel: () => Promise.resolve(null) },
+  // RealEstateSection renders nothing on an empty list — same reasoning as news above.
+  listings: { list: () => Promise.resolve([]) },
 }));
 
 vi.mock('react-i18next', () => ({
