@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { AppIcon, DirArrow } from '../components/AppIcon';
-import { AdvisorScene } from '../components/AdvisorScene';
 import { BookingModal } from '../components/BookingModal';
 
 /**
- * Friendly "help is on the way" landing reached from every "Help me with this"
- * CTA. Shows the animated advisor + car over Istanbul, then offers two paths:
- * a free human appointment, or the AI assistant.
+ * Landing page reached from every "Help me with this" CTA — offers three
+ * paths: the self-guide, the AI assistant, or a free human appointment.
+ *
+ * `?book=1` skips straight to the booking flow. CTAs that already promised
+ * "book a call" (e.g. the dashboard's free-call invite) used to dump the
+ * user on this three-way choice screen instead — with an animated
+ * "your advisor is on the way" scene ahead of it — which read as a bait and
+ * switch on a promise that was supposed to be one click.
  */
 export function HelpRequest() {
   const { t } = useTranslation();
@@ -17,6 +21,7 @@ export function HelpRequest() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const topic = params.get('topic') ?? '';
+  const wantsBooking = params.get('book') === '1';
   const [booking, setBooking] = useState(false);
 
   const summary = topic ? `Help request — ${topic}` : 'Help request';
@@ -28,6 +33,11 @@ export function HelpRequest() {
     }
     setBooking(true);
   };
+
+  useEffect(() => {
+    if (wantsBooking) wantHelp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantsBooking]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -53,11 +63,6 @@ export function HelpRequest() {
         </button>
       </div>
       <p className="mt-4 text-center text-xs text-navy/50">{t('help.note')}</p>
-
-      <div className="mt-8 animate-fade-in">
-        <AdvisorScene />
-        <p className="mt-3 text-center text-sm text-navy/60">{t('help.sceneCaption')}</p>
-      </div>
 
       {booking && <BookingModal problemSummary={summary} transcript={[]} onClose={() => setBooking(false)} />}
     </div>

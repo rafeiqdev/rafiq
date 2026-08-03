@@ -221,8 +221,10 @@ function ProfileInner() {
           </ul>
         </div>
 
-        {/* renewal tracker */}
-        <div className="card p-5 sm:p-6">
+        {/* renewal tracker — id target for /profile#renewals deep links (e.g. the
+            dashboard's "add a date" invite, which used to just land on /profile
+            with no way to tell the user where to look) */}
+        <div id="renewals" className="card p-5 sm:p-6 scroll-mt-20">
           <h2 className="font-bold text-navy">{t('profile.renewals.title')}</h2>
           <ul className="mt-4 flex flex-col gap-3">
             {renewalRows.map((r) => (
@@ -251,8 +253,8 @@ function ProfileInner() {
           </ul>
         </div>
 
-        {/* document locker */}
-        <div className="card p-5 sm:p-6">
+        {/* document locker — id target for /profile#locker deep links */}
+        <div id="locker" className="card p-5 sm:p-6 scroll-mt-20">
           <h2 className="font-bold text-navy">{t('profile.locker.title')}</h2>
           <SectionState
             section={docsSec}

@@ -281,6 +281,13 @@ export function UserHome() {
       ].filter((f): f is { label: string; value: string } => Boolean(f))
     : [];
 
+  // The city-aware "before you sign a lease" tip points at one specific
+  // service (notarized rental contracts), not the whole catalogue.
+  const rentalContractService = SERVICES.find((s) => s.id === 're-contracts');
+  const cityTipHref = rentalContractService
+    ? `/services?q=${encodeURIComponent(pickText(rentalContractService.title, lang))}`
+    : '/services';
+
   const relatedServices = items
     .map((i) => SERVICES.find((s) => s.id === i.relatedServiceId))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
@@ -409,7 +416,12 @@ export function UserHome() {
               <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.cityBody')}</p>
             </div>
           </div>
-          <Link to="/services" className="btn-ghost mt-4 min-h-[44px]">
+          {/* Was a generic /services link — landed on the full unfiltered
+              catalogue instead of the notarized-rental-contract service the
+              "before you sign a lease" copy above is actually about. Services
+              is searched by title text (see Services.tsx), same pattern the
+              relatedServices block below already uses. */}
+          <Link to={cityTipHref} className="btn-ghost mt-4 min-h-[44px]">
             {t('dash.cityCta')}
             <DirArrow />
           </Link>
@@ -482,7 +494,7 @@ export function UserHome() {
               </li>
             ))}
           </ul>
-          <Link to="/profile" className="btn-ghost w-full mt-4 min-h-[44px]">
+          <Link to="/profile#renewals" className="btn-ghost w-full mt-4 min-h-[44px]">
             {t('dash.renewalsManage')}
           </Link>
         </Panel>
@@ -493,7 +505,7 @@ export function UserHome() {
           title={t('dash.noDatesTitle')}
           body={t('dash.noDatesBody')}
           ctaLabel={t('dash.noDatesCta')}
-          ctaTo="/profile"
+          ctaTo="/profile#renewals"
         />
       )}
 
@@ -513,7 +525,7 @@ export function UserHome() {
                 </li>
               ))}
             </ul>
-            <Link to="/profile" className="btn-ghost w-full mt-4 min-h-[44px]">
+            <Link to="/profile#locker" className="btn-ghost w-full mt-4 min-h-[44px]">
               {t('dash.lockerManage')}
             </Link>
           </Panel>
@@ -524,18 +536,21 @@ export function UserHome() {
             title={t('dash.noDocsTitle')}
             body={t('dash.noDocsBody')}
             ctaLabel={t('dash.noDocsCta')}
-            ctaTo="/profile"
+            ctaTo="/profile#locker"
           />
         ))}
 
-      {/* ── the free expert call: the strongest offer, and it needs no data ── */}
+      {/* ── the free expert call: the strongest offer, and it needs no data.
+          Goes straight into the booking flow (?book=1) instead of the
+          self-guide/AI/"advisor is on the way" landing page — the dashboard
+          already promised "book a call", so that's what the click should do. */}
       <InvitePanel
         className="mt-4"
         icon="message-circle"
         title={t('dash.freeCallTitle')}
         body={t('dash.freeCallBody')}
         ctaLabel={t('dash.freeCallCta')}
-        ctaTo="/help"
+        ctaTo="/help?book=1"
       />
 
       {/* ── everything below only renders once there is something real ── */}
