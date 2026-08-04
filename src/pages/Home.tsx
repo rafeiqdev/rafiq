@@ -29,6 +29,17 @@ const TRUST: { icon: IconName; key: string }[] = [
   { icon: 'shield-check', key: 'secure' },
 ];
 
+// Direct, always-visible links to the main service categories — previously
+// only reachable via the header's services dropdown (desktop) or bottom tab
+// bar (mobile), which users weren't finding. See home.quickLinks.* for copy.
+const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
+  { to: '/real-estate', icon: 'building', key: 'realEstate' },
+  { to: '/services', icon: 'layers', key: 'allServices' },
+  { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
+  { to: '/hub', icon: 'compass', key: 'hub' },
+  { to: '/hub/districts', icon: 'map-pin', key: 'districts' },
+];
+
 const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 
 export function Home() {
@@ -172,6 +183,26 @@ export function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* quick links: direct access to the main service categories */}
+      <section className="mx-auto max-w-6xl px-4 pt-6">
+        <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-0.5 py-0.5">
+          {QUICK_LINKS.map((q) => (
+            <Link
+              key={q.to}
+              to={q.to}
+              className="card card-hover shrink-0 p-2.5 flex items-center gap-2 whitespace-nowrap"
+            >
+              <span className="icon-chip !w-7 !h-7">
+                <AppIcon name={q.icon} className="w-3.5 h-3.5" />
+              </span>
+              <span className="text-xs font-semibold text-navy">
+                {t(`home.quickLinks.${q.key}`)}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

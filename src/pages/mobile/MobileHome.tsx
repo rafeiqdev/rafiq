@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { AppIcon, DirArrow } from '../../components/AppIcon';
+import type { IconName } from '../../components/AppIcon';
 import { useApp } from '../../context/AppContext';
 import { ImageCarousel } from '../../components/ImageCarousel';
 import { NotificationBell } from '../../components/NotificationBell';
@@ -27,6 +28,17 @@ const TRUST = [
   { icon: 'sparkles', key: 'home.trustbar.free' },
   { icon: 'shield-check', key: 'home.trustbar.secure' },
 ] as const;
+
+// Direct, always-visible links to the main service categories — previously
+// only reachable via the bottom tab bar's "الخدمات" tab, which users weren't
+// finding. See home.quickLinks.* for copy.
+const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
+  { to: '/real-estate', icon: 'building', key: 'realEstate' },
+  { to: '/services', icon: 'layers', key: 'allServices' },
+  { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
+  { to: '/hub', icon: 'compass', key: 'hub' },
+  { to: '/hub/districts', icon: 'map-pin', key: 'districts' },
+];
 
 type MobileCopy = {
   tabHome: string;
@@ -258,6 +270,24 @@ export function MobileHome() {
             </div>
           </div>
         </header>
+
+        {/* ================= QUICK LINKS ================= */}
+        <section className="mt-6">
+          <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 py-0.5">
+            {QUICK_LINKS.map((q) => (
+              <Link
+                key={q.to}
+                to={q.to}
+                className="card card-hover shrink-0 p-2.5 flex items-center gap-2 whitespace-nowrap"
+              >
+                <span className="icon-chip !w-7 !h-7">
+                  <AppIcon name={q.icon} className="w-3.5 h-3.5" />
+                </span>
+                <span className="text-xs font-semibold text-navy">{t(`home.quickLinks.${q.key}`)}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* ================= FOR YOU ================= */}
         <section className="mt-8 stagger">

@@ -179,6 +179,13 @@
       "free": "Free call after assessment",
       "secure": "KVKK-compliant"
     },
+    "quickLinks": {
+      "realEstate": "Real Estate",
+      "allServices": "All Services",
+      "health": "Medical Tourism",
+      "hub": "Guides",
+      "districts": "Istanbul Districts"
+    },
     "how": {
       "eyebrow": "How Rafiq works",
       "title": "Three steps to handle your paperwork with confidence",
