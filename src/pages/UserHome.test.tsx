@@ -92,6 +92,7 @@ const user: User = {
   isAdmin: false,
   role: 'user',
   isCompany: false,
+  isMedicalCoordinator: false,
   referralCode: 'ABC123',
   createdAt: '2026-07-01T00:00:00Z',
   onboardingCompleted: true,

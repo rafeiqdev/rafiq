@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { ApiError, auth as authApi } from '../lib/api';
+import { ApiError, auth as authApi, profileApi } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
 import { stashPostAuthRedirect } from '../lib/authRedirect';
@@ -37,6 +37,9 @@ const isValidName = (s: string) => {
   return v.length >= 3 && (v.match(/\p{L}/gu)?.length ?? 0) >= 2;
 };
 
+const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+const isValidPhone = (s: string) => (s || '').trim().length >= 6;
+
 function GoogleMark() {
   return (
     <svg viewBox="0 0 48 48" className="w-4 h-4" aria-hidden>
@@ -48,25 +51,37 @@ function GoogleMark() {
   );
 }
 
+// 'email' — only the email field + Google button is visible.
+// 'signin' / 'register' — resolved by checkEmail() once the address is known.
+// 'googleOnly' — the address is registered, but only via Google.
+// 'forgot' — reachable from 'signin'.
+type Step = 'email' | 'signin' | 'register' | 'googleOnly' | 'forgot';
+
 export function Auth() {
   const { t } = useTranslation();
   const { user, login, register, googleSignIn, signOut } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from;
-  const [mode, setMode] = useState<'signin' | 'register' | 'forgot'>('signin');
+  const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  // Google via Supabase OAuth (full-page redirect → back to the app)
-  const continueWithGoogle = async () => {
+  const resetMessages = () => {
     setError(null);
     setNotice(null);
+    setNameError(null);
+  };
+
+  // Google via Supabase OAuth (full-page redirect → back to the app)
+  const continueWithGoogle = async () => {
+    resetMessages();
     setBusy(true);
     try {
       if (from) stashPostAuthRedirect(from);
@@ -78,34 +93,65 @@ export function Auth() {
     }
   };
 
-  const submit = async () => {
-    setError(null);
-    setNotice(null);
-    setNameError(null);
-    if (mode === 'register' && !isValidName(name)) {
-      setNameError('common.nameInvalid');
+  const changeEmail = () => {
+    setStep('email');
+    setPassword('');
+    resetMessages();
+  };
+
+  const submitEmail = async () => {
+    resetMessages();
+    if (!isValidEmail(email)) {
+      setError('auth.errors.generic');
       return;
     }
     setBusy(true);
     try {
-      if (mode === 'forgot') {
+      const { exists, providers } = await authApi.checkEmail(email);
+      if (!exists) setStep('register');
+      else if (providers.includes('email')) setStep('signin');
+      else setStep('googleOnly');
+    } catch {
+      // The check itself is best-effort (e.g. the migration isn't applied
+      // yet on this database) — fall back to a plain sign-in attempt rather
+      // than blocking the user.
+      setStep('signin');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submit = async () => {
+    resetMessages();
+    if (step === 'register' && !isValidName(name)) {
+      setNameError('common.nameInvalid');
+      return;
+    }
+    if (step === 'register' && !isValidPhone(phone)) {
+      setError('auth.errors.generic');
+      return;
+    }
+    setBusy(true);
+    try {
+      if (step === 'forgot') {
         await authApi.requestPasswordReset(email);
         setNotice('auth.reset.sent');
-      } else if (mode === 'signin') {
+      } else if (step === 'signin') {
         await login(email, password);
         navigate(from ?? (await landingRoute()), { replace: true });
-      } else {
+      } else if (step === 'register') {
         const { needsConfirmation } = await register(email, password, name);
         if (needsConfirmation) {
           setNotice('auth.checkEmail');
-          setMode('signin');
+          setStep('signin');
         } else {
+          await profileApi.setPhone(phone).catch(() => {});
           navigate(from ?? (await landingRoute()), { replace: true });
         }
       }
     } catch (e) {
       const code = e instanceof ApiError ? e.code : '';
-      if (mode === 'forgot' && code === 'rate_limited') setError('auth.reset.rateLimited');
+      if (step === 'forgot' && code === 'rate_limited') setError('auth.reset.rateLimited');
       else setError(ERROR_KEYS[code] ?? 'auth.errors.generic');
     } finally {
       setBusy(false);
@@ -127,20 +173,28 @@ export function Auth() {
     );
   }
 
+  const title =
+    step === 'signin' ? t('auth.title')
+    : step === 'register' ? t('auth.registerTitle')
+    : step === 'forgot' ? t('auth.reset.title')
+    : t('auth.title');
+  const subtitle =
+    step === 'signin' ? t('auth.subtitle')
+    : step === 'register' ? t('auth.registerSubtitle')
+    : step === 'forgot' ? t('auth.reset.subtitle')
+    : step === 'googleOnly' ? t('auth.googleOnlyNotice')
+    : t('auth.emailSubtitle');
+
   return (
     <div className="mx-auto max-w-md px-4 py-16">
       <div className="card p-8">
         <div className="flex justify-center">
           <Logo size={64} />
         </div>
-        <h1 className="mt-4 text-2xl font-extrabold text-navy text-center">
-          {mode === 'signin' ? t('auth.title') : mode === 'register' ? t('auth.registerTitle') : t('auth.reset.title')}
-        </h1>
-        <p className="mt-2 text-sm text-gray-500 text-center">
-          {mode === 'signin' ? t('auth.subtitle') : mode === 'register' ? t('auth.registerSubtitle') : t('auth.reset.subtitle')}
-        </p>
+        <h1 className="mt-4 text-2xl font-extrabold text-navy text-center">{title}</h1>
+        <p className="mt-2 text-sm text-gray-500 text-center">{subtitle}</p>
 
-        {mode !== 'forgot' && (
+        {(step === 'email' || step === 'googleOnly') && (
           <>
             <button
               type="button"
@@ -152,108 +206,162 @@ export function Auth() {
               {t('auth.google')}
             </button>
 
-            <div className="my-5 flex items-center gap-3 text-xs text-gray-500">
-              <div className="flex-1 h-px bg-cream-dark" />
-              {t('auth.or')}
-              <div className="flex-1 h-px bg-cream-dark" />
-            </div>
+            {step === 'email' && (
+              <div className="my-5 flex items-center gap-3 text-xs text-gray-500">
+                <div className="flex-1 h-px bg-cream-dark" />
+                {t('auth.or')}
+                <div className="flex-1 h-px bg-cream-dark" />
+              </div>
+            )}
           </>
         )}
 
-        <form
-          className={`flex flex-col gap-3 ${mode === 'forgot' ? 'mt-6' : ''}`}
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-        >
-          {mode === 'register' && (
+        {step === 'email' && (
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitEmail();
+            }}
+          >
             <label className="text-xs font-semibold text-navy/70">
-              {t('common.name')}
-              <input
-                className={`input mt-1 ${nameError ? 'border-brand-red ring-1 ring-brand-red' : ''}`}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (nameError) setNameError(null);
-                }}
-                autoComplete="name"
-                aria-invalid={!!nameError}
-              />
-              {nameError && (
-                <span className="mt-1 flex items-center gap-1 text-xs font-normal text-brand-red">
-                  <AppIcon name="alert-triangle" className="w-3.5 h-3.5 shrink-0" />
-                  {t(nameError)}
-                </span>
-              )}
-            </label>
-          )}
-          <label className="text-xs font-semibold text-navy/70">
-            {t('common.email')}
-            <input
-              className="input mt-1"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </label>
-          {mode !== 'forgot' && (
-            <label className="text-xs font-semibold text-navy/70">
-              {t('common.password')}
+              {t('common.email')}
               <input
                 className="input mt-1"
-                type="password"
+                type="email"
                 required
-                minLength={mode === 'register' ? 8 : undefined}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoFocus
               />
             </label>
-          )}
-          {mode === 'signin' && (
-            <button
-              type="button"
-              onClick={() => {
-                setMode('forgot');
-                setError(null);
-                setNotice(null);
-              }}
-              className="self-start text-xs text-navy underline-offset-2 hover:underline"
-            >
-              {t('auth.forgot')}
+            {error && (
+              <p role="alert" className="amber-note flex items-center gap-2">
+                <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
+                {t(error)}
+              </p>
+            )}
+            <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+              {t('auth.continue')}
             </button>
-          )}
-          {notice && (
-            <p role="status" className="rounded-xl bg-brand-blue/60 text-navy text-sm px-3 py-2 flex items-center gap-2">
-              <AppIcon name="mail" className="w-4 h-4 shrink-0" />
-              {t(notice)}
-            </p>
-          )}
-          {error && (
-            <p role="alert" className="amber-note flex items-center gap-2">
-              <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
-              {t(error)}
-            </p>
-          )}
-          <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
-            {mode === 'signin' ? t('common.signIn') : mode === 'register' ? t('common.register') : t('auth.reset.send')}
-          </button>
-        </form>
+          </form>
+        )}
 
-        <button
-          onClick={() => {
-            setMode(mode === 'signin' ? 'register' : 'signin');
-            setError(null);
-            setNameError(null);
-            setNotice(null);
-          }}
-          className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
-        >
-          {mode === 'signin' ? t('auth.noAccount') : mode === 'register' ? t('auth.haveAccount') : t('auth.reset.backToSignIn')}
-        </button>
+        {(step === 'signin' || step === 'register' || step === 'forgot') && (
+          <form
+            className="flex flex-col gap-3 mt-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
+            }}
+          >
+            {step === 'register' && (
+              <label className="text-xs font-semibold text-navy/70">
+                {t('common.name')}
+                <input
+                  className={`input mt-1 ${nameError ? 'border-brand-red ring-1 ring-brand-red' : ''}`}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                  autoComplete="name"
+                  aria-invalid={!!nameError}
+                  autoFocus
+                />
+                {nameError && (
+                  <span className="mt-1 flex items-center gap-1 text-xs font-normal text-brand-red">
+                    <AppIcon name="alert-triangle" className="w-3.5 h-3.5 shrink-0" />
+                    {t(nameError)}
+                  </span>
+                )}
+              </label>
+            )}
+
+            <label className="text-xs font-semibold text-navy/70">
+              {t('common.email')}
+              <input className="input mt-1 opacity-70" type="email" value={email} disabled />
+            </label>
+
+            {step === 'register' && (
+              <label className="text-xs font-semibold text-navy/70">
+                {t('common.phone')}
+                <input
+                  className="input mt-1"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
+                />
+              </label>
+            )}
+
+            {step !== 'forgot' && (
+              <label className="text-xs font-semibold text-navy/70">
+                {t('common.password')}
+                <input
+                  className="input mt-1"
+                  type="password"
+                  required
+                  minLength={step === 'register' ? 8 : undefined}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={step === 'register' ? 'new-password' : 'current-password'}
+                  autoFocus={step === 'signin'}
+                />
+              </label>
+            )}
+            {step === 'signin' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('forgot');
+                  resetMessages();
+                }}
+                className="self-start text-xs text-navy underline-offset-2 hover:underline"
+              >
+                {t('auth.forgot')}
+              </button>
+            )}
+            {notice && (
+              <p role="status" className="rounded-xl bg-brand-blue/60 text-navy text-sm px-3 py-2 flex items-center gap-2">
+                <AppIcon name="mail" className="w-4 h-4 shrink-0" />
+                {t(notice)}
+              </p>
+            )}
+            {error && (
+              <p role="alert" className="amber-note flex items-center gap-2">
+                <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
+                {t(error)}
+              </p>
+            )}
+            <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+              {step === 'signin' ? t('common.signIn') : step === 'register' ? t('common.register') : t('auth.reset.send')}
+            </button>
+          </form>
+        )}
+
+        {step === 'forgot' && (
+          <button
+            onClick={() => {
+              setStep('signin');
+              resetMessages();
+            }}
+            className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
+          >
+            {t('auth.reset.backToSignIn')}
+          </button>
+        )}
+        {(step === 'signin' || step === 'register' || step === 'googleOnly') && (
+          <button
+            onClick={changeEmail}
+            className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
+          >
+            {t('auth.changeEmail')}
+          </button>
+        )}
       </div>
     </div>
   );

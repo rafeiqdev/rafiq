@@ -26,7 +26,13 @@ const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];
 const HAS_KEYS = ['turkishPhone', 'taxNumber', 'residencePermit', 'bankAccount'] as const;
 
 /** One user row in the admin table — click the name to expand full detail. */
-function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: string, tier: PlanTier) => void }) {
+function UserRow({
+  user: u, onSetTier, onSetRole,
+}: {
+  user: AdminUser;
+  onSetTier: (id: string, tier: PlanTier) => void;
+  onSetRole: (id: string, role: 'user' | 'medical_coordinator') => void;
+}) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Awaited<ReturnType<typeof adminUsers.detail>> | null>(null);
@@ -180,6 +186,18 @@ function UserRow({ user: u, onSetTier }: { user: AdminUser; onSetTier: (id: stri
                 </div>
               </div>
             )}
+            {!u.isAdmin && (
+              <div className="mt-3 flex items-center gap-2 border-t border-cream-dark pt-3">
+                <span className="text-xs font-semibold text-navy/60">{t('medical.admin.roleLabel')}</span>
+                <button
+                  onClick={() => onSetRole(u.id, u.isMedicalCoordinator ? 'user' : 'medical_coordinator')}
+                  className="btn-secondary !h-8 px-3 text-xs"
+                >
+                  <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
+                  {u.isMedicalCoordinator ? t('medical.admin.revokeCoordinator') : t('medical.admin.makeCoordinator')}
+                </button>
+              </div>
+            )}
           </td>
         </tr>
       )}
@@ -249,6 +267,12 @@ function AdminInner() {
     await refresh();
   };
 
+  const setRole = async (userId: string, role: 'user' | 'medical_coordinator') => {
+    await adminUsers.setRole(userId, role);
+    usersSec.reload();
+    await refresh();
+  };
+
   const resolvePayment = async (id: string, status: 'verified' | 'rejected') => {
     await adminPayments.resolve(id, status);
     paymentsSec.reload();
@@ -282,10 +306,16 @@ function AdminInner() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold text-navy">{t('admin.title')}</h1>
-        <Link to="/admin/bookings" className="btn-primary h-9 px-4 text-xs">
-          <AppIcon name="calendar" className="w-3.5 h-3.5" />
-          {t('nav.bookings')}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/admin/medical" className="btn-secondary h-9 px-4 text-xs">
+            <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
+            {t('medical.admin.navLink')}
+          </Link>
+          <Link to="/admin/bookings" className="btn-primary h-9 px-4 text-xs">
+            <AppIcon name="calendar" className="w-3.5 h-3.5" />
+            {t('nav.bookings')}
+          </Link>
+        </div>
       </div>
 
       {/* at-a-glance stats */}
@@ -375,7 +405,7 @@ function AdminInner() {
               </thead>
               <tbody>
                 {rows.map((u) => (
-                  <UserRow key={u.id} user={u} onSetTier={setTier} />
+                  <UserRow key={u.id} user={u} onSetTier={setTier} onSetRole={setRole} />
                 ))}
               </tbody>
             </table>

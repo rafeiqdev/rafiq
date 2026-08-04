@@ -8,6 +8,7 @@ import { useAsyncSection } from '../hooks/useAsyncSection';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
 import { pickArea } from '../data/istanbulAreas';
 import { RequireAuth } from '../components/Gates';
+import { MedicalRequestsPanel } from '../components/medical/MedicalRequestsPanel';
 import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
 import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
@@ -204,6 +205,8 @@ function MyRequestsInner() {
           </ul>
         )}
       </SectionState>
+
+      <MedicalRequestsPanel />
     </div>
   );
 }

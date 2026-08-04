@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
-import { auth as authApi } from '../../lib/api';
+import { auth as authApi, profileApi } from '../../lib/api';
 import { AppIcon } from '../../components/AppIcon';
 import { stashPostAuthRedirect } from '../../lib/authRedirect';
 
@@ -16,11 +16,11 @@ const ERROR_KEYS: Record<string, string> = {
 };
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
-const mobileCopy: Record<string, { back: string; modeTabs: string; continueHome: string }> = {
-  en: { back: 'Back to home', modeTabs: 'Sign in or create an account', continueHome: 'Continue to home' },
-  ar: { back: 'العودة إلى الرئيسية', modeTabs: 'تسجيل الدخول أو إنشاء حساب', continueHome: 'المتابعة إلى الرئيسية' },
-  fa: { back: 'بازگشت به صفحه اصلی', modeTabs: 'ورود یا ساخت حساب', continueHome: 'ادامه به صفحه اصلی' },
-  ru: { back: 'На главную', modeTabs: 'Вход или регистрация', continueHome: 'Продолжить' },
+const mobileCopy: Record<string, { back: string; continueHome: string }> = {
+  en: { back: 'Back to home', continueHome: 'Continue to home' },
+  ar: { back: 'العودة إلى الرئيسية', continueHome: 'المتابعة إلى الرئيسية' },
+  fa: { back: 'بازگشت به صفحه اصلی', continueHome: 'ادامه به صفحه اصلی' },
+  ru: { back: 'На главную', continueHome: 'Продолжить' },
 };
 
 function isValidName(name: string): boolean {
@@ -28,6 +28,9 @@ function isValidName(name: string): boolean {
   const letters = (trimmed.match(/\p{L}/gu) ?? []).length;
   return trimmed.length >= 3 && letters >= 2;
 }
+
+const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+const isValidPhone = (s: string) => (s || '').trim().length >= 6;
 
 function GoogleIcon() {
   return (
@@ -40,6 +43,11 @@ function GoogleIcon() {
   );
 }
 
+// 'email' — only the email field + Google button is visible.
+// 'signin' / 'register' — resolved by checkEmail() once the address is known.
+// 'googleOnly' — the address is registered, but only via Google.
+type Step = 'email' | 'signin' | 'register' | 'googleOnly';
+
 export function MobileAuth() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -47,10 +55,11 @@ export function MobileAuth() {
   const from = (location.state as { from?: string } | null)?.from;
   const { user, login, register, googleSignIn, signOut } = useApp();
 
-  const [mode, setMode] = useState<'signin' | 'register'>('signin');
+  const [step, setStep] = useState<Step>('email');
   const [forgot, setForgot] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,18 +70,22 @@ export function MobileAuth() {
   const isRTL = lang === 'ar' || lang === 'fa';
   const copy = mobileCopy[lang] ?? mobileCopy.en;
 
-  const switchMode = (next: 'signin' | 'register') => {
-    setMode(next);
-    setForgot(false);
+  const resetMessages = () => {
     setError(null);
     setNameError(null);
     setNotice(null);
   };
 
+  const changeEmail = () => {
+    setStep('email');
+    setForgot(false);
+    setPassword('');
+    resetMessages();
+  };
+
   async function submitForgot(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setNotice(null);
+    resetMessages();
     setBusy(true);
     try {
       await authApi.requestPasswordReset(email);
@@ -86,7 +99,7 @@ export function MobileAuth() {
   }
 
   async function continueWithGoogle() {
-    setError(null);
+    resetMessages();
     setBusy(true);
     try {
       if (from) stashPostAuthRedirect(from);
@@ -98,26 +111,51 @@ export function MobileAuth() {
     }
   }
 
+  async function submitEmail(e: FormEvent) {
+    e.preventDefault();
+    resetMessages();
+    if (!isValidEmail(email)) {
+      setError('auth.errors.generic');
+      return;
+    }
+    setBusy(true);
+    try {
+      const { exists, providers } = await authApi.checkEmail(email);
+      if (!exists) setStep('register');
+      else if (providers.includes('email')) setStep('signin');
+      else setStep('googleOnly');
+    } catch {
+      // Best-effort check (e.g. migration not applied yet) — fall back to a
+      // plain sign-in attempt rather than blocking the user.
+      setStep('signin');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setNotice(null);
-    if (mode === 'register' && !isValidName(name)) {
+    resetMessages();
+    if (step === 'register' && !isValidName(name)) {
       setNameError('common.nameInvalid');
       return;
     }
-    setNameError(null);
+    if (step === 'register' && !isValidPhone(phone)) {
+      setError('auth.errors.generic');
+      return;
+    }
     setBusy(true);
     try {
-      if (mode === 'signin') {
+      if (step === 'signin') {
         await login(email, password);
         navigate(from ?? '/');
-      } else {
+      } else if (step === 'register') {
         const result = await register(email, password, name);
         if (result?.needsConfirmation) {
           setNotice('auth.checkEmail');
-          setMode('signin');
+          setStep('signin');
         } else {
+          await profileApi.setPhone(phone).catch(() => {});
           navigate(from ?? '/');
         }
       }
@@ -169,6 +207,18 @@ export function MobileAuth() {
     );
   }
 
+  const title = forgot
+    ? t('auth.reset.title')
+    : step === 'signin' ? t('auth.title')
+    : step === 'register' ? t('auth.registerTitle')
+    : t('auth.title');
+  const subtitle = forgot
+    ? t('auth.reset.subtitle')
+    : step === 'signin' ? t('auth.subtitle')
+    : step === 'register' ? t('auth.registerSubtitle')
+    : step === 'googleOnly' ? t('auth.googleOnlyNotice')
+    : t('auth.emailSubtitle');
+
   // ── Auth form ────────────────────────────────────────────────────────
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="flex min-h-dvh flex-col bg-cream">
@@ -177,48 +227,74 @@ export function MobileAuth() {
         <span aria-hidden="true" className="pointer-events-none absolute -bottom-14 end-0 select-none text-[11.5rem] font-bold leading-none text-white/5">ر</span>
         {backButton}
         <div className="relative mt-5 animate-fade-up">
-          <h1 className="text-[26px] font-extrabold leading-tight text-white">
-            {t(forgot ? 'auth.reset.title' : mode === 'signin' ? 'auth.title' : 'auth.registerTitle')}
-          </h1>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-white/70">
-            {t(forgot ? 'auth.reset.subtitle' : mode === 'signin' ? 'auth.subtitle' : 'auth.registerSubtitle')}
-          </p>
+          <h1 className="text-[26px] font-extrabold leading-tight text-white">{title}</h1>
+          <p className="mt-1.5 text-[15px] leading-relaxed text-white/70">{subtitle}</p>
         </div>
       </header>
 
       <main className="flex flex-1 flex-col px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-6">
-        {/* Segmented mode control */}
-        {!forgot && (
-        <div role="tablist" aria-label={copy.modeTabs} className="flex shrink-0 gap-1 rounded-btn bg-cream-dark p-1">
-          {(['signin', 'register'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="tab"
-              aria-selected={mode === m}
-              onClick={() => switchMode(m)}
-              className={`h-[46px] flex-1 rounded-[9px] text-[15px] font-bold transition-all ${
-                mode === m ? 'bg-white text-navy shadow-sm' : 'text-navy/50'
-              }`}
-            >
-              {t(m === 'signin' ? 'common.signIn' : 'common.register')}
-            </button>
-          ))}
-        </div>
-        )}
-
         {/* Notice / error banners */}
         {notice && (
-          <div className="mt-4 flex animate-pop items-start gap-2.5 rounded-btn bg-brand-blue px-3.5 py-3 text-[13.5px] font-medium leading-relaxed text-navy">
+          <div className="mt-1 flex animate-pop items-start gap-2.5 rounded-btn bg-brand-blue px-3.5 py-3 text-[13.5px] font-medium leading-relaxed text-navy">
             <AppIcon name="check-circle" className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{t(notice)}</span>
           </div>
         )}
         {error && (
-          <div role="alert" className="mt-4 flex animate-pop items-start gap-2.5 rounded-btn border border-brand-red/20 bg-brand-red/10 px-3.5 py-3 text-[13.5px] font-medium leading-relaxed text-brand-red">
+          <div role="alert" className="mt-1 flex animate-pop items-start gap-2.5 rounded-btn border border-brand-red/20 bg-brand-red/10 px-3.5 py-3 text-[13.5px] font-medium leading-relaxed text-brand-red">
             <AppIcon name="alert-triangle" className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{t(error)}</span>
           </div>
+        )}
+
+        {(step === 'email' || step === 'googleOnly') && (
+          <button
+            type="button"
+            onClick={continueWithGoogle}
+            disabled={busy}
+            className="btn btn-secondary mt-4 h-[52px] w-full gap-2.5 text-[15px] disabled:opacity-70"
+          >
+            <GoogleIcon />
+            {t('auth.google')}
+          </button>
+        )}
+
+        {step === 'email' && (
+          <>
+            <div aria-hidden="true" className="my-[18px] flex items-center gap-3">
+              <span className="h-px flex-1 bg-navy/10" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-navy/40">{t('auth.or')}</span>
+              <span className="h-px flex-1 bg-navy/10" />
+            </div>
+
+            <form onSubmit={submitEmail} noValidate className="flex flex-col gap-3.5">
+              <div>
+                <label htmlFor="auth-email" className="mb-1.5 block text-[13px] font-bold text-navy">
+                  {t('common.email')}
+                </label>
+                <input
+                  id="auth-email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input h-[50px] w-full text-base"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={busy}
+                className="btn btn-primary mt-1 h-[52px] w-full text-base disabled:opacity-70"
+              >
+                {busy ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-[2.5px] border-white/35 border-t-white" />
+                ) : (
+                  t('auth.continue')
+                )}
+              </button>
+            </form>
+          </>
         )}
 
         {forgot ? (
@@ -230,11 +306,9 @@ export function MobileAuth() {
               <input
                 id="forgot-email"
                 type="email"
-                autoComplete="email"
-                inputMode="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input h-[50px] w-full text-base"
+                disabled
+                className="input h-[50px] w-full text-base opacity-70"
               />
             </div>
             <button
@@ -252,8 +326,7 @@ export function MobileAuth() {
               type="button"
               onClick={() => {
                 setForgot(false);
-                setError(null);
-                setNotice(null);
+                resetMessages();
               }}
               className="mt-1 text-center text-sm font-bold text-navy underline-offset-2 active:underline"
             >
@@ -261,103 +334,109 @@ export function MobileAuth() {
             </button>
           </form>
         ) : (
-        <form onSubmit={submit} noValidate className="mt-[18px] flex flex-col gap-3.5">
-          {mode === 'register' && (
-            <div className="animate-fade-up">
-              <label htmlFor="auth-name" className="mb-1.5 block text-[13px] font-bold text-navy">
-                {t('common.name')}
-              </label>
-              <input
-                id="auth-name"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setNameError(null);
-                }}
-                className={`input h-[50px] w-full text-base ${nameError ? 'border-brand-red/60' : ''}`}
-              />
-              {nameError && (
-                <p className="mt-1.5 animate-pop text-[13px] font-medium text-brand-red">{t(nameError)}</p>
+          (step === 'signin' || step === 'register') && (
+            <form onSubmit={submit} noValidate className="mt-[18px] flex flex-col gap-3.5">
+              {step === 'register' && (
+                <div className="animate-fade-up">
+                  <label htmlFor="auth-name" className="mb-1.5 block text-[13px] font-bold text-navy">
+                    {t('common.name')}
+                  </label>
+                  <input
+                    id="auth-name"
+                    type="text"
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setNameError(null);
+                    }}
+                    className={`input h-[50px] w-full text-base ${nameError ? 'border-brand-red/60' : ''}`}
+                  />
+                  {nameError && (
+                    <p className="mt-1.5 animate-pop text-[13px] font-medium text-brand-red">{t(nameError)}</p>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-          <div>
-            <label htmlFor="auth-email" className="mb-1.5 block text-[13px] font-bold text-navy">
-              {t('common.email')}
-            </label>
-            <input
-              id="auth-email"
-              type="email"
-              autoComplete="email"
-              inputMode="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input h-[50px] w-full text-base"
-            />
-          </div>
+              <div>
+                <label htmlFor="auth-email-2" className="mb-1.5 block text-[13px] font-bold text-navy">
+                  {t('common.email')}
+                </label>
+                <input
+                  id="auth-email-2"
+                  type="email"
+                  value={email}
+                  disabled
+                  className="input h-[50px] w-full text-base opacity-70"
+                />
+              </div>
 
-          <div>
-            <label htmlFor="auth-password" className="mb-1.5 block text-[13px] font-bold text-navy">
-              {t('common.password')}
-            </label>
-            <input
-              id="auth-password"
-              type="password"
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input h-[50px] w-full text-base"
-            />
-            {mode === 'signin' && (
+              {step === 'register' && (
+                <div className="animate-fade-up">
+                  <label htmlFor="auth-phone" className="mb-1.5 block text-[13px] font-bold text-navy">
+                    {t('common.phone')}
+                  </label>
+                  <input
+                    id="auth-phone"
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="input h-[50px] w-full text-base"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="auth-password" className="mb-1.5 block text-[13px] font-bold text-navy">
+                  {t('common.password')}
+                </label>
+                <input
+                  id="auth-password"
+                  type="password"
+                  autoComplete={step === 'signin' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input h-[50px] w-full text-base"
+                />
+                {step === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgot(true);
+                      resetMessages();
+                    }}
+                    className="mt-2 text-[13px] font-bold text-navy/70 underline-offset-2 active:underline"
+                  >
+                    {t('auth.forgot')}
+                  </button>
+                )}
+              </div>
+
               <button
-                type="button"
-                onClick={() => {
-                  setForgot(true);
-                  setError(null);
-                  setNotice(null);
-                }}
-                className="mt-2 text-[13px] font-bold text-navy/70 underline-offset-2 active:underline"
+                type="submit"
+                disabled={busy}
+                className="btn btn-primary mt-1 h-[52px] w-full text-base disabled:opacity-70"
               >
-                {t('auth.forgot')}
+                {busy ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-[2.5px] border-white/35 border-t-white" />
+                ) : (
+                  t(step === 'signin' ? 'common.signIn' : 'common.register')
+                )}
               </button>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="btn btn-primary mt-1 h-[52px] w-full text-base disabled:opacity-70"
-          >
-            {busy ? (
-              <span className="h-5 w-5 animate-spin rounded-full border-[2.5px] border-white/35 border-t-white" />
-            ) : (
-              t(mode === 'signin' ? 'common.signIn' : 'common.register')
-            )}
-          </button>
-        </form>
+            </form>
+          )
         )}
 
-        {!forgot && (
-          <>
-            <div aria-hidden="true" className="my-[18px] flex items-center gap-3">
-              <span className="h-px flex-1 bg-navy/10" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-navy/40">{t('auth.or')}</span>
-              <span className="h-px flex-1 bg-navy/10" />
-            </div>
-
-            <button
-              type="button"
-              onClick={continueWithGoogle}
-              disabled={busy}
-              className="btn btn-secondary h-[52px] w-full gap-2.5 text-[15px] disabled:opacity-70"
-            >
-              <GoogleIcon />
-              {t('auth.google')}
-            </button>
-          </>
+        {!forgot && step !== 'email' && (
+          <button
+            type="button"
+            onClick={changeEmail}
+            className="mt-4 text-center text-sm font-bold text-navy underline-offset-2 active:underline"
+          >
+            {t('auth.changeEmail')}
+          </button>
         )}
       </main>
     </div>

@@ -52,7 +52,8 @@
     "tl": "TL",
     "nameInvalid": "Please enter your full name.",
     "more": "Read more",
-    "less": "Show less"
+    "less": "Show less",
+    "phone": "Phone number"
   },
   "nav": {
     "home": "Home",
@@ -518,7 +519,11 @@
       "profileMissingTitle": "Your account needs attention",
       "profileMissing": "You signed in successfully, but your account setup is incomplete, so we can't open it. Signing in again will not fix this. Please contact support and we'll sort it out for you.",
       "generic": "Sign-in failed. Please try again."
-    }
+    },
+    "continue": "Continue",
+    "changeEmail": "Use a different email",
+    "emailSubtitle": "Enter your email to sign in or create your account.",
+    "googleOnlyNotice": "This email is registered with Google. Use the button above to sign in."
   },
   "checkout": {
     "title": "Checkout",
@@ -1382,7 +1387,12 @@
       "body": "Create a free account to save your plan, documents and bookings.",
       "cta": "Sign in"
     },
-    "adminOnly": "This area is restricted to administrators."
+    "adminOnly": "This area is restricted to administrators.",
+    "chatAuthRequired": {
+      "title": "Welcome!",
+      "body": "Please sign in first so you can chat with the AI assistant and have your answers saved automatically.",
+      "cta": "Sign in"
+    }
   },
   "legal": {
     "terms": {
@@ -2138,6 +2148,262 @@
         "yes": "Eligible",
         "partial": "Depends on the unit",
         "no": "Not eligible"
+      }
+    }
+  },
+  "medical": {
+    "seo": {
+      "title": "Medical Tourism in Istanbul | Rafiq",
+      "description": "Submit your case, receive treatment plans and prices from suitable medical centers in Istanbul, compare offers, then arrange transport, translation and accommodation — coordinated by Rafiq."
+    },
+    "hero": {
+      "title": "Your medical journey in Istanbul starts with clearer options.",
+      "subtitle": "Submit your case, receive plans from suitable centers, compare prices — then request transport, translation, accommodation or care services.",
+      "cta": "Request offers for your case"
+    },
+    "trust": {
+      "coordination": "Rafiq is a registered Turkish company coordinating your case with suitable medical centers — not a hospital, clinic or doctor.",
+      "noGuarantee": "We compare available plans and prices without claiming a guaranteed \"best\" center or outcome.",
+      "istanbulOnly": "Coordination and supporting services are provided in Istanbul only."
+    },
+    "about": {
+      "eyebrow": "About Rafiq",
+      "title": "One organized experience, instead of a fragmented search",
+      "body": "Rafiq started in 2020 as a service company and later became a digital platform, because finding reliable services in Istanbul was fragmented: unclear prices, language barriers, many providers and no single coordinator. Rafiq brings requests, comparison, booking and supporting services into one organized experience."
+    },
+    "how": {
+      "title": "How it works",
+      "submit": {
+        "title": "Submit your case",
+        "body": "Tell us your specialty and case, attach any medical files."
+      },
+      "compare": {
+        "title": "Receive & compare plans",
+        "body": "Suitable centers review your case and send treatment plans and prices."
+      },
+      "choose": {
+        "title": "Choose & book",
+        "body": "Pick the plan that fits and confirm a booking deposit."
+      },
+      "support": {
+        "title": "Supporting services",
+        "body": "Request transport, translation, accommodation or care in Istanbul."
+      }
+    },
+    "specialties": {
+      "title": "Medical specialties"
+    },
+    "evaluation": {
+      "title": "How centers are evaluated",
+      "subtitle": "Every center we work with is reviewed against the same criteria.",
+      "criteria": {
+        "license": "License verification",
+        "specialty": "Doctor specialty and experience",
+        "reviews": "Patient reviews",
+        "accreditation": "Available accreditations",
+        "pricing": "Clear treatment scope and pricing",
+        "scope": "Included / excluded items",
+        "comparison": "Comparison with other centers",
+        "onSite": "On-site review when applicable"
+      }
+    },
+    "services": {
+      "title": "Supporting services in Istanbul"
+    },
+    "testimonials": {
+      "title": "Real customer experiences",
+      "empty": "Customer experiences will appear here once published."
+    },
+    "faq": {
+      "title": "Frequently asked questions"
+    },
+    "disclaimer": {
+      "body": "Rafiq is a registered Turkish company that coordinates medical requests between patients and medical centers in Istanbul. Rafiq is not a hospital, clinic or doctor, does not diagnose, prescribe or guarantee any treatment outcome, and does not claim to work with every center in Turkey. Treatment plans, diagnoses and prices are issued solely by the medical centers and their doctors after reviewing your case."
+    },
+    "finalCta": {
+      "title": "Ready to see your options?",
+      "subtitle": "Submit your case and receive plans from suitable centers in Istanbul."
+    },
+    "status": {
+      "pending_review": "Under review",
+      "under_review": "Under review",
+      "collecting_offers": "Collecting offers",
+      "offers_available": "Offers available",
+      "awaiting_payment": "Awaiting payment",
+      "paid": "Paid",
+      "booked": "Booked",
+      "cancelled": "Cancelled"
+    },
+    "request": {
+      "title": "Request offers for your case",
+      "subtitle": "Tell us about your case — we forward it to suitable medical centers in Istanbul.",
+      "specialty": "Specialty / treatment",
+      "specialtyPlaceholder": "Choose a specialty",
+      "description": "Case description",
+      "descriptionPlaceholder": "Briefly describe your case",
+      "travelDate": "Expected travel date",
+      "budget": "Estimated budget (optional)",
+      "budgetPlaceholder": "e.g. 3000 USD",
+      "notes": "Additional notes",
+      "consent": "I agree that Rafiq may process and share my medical data with suitable medical centers to prepare a treatment plan.",
+      "files": {
+        "label": "Medical files",
+        "cta": "Upload files (PDF, JPG, PNG)",
+        "hint": "Up to 10MB per file",
+        "badType": "Unsupported file type",
+        "tooLarge": "File is larger than 10MB",
+        "uploadFailed": "Upload failed"
+      },
+      "submit": "Submit request",
+      "sending": "Sending…",
+      "error": "Something went wrong. Please try again.",
+      "rateLimited": "We already have a recent request from your account.",
+      "successTitle": "Your request was submitted successfully",
+      "successBody": "You can follow its status from My Requests.",
+      "trackCta": "Go to My Requests",
+      "whatsappCta": "Continue on WhatsApp",
+      "waIntro": "Hello Rafiq, I submitted a medical request"
+    },
+    "offer": {
+      "title": "Offers",
+      "empty": "No offers yet — we will notify you once suitable centers respond.",
+      "sessions": "Sessions / days",
+      "expires": "Offer expires",
+      "bookingPercentage": "Booking percentage",
+      "payable": "Payable now",
+      "center": {
+        "title": "Medical center",
+        "doctor": "Doctor",
+        "pending": "Center details are revealed after your booking deposit is verified."
+      },
+      "payCta": "Pay booking deposit",
+      "refundPolicy": "Non-refundable once the center details are revealed after payment. Fully refundable if the center cancels or cannot provide the agreed plan.",
+      "acceptPolicy": "I accept the refund policy",
+      "confirm": "Confirm",
+      "confirming": "Confirming…",
+      "paymentError": "Could not start payment. Please try again.",
+      "paymentPending": "Booking deposit recorded — awaiting verification.",
+      "paymentRejected": "This payment was not verified. Please contact us.",
+      "whatsappFinalize": "Finalize on WhatsApp",
+      "waIntro": "Hello Rafiq, I would like to finalize payment for offer",
+      "resumePayment": "Resume payment",
+      "securePaymentNote": "Secure online payment. You will be redirected to complete it."
+    },
+    "optional": {
+      "title": "Optional services",
+      "types": {
+        "transport": "VIP transportation",
+        "interpreter": "Medical interpreter",
+        "accommodation": "Accommodation",
+        "companion": "Personal companion",
+        "nursing": "Home nursing"
+      },
+      "status": {
+        "requested": "requested",
+        "confirmed": "confirmed",
+        "declined": "declined",
+        "cancelled": "cancelled"
+      }
+    },
+    "payment": {
+      "status": {
+        "pending": "Pending",
+        "verified": "Verified",
+        "rejected": "Rejected",
+        "refund_requested": "Refund requested",
+        "refunded": "Refunded"
+      }
+    },
+    "myRequests": {
+      "title": "Medical requests"
+    },
+    "admin": {
+      "navLink": "Medical Tourism",
+      "title": "Medical Tourism Requests",
+      "tabQueue": "Requests",
+      "tabContent": "Page content",
+      "queue": "Requests queue",
+      "empty": "No requests match these filters.",
+      "filterAllStatuses": "All statuses",
+      "filterSpecialty": "Specialty",
+      "offersCount": "offers",
+      "internalNote": "Internal note (staff only)",
+      "customerNote": "Note visible to customer",
+      "saveNotes": "Save notes",
+      "noFiles": "No files uploaded",
+      "whatsapp": "WhatsApp customer",
+      "waIntro": "Hello, regarding your medical request",
+      "confirm": "Confirm",
+      "decline": "Decline",
+      "verify": "Verify",
+      "reject": "Reject",
+      "markRefunded": "Mark refunded",
+      "payments": "Payments",
+      "roleLabel": "Medical staff role",
+      "makeCoordinator": "Make medical coordinator",
+      "revokeCoordinator": "Remove coordinator role",
+      "offer": {
+        "plan": "Treatment plan",
+        "price": "Total price",
+        "sessions": "Sessions / days",
+        "included": "Included (one per line)",
+        "excluded": "Excluded (one per line)",
+        "percentage": "Booking %",
+        "create": "Create offer"
+      },
+      "center": {
+        "name": "Center name",
+        "doctor": "Doctor name",
+        "address": "Address",
+        "phone": "Phone",
+        "website": "Website",
+        "mapUrl": "Map link",
+        "appointment": "Appointment details",
+        "save": "Save center details",
+        "toggle": "Center details"
+      },
+      "content": {
+        "sections": "Section visibility",
+        "specialties": "Specialties",
+        "hidden": "hidden",
+        "editSql": "Specialties, services and FAQs are edited via the medical_specialties / medical_services / medical_faqs tables.",
+        "testimonials": "Customer testimonials",
+        "authorName": "Customer name",
+        "quote": "Quote",
+        "consentCheckbox": "Customer consented to publish this testimonial",
+        "add": "Add testimonial",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "consented": "consented",
+        "noConsent": "no consent yet",
+        "status": {
+          "draft": "draft",
+          "published": "published"
+        },
+        "empty": "Nothing here yet.",
+        "name": "Name",
+        "description": "Description",
+        "icon": "Icon key",
+        "visible": "Visible",
+        "order": "Order",
+        "save": "Save",
+        "newSlug": "New item key (e.g. laser_eye)",
+        "question": "Question",
+        "answer": "Answer",
+        "services": "Supporting services",
+        "sectionNames": {
+          "hero": "Hero",
+          "trust": "Trust indicators",
+          "about": "About Rafiq",
+          "how_it_works": "How it works",
+          "specialties": "Specialties",
+          "center_evaluation": "Center evaluation",
+          "supporting_services": "Supporting services",
+          "testimonials": "Testimonials",
+          "faq": "FAQ",
+          "disclaimer": "Disclaimer",
+          "final_cta": "Final CTA"
+        }
       }
     }
   }

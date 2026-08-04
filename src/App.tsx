@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSear
 import { useTranslation } from 'react-i18next';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
-import { RequireOnboarded } from './components/Gates';
+import { RequireAuth, RequireOnboarded } from './components/Gates';
 import { ChatRedirect } from './components/LegacyRedirects';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -74,7 +74,7 @@ const MobileListingServices = lazyPage(() => import('./pages/mobile/MobileListin
 const RealEstateInvestments = lazyPage(() => import('./pages/RealEstateInvestments').then((m) => ({ default: m.RealEstateInvestments })));
 const InvestmentDetail = lazyPage(() => import('./pages/InvestmentDetail').then((m) => ({ default: m.InvestmentDetail })));
 const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
-const MobileHealthTourism = lazyPage(() => import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })));
+const MedicalRequest = lazyPage(() => import('./pages/MedicalRequest').then((m) => ({ default: m.MedicalRequest })));
 const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
 const MobileTricks = lazyPage(() => import('./pages/mobile/MobileTricks').then((m) => ({ default: m.MobileTricks })));
 const TrickDetail = lazyPage(() => import('./pages/TrickDetail').then((m) => ({ default: m.TrickDetail })));
@@ -91,6 +91,7 @@ const Notifications = lazyPage(() => import('./pages/Notifications').then((m) =>
 const MobileNotifications = lazyPage(() => import('./pages/mobile/MobileNotifications').then((m) => ({ default: m.MobileNotifications })));
 const Admin = lazyPage(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
 const AdminBookings = lazyPage(() => import('./pages/AdminBookings').then((m) => ({ default: m.AdminBookings })));
+const AdminMedical = lazyPage(() => import('./pages/AdminMedical').then((m) => ({ default: m.AdminMedical })));
 const CompanyRegister = lazyPage(() => import('./pages/company/CompanyRegister').then((m) => ({ default: m.CompanyRegister })));
 const CompanyDashboard = lazyPage(() => import('./pages/company/CompanyDashboard').then((m) => ({ default: m.CompanyDashboard })));
 const CompanyProfileEdit = lazyPage(() => import('./pages/company/CompanyProfileEdit').then((m) => ({ default: m.CompanyProfileEdit })));
@@ -234,7 +235,8 @@ function Shell() {
               path="/real-estate/:id/services"
               element={isMobile ? <MobileListingServices /> : <RealEstateDetail />}
             />
-            <Route path="/health-tourism" element={isMobile ? <MobileHealthTourism /> : <HealthTourism />} />
+            <Route path="/health-tourism" element={<HealthTourism />} />
+            <Route path="/medical-request" element={<RequireAuth><MedicalRequest /></RequireAuth>} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
             <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />
             {/* one column of text either way — a single component serves both breakpoints */}
@@ -263,6 +265,7 @@ function Shell() {
             <Route path="/notifications" element={isMobile ? <MobileNotifications /> : <Notifications />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/medical" element={<AdminMedical />} />
             <Route path="/terms" element={<Legal doc="terms" />} />
             <Route path="/privacy" element={<Legal doc="privacy" />} />
             <Route path="/refund" element={<Legal doc="refund" />} />

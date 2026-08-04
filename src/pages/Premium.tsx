@@ -16,7 +16,7 @@ import {
 } from '../lib/chatHistory';
 import type { ArchivedTopic } from '../lib/chatHistory';
 import type { BookingMedia, ChatMessage } from '../lib/types';
-import { RequireAuth } from '../components/Gates';
+import { RequireAuthChat } from '../components/Gates';
 import { BookingModal } from '../components/BookingModal';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
@@ -494,8 +494,8 @@ export function Premium() {
   // The assistant is an intake agent that collects a case for a human specialist,
   // so it always requires a signed-in account (name + phone come from it).
   return (
-    <RequireAuth>
+    <RequireAuthChat>
       <ChatUI />
-    </RequireAuth>
+    </RequireAuthChat>
   );
 }

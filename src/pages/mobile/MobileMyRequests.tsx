@@ -8,6 +8,7 @@ import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
 import { RafiqLoader } from '../../components/RafiqLoader';
 import { RequireAuth } from '../../components/Gates';
+import { MedicalRequestsPanel } from '../../components/medical/MedicalRequestsPanel';
 import { Modal } from '../../components/Modal';
 import { ReviewStars, StarRatingInput } from '../../components/ReviewStars';
 import { SiteImage } from '../../components/SiteImage';
@@ -304,6 +305,8 @@ function MobileMyRequestsInner() {
               </div>
             )}
           </SectionState>
+
+          <MedicalRequestsPanel />
         </div>
       </div>
 

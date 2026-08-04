@@ -27,6 +27,10 @@ vi.mock('../lib/api', () => ({
     choose: vi.fn(),
   },
   reviews: { create: vi.fn() },
+  // MedicalRequestsPanel mounts alongside the generic requests list; these
+  // stubs keep it inert (empty list) for tests that aren't about it.
+  medicalRequests: { mine: () => Promise.resolve([]) },
+  medicalContent: { specialties: () => Promise.resolve([]) },
 }));
 
 vi.mock('react-i18next', () => ({

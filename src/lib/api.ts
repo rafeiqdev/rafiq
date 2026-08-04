@@ -50,6 +50,21 @@ import type {
   InvestmentInput,
   InvestmentContact,
   LocalizedText,
+  MedicalRequest,
+  MedicalRequestFile,
+  MedicalRequestStatus,
+  MedicalOptionalService,
+  MedicalOptionalServiceType,
+  MedicalOffer,
+  MedicalOfferCenter,
+  MedicalPayment,
+  MedicalPaymentStatus,
+  MedicalSpecialty,
+  MedicalService,
+  MedicalFaq,
+  MedicalTestimonial,
+  MedicalPageSection,
+  AdminMedicalRequest,
 } from './types';
 import { COMPANY_PLAN_PRICE } from './types';
 import { classifyError, isSchemaUnavailable, logDiagnostic } from './errors';
@@ -276,6 +291,20 @@ export const auth = {
   },
 
   /**
+   * Looks up an email before the auth form commits to a mode: whether it's
+   * already registered, and which sign-in providers it uses. Backed by the
+   * check_email_providers() SECURITY DEFINER function (20260805 migration) —
+   * on a database that hasn't run it yet, the RPC 404s and the caller should
+   * fall back to letting the user pick sign-in/register manually.
+   */
+  async checkEmail(email: string): Promise<{ exists: boolean; providers: string[] }> {
+    const { data, error } = await sb().rpc('check_email_providers', { p_email: email });
+    if (error) fail(error);
+    const result = data as { exists?: boolean; providers?: string[] } | null;
+    return { exists: !!result?.exists, providers: Array.isArray(result?.providers) ? result.providers : [] };
+  },
+
+  /**
    * Emails a recovery link that lands on /reset-password. Supabase answers
    * 200 whether or not the address has an account, so this cannot be used to
    * enumerate customers; only rate-limit/config errors surface.
@@ -357,6 +386,7 @@ export const auth = {
       isAdmin: role === 'admin',
       role,
       isCompany: role === 'company',
+      isMedicalCoordinator: role === 'medical_coordinator',
       referralCode: prof.referral_code ?? '',
       createdAt: prof.created_at,
       // new columns are absent until the journey migration runs → default safely
@@ -1174,8 +1204,9 @@ export const adminUsers = {
       // browser at all. It was never rendered; it is no longer invented.
       provider: 'email' as const,
       isAdmin: p.role === 'admin',
-      role: p.role === 'admin' ? 'admin' : 'user',
+      role: p.role === 'admin' ? 'admin' : p.role === 'medical_coordinator' ? 'medical_coordinator' : 'user',
       isCompany: p.role === 'company',
+      isMedicalCoordinator: p.role === 'medical_coordinator',
       onboardingCompleted: false,
       referralCode: p.referral_code ?? '',
       createdAt: p.created_at,
@@ -1187,6 +1218,17 @@ export const adminUsers = {
   },
   async setTier(id: string, tier: PlanTier): Promise<{ ok: true }> {
     const { error } = await sb().rpc('admin_set_tier', { p_user: id, p_tier: tier });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  /**
+   * Promote/demote to 'medical_coordinator' (admin-only in both directions).
+   * No RPC needed: `profiles` RLS lets an admin update any row, and
+   * guard_profile_role() only blocks a NON-admin from changing role — an
+   * admin session writing another user's role passes both.
+   */
+  async setRole(id: string, role: 'user' | 'medical_coordinator'): Promise<{ ok: true }> {
+    const { error } = await sb().from('profiles').update({ role }).eq('id', id);
     if (error) fail(error);
     return { ok: true };
   },
@@ -2396,5 +2438,543 @@ export const adminBroadcast = {
       serviceTitle: embed<{ service_title: string }>(r.service_requests)?.service_title ?? '',
       quote: r.quote ?? null, message: r.message ?? null, chosen: !!r.chosen, createdAt: r.created_at,
     }));
+  },
+};
+
+// ---------- medical tourism ---------------------------------------------------
+
+const MEDICAL_FILE_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']);
+const MEDICAL_FILE_MAX_BYTES = 10 * 1024 * 1024;
+
+/** Strip path separators/traversal and control chars; keep it short. */
+function sanitizeMedicalFilename(name: string): string {
+  const base = name.split(/[/\\]/).pop() ?? name;
+  return base.replace(/[^\w.\- ]+/g, '_').slice(-150) || 'file';
+}
+
+interface MedicalRequestRow {
+  id: string; specialty: string; description: string; expected_travel_date: string | null;
+  budget_estimate: number | null; notes: string | null; status: string; customer_note: string | null;
+  internal_note?: string | null; created_at: string; updated_at: string;
+}
+function toMedicalRequest(r: MedicalRequestRow): MedicalRequest {
+  return {
+    id: r.id, specialty: r.specialty, description: r.description,
+    expectedTravelDate: r.expected_travel_date, budgetEstimate: r.budget_estimate,
+    notes: r.notes, status: r.status as MedicalRequestStatus, customerNote: r.customer_note,
+    internalNote: r.internal_note ?? null, createdAt: r.created_at, updatedAt: r.updated_at,
+  };
+}
+
+interface MedicalFileRow {
+  id: string; storage_path: string; original_filename: string; mime_type: string; size_bytes: number; created_at: string;
+}
+function toMedicalFile(r: MedicalFileRow): MedicalRequestFile & { storagePath: string } {
+  return { id: r.id, originalFilename: r.original_filename, mimeType: r.mime_type, sizeBytes: r.size_bytes, createdAt: r.created_at, storagePath: r.storage_path };
+}
+
+interface MedicalOfferRow {
+  id: string; request_id: string; treatment_plan: string; total_price: number; currency: string;
+  included: string[] | null; excluded: string[] | null; sessions_or_days: string | null;
+  expires_at: string | null; booking_percentage: number; status: string; created_at: string;
+}
+function toMedicalOffer(r: MedicalOfferRow): MedicalOffer {
+  return {
+    id: r.id, requestId: r.request_id, treatmentPlan: r.treatment_plan, totalPrice: r.total_price,
+    currency: r.currency, included: r.included ?? [], excluded: r.excluded ?? [],
+    sessionsOrDays: r.sessions_or_days, expiresAt: r.expires_at, bookingPercentage: r.booking_percentage,
+    status: r.status as MedicalOffer['status'], createdAt: r.created_at,
+  };
+}
+
+/** Best-effort audit log write — never blocks or fails the action it accompanies. */
+async function logMedicalAudit(c: SupabaseClient, action: string, targetType: string, targetId: string, meta: Record<string, unknown> = {}): Promise<void> {
+  await c.rpc('medical_audit_log_write', { p_action: action, p_target_type: targetType, p_target_id: targetId, p_meta: meta });
+}
+
+export const medicalRequests = {
+  /** Submit a new case. `consentAt` is stamped here, not trusted from a stale form state. */
+  async create(input: {
+    specialty: string; description: string; expectedTravelDate?: string | null;
+    budgetEstimate?: number | null; notes?: string | null;
+  }): Promise<{ id: string }> {
+    const uid = await requireUid();
+    const { data, error } = await sb()
+      .from('medical_requests')
+      .insert({
+        user_id: uid, specialty: input.specialty, description: input.description,
+        expected_travel_date: input.expectedTravelDate ?? null,
+        budget_estimate: input.budgetEstimate ?? null, notes: input.notes ?? null,
+        consent_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+    if (error) fail(error);
+    return { id: data!.id };
+  },
+
+  async mine(): Promise<MedicalRequest[]> {
+    await requireUid();
+    const { data, error } = await sb()
+      .from('medical_requests')
+      .select('id,specialty,description,expected_travel_date,budget_estimate,notes,status,customer_note,created_at,updated_at')
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as MedicalRequestRow[]).map(toMedicalRequest);
+  },
+
+  /** One request with its files (RLS: owner or medical staff only). */
+  async detail(id: string): Promise<MedicalRequest | null> {
+    const { data, error } = await sb()
+      .from('medical_requests')
+      .select('id,specialty,description,expected_travel_date,budget_estimate,notes,status,customer_note,internal_note,created_at,updated_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) fail(error);
+    if (!data) return null;
+    const req = toMedicalRequest(data as MedicalRequestRow);
+    req.files = await medicalRequests.files(id);
+    return req;
+  },
+
+  async files(requestId: string): Promise<MedicalRequestFile[]> {
+    const { data, error } = await sb()
+      .from('medical_request_files')
+      .select('id,storage_path,original_filename,mime_type,size_bytes,created_at')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: true });
+    if (error) fail(error);
+    return ((data ?? []) as MedicalFileRow[]).map(toMedicalFile);
+  },
+
+  /** Client-side validation mirrors the server-side bucket/table checks — both must pass. */
+  async uploadFile(requestId: string, file: File): Promise<MedicalRequestFile> {
+    const uid = await requireUid();
+    if (!MEDICAL_FILE_TYPES.has(file.type)) throw new ApiError('unsupported_file_type', 400);
+    if (file.size > MEDICAL_FILE_MAX_BYTES) throw new ApiError('file_too_large', 400);
+    const c = sb();
+    const safe = sanitizeMedicalFilename(file.name);
+    const path = `${uid}/${requestId}/${Date.now()}-${safe}`;
+    const up = await c.storage.from('medical-files').upload(path, file, { upsert: false });
+    if (up.error) {
+      logDiagnostic('medicalRequests.uploadFile', up.error, classifyError(up.error));
+      throw new ApiError('file_upload_failed', 502);
+    }
+    const { data, error } = await c
+      .from('medical_request_files')
+      .insert({ request_id: requestId, storage_path: path, original_filename: safe, mime_type: file.type, size_bytes: file.size })
+      .select('id,storage_path,original_filename,mime_type,size_bytes,created_at')
+      .single();
+    if (error) fail(error);
+    return toMedicalFile(data as MedicalFileRow);
+  },
+
+  /** Open one of the caller's own files via a short-lived signed URL. */
+  async openFile(fileId: string): Promise<void> {
+    const c = sb();
+    const { data: row } = await c.from('medical_request_files').select('storage_path').eq('id', fileId).maybeSingle();
+    if (!row) return;
+    const { data } = await c.storage.from('medical-files').createSignedUrl(row.storage_path, 60);
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener');
+  },
+
+  async requestOptionalService(requestId: string, serviceType: MedicalOptionalServiceType, notes?: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_optional_services').insert({ request_id: requestId, service_type: serviceType, notes: notes ?? null });
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async optionalServices(requestId: string): Promise<MedicalOptionalService[]> {
+    const { data, error } = await sb()
+      .from('medical_optional_services')
+      .select('id,request_id,service_type,status,notes,created_at')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    interface Row { id: string; request_id: string; service_type: string; status: string; notes: string | null; created_at: string; }
+    return ((data ?? []) as Row[]).map((r) => ({
+      id: r.id, requestId: r.request_id, serviceType: r.service_type as MedicalOptionalServiceType,
+      status: r.status as MedicalOptionalService['status'], notes: r.notes, createdAt: r.created_at,
+    }));
+  },
+};
+
+export const medicalOffers = {
+  /** Public-safe offer fields only — the table structurally has no center columns. */
+  async listForRequest(requestId: string): Promise<MedicalOffer[]> {
+    const { data, error } = await sb()
+      .from('medical_offers')
+      .select('id,request_id,treatment_plan,total_price,currency,included,excluded,sessions_or_days,expires_at,booking_percentage,status,created_at')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as MedicalOfferRow[]).map(toMedicalOffer);
+  },
+
+  /** Returns null until a verified payment exists for this offer — enforced server-side. */
+  async getCenter(offerId: string): Promise<MedicalOfferCenter | null> {
+    const { data, error } = await sb().rpc('get_offer_center', { p_offer_id: offerId });
+    if (error) fail(error);
+    const row = (data as unknown[])?.[0] as
+      | { center_name: string; doctor_name: string; address: string; phone: string; website: string; map_url: string; image_paths: string[]; appointment_details: string }
+      | undefined;
+    if (!row) return null;
+    return {
+      centerName: row.center_name, doctorName: row.doctor_name, address: row.address, phone: row.phone,
+      website: row.website, mapUrl: row.map_url, imagePaths: row.image_paths ?? [], appointmentDetails: row.appointment_details,
+    };
+  },
+};
+
+interface MedicalPaymentRow {
+  id: string; request_id: string; offer_id: string; amount: number; currency: string;
+  booking_percentage_snapshot: number; status: string; created_at: string; verified_at: string | null;
+  gateway_session_id?: string | null;
+}
+function toMedicalPayment(r: MedicalPaymentRow): MedicalPayment {
+  return {
+    id: r.id, requestId: r.request_id, offerId: r.offer_id, amount: r.amount, currency: r.currency,
+    bookingPercentageSnapshot: r.booking_percentage_snapshot, status: r.status as MedicalPaymentStatus,
+    createdAt: r.created_at, verifiedAt: r.verified_at, gatewaySessionId: r.gateway_session_id ?? null,
+  };
+}
+
+export const medicalPayments = {
+  /**
+   * Creates the pending payment row with a server-computed amount (RPC reads
+   * the live offer row; the client never supplies price or percentage), and
+   * mints an opaque `gatewaySessionId`. `payUrl` is the checkout redirect —
+   * a hosted-checkout stand-in (api/payments/medical-pay.ts) that completes
+   * ONLY by delivering the same signed webhook a real gateway would
+   * (api/payments/medical-webhook.ts). There is no client-side path to
+   * "verified" — this call never returns one.
+   */
+  async createSession(offerId: string): Promise<{ paymentId: string; amount: number; currency: string; payUrl: string }> {
+    const { data, error } = await sb().rpc('create_medical_payment_session', { p_offer_id: offerId });
+    if (error) fail(error);
+    const row = (data as unknown[])?.[0] as
+      | { payment_id: string; amount: number; currency: string; gateway_session_id: string }
+      | undefined;
+    if (!row) throw new ApiError('server_error', 500);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return {
+      paymentId: row.payment_id,
+      amount: row.amount,
+      currency: row.currency,
+      payUrl: `${origin}/api/payments/medical-pay?session=${encodeURIComponent(row.gateway_session_id)}`,
+    };
+  },
+
+  async forRequest(requestId: string): Promise<MedicalPayment[]> {
+    const { data, error } = await sb()
+      .from('medical_payments')
+      .select('id,request_id,offer_id,amount,currency,booking_percentage_snapshot,status,created_at,verified_at,gateway_session_id')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as MedicalPaymentRow[]).map(toMedicalPayment);
+  },
+
+  /** Rebuild the checkout redirect for an existing pending payment (resume, no new session minted). */
+  resumeUrl(payment: MedicalPayment, returnPath: string): string | null {
+    if (payment.status !== 'pending' || !payment.gatewaySessionId) return null;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/api/payments/medical-pay?session=${encodeURIComponent(payment.gatewaySessionId)}&return=${encodeURIComponent(returnPath)}`;
+  },
+
+  /** Customer asks for a refund on their own verified payment — status flip only. */
+  async requestRefund(paymentId: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_payments').update({ status: 'refund_requested' }).eq('id', paymentId);
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+type LocalizedRow = { ar?: string; en?: string; fa?: string; ru?: string } | null;
+function toLocalized(v: LocalizedRow): LocalizedText {
+  return { ar: v?.ar ?? '', en: v?.en ?? '', fa: v?.fa ?? '', ru: v?.ru ?? '' };
+}
+
+export const medicalContent = {
+  async specialties(): Promise<MedicalSpecialty[]> {
+    const { data, error } = await sb().from('medical_specialties').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; slug: string; name: LocalizedRow; description: LocalizedRow; icon: string | null; sort: number; visible: boolean; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible }));
+  },
+  async services(): Promise<MedicalService[]> {
+    const { data, error } = await sb().from('medical_services').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; slug: string; name: LocalizedRow; description: LocalizedRow; icon: string | null; sort: number; visible: boolean; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible }));
+  },
+  async faqs(): Promise<MedicalFaq[]> {
+    const { data, error } = await sb().from('medical_faqs').select('id,question,answer,sort,visible').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; question: LocalizedRow; answer: LocalizedRow; sort: number; visible: boolean; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, question: toLocalized(r.question), answer: toLocalized(r.answer), sort: r.sort, visible: r.visible }));
+  },
+  /** Published testimonials only — draft rows never reach a visitor (RLS-enforced too). */
+  async testimonials(): Promise<MedicalTestimonial[]> {
+    const { data, error } = await sb().from('medical_testimonials').select('id,author_name,quote,image_path,status,consent_given,sort').eq('status', 'published').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; author_name: string; quote: LocalizedRow; image_path: string | null; status: string; consent_given: boolean; sort: number; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, authorName: r.author_name, quote: toLocalized(r.quote), imagePath: r.image_path, status: r.status as 'draft' | 'published', consentGiven: r.consent_given, sort: r.sort }));
+  },
+  async sections(): Promise<MedicalPageSection[]> {
+    const { data, error } = await sb().from('medical_page_sections').select('section_key,visible,sort').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { section_key: string; visible: boolean; sort: number; }
+    return ((data ?? []) as Row[]).map((r) => ({ sectionKey: r.section_key, visible: r.visible, sort: r.sort }));
+  },
+};
+
+export const adminMedical = {
+  async newCount(): Promise<number> {
+    const { count, error } = await sb().from('medical_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_review');
+    if (error) return 0;
+    return count ?? 0;
+  },
+
+  async list(filter: { status?: string; specialty?: string; from?: string; to?: string; search?: string } = {}): Promise<AdminMedicalRequest[]> {
+    const c = sb();
+    let q = c.from('medical_requests')
+      .select('id,user_id,specialty,description,expected_travel_date,budget_estimate,notes,status,customer_note,internal_note,created_at,updated_at')
+      .order('created_at', { ascending: false });
+    if (filter.status) q = q.eq('status', filter.status);
+    if (filter.specialty) q = q.eq('specialty', filter.specialty);
+    if (filter.from) q = q.gte('created_at', filter.from);
+    if (filter.to) q = q.lte('created_at', `${filter.to}T23:59:59.999Z`);
+    if (filter.search) q = q.ilike('description', `%${filter.search}%`);
+    const { data, error } = await q;
+    if (error) fail(error);
+    const rows = (data ?? []) as (MedicalRequestRow & { user_id: string })[];
+
+    const ids = [...new Set(rows.map((r) => r.user_id))];
+    const owners = new Map<string, { name: string | null; email: string | null }>();
+    if (ids.length > 0) {
+      const prof = await c.from('profiles').select('id,name,email').in('id', ids);
+      if (!prof.error) for (const p of (prof.data ?? []) as { id: string; name: string | null; email: string | null }[]) owners.set(p.id, { name: p.name, email: p.email });
+    }
+
+    const offerCounts = new Map<string, number>();
+    if (rows.length > 0) {
+      const offers = await c.from('medical_offers').select('request_id').in('request_id', rows.map((r) => r.id));
+      if (!offers.error) for (const o of (offers.data ?? []) as { request_id: string }[]) offerCounts.set(o.request_id, (offerCounts.get(o.request_id) ?? 0) + 1);
+    }
+
+    return rows.map((r) => {
+      const owner = owners.get(r.user_id);
+      return { ...toMedicalRequest(r), userId: r.user_id, ownerName: owner?.name ?? null, ownerEmail: owner?.email ?? null, offersCount: offerCounts.get(r.id) ?? 0 };
+    });
+  },
+
+  async detail(id: string): Promise<{ request: AdminMedicalRequest; files: (MedicalRequestFile & { storagePath: string })[]; offers: MedicalOffer[]; optionalServices: MedicalOptionalService[]; payments: MedicalPayment[] } | null> {
+    const c = sb();
+    const { data, error } = await c.from('medical_requests')
+      .select('id,user_id,specialty,description,expected_travel_date,budget_estimate,notes,status,customer_note,internal_note,created_at,updated_at')
+      .eq('id', id).maybeSingle();
+    if (error) fail(error);
+    if (!data) return null;
+    const row = data as MedicalRequestRow & { user_id: string };
+    const { data: prof } = await c.from('profiles').select('name,email').eq('id', row.user_id).maybeSingle();
+
+    const [filesRes, offersRes, optRes, payRes] = await Promise.all([
+      c.from('medical_request_files').select('id,storage_path,original_filename,mime_type,size_bytes,created_at').eq('request_id', id).order('created_at', { ascending: true }),
+      c.from('medical_offers').select('id,request_id,treatment_plan,total_price,currency,included,excluded,sessions_or_days,expires_at,booking_percentage,status,created_at').eq('request_id', id).order('created_at', { ascending: false }),
+      medicalRequests.optionalServices(id),
+      c.from('medical_payments').select('id,request_id,offer_id,amount,currency,booking_percentage_snapshot,status,created_at,verified_at').eq('request_id', id).order('created_at', { ascending: false }),
+    ]);
+    if (filesRes.error) fail(filesRes.error);
+    if (offersRes.error) fail(offersRes.error);
+    if (payRes.error) fail(payRes.error);
+
+    await logMedicalAudit(sb(), 'file_access', 'medical_request', id);
+
+    return {
+      request: { ...toMedicalRequest(row), userId: row.user_id, ownerName: prof?.name ?? null, ownerEmail: prof?.email ?? null, offersCount: (offersRes.data ?? []).length },
+      files: ((filesRes.data ?? []) as MedicalFileRow[]).map(toMedicalFile),
+      offers: ((offersRes.data ?? []) as MedicalOfferRow[]).map(toMedicalOffer),
+      optionalServices: optRes,
+      payments: ((payRes.data ?? []) as MedicalPaymentRow[]).map(toMedicalPayment),
+    };
+  },
+
+  /** Open a patient file (staff) via signed URL — logged, since this is the sensitive read the audit log exists for. */
+  async openFile(fileId: string, requestId: string): Promise<void> {
+    const c = sb();
+    const { data: row } = await c.from('medical_request_files').select('storage_path').eq('id', fileId).maybeSingle();
+    if (!row) return;
+    await logMedicalAudit(c, 'file_access', 'medical_request_file', fileId, { request_id: requestId });
+    const { data } = await c.storage.from('medical-files').createSignedUrl(row.storage_path, 60);
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener');
+  },
+
+  async setStatus(id: string, status: MedicalRequestStatus): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_requests').update({ status }).eq('id', id);
+    if (error) fail(error);
+    await logMedicalAudit(sb(), 'status_change', 'medical_request', id, { status });
+    return { ok: true };
+  },
+
+  async setNotes(id: string, notes: { internalNote?: string; customerNote?: string }): Promise<{ ok: true }> {
+    const patch: Record<string, string> = {};
+    if (notes.internalNote !== undefined) patch.internal_note = notes.internalNote;
+    if (notes.customerNote !== undefined) patch.customer_note = notes.customerNote;
+    const { error } = await sb().from('medical_requests').update(patch).eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  async createOffer(requestId: string, input: {
+    treatmentPlan: string; totalPrice: number; currency: string; included: string[]; excluded: string[];
+    sessionsOrDays?: string; expiresAt?: string | null; bookingPercentage: number;
+  }): Promise<{ id: string }> {
+    const uid = await requireUid();
+    const { data, error } = await sb().from('medical_offers').insert({
+      request_id: requestId, treatment_plan: input.treatmentPlan, total_price: input.totalPrice, currency: input.currency,
+      included: input.included, excluded: input.excluded, sessions_or_days: input.sessionsOrDays ?? null,
+      expires_at: input.expiresAt ?? null, booking_percentage: input.bookingPercentage, status: 'sent', created_by: uid,
+    }).select('id').single();
+    if (error) fail(error);
+    await logMedicalAudit(sb(), 'offer_edit', 'medical_offer', data!.id, { created: true });
+    await sb().from('medical_requests').update({ status: 'offers_available' }).eq('id', requestId).in('status', ['pending_review', 'under_review', 'collecting_offers']);
+    return { id: data!.id };
+  },
+
+  async updateOffer(offerId: string, patch: Partial<{
+    treatmentPlan: string; totalPrice: number; currency: string; included: string[]; excluded: string[];
+    sessionsOrDays: string | null; expiresAt: string | null; bookingPercentage: number; status: 'draft' | 'sent' | 'expired';
+  }>): Promise<{ ok: true }> {
+    const row: Record<string, unknown> = {};
+    if (patch.treatmentPlan !== undefined) row.treatment_plan = patch.treatmentPlan;
+    if (patch.totalPrice !== undefined) row.total_price = patch.totalPrice;
+    if (patch.currency !== undefined) row.currency = patch.currency;
+    if (patch.included !== undefined) row.included = patch.included;
+    if (patch.excluded !== undefined) row.excluded = patch.excluded;
+    if (patch.sessionsOrDays !== undefined) row.sessions_or_days = patch.sessionsOrDays;
+    if (patch.expiresAt !== undefined) row.expires_at = patch.expiresAt;
+    if (patch.bookingPercentage !== undefined) row.booking_percentage = patch.bookingPercentage;
+    if (patch.status !== undefined) row.status = patch.status;
+    const { error } = await sb().from('medical_offers').update(row).eq('id', offerId);
+    if (error) fail(error);
+    const action = patch.bookingPercentage !== undefined ? 'percentage_change' : 'offer_edit';
+    await logMedicalAudit(sb(), action, 'medical_offer', offerId, patch as Record<string, unknown>);
+    return { ok: true };
+  },
+
+  async getCenter(offerId: string): Promise<MedicalOfferCenter | null> {
+    const { data, error } = await sb().from('medical_offer_centers')
+      .select('center_name,doctor_name,address,phone,website,map_url,image_paths,appointment_details')
+      .eq('offer_id', offerId).maybeSingle();
+    if (error) fail(error);
+    if (!data) return null;
+    return {
+      centerName: data.center_name, doctorName: data.doctor_name, address: data.address, phone: data.phone,
+      website: data.website, mapUrl: data.map_url, imagePaths: (data.image_paths as string[]) ?? [], appointmentDetails: data.appointment_details,
+    };
+  },
+
+  async setCenter(offerId: string, center: {
+    centerName: string; doctorName: string; address: string; phone: string; website?: string; mapUrl?: string; appointmentDetails?: string;
+  }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_offer_centers').upsert({
+      offer_id: offerId, center_name: center.centerName, doctor_name: center.doctorName, address: center.address,
+      phone: center.phone, website: center.website ?? '', map_url: center.mapUrl ?? '', appointment_details: center.appointmentDetails ?? '',
+    }, { onConflict: 'offer_id' });
+    if (error) fail(error);
+    await logMedicalAudit(sb(), 'offer_edit', 'medical_offer', offerId, { center_set: true });
+    return { ok: true };
+  },
+
+  async optionalServices(status?: string): Promise<(MedicalOptionalService & { requestSpecialty?: string })[]> {
+    let q = sb().from('medical_optional_services').select('id,request_id,service_type,status,notes,created_at').order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    const { data, error } = await q;
+    if (error) fail(error);
+    interface Row { id: string; request_id: string; service_type: string; status: string; notes: string | null; created_at: string; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, requestId: r.request_id, serviceType: r.service_type as MedicalOptionalServiceType, status: r.status as MedicalOptionalService['status'], notes: r.notes, createdAt: r.created_at }));
+  },
+  async setOptionalServiceStatus(id: string, status: 'confirmed' | 'declined' | 'cancelled'): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_optional_services').update({ status }).eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+
+  /**
+   * Reject an abandoned/failed pending payment, or mark an already-verified
+   * payment refunded. Deliberately excludes 'verified' — the RPC itself
+   * rejects that value, so this is belt-and-suspenders: staff has no path,
+   * client or server, to mark a booking paid. Only the signed webhook can.
+   */
+  async resolvePayment(id: string, status: 'rejected' | 'refunded'): Promise<{ ok: true }> {
+    const { error } = await sb().rpc('admin_set_medical_payment_status', { p_id: id, p_status: status });
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+export const adminMedicalContent = {
+  async saveSpecialty(input: Partial<MedicalSpecialty> & { slug: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_specialties').upsert({
+      id: input.id, slug: input.slug, name: input.name, description: input.description,
+      icon: input.icon ?? null, sort: input.sort ?? 0, visible: input.visible ?? true,
+    }, { onConflict: 'slug' });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteSpecialty(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_specialties').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async saveService(input: Partial<MedicalService> & { slug: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_services').upsert({
+      id: input.id, slug: input.slug, name: input.name, description: input.description,
+      icon: input.icon ?? null, sort: input.sort ?? 0, visible: input.visible ?? true,
+    }, { onConflict: 'slug' });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteService(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_services').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async saveFaq(input: Partial<MedicalFaq>): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_faqs').upsert({ id: input.id, question: input.question, answer: input.answer, sort: input.sort ?? 0, visible: input.visible ?? true });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteFaq(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_faqs').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async saveTestimonial(input: Partial<MedicalTestimonial> & { authorName: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_testimonials').upsert({
+      id: input.id, author_name: input.authorName, quote: input.quote, image_path: input.imagePath ?? null,
+      status: input.status ?? 'draft', consent_given: input.consentGiven ?? false, sort: input.sort ?? 0,
+    });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteTestimonial(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_testimonials').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async listAllTestimonials(): Promise<MedicalTestimonial[]> {
+    const { data, error } = await sb().from('medical_testimonials').select('id,author_name,quote,image_path,status,consent_given,sort').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; author_name: string; quote: LocalizedRow; image_path: string | null; status: string; consent_given: boolean; sort: number; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, authorName: r.author_name, quote: toLocalized(r.quote), imagePath: r.image_path, status: r.status as 'draft' | 'published', consentGiven: r.consent_given, sort: r.sort }));
+  },
+  async setSectionVisibility(sectionKey: string, visible: boolean, sort?: number): Promise<{ ok: true }> {
+    const patch: Record<string, unknown> = { section_key: sectionKey, visible };
+    if (sort !== undefined) patch.sort = sort;
+    const { error } = await sb().from('medical_page_sections').upsert(patch, { onConflict: 'section_key' });
+    if (error) fail(error);
+    return { ok: true };
   },
 };

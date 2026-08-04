@@ -16,7 +16,7 @@ import {
 } from '../../lib/chatHistory';
 import type { ArchivedTopic } from '../../lib/chatHistory';
 import type { BookingMedia, ChatMessage } from '../../lib/types';
-import { RequireAuth } from '../../components/Gates';
+import { RequireAuthChat } from '../../components/Gates';
 import { BookingModal } from '../../components/BookingModal';
 import { AppIcon } from '../../components/AppIcon';
 import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../../components/ChatAttach';
@@ -509,8 +509,8 @@ function MobileChatUI() {
 export function MobilePremium() {
   // The assistant is an intake agent — always requires a signed-in account.
   return (
-    <RequireAuth>
+    <RequireAuthChat>
       <MobileChatUI />
-    </RequireAuth>
+    </RequireAuthChat>
   );
 }

@@ -116,7 +116,7 @@ export type PlanTier = 'free' | 'light' | 'pro' | 'elite';
 export type Billing = 'monthly' | 'annual';
 export type PayMethod = 'card' | 'bank' | 'crypto';
 
-export type UserRole = 'user' | 'admin' | 'company';
+export type UserRole = 'user' | 'admin' | 'company' | 'medical_coordinator';
 
 export interface User {
   id: string;
@@ -124,10 +124,12 @@ export interface User {
   name: string;
   provider: 'google' | 'email';
   isAdmin: boolean;
-  /** 'user' | 'admin' | 'company' (maps from profiles.role) */
+  /** 'user' | 'admin' | 'company' | 'medical_coordinator' (maps from profiles.role) */
   role: UserRole;
   /** convenience flag: role === 'company' */
   isCompany: boolean;
+  /** convenience flag: role === 'medical_coordinator' (admins may also access medical staff surfaces) */
+  isMedicalCoordinator: boolean;
   referralCode: string;
   createdAt: string;
   /** profiles.onboarding_completed — drives the post-login redirect */
@@ -553,4 +555,140 @@ export interface InvestmentContact {
   /** where the photo-permission request stands */
   permission: 'none' | 'requested' | 'granted' | 'refused';
   notes: string;
+}
+
+// ── medical tourism ─────────────────────────────────────────────────────────
+
+export type MedicalRequestStatus =
+  | 'pending_review' | 'under_review' | 'collecting_offers' | 'offers_available'
+  | 'awaiting_payment' | 'paid' | 'booked' | 'cancelled';
+
+export interface MedicalRequestFile {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+export interface MedicalRequest {
+  id: string;
+  specialty: string;
+  description: string;
+  expectedTravelDate: string | null;
+  budgetEstimate: number | null;
+  notes: string | null;
+  status: MedicalRequestStatus;
+  customerNote: string | null;
+  internalNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  files?: MedicalRequestFile[];
+}
+
+export type MedicalOptionalServiceType = 'transport' | 'interpreter' | 'accommodation' | 'companion' | 'nursing';
+
+export interface MedicalOptionalService {
+  id: string;
+  requestId: string;
+  serviceType: MedicalOptionalServiceType;
+  status: 'requested' | 'confirmed' | 'declined' | 'cancelled';
+  notes: string | null;
+  createdAt: string;
+}
+
+/** Pre-payment-safe offer shape — never carries center identity, by design. */
+export interface MedicalOffer {
+  id: string;
+  requestId: string;
+  treatmentPlan: string;
+  totalPrice: number;
+  currency: string;
+  included: string[];
+  excluded: string[];
+  sessionsOrDays: string | null;
+  expiresAt: string | null;
+  bookingPercentage: number;
+  status: 'draft' | 'sent' | 'expired';
+  createdAt: string;
+}
+
+/** Only reachable post-verified-payment via get_offer_center(). */
+export interface MedicalOfferCenter {
+  centerName: string;
+  doctorName: string;
+  address: string;
+  phone: string;
+  website: string;
+  mapUrl: string;
+  imagePaths: string[];
+  appointmentDetails: string;
+}
+
+export type MedicalPaymentStatus = 'pending' | 'verified' | 'rejected' | 'refund_requested' | 'refunded';
+
+export interface MedicalPayment {
+  id: string;
+  requestId: string;
+  offerId: string;
+  amount: number;
+  currency: string;
+  bookingPercentageSnapshot: number;
+  status: MedicalPaymentStatus;
+  createdAt: string;
+  verifiedAt: string | null;
+  /** Only present while status is 'pending' — used to resume an unfinished checkout redirect. */
+  gatewaySessionId?: string | null;
+}
+
+export interface MedicalSpecialty {
+  id: string;
+  slug: string;
+  name: LocalizedText;
+  description: LocalizedText;
+  icon: string | null;
+  sort: number;
+  visible: boolean;
+}
+
+export interface MedicalService {
+  id: string;
+  slug: string;
+  name: LocalizedText;
+  description: LocalizedText;
+  icon: string | null;
+  sort: number;
+  visible: boolean;
+}
+
+export interface MedicalFaq {
+  id: string;
+  question: LocalizedText;
+  answer: LocalizedText;
+  sort: number;
+  visible: boolean;
+}
+
+export interface MedicalTestimonial {
+  id: string;
+  authorName: string;
+  quote: LocalizedText;
+  imagePath: string | null;
+  status: 'draft' | 'published';
+  consentGiven: boolean;
+  sort: number;
+}
+
+export interface MedicalPageSection {
+  sectionKey: string;
+  visible: boolean;
+  sort: number;
+}
+
+/** Admin queue row — includes fields a customer never sees. */
+export interface AdminMedicalRequest extends MedicalRequest {
+  userId: string;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  offersCount: number;
 }
