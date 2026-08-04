@@ -40,6 +40,10 @@ export default {
         // one Latin family + one Arabic family (plus system fallbacks)
         latin: ['Inter', 'system-ui', 'sans-serif'],
         arabic: ['"IBM Plex Sans Arabic"', 'system-ui', 'sans-serif'],
+        // Cairo/Tajawal — used only by the /health-tourism landing page
+        // (src/pages/HealthTourism.tsx), ported 1:1 from an external mockup.
+        cairo: ['Cairo', 'sans-serif'],
+        tajawal: ['Tajawal', 'sans-serif'],
       },
       // ── Radius scale ──
       borderRadius: {
