@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { adminPayments, adminRates, adminUsers, leads, notifications } from '../lib/api';
 import type { PaymentStatusFilter } from '../lib/api';
@@ -7,6 +7,7 @@ import type { AdminUser, Booking, Lead, PaymentRequest, PlanTier, Profile } from
 import { RequireAdmin } from '../components/Gates';
 import { useApp } from '../context/AppContext';
 import { AppIcon } from '../components/AppIcon';
+import type { IconName } from '../components/AppIcon';
 import { ListingsManager, PlacesManager } from '../components/AdminManagers';
 import { InvestmentsManager } from '../components/admin/InvestmentsManager';
 import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
@@ -18,9 +19,27 @@ import { NewsFeedManager } from '../components/admin/NewsFeedManager';
 import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
+import { AdminBookingsPanel } from './AdminBookings';
 import { SectionState } from '../components/SectionState';
 import { RequestStatusPill } from '../components/RequestStatusPill';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+
+/**
+ * Every section that used to be its own stacked card (or, worse, its own
+ * top-nav page — /admin/bookings) is now one entry in this list. One page,
+ * one section visible at a time, chosen from the sidebar — instead of
+ * everything mixed together in a single long scroll.
+ */
+const TABS = [
+  'overview', 'users', 'bookings', 'serviceRequests', 'payments',
+  'paymentSettings', 'rates', 'cancellations', 'leads', 'companies', 'companyPayments',
+  'broadcast', 'newsFeed', 'catalog', 'listings', 'investments', 'places', 'news',
+] as const;
+type AdminTab = (typeof TABS)[number];
+const DEFAULT_TAB: AdminTab = 'overview';
+function isAdminTab(v: string | null): v is AdminTab {
+  return !!v && (TABS as readonly string[]).includes(v);
+}
 
 const TIERS: PlanTier[] = ['free', 'light', 'pro', 'elite'];
 const HAS_KEYS = ['turkishPhone', 'taxNumber', 'residencePermit', 'bankAccount'] as const;
@@ -205,10 +224,68 @@ function UserRow({
   );
 }
 
+/** icon shown next to each sidebar entry */
+const TAB_ICON: Record<AdminTab, IconName> = {
+  overview: 'layers',
+  users: 'users',
+  bookings: 'calendar',
+  serviceRequests: 'inbox',
+  payments: 'credit-card',
+  paymentSettings: 'shield-check',
+  rates: 'trending-up',
+  cancellations: 'x-circle',
+  leads: 'mail',
+  companies: 'building',
+  companyPayments: 'receipt',
+  broadcast: 'megaphone',
+  newsFeed: 'newspaper',
+  catalog: 'shopping-bag',
+  listings: 'home',
+  investments: 'landmark',
+  places: 'map-pin',
+  news: 'send',
+};
+
 function AdminInner() {
   const { t, i18n } = useTranslation();
   const { refresh } = useApp();
   const [news, setNews] = useState('');
+
+  // The active section lives in the URL (?tab=…) so a bookmark, a refresh, or
+  // a link sent to a colleague lands on the right section instead of always
+  // dumping back onto the overview.
+  const [params, setParams] = useSearchParams();
+  const rawTab = params.get('tab');
+  const activeTab: AdminTab = isAdminTab(rawTab) ? rawTab : DEFAULT_TAB;
+  const setActiveTab = (tab: AdminTab) => {
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === DEFAULT_TAB) next.delete('tab');
+      else next.set('tab', tab);
+      return next;
+    });
+  };
+
+  const TAB_LABEL: Record<AdminTab, string> = {
+    overview: t('admin.overview'),
+    users: t('admin.users.title'),
+    bookings: t('adminBookings.title'),
+    serviceRequests: t('admin.serviceRequests.title'),
+    payments: t('admin.payments.title'),
+    paymentSettings: t('admin.paymentSettings.title'),
+    rates: t('admin.rates.title'),
+    cancellations: t('admin.cancellations.title'),
+    leads: t('admin.leads.title'),
+    companies: t('companyAdmin.companies.title'),
+    companyPayments: t('companyAdmin.payments.title'),
+    broadcast: t('companyAdmin.broadcast.title'),
+    newsFeed: t('admin.newsFeed.title'),
+    catalog: t('admin.catalog.heading'),
+    listings: t('admin.listings.title'),
+    investments: t('admin.investments.title'),
+    places: t('admin.places.title'),
+    news: t('admin.news.title'),
+  };
   // USD/TRY and EUR/TRY moved to fx_rates (daily sync + FxRatesPanel). Only the
   // Syrian pound is still hand-set here, because no free feed prices it reliably.
   const [syp, setSyp] = useState('');
@@ -303,312 +380,369 @@ function AdminInner() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold text-navy">{t('admin.title')}</h1>
-        <div className="flex items-center gap-2">
-          <Link to="/admin/medical" className="btn-secondary h-9 px-4 text-xs">
-            <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
-            {t('medical.admin.navLink')}
-          </Link>
-          <Link to="/admin/bookings" className="btn-primary h-9 px-4 text-xs">
-            <AppIcon name="calendar" className="w-3.5 h-3.5" />
-            {t('nav.bookings')}
-          </Link>
-        </div>
+        {/* Medical stays a separate page on purpose: it has its own permission
+            (medical coordinators who are not admins), so it can't fold into a
+            page that's gated to admins only. It's linked from here, not from
+            the site's main top nav. */}
+        <Link to="/admin/medical" className="btn-secondary h-9 px-4 text-xs">
+          <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
+          {t('medical.admin.navLink')}
+        </Link>
       </div>
 
-      {/* at-a-glance stats */}
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {([
-          ['statUsers', usersData ? String(usersData.length) : '—', 'users'],
-          ['statPaying', usersData ? String(usersData.filter((u) => u.tier !== 'free').length) : '—', 'star'],
-          ['statBookings', sumOf((u) => u.bookings), 'calendar'],
-          ['statLeads', sumOf((u) => u.leads), 'mail'],
-        ] as const).map(([key, value, icon]) => (
-          <div key={key} className="card p-4">
-            <div className="flex items-center gap-2 text-navy/60 text-xs font-semibold">
-              <AppIcon name={icon as never} className="w-3.5 h-3.5" />
-              {t(`admin.users.${key}`)}
-            </div>
-            <p className="mt-1 text-2xl font-extrabold text-navy" dir="ltr">{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Work waiting on the admin, above everything else. Nothing notifies us
-          out of band, so unhandled requests have to be the first thing on the
-          page rather than buried under users/listings/places/payments.
-          Renders nothing when the queue is empty. */}
-      <AdminNewRequests />
-
-      {/* Daily FX sync: health, per-pair override with reason, audit trail.
-          Replaced the old free-text rates card, which wrote an unaudited
-          override into settings.rates with no reason and no history. */}
-      <FxRatesPanel />
-
-      {/* Bank / crypto / gateway details, editable without SQL. Each group
-          reports what a customer actually sees, so a placeholder can never sit
-          live and unnoticed again. */}
-      <PaymentSettingsPanel />
-
-      {/* USD/SYP stays hand-set: free FX feeds report a stale or wrong Syrian
-          pound, so there is no provider to sync it from. */}
-      <div className="card p-6 mt-5">
-        <h2 className="font-bold text-navy flex items-center gap-2">
-          <AppIcon name="trending-up" className="w-4 h-4" />
-          {t('admin.rates.title')}
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">{t('admin.rates.body')}</p>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <label className="text-xs font-semibold text-navy/70">
-            USD/SYP
-            <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={syp} onChange={(e) => setSyp(e.target.value)} dir="ltr" placeholder={t('admin.rates.sypHint')} />
-          </label>
-          <button onClick={saveRates} className="btn-primary h-11 px-5">
-            <AppIcon name={ratesSaved ? 'check' : 'save'} className="w-4 h-4" />
-            {ratesSaved ? t('admin.rates.saved') : t('admin.rates.save')}
-          </button>
-        </div>
-        <p className="mt-2 text-xs text-gray-400">
-          {ratesUpdatedAt
-            ? t('admin.rates.updated', { date: new Date(ratesUpdatedAt).toLocaleString(i18n.language) })
-            : t('admin.rates.usingLive')}
-        </p>
-      </div>
-
-      {/* users + tier control. The referral columns (clicks / signups / earned)
-          are gone with the RPC: referral_clicks stores only a code and carries
-          no user_id, so per-user attribution is not derivable from the tables
-          the browser can read. Showing zeros there would be a guess presented
-          as a fact. */}
-      <div className="card p-6 mt-5 overflow-x-auto">
-        <h2 className="font-bold text-navy">{t('admin.users.title')}</h2>
-        <SectionState
-          section={usersSec}
-          title={t('admin.users.title')}
-          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.users.title')} — 0</p>}
+      {/*
+        One page, one section on screen at a time — chosen from this sidebar —
+        instead of every section stacked into a single long, mixed scroll.
+        The sidebar is the FIRST flex child, so in RTL (Arabic/Farsi) it sits
+        on the right, and in LTR (English/Russian) on the left: the
+        reading-start side either way.
+      */}
+      <div className="mt-6 flex flex-col md:flex-row gap-6 items-start">
+        <nav
+          aria-label={t('admin.title')}
+          className="w-full md:w-60 shrink-0 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-1 md:pb-0 md:sticky md:top-24"
         >
-          {(rows) => (
-            // Measured, not guessed: the five columns need ~574px in fa, ru and
-            // en alike (the email cell alone is 233px), so a smaller min-width
-            // would squeeze columns rather than scroll. fa 572px, ru 574px.
-            <table className="mt-4 w-full text-sm min-w-[600px] sm:min-w-[700px]">
-              <thead>
-                <tr className="text-xs text-navy/60 border-b border-cream-dark">
-                  <th className="text-start py-2">{t('admin.users.user')}</th>
-                  <th className="text-start py-2">{t('admin.users.joined')}</th>
-                  <th className="text-center py-2">{t('admin.users.bookings')}</th>
-                  <th className="text-center py-2">{t('admin.users.leads')}</th>
-                  <th className="text-start py-2">{t('admin.users.tier')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((u) => (
-                  <UserRow key={u.id} user={u} onSetTier={setTier} onSetRole={setRole} />
-                ))}
-              </tbody>
-            </table>
-          )}
-        </SectionState>
-      </div>
-
-      {/* subscription cancellations */}
-      <div className="card p-6 mt-5">
-        <h2 className="font-bold text-navy">{t('admin.cancellations.title')}</h2>
-        <SectionState
-          section={cancellationsSec}
-          title={t('admin.cancellations.title')}
-          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.cancellations.empty')}</p>}
-        >
-          {(rows) => (
-          <ul className="mt-4 flex flex-col gap-3">
-            {rows.map((c) => (
-              <li key={c.userId} className="rounded-xl bg-cream px-4 py-3 text-sm flex flex-col gap-1.5">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
-                    {t(`pricing.${c.tier}.name`)}
-                  </span>
-                  <span className="ms-auto text-xs text-gray-500">
-                    {new Date(c.expiresAt).toLocaleDateString(i18n.language)}
-                  </span>
-                </div>
-                {c.reason && <p className="font-semibold text-navy break-words">{c.reason}</p>}
-                {c.comment && <p className="text-gray-500 break-words">{c.comment}</p>}
-              </li>
-            ))}
-          </ul>
-          )}
-        </SectionState>
-      </div>
-
-      {/* payment verification + history */}
-      <div className="card p-6 mt-5">
-        <h2 className="font-bold text-navy">{t('admin.payments.title')}</h2>
-
-        {/* status + date filters: the pending queue alone had no way to see
-            revenue, review a dispute, or trace a referral commission */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {(['pending', 'verified', 'rejected', 'all'] as const).map((s) => (
+          {TABS.map((tab) => (
             <button
-              key={s}
+              key={tab}
               type="button"
-              onClick={() => setPayFilter(s)}
-              aria-pressed={payFilter === s}
-              className={`rounded-full px-3 min-h-[36px] text-xs font-bold border transition-colors ${
-                payFilter === s ? 'bg-navy text-white border-navy' : 'bg-white text-navy/70 border-cream-dark'
+              onClick={() => setActiveTab(tab)}
+              aria-current={activeTab === tab ? 'page' : undefined}
+              className={`shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start ${
+                activeTab === tab ? 'bg-navy text-white' : 'text-navy/70 hover:bg-cream'
               }`}
             >
-              {t(`admin.payments.filter.${s}`)}
+              <AppIcon name={TAB_ICON[tab]} className="w-4 h-4 shrink-0" />
+              {TAB_LABEL[tab]}
             </button>
           ))}
-          <label className="ms-auto flex items-center gap-1 text-xs text-navy/70">
-            {t('admin.payments.from')}
-            <input type="date" value={payFrom} onChange={(e) => setPayFrom(e.target.value)} className="input h-9 text-xs" />
-          </label>
-          <label className="flex items-center gap-1 text-xs text-navy/70">
-            {t('admin.payments.to')}
-            <input type="date" value={payTo} onChange={(e) => setPayTo(e.target.value)} className="input h-9 text-xs" />
-          </label>
-        </div>
+        </nav>
 
-        <SectionState
-          section={paymentsSec}
-          title={t('admin.payments.title')}
-          isEmpty={(d) => d.payments.length === 0}
-          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>}
-        >
-          {({ payments: rows, totalVerifiedTl }) => (
-          <>
-          {payFilter !== 'pending' && (
-            <p className="mt-3 text-sm font-semibold text-navy">
-              {t('admin.payments.total')}: <span dir="ltr">{totalVerifiedTl.toLocaleString()} {t('common.tl')}</span>
-            </p>
+        <div className="flex-1 min-w-0 w-full">
+          {activeTab === 'overview' && (
+            <>
+              {/* at-a-glance stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {([
+                  ['statUsers', usersData ? String(usersData.length) : '—', 'users'],
+                  ['statPaying', usersData ? String(usersData.filter((u) => u.tier !== 'free').length) : '—', 'star'],
+                  ['statBookings', sumOf((u) => u.bookings), 'calendar'],
+                  ['statLeads', sumOf((u) => u.leads), 'mail'],
+                ] as const).map(([key, value, icon]) => (
+                  <div key={key} className="card p-4">
+                    <div className="flex items-center gap-2 text-navy/60 text-xs font-semibold">
+                      <AppIcon name={icon as never} className="w-3.5 h-3.5" />
+                      {t(`admin.users.${key}`)}
+                    </div>
+                    <p className="mt-1 text-2xl font-extrabold text-navy" dir="ltr">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Work waiting on the admin, above everything else. Nothing
+                  notifies us out of band, so unhandled requests have to be
+                  the first thing on the overview tab. Renders nothing when
+                  the queue is empty. */}
+              <AdminNewRequests />
+            </>
           )}
-          <ul className="mt-4 flex flex-col gap-3">
-            {rows.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
-                <span className="font-semibold text-navy break-all">{p.email}</span>
-                <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
-                  {t(`pricing.${p.tier}.name`)} / {t(`common.${p.billing}`)}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {t('admin.payments.method')}: {t(`checkout.tabs.${p.method}`)} ·{' '}
-                  <span dir="ltr">{p.amount.toLocaleString()} {t('common.tl')}</span> ·{' '}
-                  <span dir="ltr">{new Date(p.createdAt).toLocaleDateString()}</span>
-                </span>
-                {p.status !== 'pending' && (
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                      p.status === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-brand-red/10 text-brand-red'
+
+          {/* bookings: merged in from what used to be the separate
+              /admin/bookings page (and its own top-nav link) */}
+          {activeTab === 'bookings' && <AdminBookingsPanel />}
+
+          {/* incoming service-catalog requests */}
+          {activeTab === 'serviceRequests' && <ServiceRequestsManager />}
+
+          {/* payment verification + history */}
+          {activeTab === 'payments' && (
+            <div className="card p-6">
+              <h2 className="font-bold text-navy">{t('admin.payments.title')}</h2>
+
+              {/* status + date filters: the pending queue alone had no way to
+                  see revenue, review a dispute, or trace a referral commission */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {(['pending', 'verified', 'rejected', 'all'] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setPayFilter(s)}
+                    aria-pressed={payFilter === s}
+                    className={`rounded-full px-3 min-h-[36px] text-xs font-bold border transition-colors ${
+                      payFilter === s ? 'bg-navy text-white border-navy' : 'bg-white text-navy/70 border-cream-dark'
                     }`}
                   >
-                    {t(`admin.payments.filter.${p.status}`)}
-                  </span>
-                )}
-                {p.hasReceipt && (
-                  <button
-                    type="button"
-                    onClick={() => adminPayments.openReceipt(p.id)}
-                    className="btn-secondary h-9 px-3 text-xs"
-                  >
-                    <AppIcon name="paperclip" className="w-3.5 h-3.5" />
-                    {t('admin.payments.receipt')}
+                    {t(`admin.payments.filter.${s}`)}
                   </button>
+                ))}
+                <label className="ms-auto flex items-center gap-1 text-xs text-navy/70">
+                  {t('admin.payments.from')}
+                  <input type="date" value={payFrom} onChange={(e) => setPayFrom(e.target.value)} className="input h-9 text-xs" />
+                </label>
+                <label className="flex items-center gap-1 text-xs text-navy/70">
+                  {t('admin.payments.to')}
+                  <input type="date" value={payTo} onChange={(e) => setPayTo(e.target.value)} className="input h-9 text-xs" />
+                </label>
+              </div>
+
+              <SectionState
+                section={paymentsSec}
+                title={t('admin.payments.title')}
+                isEmpty={(d) => d.payments.length === 0}
+                empty={<p className="mt-3 text-sm text-gray-500">{t('admin.payments.empty')}</p>}
+              >
+                {({ payments: rows, totalVerifiedTl }) => (
+                <>
+                {payFilter !== 'pending' && (
+                  <p className="mt-3 text-sm font-semibold text-navy">
+                    {t('admin.payments.total')}: <span dir="ltr">{totalVerifiedTl.toLocaleString()} {t('common.tl')}</span>
+                  </p>
                 )}
-                {p.status === 'pending' && (
-                  <span className="ms-auto flex gap-2">
-                    <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
-                      <AppIcon name="check" className="w-3.5 h-3.5" />
-                      {t('admin.payments.verify')}
-                    </button>
-                    <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
-                      <AppIcon name="x" className="w-3.5 h-3.5" />
-                      {t('admin.payments.reject')}
-                    </button>
-                  </span>
+                <ul className="mt-4 flex flex-col gap-3">
+                  {rows.map((p) => (
+                    <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
+                      <span className="font-semibold text-navy break-all">{p.email}</span>
+                      <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                        {t(`pricing.${p.tier}.name`)} / {t(`common.${p.billing}`)}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {t('admin.payments.method')}: {t(`checkout.tabs.${p.method}`)} ·{' '}
+                        <span dir="ltr">{p.amount.toLocaleString()} {t('common.tl')}</span> ·{' '}
+                        <span dir="ltr">{new Date(p.createdAt).toLocaleDateString()}</span>
+                      </span>
+                      {p.status !== 'pending' && (
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                            p.status === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-brand-red/10 text-brand-red'
+                          }`}
+                        >
+                          {t(`admin.payments.filter.${p.status}`)}
+                        </span>
+                      )}
+                      {p.hasReceipt && (
+                        <button
+                          type="button"
+                          onClick={() => adminPayments.openReceipt(p.id)}
+                          className="btn-secondary h-9 px-3 text-xs"
+                        >
+                          <AppIcon name="paperclip" className="w-3.5 h-3.5" />
+                          {t('admin.payments.receipt')}
+                        </button>
+                      )}
+                      {p.status === 'pending' && (
+                        <span className="ms-auto flex gap-2">
+                          <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
+                            <AppIcon name="check" className="w-3.5 h-3.5" />
+                            {t('admin.payments.verify')}
+                          </button>
+                          <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
+                            <AppIcon name="x" className="w-3.5 h-3.5" />
+                            {t('admin.payments.reject')}
+                          </button>
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                </>
                 )}
-              </li>
-            ))}
-          </ul>
-          </>
+              </SectionState>
+            </div>
           )}
-        </SectionState>
-      </div>
 
-      {/* service request leads (P1-3) */}
-      <div className="card p-6 mt-5">
-        <h2 className="font-bold text-navy">{t('admin.leads.title')}</h2>
-        <SectionState
-          section={leadsSec}
-          title={t('admin.leads.title')}
-          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.leads.empty')}</p>}
-        >
-          {(rows) => (
-          <ul className="mt-4 flex flex-col gap-2">
-            {rows.map((l) => (
-              <li key={l.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
-                <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
-                  {t(`leads.kind.${l.kind}`)}
-                </span>
-                <span className="font-semibold text-navy break-anywhere">{l.item}</span>
-                <span className="text-xs text-gray-500 break-all">{l.userEmail}</span>
-                <span className="ms-auto text-xs text-gray-500">
-                  {new Date(l.createdAt).toLocaleString(i18n.language)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {/* Bank / crypto / gateway details, editable without SQL. Reports
+              what a customer actually sees, so a placeholder can never sit
+              live and unnoticed again. */}
+          {activeTab === 'paymentSettings' && <PaymentSettingsPanel />}
+
+          {/* currency rates: the daily FX sync (health, per-pair override,
+              audit trail) plus the hand-set USD/SYP, which no free feed
+              prices reliably */}
+          {activeTab === 'rates' && (
+            <>
+              <FxRatesPanel />
+              <div className="card p-6 mt-5">
+                <h2 className="font-bold text-navy flex items-center gap-2">
+                  <AppIcon name="trending-up" className="w-4 h-4" />
+                  USD/SYP
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">{t('admin.rates.body')}</p>
+                <div className="mt-4 flex flex-wrap items-end gap-3">
+                  <label className="text-xs font-semibold text-navy/70">
+                    USD/SYP
+                    <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={syp} onChange={(e) => setSyp(e.target.value)} dir="ltr" placeholder={t('admin.rates.sypHint')} />
+                  </label>
+                  <button onClick={saveRates} className="btn-primary h-11 px-5">
+                    <AppIcon name={ratesSaved ? 'check' : 'save'} className="w-4 h-4" />
+                    {ratesSaved ? t('admin.rates.saved') : t('admin.rates.save')}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  {ratesUpdatedAt
+                    ? t('admin.rates.updated', { date: new Date(ratesUpdatedAt).toLocaleString(i18n.language) })
+                    : t('admin.rates.usingLive')}
+                </p>
+              </div>
+            </>
           )}
-        </SectionState>
-      </div>
 
-      {/* incoming service-catalog requests */}
-      <ServiceRequestsManager />
+          {/* users + tier control. The referral columns (clicks / signups /
+              earned) are gone with the RPC: referral_clicks stores only a
+              code and carries no user_id, so per-user attribution is not
+              derivable from the tables the browser can read. Showing zeros
+              there would be a guess presented as a fact. */}
+          {activeTab === 'users' && (
+            <div className="card p-6 overflow-x-auto">
+              <h2 className="font-bold text-navy">{t('admin.users.title')}</h2>
+              <SectionState
+                section={usersSec}
+                title={t('admin.users.title')}
+                empty={<p className="mt-3 text-sm text-gray-500">{t('admin.users.title')} — 0</p>}
+              >
+                {(rows) => (
+                  // Measured, not guessed: the five columns need ~574px in fa,
+                  // ru and en alike (the email cell alone is 233px), so a
+                  // smaller min-width would squeeze columns rather than
+                  // scroll. fa 572px, ru 574px.
+                  <table className="mt-4 w-full text-sm min-w-[600px] sm:min-w-[700px]">
+                    <thead>
+                      <tr className="text-xs text-navy/60 border-b border-cream-dark">
+                        <th className="text-start py-2">{t('admin.users.user')}</th>
+                        <th className="text-start py-2">{t('admin.users.joined')}</th>
+                        <th className="text-center py-2">{t('admin.users.bookings')}</th>
+                        <th className="text-center py-2">{t('admin.users.leads')}</th>
+                        <th className="text-start py-2">{t('admin.users.tier')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((u) => (
+                        <UserRow key={u.id} user={u} onSetTier={setTier} onSetRole={setRole} />
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </SectionState>
+            </div>
+          )}
 
-      {/* B2B companies: directory, subscriptions, broadcast leads/responses */}
-      <AdminCompaniesManager />
-      <AdminCompanyPaymentsManager />
-      <AdminBroadcastManager />
+          {/* subscription cancellations */}
+          {activeTab === 'cancellations' && (
+            <div className="card p-6">
+              <h2 className="font-bold text-navy">{t('admin.cancellations.title')}</h2>
+              <SectionState
+                section={cancellationsSec}
+                title={t('admin.cancellations.title')}
+                empty={<p className="mt-3 text-sm text-gray-500">{t('admin.cancellations.empty')}</p>}
+              >
+                {(rows) => (
+                <ul className="mt-4 flex flex-col gap-3">
+                  {rows.map((c) => (
+                    <li key={c.userId} className="rounded-xl bg-cream px-4 py-3 text-sm flex flex-col gap-1.5">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                          {t(`pricing.${c.tier}.name`)}
+                        </span>
+                        <span className="ms-auto text-xs text-gray-500">
+                          {new Date(c.expiresAt).toLocaleDateString(i18n.language)}
+                        </span>
+                      </div>
+                      {c.reason && <p className="font-semibold text-navy break-words">{c.reason}</p>}
+                      {c.comment && <p className="text-gray-500 break-words">{c.comment}</p>}
+                    </li>
+                  ))}
+                </ul>
+                )}
+              </SectionState>
+            </div>
+          )}
 
-      {/* public news feed shown on the home page (mirrors the Telegram channel) */}
-      <NewsFeedManager />
+          {/* service request leads (P1-3) */}
+          {activeTab === 'leads' && (
+            <div className="card p-6">
+              <h2 className="font-bold text-navy">{t('admin.leads.title')}</h2>
+              <SectionState
+                section={leadsSec}
+                title={t('admin.leads.title')}
+                empty={<p className="mt-3 text-sm text-gray-500">{t('admin.leads.empty')}</p>}
+              >
+                {(rows) => (
+                <ul className="mt-4 flex flex-col gap-2">
+                  {rows.map((l) => (
+                    <li key={l.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-2.5 text-sm">
+                      <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
+                        {t(`leads.kind.${l.kind}`)}
+                      </span>
+                      <span className="font-semibold text-navy break-anywhere">{l.item}</span>
+                      <span className="text-xs text-gray-500 break-all">{l.userEmail}</span>
+                      <span className="ms-auto text-xs text-gray-500">
+                        {new Date(l.createdAt).toLocaleString(i18n.language)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                )}
+              </SectionState>
+            </div>
+          )}
 
-      {/* editable services catalog (add / edit text / hide) */}
-      <AdminServicesManager />
+          {/* B2B companies: directory, subscriptions */}
+          {activeTab === 'companies' && <AdminCompaniesManager />}
 
-      {/* content management: real-estate listings + map services */}
-      <ListingsManager />
-      <InvestmentsManager />
-      <PlacesManager />
+          {/* B2B companies: subscription payments */}
+          {activeTab === 'companyPayments' && <AdminCompanyPaymentsManager />}
 
-      {/* global news signals */}
-      <div className="card p-6 mt-5">
-        <h2 className="font-bold text-navy">{t('admin.news.title')}</h2>
-        <div className="mt-3 flex gap-2">
-          <input className="input" placeholder={t('admin.news.placeholder')} value={news} onChange={(e) => setNews(e.target.value)} />
-          <button onClick={publish} className="btn-primary px-5">
-            <AppIcon name="megaphone" className="w-4 h-4" />
-            {t('admin.news.publish')}
-          </button>
+          {/* B2B companies: broadcast leads/responses */}
+          {activeTab === 'broadcast' && <AdminBroadcastManager />}
+
+          {/* public news feed shown on the home page (mirrors the Telegram channel) */}
+          {activeTab === 'newsFeed' && <NewsFeedManager />}
+
+          {/* editable services catalog (add / edit text / hide) */}
+          {activeTab === 'catalog' && <AdminServicesManager />}
+
+          {/* content management: real-estate listings */}
+          {activeTab === 'listings' && <ListingsManager />}
+
+          {/* content management: investment opportunities */}
+          {activeTab === 'investments' && <InvestmentsManager />}
+
+          {/* content management: map services */}
+          {activeTab === 'places' && <PlacesManager />}
+
+          {/* global news signals (site-wide broadcast notifications) */}
+          {activeTab === 'news' && (
+            <div className="card p-6">
+              <h2 className="font-bold text-navy">{t('admin.news.title')}</h2>
+              <div className="mt-3 flex gap-2">
+                <input className="input" placeholder={t('admin.news.placeholder')} value={news} onChange={(e) => setNews(e.target.value)} />
+                <button onClick={publish} className="btn-primary px-5">
+                  <AppIcon name="megaphone" className="w-4 h-4" />
+                  {t('admin.news.publish')}
+                </button>
+              </div>
+              <SectionState
+                section={broadcastsSec}
+                title={t('admin.news.title')}
+                empty={<p className="mt-3 text-sm text-gray-500">{t('admin.news.empty')}</p>}
+              >
+                {(rows) => (
+                <ul className="mt-4 flex flex-col gap-2">
+                  {rows.map((b) => (
+                    <li key={b.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
+                      <AppIcon name="megaphone" className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
+                      <span className="flex-1">{b.customText}</span>
+                      <span className="text-xs text-gray-500">{new Date(b.createdAt).toLocaleDateString(i18n.language)}</span>
+                    </li>
+                  ))}
+                </ul>
+                )}
+              </SectionState>
+            </div>
+          )}
         </div>
-        <SectionState
-          section={broadcastsSec}
-          title={t('admin.news.title')}
-          empty={<p className="mt-3 text-sm text-gray-500">{t('admin.news.empty')}</p>}
-        >
-          {(rows) => (
-          <ul className="mt-4 flex flex-col gap-2">
-            {rows.map((b) => (
-              <li key={b.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
-                <AppIcon name="megaphone" className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
-                <span className="flex-1">{b.customText}</span>
-                <span className="text-xs text-gray-500">{new Date(b.createdAt).toLocaleDateString(i18n.language)}</span>
-              </li>
-            ))}
-          </ul>
-          )}
-        </SectionState>
       </div>
     </div>
   );

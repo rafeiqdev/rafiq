@@ -144,12 +144,14 @@ describe('ListingsManager / PlacesManager', () => {
   });
 });
 
-describe('AdminBookings', () => {
+describe('AdminBookingsPanel', () => {
   it('failed load shows error, not the empty state', async () => {
     api.bookings.adminList.mockImplementation(boom);
-    const { AdminBookings } = await import('../pages/AdminBookings');
-    const { MemoryRouter } = await import('react-router-dom');
-    render(<MemoryRouter><AdminBookings /></MemoryRouter>);
+    // AdminBookingsPanel is the bookings tab embedded in the single-page
+    // admin dashboard (pages/Admin.tsx) — no RequireAdmin wrapper of its own,
+    // since the host page already gates access.
+    const { AdminBookingsPanel } = await import('../pages/AdminBookings');
+    render(<AdminBookingsPanel />);
 
     expect(await screen.findByRole('button', { name: 'chat.retry' })).toBeInTheDocument();
     expect(screen.queryByText('adminBookings.empty')).toBeNull();

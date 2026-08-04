@@ -1139,6 +1139,7 @@
       }
     },
     "title": "Admin dashboard",
+    "overview": "Overview",
     "users": {
       "title": "Users",
       "user": "User",

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { bookings } from '../lib/api';
 import type { Booking, BookingStatus } from '../lib/types';
 import { LANGS } from '../lib/types';
-import { RequireAdmin } from '../components/Gates';
 import { AppIcon } from '../components/AppIcon';
 import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
@@ -115,20 +114,28 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
   );
 }
 
-function AdminBookingsInner() {
+/**
+ * The bookings section, embedded as one tab of the single-page admin
+ * dashboard (see pages/Admin.tsx). No RequireAdmin wrapper and no page-level
+ * container here — the host page already gates access and supplies the
+ * sidebar/content shell. Extracted from what used to be a standalone
+ * /admin/bookings route so bookings live next to every other admin section
+ * instead of behind a separate top-nav link.
+ */
+export function AdminBookingsPanel() {
   const { t } = useTranslation();
   // Error is a state — a failed load must not read as "no bookings". A booked
   // appointment nobody shows up to is a real person waiting at a time we chose.
   const section = useAsyncSection<Booking[]>(() => bookings.adminList(), []);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold text-navy">{t('adminBookings.title')}</h1>
+    <div className="card p-6 mt-5">
+      <h2 className="font-bold text-navy">{t('adminBookings.title')}</h2>
       <SectionState
         section={section}
         title={t('adminBookings.title')}
         empty={
-          <div className="card p-10 mt-6 text-center">
+          <div className="mt-6 text-center">
             <div className="icon-chip mx-auto">
               <AppIcon name="calendar" className="w-6 h-6" />
             </div>
@@ -145,13 +152,5 @@ function AdminBookingsInner() {
         )}
       </SectionState>
     </div>
-  );
-}
-
-export function AdminBookings() {
-  return (
-    <RequireAdmin>
-      <AdminBookingsInner />
-    </RequireAdmin>
   );
 }

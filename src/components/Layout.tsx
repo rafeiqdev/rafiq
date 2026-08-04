@@ -181,9 +181,10 @@ export function Layout() {
   const [newBookings, setNewBookings] = useState(0);
   const [newRequests, setNewRequests] = useState(0);
   const [newLeads, setNewLeads] = useState(0);
-  // service_requests and leads are both surfaced on /admin, so their badge is
-  // the sum; the aria-label carries the breakdown for anyone who needs it.
-  const newOnAdmin = newRequests + newLeads;
+  // Bookings, service requests and leads are all surfaced inside /admin now
+  // (bookings as a tab, not a separate page), so one badge sums all three;
+  // the aria-label carries the requests/leads breakdown for anyone who needs it.
+  const newOnAdmin = newRequests + newLeads + newBookings;
 
   // canonical + og:url/og:locale + hreflang — applies to every public route
   // nested under this layout, updates on every route/language change.
@@ -293,40 +294,34 @@ export function Layout() {
                 {t('nav.companyPortal')}
               </NavLink>
             )}
+            {/* Bookings used to be its own top-nav link/page. It's now a tab
+                inside /admin's sidebar, so a single "لوحة التحكم" link is the
+                only admin entry point here — the badge folds bookings,
+                requests and leads into one number. */}
             {user?.isAdmin && (
-              <>
-                <NavLink
-                  to="/admin"
-                  className="relative px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream"
-                  aria-label={
-                    newOnAdmin > 0
-                      ? t('nav.adminQueue', { requests: newRequests, leads: newLeads })
-                      : t('nav.admin')
-                  }
-                >
-                  {t('nav.admin')}
-                  {newOnAdmin > 0 && (
-                    <span className="absolute -top-0.5 -end-0.5 min-w-5 h-5 px-1 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">
-                      {newOnAdmin}
-                    </span>
-                  )}
-                </NavLink>
-                <NavLink to="/admin/bookings" className="relative px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
-                  {t('nav.bookings')}
-                  {newBookings > 0 && (
-                    <span className="absolute -top-0.5 -end-0.5 min-w-5 h-5 px-1 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">
-                      {newBookings}
-                    </span>
-                  )}
-                </NavLink>
-              </>
+              <NavLink
+                to="/admin"
+                className="relative px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream"
+                aria-label={
+                  newOnAdmin > 0
+                    ? t('nav.adminQueue', { requests: newRequests, leads: newLeads })
+                    : t('nav.admin')
+                }
+              >
+                {t('nav.admin')}
+                {newOnAdmin > 0 && (
+                  <span className="absolute -top-0.5 -end-0.5 min-w-5 h-5 px-1 rounded-full bg-brand-red text-white text-[10px] font-bold flex items-center justify-center">
+                    {newOnAdmin}
+                  </span>
+                )}
+              </NavLink>
             )}
-            {/* Medical coordinators aren't admins and RequireAdmin blocks them from
-                /admin entirely, so without this they'd have no discoverable path to
-                /admin/medical at all. Admins get it here too, not just the shortcut
-                already inside /admin, since a coordinator-promoted admin still needs
-                one consistent entry point. */}
-            {(user?.isAdmin || user?.isMedicalCoordinator) && (
+            {/* Medical coordinators aren't admins and RequireAdmin blocks them
+                from /admin entirely, so without this they'd have no
+                discoverable path to /admin/medical at all. Admins reach it
+                from the link inside /admin instead, so it's not duplicated
+                here for them. */}
+            {!user?.isAdmin && user?.isMedicalCoordinator && (
               <NavLink to="/admin/medical" className="px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
                 {t('medical.admin.navLink')}
               </NavLink>
@@ -397,26 +392,16 @@ export function Layout() {
                 <MobileTile to="/company/register" icon="briefcase" label={t('nav.forCompanies')} onNavigate={closeMenu} />
               )}
               {user?.isAdmin && (
-                <>
-                  <MobileTile
-                    to="/admin"
-                    icon="shield-check"
-                    label={t('nav.admin')}
-                    danger
-                    badge={newOnAdmin}
-                    onNavigate={closeMenu}
-                  />
-                  <MobileTile
-                    to="/admin/bookings"
-                    icon="calendar"
-                    label={t('nav.bookings')}
-                    danger
-                    badge={newBookings}
-                    onNavigate={closeMenu}
-                  />
-                </>
+                <MobileTile
+                  to="/admin"
+                  icon="shield-check"
+                  label={t('nav.admin')}
+                  danger
+                  badge={newOnAdmin}
+                  onNavigate={closeMenu}
+                />
               )}
-              {(user?.isAdmin || user?.isMedicalCoordinator) && (
+              {!user?.isAdmin && user?.isMedicalCoordinator && (
                 <MobileTile
                   to="/admin/medical"
                   icon="heart-pulse"

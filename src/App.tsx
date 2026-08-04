@@ -90,7 +90,6 @@ const MobileProfilePage = lazyPage(() => import('./pages/mobile/MobileProfilePag
 const Notifications = lazyPage(() => import('./pages/Notifications').then((m) => ({ default: m.Notifications })));
 const MobileNotifications = lazyPage(() => import('./pages/mobile/MobileNotifications').then((m) => ({ default: m.MobileNotifications })));
 const Admin = lazyPage(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
-const AdminBookings = lazyPage(() => import('./pages/AdminBookings').then((m) => ({ default: m.AdminBookings })));
 const AdminMedical = lazyPage(() => import('./pages/AdminMedical').then((m) => ({ default: m.AdminMedical })));
 const CompanyRegister = lazyPage(() => import('./pages/company/CompanyRegister').then((m) => ({ default: m.CompanyRegister })));
 const CompanyDashboard = lazyPage(() => import('./pages/company/CompanyDashboard').then((m) => ({ default: m.CompanyDashboard })));
@@ -264,7 +263,9 @@ function Shell() {
             <Route path="/company/billing" element={<CompanyBilling />} />
             <Route path="/notifications" element={isMobile ? <MobileNotifications /> : <Notifications />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/bookings" element={<AdminBookings />} />
+            {/* Bookings moved from its own page/top-nav link into a tab
+                inside /admin — old links/bookmarks still land on it. */}
+            <Route path="/admin/bookings" element={<Navigate to="/admin?tab=bookings" replace />} />
             <Route path="/admin/medical" element={<AdminMedical />} />
             <Route path="/terms" element={<Legal doc="terms" />} />
             <Route path="/privacy" element={<Legal doc="privacy" />} />
