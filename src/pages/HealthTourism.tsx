@@ -190,7 +190,7 @@ function ArrowButton({
       type="button"
       aria-label={dir}
       onClick={onClick}
-      className={`absolute top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full transition duration-200 shadow-md flex items-center justify-center cursor-pointer focus:outline-none ${base} ${className}`}
+      className={`hidden sm:flex absolute top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full transition duration-200 shadow-md items-center justify-center cursor-pointer focus:outline-none ${base} ${className}`}
     >
       <svg className="w-5 h-5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {dir === 'prev' ? (
@@ -408,7 +408,7 @@ export function HealthTourism() {
       />
 
       {/* ==================== HERO ==================== */}
-      <section className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-slate-900 text-white">
+      <section className="relative pt-8 pb-10 sm:pt-10 sm:pb-20 md:pt-16 md:pb-28 overflow-hidden bg-slate-900 text-white">
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           {HERO_SLIDES.map((src, i) => (
             <div
@@ -422,21 +422,21 @@ export function HealthTourism() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-            <div className="lg:col-span-7 space-y-7 text-center lg:text-right">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-black leading-[1.2] font-tajawal text-white tracking-tight">
+            <div className="lg:col-span-7 space-y-4 sm:space-y-7 text-center lg:text-right">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-black leading-[1.25] sm:leading-[1.2] font-tajawal text-white tracking-tight">
                 {t('medical.landing.hero.title')}
                 <br />
                 {t('medical.landing.hero.titleLine2')}
               </h1>
-              <p className="text-base sm:text-lg text-blue-100 max-w-xl leading-relaxed font-normal mx-auto lg:mx-0">
+              <p className="text-sm sm:text-lg text-blue-100 max-w-xl leading-relaxed font-normal mx-auto lg:mx-0">
                 {t('medical.landing.hero.subtitleLine1')}
                 <br className="hidden sm:inline" />
                 {t('medical.landing.hero.subtitleLine2')}
               </p>
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <div className="pt-1 sm:pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
                 <a
                   href="#specialties"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-[#1E3A8A] font-extrabold text-base shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all duration-300 flex items-center justify-center gap-2.5"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-white text-[#1E3A8A] font-extrabold text-sm sm:text-base shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all duration-300 flex items-center justify-center gap-2.5"
                 >
                   <span>{t('medical.landing.hero.ctaSpecialties')}</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,7 +445,7 @@ export function HealthTourism() {
                 </a>
                 <a
                   href="#how-it-works"
-                  className="w-full sm:w-auto px-7 py-4 rounded-xl bg-transparent hover:bg-white/10 border-2 border-white/40 text-white font-bold text-base transition-all duration-300 flex items-center justify-center gap-2.5"
+                  className="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-4 rounded-xl bg-transparent hover:bg-white/10 border-2 border-white/40 text-white font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2.5"
                 >
                   <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -456,7 +456,7 @@ export function HealthTourism() {
             </div>
 
             <div className="lg:col-span-5 flex justify-center lg:justify-start">
-              <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl shadow-blue-900/20 border border-white/80 space-y-5">
+              <div className="w-full max-w-sm bg-white rounded-3xl p-5 sm:p-7 shadow-2xl shadow-blue-900/20 border border-white/80 space-y-4 sm:space-y-5">
                 <div className="text-right space-y-1.5">
                   <h3 className="text-lg font-extrabold text-slate-900 font-tajawal">{t('medical.landing.hero.card.title')}</h3>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">{t('medical.landing.hero.card.subtitle')}</p>
@@ -496,16 +496,16 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== STATS ==================== */}
-      <section ref={statsSectionRef} className="py-14 bg-[#1E3A8A] text-white relative overflow-hidden my-16 shadow-lg">
+      <section ref={statsSectionRef} className="py-8 sm:py-14 bg-[#1E3A8A] text-white relative overflow-hidden my-8 sm:my-16 shadow-lg">
         <div
           className="absolute inset-0 opacity-[0.05] pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse divide-blue-700/50">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 text-center divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse divide-blue-700/50">
             {STATS.map((stat, i) => (
-              <div key={stat.labelKey} className="pt-4 lg:pt-0">
-                <div className={`text-3xl sm:text-4xl lg:text-5xl font-black mb-2 font-tajawal ${stat.color}`}>
+              <div key={stat.labelKey} className="pt-3 lg:pt-0">
+                <div className={`text-2xl sm:text-4xl lg:text-5xl font-black mb-1 sm:mb-2 font-tajawal ${stat.color}`}>
                   {stat.prefix}
                   {counts[i].toLocaleString('en-US')}
                   {stat.suffix}
@@ -518,41 +518,41 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== SPECIALTIES ==================== */}
-      <section id="specialties" className="py-20 bg-slate-50 border-t border-b border-slate-200/80">
+      <section id="specialties" className="py-10 sm:py-16 md:py-20 bg-slate-50 border-t border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+          <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12 space-y-2 sm:space-y-3">
             <span className="px-3.5 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-bold tracking-wide border border-blue-200">
               {t('medical.landing.specialties.badge')}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.specialties.title')}</h2>
-            <p className="text-sm text-slate-600 leading-relaxed">{t('medical.landing.specialties.subtitle')}</p>
+            <h2 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.specialties.title')}</h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{t('medical.landing.specialties.subtitle')}</p>
           </div>
 
-          <div className="relative px-2 sm:px-8">
+          <div className="relative px-0 sm:px-8">
             <ArrowButton dir="prev" onClick={() => scrollTrack(specialtiesTrackRef, 340)} className="-right-3 sm:-right-5" />
             <ArrowButton dir="next" onClick={() => scrollTrack(specialtiesTrackRef, -340)} className="-left-3 sm:-left-5" />
 
-            <div ref={specialtiesTrackRef} className="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth py-4 px-1">
+            <div ref={specialtiesTrackRef} className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none scroll-smooth py-3 sm:py-4 px-1">
               {specialtyItems.map((item) => (
                 <div
                   key={item.slug}
-                  className="min-w-[290px] sm:min-w-[320px] md:min-w-[340px] flex-shrink-0 bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition duration-300 flex flex-col justify-between"
+                  className="min-w-[240px] sm:min-w-[320px] md:min-w-[340px] flex-shrink-0 bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition duration-300 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="relative h-48 overflow-hidden bg-slate-800">
+                    <div className="relative h-32 sm:h-48 overflow-hidden bg-slate-800">
                       <img
                         src={SPECIALTY_IMAGES[item.slug as SpecialtySlug]}
                         alt={item.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
-                      <span className="absolute top-4 right-4 px-3 py-1 rounded-md bg-slate-900/90 text-white text-xs font-bold">{item.badge}</span>
-                      <span className="absolute bottom-4 left-4 px-3 py-1 rounded-md bg-emerald-700 text-white text-xs font-bold">{item.priceFrom}</span>
+                      <span className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md bg-slate-900/90 text-white text-[10px] sm:text-xs font-bold">{item.badge}</span>
+                      <span className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md bg-emerald-700 text-white text-[10px] sm:text-xs font-bold">{item.priceFrom}</span>
                     </div>
-                    <div className="p-6 space-y-4">
-                      <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
+                    <div className="p-4 sm:p-6 space-y-2.5 sm:space-y-4">
+                      <h3 className="text-sm sm:text-lg font-bold text-slate-900">{item.title}</h3>
                       <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
-                      <ul className="text-xs text-slate-700 space-y-2 pt-3 border-t border-slate-100">
+                      <ul className="text-xs text-slate-700 space-y-1.5 sm:space-y-2 pt-2 sm:pt-3 border-t border-slate-100">
                         {item.bullets.map((b) => (
                           <li key={b} className="flex items-center gap-2 text-slate-600">
                             <span className="text-emerald-600 font-bold">✓</span> {b}
@@ -561,7 +561,7 @@ export function HealthTourism() {
                       </ul>
                     </div>
                   </div>
-                  <div className="p-6 pt-0">
+                  <div className="p-4 sm:p-6 pt-0">
                     <button
                       type="button"
                       onClick={() => selectSpecialty(item.slug)}
@@ -581,26 +581,26 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== HOW IT WORKS ==================== */}
-      <section id="how-it-works" className="py-16 bg-white border-t border-b border-slate-100">
+      <section id="how-it-works" className="py-10 sm:py-16 bg-white border-t border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
+          <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-14 space-y-2 sm:space-y-3">
             <span className="px-3.5 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-bold tracking-wide border border-blue-200">
               {t('medical.landing.how.badge')}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.how.title')}</h2>
-            <p className="text-sm text-slate-600 leading-relaxed">{t('medical.landing.how.subtitle')}</p>
+            <h2 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.how.title')}</h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{t('medical.landing.how.subtitle')}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 sm:gap-6">
             {howSteps.map((step, i) => (
-              <div key={step.title} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col justify-between">
+              <div key={step.title} className="bg-slate-50 p-3.5 sm:p-6 rounded-2xl border border-slate-200 flex flex-col justify-between">
                 <div>
                   <div
-                    className={`w-10 h-10 rounded-xl text-white font-extrabold text-sm flex items-center justify-center mb-5 ${i === howSteps.length - 1 ? 'bg-emerald-700' : 'bg-blue-900'}`}
+                    className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl text-white font-extrabold text-[11px] sm:text-sm flex items-center justify-center mb-2.5 sm:mb-5 ${i === howSteps.length - 1 ? 'bg-emerald-700' : 'bg-blue-900'}`}
                   >
                     {String(i + 1).padStart(2, '0')}
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-2">{step.title}</h3>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1 sm:mb-2">{step.title}</h3>
                   <p className="text-xs text-slate-600 leading-relaxed">{step.body}</p>
                 </div>
               </div>
@@ -610,44 +610,44 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== LOGISTICS ==================== */}
-      <section id="logistics" className="py-20 sm:py-28 bg-[#EAF1FB] relative overflow-hidden">
+      <section id="logistics" className="py-10 sm:py-20 md:py-28 bg-[#EAF1FB] relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-blue-200/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div
             ref={logisticsHeader.ref}
-            className="text-right max-w-3xl mb-14 space-y-4 transition-[opacity,transform] duration-700 ease-out"
+            className="text-right max-w-3xl mb-6 sm:mb-14 space-y-2.5 sm:space-y-4 transition-[opacity,transform] duration-700 ease-out"
             style={{ opacity: logisticsHeader.revealed ? 1 : 0, transform: logisticsHeader.revealed ? 'translateY(0)' : 'translateY(30px)' }}
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-[#D0E2FF] text-[#1E3A8A] text-xs font-bold tracking-wide border border-blue-200/60">
               {t('medical.landing.logistics.badge')}
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-tajawal tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-tajawal tracking-tight leading-tight">
               {t('medical.landing.logistics.title')}
             </h2>
-            <p className="text-sm text-slate-500 leading-relaxed font-light max-w-xl">{t('medical.landing.logistics.subtitle')}</p>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-light max-w-xl">{t('medical.landing.logistics.subtitle')}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
             {logisticsCards.map((card, i) => {
               const reveal = logisticsCardReveals[i];
               return (
                 <div
                   key={card.title}
                   ref={reveal.ref}
-                  className={`group rounded-3xl p-5 border shadow-sm hover:shadow-xl transition-all duration-500 cursor-default ${LOGISTICS_STYLES[i].card}`}
+                  className={`group rounded-3xl p-4 sm:p-5 border shadow-sm hover:shadow-xl transition-all duration-500 cursor-default ${LOGISTICS_STYLES[i].card}`}
                   style={{
                     opacity: reveal.revealed ? 1 : 0,
                     transform: reveal.revealed ? 'translateY(0)' : 'translateY(40px)',
                     transition: 'opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                 >
-                  <div className="relative rounded-2xl overflow-hidden mb-5 border-[3px] border-white shadow-md">
+                  <div className="relative rounded-2xl overflow-hidden mb-3 sm:mb-5 border-[3px] border-white shadow-md">
                     <img
                       src={LOGISTICS_IMAGES[i]}
                       alt={card.title}
-                      className="w-full h-52 object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-36 sm:h-52 object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-l from-white/0 via-white/25 to-white/0 translate-x-full group-hover:-translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
@@ -669,29 +669,29 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== HOSPITALS ==================== */}
-      <section id="hospitals" className="py-20 sm:py-28 bg-[#1E3A8A] relative overflow-hidden">
+      <section id="hospitals" className="py-10 sm:py-20 md:py-28 bg-[#1E3A8A] relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center space-y-3 mb-14">
-            <span className="text-sm font-semibold text-blue-300 tracking-wide">{t('medical.landing.hospitals.badge')}</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-tajawal tracking-tight leading-tight">
+          <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-14">
+            <span className="text-xs sm:text-sm font-semibold text-blue-300 tracking-wide">{t('medical.landing.hospitals.badge')}</span>
+            <h2 className="text-xl sm:text-4xl lg:text-5xl font-black text-white font-tajawal tracking-tight leading-tight">
               {t('medical.landing.hospitals.title')}
               <br className="hidden sm:inline" />
               <span className="text-blue-200">{t('medical.landing.hospitals.titleHighlight')}</span>
             </h2>
-            <p className="text-sm text-blue-200/80 font-light max-w-lg mx-auto leading-relaxed">{t('medical.landing.hospitals.subtitle')}</p>
+            <p className="text-xs sm:text-sm text-blue-200/80 font-light max-w-lg mx-auto leading-relaxed">{t('medical.landing.hospitals.subtitle')}</p>
           </div>
 
-          <div className="relative px-6 sm:px-12">
+          <div className="relative px-0 sm:px-12">
             <ArrowButton dir="prev" variant="dark" onClick={() => scrollTrack(hospitalsTrackRef, 280)} className="-right-1 sm:-right-2" />
             <ArrowButton dir="next" variant="dark" onClick={() => scrollTrack(hospitalsTrackRef, -280)} className="-left-1 sm:-left-2" />
 
-            <div ref={hospitalsTrackRef} className="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth py-8 px-1">
+            <div ref={hospitalsTrackRef} className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none scroll-smooth py-6 sm:py-8 px-1">
               {hospitalItems.map((h, i) => (
-                <div key={h.name} className="min-w-[240px] sm:min-w-[260px] flex-shrink-0 relative">
+                <div key={h.name} className="min-w-[200px] sm:min-w-[260px] flex-shrink-0 relative">
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
                     <div className="w-12 h-12 rounded-full bg-[#1E3A8A] text-white font-extrabold text-[11px] flex items-center justify-center shadow-lg border-[3px] border-white">
                       JCI
@@ -714,20 +714,20 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== TESTIMONIALS ==================== */}
-      <section id="testimonials" className="py-20 bg-[#1E56C8] relative overflow-hidden">
+      <section id="testimonials" className="py-10 sm:py-20 bg-[#1E56C8] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-[2.5rem] p-8 sm:p-14 shadow-2xl border border-slate-100 relative">
-            <div className="text-right space-y-3 mb-10">
+          <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-14 shadow-2xl border border-slate-100 relative">
+            <div className="text-right space-y-2 sm:space-y-3 mb-5 sm:mb-10">
               <span className="inline-block px-4 py-1.5 rounded-full bg-[#D1FADF] text-[#027A48] text-xs font-bold tracking-wide">
                 {t('medical.landing.testimonials.badge')}
               </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-tajawal tracking-tight">
+              <h2 className="text-xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-tajawal tracking-tight">
                 {t('medical.landing.testimonials.title')}
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">{t('medical.landing.testimonials.subtitle')}</p>
             </div>
 
-            <div className="relative px-2 sm:px-8">
+            <div className="relative px-0 sm:px-8">
               <ArrowButton
                 dir="prev"
                 onClick={() => scrollTrack(testimonialsTrackRef, 340)}
@@ -745,7 +745,7 @@ export function HealthTourism() {
                   return (
                     <div
                       key={item.name}
-                      className={`w-full min-w-[280px] sm:min-w-[320px] md:min-w-[340px] flex-1 rounded-3xl p-6 border flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md transition ${style.card}`}
+                      className={`w-full min-w-[230px] sm:min-w-[320px] md:min-w-[340px] flex-1 rounded-3xl p-4 sm:p-6 border flex flex-col justify-between space-y-4 sm:space-y-6 shadow-sm hover:shadow-md transition ${style.card}`}
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -768,18 +768,18 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== FAQ ==================== */}
-      <section id="faq" className="py-24 bg-slate-50 border-t border-b border-slate-200/80">
+      <section id="faq" className="py-10 sm:py-16 md:py-24 bg-slate-50 border-t border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-28">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-12 items-start">
+            <div className="lg:col-span-4 space-y-2.5 sm:space-y-4 lg:sticky lg:top-28">
               <span className="px-3.5 py-1 rounded-md bg-blue-100 text-blue-900 text-xs font-bold tracking-wide border border-blue-200">
                 {t('medical.landing.faq.title')}
               </span>
-              <h2 className="text-4xl sm:text-5xl font-black text-slate-900 font-tajawal tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-5xl font-black text-slate-900 font-tajawal tracking-tight leading-tight">
                 {t('medical.landing.faq.title')}
               </h2>
-              <p className="text-sm text-slate-600 leading-relaxed font-light">{t('medical.landing.faq.subtitle')}</p>
-              <div className="pt-3 relative max-w-sm">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-light">{t('medical.landing.faq.subtitle')}</p>
+              <div className="pt-2 sm:pt-3 relative max-w-sm">
                 <div className="relative">
                   <svg
                     className="w-[18px] h-[18px] text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -804,12 +804,12 @@ export function HealthTourism() {
               {visibleFaqItems.map(({ item, i }) => {
                 const open = openFaq === i;
                 return (
-                  <div key={item.q} className="py-5 transition duration-200">
+                  <div key={item.q} className="py-3.5 sm:py-5 transition duration-200">
                     <button
                       type="button"
                       onClick={() => setOpenFaq(open ? null : i)}
                       aria-expanded={open}
-                      className="w-full flex items-center justify-between text-right font-bold text-slate-900 text-base sm:text-lg focus:outline-none cursor-pointer group"
+                      className="w-full flex items-center justify-between text-right font-bold text-slate-900 text-sm sm:text-lg focus:outline-none cursor-pointer group"
                     >
                       <span className="leading-snug group-hover:text-blue-700 transition-colors">{item.q}</span>
                       <span className="text-2xl font-light text-slate-500 group-hover:text-blue-700 flex-shrink-0 mr-4 select-none transition-colors">
@@ -831,24 +831,24 @@ export function HealthTourism() {
       </section>
 
       {/* ==================== LEAD FORM ==================== */}
-      <section id="lead-form" ref={leadFormRef} className="py-24 bg-[#F4F6F9] relative overflow-hidden">
+      <section id="lead-form" ref={leadFormRef} className="py-10 sm:py-16 md:py-24 bg-[#F4F6F9] relative overflow-hidden">
         <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 -right-32 w-[32rem] h-[32rem] bg-blue-700/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-2xl border border-slate-900/10 relative overflow-hidden">
-            <div className="text-center space-y-2.5 mb-10 relative z-10">
+          <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-12 shadow-2xl border border-slate-900/10 relative overflow-hidden">
+            <div className="text-center space-y-2 sm:space-y-2.5 mb-5 sm:mb-10 relative z-10">
               <span className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-bold tracking-wide">
                 {t('medical.landing.form.badge')}
               </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 font-tajawal tracking-tight">
+              <h2 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 font-tajawal tracking-tight">
                 {t('medical.landing.form.title')}
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-lg mx-auto leading-relaxed">{t('medical.landing.form.subtitle')}</p>
             </div>
 
-            <form onSubmit={submitConsultation} className="space-y-6 relative z-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={submitConsultation} className="space-y-4 sm:space-y-6 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2 text-right">
                   <label htmlFor="ht-form-name" className="block text-xs font-bold text-slate-800">
                     {t('medical.landing.form.name.label')} <span className="text-rose-500 font-bold">*</span>

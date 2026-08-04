@@ -7,6 +7,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hides the scrollbar on /health-tourism's horizontal carousel tracks
+   (specialties/hospitals/testimonials) — ported from the mockup's
+   styles.css, missed in the initial port so the native scrollbar track
+   was showing as a visible gray bar under each carousel. */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Design tokens exposed as CSS variables (mirror tailwind.config) ── */
 :root {
   --navy: #1a3a6b;
