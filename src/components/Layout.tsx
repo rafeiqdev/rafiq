@@ -321,6 +321,16 @@ export function Layout() {
                 </NavLink>
               </>
             )}
+            {/* Medical coordinators aren't admins and RequireAdmin blocks them from
+                /admin entirely, so without this they'd have no discoverable path to
+                /admin/medical at all. Admins get it here too, not just the shortcut
+                already inside /admin, since a coordinator-promoted admin still needs
+                one consistent entry point. */}
+            {(user?.isAdmin || user?.isMedicalCoordinator) && (
+              <NavLink to="/admin/medical" className="px-3 py-2.5 rounded-lg text-sm font-medium text-brand-red hover:bg-cream">
+                {t('medical.admin.navLink')}
+              </NavLink>
+            )}
           </nav>
 
           <div className="ms-auto flex items-center gap-2">
@@ -405,6 +415,15 @@ export function Layout() {
                     onNavigate={closeMenu}
                   />
                 </>
+              )}
+              {(user?.isAdmin || user?.isMedicalCoordinator) && (
+                <MobileTile
+                  to="/admin/medical"
+                  icon="heart-pulse"
+                  label={t('medical.admin.navLink')}
+                  danger
+                  onNavigate={closeMenu}
+                />
               )}
             </div>
           </nav>

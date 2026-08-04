@@ -531,6 +531,14 @@ create policy "medical_faqs staff write" on public.medical_faqs for all using (p
 create policy "medical_testimonials public read" on public.medical_testimonials for select using (status = 'published' or public.is_medical_staff());
 create policy "medical_testimonials staff write" on public.medical_testimonials for all using (public.is_medical_staff()) with check (public.is_medical_staff());
 
+-- Deliberately `using (true)`, unlike the other public-content tables: a
+-- visitor must be able to read a section's visible=false flag in order to
+-- actually hide that section client-side. Restricting this to
+-- `visible or is_medical_staff()` (as briefly tried) makes a hidden
+-- section's row disappear entirely for anon, which is indistinguishable
+-- from "not configured yet" and defaults back to shown — the opposite of
+-- what admin toggled. Nothing here is sensitive (page layout only, never
+-- patient/business data), so the looser policy is correct, not a shortcut.
 create policy "medical_page_sections public read" on public.medical_page_sections for select using (true);
 create policy "medical_page_sections staff write" on public.medical_page_sections for all using (public.is_medical_staff()) with check (public.is_medical_staff());
 

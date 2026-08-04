@@ -2695,37 +2695,72 @@ function toLocalized(v: LocalizedRow): LocalizedText {
   return { ar: v?.ar ?? '', en: v?.en ?? '', fa: v?.fa ?? '', ru: v?.ru ?? '' };
 }
 
+/**
+ * A raw error from these calls used to reach SectionState's error branch on
+ * the PUBLIC medical-tourism page — "Supporting services — something went
+ * wrong, retry" in front of a visitor who did nothing wrong, whether the
+ * cause was a genuinely empty (or not-yet-migrated) table or a real outage.
+ * Marketing content is never worth that: any failure here resolves to an
+ * empty list (which the page renders as a clean empty state or hides the
+ * section entirely) instead of throwing, and is logged for diagnosis via the
+ * same dev-only logDiagnostic() every other migration-tolerant read in this
+ * file already uses — never surfaced to the visitor either way.
+ */
+async function loadMedicalContent<T>(scope: string, run: () => PromiseLike<{ data: unknown; error: unknown }>, map: (rows: unknown[]) => T[]): Promise<T[]> {
+  try {
+    const { data, error } = await run();
+    if (error) {
+      logDiagnostic(scope, error, classifyError(error));
+      return [];
+    }
+    return map((data as unknown[]) ?? []);
+  } catch (e) {
+    logDiagnostic(scope, e, classifyError(e));
+    return [];
+  }
+}
+
 export const medicalContent = {
   async specialties(): Promise<MedicalSpecialty[]> {
-    const { data, error } = await sb().from('medical_specialties').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true });
-    if (error) fail(error);
     interface Row { id: string; slug: string; name: LocalizedRow; description: LocalizedRow; icon: string | null; sort: number; visible: boolean; }
-    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible }));
+    return loadMedicalContent(
+      'medicalContent.specialties',
+      () => sb().from('medical_specialties').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible })),
+    );
   },
   async services(): Promise<MedicalService[]> {
-    const { data, error } = await sb().from('medical_services').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true });
-    if (error) fail(error);
     interface Row { id: string; slug: string; name: LocalizedRow; description: LocalizedRow; icon: string | null; sort: number; visible: boolean; }
-    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible }));
+    return loadMedicalContent(
+      'medicalContent.services',
+      () => sb().from('medical_services').select('id,slug,name,description,icon,sort,visible').order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible })),
+    );
   },
   async faqs(): Promise<MedicalFaq[]> {
-    const { data, error } = await sb().from('medical_faqs').select('id,question,answer,sort,visible').order('sort', { ascending: true });
-    if (error) fail(error);
     interface Row { id: string; question: LocalizedRow; answer: LocalizedRow; sort: number; visible: boolean; }
-    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, question: toLocalized(r.question), answer: toLocalized(r.answer), sort: r.sort, visible: r.visible }));
+    return loadMedicalContent(
+      'medicalContent.faqs',
+      () => sb().from('medical_faqs').select('id,question,answer,sort,visible').order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, question: toLocalized(r.question), answer: toLocalized(r.answer), sort: r.sort, visible: r.visible })),
+    );
   },
   /** Published testimonials only — draft rows never reach a visitor (RLS-enforced too). */
   async testimonials(): Promise<MedicalTestimonial[]> {
-    const { data, error } = await sb().from('medical_testimonials').select('id,author_name,quote,image_path,status,consent_given,sort').eq('status', 'published').order('sort', { ascending: true });
-    if (error) fail(error);
     interface Row { id: string; author_name: string; quote: LocalizedRow; image_path: string | null; status: string; consent_given: boolean; sort: number; }
-    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, authorName: r.author_name, quote: toLocalized(r.quote), imagePath: r.image_path, status: r.status as 'draft' | 'published', consentGiven: r.consent_given, sort: r.sort }));
+    return loadMedicalContent(
+      'medicalContent.testimonials',
+      () => sb().from('medical_testimonials').select('id,author_name,quote,image_path,status,consent_given,sort').eq('status', 'published').order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, authorName: r.author_name, quote: toLocalized(r.quote), imagePath: r.image_path, status: r.status as 'draft' | 'published', consentGiven: r.consent_given, sort: r.sort })),
+    );
   },
   async sections(): Promise<MedicalPageSection[]> {
-    const { data, error } = await sb().from('medical_page_sections').select('section_key,visible,sort').order('sort', { ascending: true });
-    if (error) fail(error);
     interface Row { section_key: string; visible: boolean; sort: number; }
-    return ((data ?? []) as Row[]).map((r) => ({ sectionKey: r.section_key, visible: r.visible, sort: r.sort }));
+    return loadMedicalContent(
+      'medicalContent.sections',
+      () => sb().from('medical_page_sections').select('section_key,visible,sort').order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ sectionKey: r.section_key, visible: r.visible, sort: r.sort })),
+    );
   },
 };
 
