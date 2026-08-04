@@ -28,6 +28,18 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** The three "what happens now" rows — pure copy, no data behind them. */
 const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 
+// Direct, always-visible links to the main service categories — the guest
+// homepage has this row; UserHome never did, so signed-in users had no way
+// to reach real estate / health tourism / hub / districts except the
+// header's services dropdown. See home.quickLinks.* for copy.
+const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
+  { to: '/real-estate', icon: 'building', key: 'realEstate' },
+  { to: '/services', icon: 'layers', key: 'allServices' },
+  { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
+  { to: '/hub', icon: 'compass', key: 'hub' },
+  { to: '/hub/districts', icon: 'map-pin', key: 'districts' },
+];
+
 /** Icons for the onboarding-answer chips, by journey task key. */
 const HAS_ICONS: Record<JourneyTaskKey, IconName> = {
   turkishPhone: 'smartphone',
@@ -334,6 +346,22 @@ export function UserHome() {
         </div>
         <NotificationBell size={38} className="shrink-0" />
       </header>
+
+      {/* ── quick links: direct access to the main service categories ── */}
+      <div className="mt-4 flex gap-2.5 overflow-x-auto scrollbar-none px-0.5 py-0.5">
+        {QUICK_LINKS.map((q) => (
+          <Link
+            key={q.to}
+            to={q.to}
+            className="card card-hover shrink-0 p-2.5 flex items-center gap-2 whitespace-nowrap"
+          >
+            <span className="icon-chip !w-7 !h-7">
+              <AppIcon name={q.icon} className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-xs font-semibold text-navy">{t(`home.quickLinks.${q.key}`)}</span>
+          </Link>
+        ))}
+      </div>
 
       {/* ── proof that the onboarding answers produced something ── */}
       {hasRecap && (
