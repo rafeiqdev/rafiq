@@ -112,7 +112,7 @@ function CityDistricts() {
         {districts.map((d) => (
           <Link
             key={d}
-            to="/hub/districts"
+            to="/map"
             className="text-xs font-semibold bg-cream hover:bg-brand-blue rounded-full px-3 py-2 text-navy transition-colors flex items-center gap-1.5"
           >
             <AppIcon name="map-pin" className="w-3 h-3" />

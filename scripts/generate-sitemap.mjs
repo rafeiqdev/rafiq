@@ -17,12 +17,6 @@
  * audience and the target of the langless 301s in vercel.json). See
  * src/lib/seo.ts for the matching runtime <head> tags.
  *
- * Dynamic routes are read straight from the local data files that already
- * drive them at runtime (no Supabase round-trip needed — /hub/:slug slugs are
- * static, checked-in data):
- *   - /hub/:slug ← the fixed 6-slug list also hardcoded in
- *                  src/pages/Hub.tsx / MobileHub.tsx (keep in sync)
- *
  * Run via `npm run build` (prebuild step) or directly: node scripts/generate-sitemap.mjs
  */
 import 'dotenv/config';
@@ -40,14 +34,10 @@ const SITE_URL = resolveSiteUrlOrExit(process.env);
 const LANGS = ['ar', 'en', 'ru', 'fa'];
 const today = new Date().toISOString().slice(0, 10);
 
-// Keep in sync with Hub.tsx / MobileHub.tsx's GUIDE_SLUGS.
-const HUB_SLUGS = ['istanbulkart', 'esim', 'ikamet', 'vergi', 'bank', 'districts'];
-
 /** @type {{ path: string, changefreq: string, priority: string }[]} */
 const STATIC_ROUTES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/services', changefreq: 'weekly', priority: '0.9' },
-  { path: '/hub', changefreq: 'weekly', priority: '0.8' },
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8' },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7' },
   { path: '/tricks', changefreq: 'monthly', priority: '0.6' },
@@ -57,9 +47,7 @@ const STATIC_ROUTES = [
   { path: '/refund', changefreq: 'yearly', priority: '0.3' },
 ];
 
-const dynamicRoutes = [
-  ...HUB_SLUGS.map((slug) => ({ path: `/hub/${slug}`, changefreq: 'monthly', priority: '0.6' })),
-];
+const dynamicRoutes = [];
 
 const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

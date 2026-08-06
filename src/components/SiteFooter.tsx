@@ -27,7 +27,6 @@ const GROUPS: FooterGroup[] = [
       { to: '/services', key: 'nav.allServices' },
       { to: '/real-estate', key: 'nav.realEstate' },
       { to: '/health-tourism', key: 'nav.health' },
-      { to: '/hub', key: 'nav.hub' },
       { to: '/tricks', key: 'nav.tricks' },
     ],
   },

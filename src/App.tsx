@@ -81,10 +81,6 @@ const TrickDetail = lazyPage(() => import('./pages/TrickDetail').then((m) => ({ 
 const MobileTrickDetail = lazyPage(() =>
   import('./pages/mobile/MobileTrickDetail').then((m) => ({ default: m.MobileTrickDetail })),
 );
-const Hub = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.Hub })));
-const MobileHub = lazyPage(() => import('./pages/mobile/MobileHub').then((m) => ({ default: m.MobileHub })));
-const HubDetail = lazyPage(() => import('./pages/Hub').then((m) => ({ default: m.HubDetail })));
-const MobileHubDetail = lazyPage(() => import('./pages/mobile/MobileHubDetail').then((m) => ({ default: m.MobileHubDetail })));
 const ProfilePage = lazyPage(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const MobileProfilePage = lazyPage(() => import('./pages/mobile/MobileProfilePage').then((m) => ({ default: m.MobileProfilePage })));
 const Notifications = lazyPage(() => import('./pages/Notifications').then((m) => ({ default: m.Notifications })));
@@ -240,8 +236,6 @@ function Shell() {
             <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />
             {/* one column of text either way — a single component serves both breakpoints */}
             <Route path="/news/:id" element={<NewsArticle />} />
-            <Route path="/hub" element={isMobile ? <MobileHub /> : <Hub />} />
-            <Route path="/hub/:slug" element={isMobile ? <MobileHubDetail /> : <HubDetail />} />
             {/* The authenticated product surface: every one of these routes
                 sends an unfinished user to /onboarding before it renders. */}
             <Route

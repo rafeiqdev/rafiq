@@ -36,8 +36,6 @@ const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
   { to: '/real-estate', icon: 'building', key: 'realEstate' },
   { to: '/services', icon: 'layers', key: 'allServices' },
   { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
-  { to: '/hub', icon: 'compass', key: 'hub' },
-  { to: '/hub/districts', icon: 'map-pin', key: 'districts' },
 ];
 
 type MobileCopy = {

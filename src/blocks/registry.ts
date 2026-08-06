@@ -33,7 +33,7 @@ export const BLOCKS: Block[] = [
     showIf: (p) => p.path === 'planning',
     kind: 'info',
     hasWarning: true,
-    ctaTo: '/hub/ikamet',
+    ctaTo: '/services',
   },
   {
     id: 'arrivalPackage',
@@ -50,7 +50,7 @@ export const BLOCKS: Block[] = [
     priority: 30,
     showIf: (p) => p.path === 'planning' && (p.reason === 'tourism' || p.reason === 'visiting'),
     kind: 'info',
-    ctaTo: '/hub',
+    ctaTo: '/services',
   },
   {
     id: 'settlementStack',
@@ -188,7 +188,7 @@ export const BLOCKS: Block[] = [
     priority: 20,
     showIf: (p) => p.path === 'browsing',
     kind: 'info',
-    ctaTo: '/hub',
+    ctaTo: '/map',
   },
   {
     id: 'serviceOverview',
@@ -214,7 +214,7 @@ export const BLOCKS: Block[] = [
     priority: 60,
     showIf: (p) => p.family === 'yes',
     kind: 'info',
-    ctaTo: '/hub',
+    ctaTo: '/services',
   },
   {
     id: 'familyResidence',

@@ -60,7 +60,6 @@
     "contact": "Contact us",
     "premium": "AI Assistant",
     "map": "Map",
-    "hub": "Guides",
     "tricks": "Istanbul Tricks",
     "realEstate": "Real Estate",
     "health": "Health Tourism",
@@ -182,9 +181,7 @@
     "quickLinks": {
       "realEstate": "Real Estate",
       "allServices": "All Services",
-      "health": "Medical Tourism",
-      "hub": "Guides",
-      "districts": "Istanbul Districts"
+      "health": "Medical Tourism"
     },
     "how": {
       "eyebrow": "How Rafiq works",
@@ -455,9 +452,9 @@
     },
     "cityGuide": {
       "title": "Istanbul city guide",
-      "body": "Districts, culture, food and neighborhood character — from our guides hub.",
+      "body": "Districts, culture, food and neighborhood character.",
       "districtsLabel": "Popular districts",
-      "cta": "Open the guides"
+      "cta": "Explore the map"
     },
     "serviceOverview": {
       "title": "Our services",
@@ -943,43 +940,6 @@
         "label": "Ask the AI assistant",
         "subtitle": "Chat about this service, instant answers",
         "badge": "Instant"
-      }
-    }
-  },
-  "hub": {
-    "title": "Guides hub",
-    "subtitle": "Practical, up-to-date guides for life in Istanbul.",
-    "readMore": "Read the guide",
-    "guides": {
-      "istanbulkart": {
-        "title": "Istanbulkart: the only transport card you need",
-        "excerpt": "Metro, bus, tram, ferry — one card for everything.",
-        "body": "Buy an Istanbulkart at any metro station kiosk or machine for a small card fee, then top it up with cash or card. It works on metro, Metrobüs, buses, trams, funiculars and city ferries, and transfers within two hours are discounted. One card can pay for multiple passengers. Keep it topped up — drivers don't sell tickets."
-      },
-      "esim": {
-        "title": "eSIM vs airport SIM: don't overpay",
-        "excerpt": "Airport SIM kiosks charge tourists double. Here's the smart way.",
-        "body": "SIM packages sold at the airport are heavily marked up. If your phone supports eSIM, buy a Turkish eSIM online before flying and land connected. For a physical SIM, any Turkcell, Vodafone or Türk Telekom shop in the city is far cheaper than the airport. Note: foreign phones must be registered (a paid IMEI registration) if you stay beyond 90 days with a Turkish SIM."
-      },
-      "ikamet": {
-        "title": "İkamet: residence permit from A to Z",
-        "excerpt": "The full application flow, documents, and the closed-district trap.",
-        "body": "The residence permit (ikamet) flow: get a tax number, buy mandatory health insurance, register your address with a notarized rental contract, then apply on the e-İkamet portal and attend your appointment with biometric photos and document copies. Critical: a number of Istanbul districts are closed to new registrations at any given time — verify your district is open BEFORE you sign a rental contract."
-      },
-      "vergi": {
-        "title": "Vergi No: your Turkish tax number",
-        "excerpt": "Free, fast, and required for almost everything.",
-        "body": "The tax number (Vergi Numarası) is required to open a bank account, sign contracts, buy property and apply for residence. Get it free online via the İnteraktif Vergi Dairesi portal with your passport details, or in person at any tax office (Vergi Dairesi) in about an hour. Keep the printout — banks ask for it."
-      },
-      "bank": {
-        "title": "Opening a Turkish bank account",
-        "excerpt": "Which banks accept foreigners and what they ask for.",
-        "body": "Requirements vary by bank and even by branch. You will always need your passport and tax number; most banks also want proof of address (notarized rental contract or a utility bill in your name) and sometimes a residence permit. If one branch refuses, try another — policies genuinely differ. Your card typically arrives by courier within a week."
-      },
-      "districts": {
-        "title": "Choosing your district in Istanbul",
-        "excerpt": "Character, prices and the residence-permit factor.",
-        "body": "Kadıköy and Beşiktaş offer central, lively living at higher rents; Üsküdar is calmer and conservative; Esenyurt and Beylikdüzü are budget-friendly but far; Şişli and Levent suit professionals. Before falling in love with a flat, check two things: whether the district is open for new residence-permit registrations, and your commute on the metro map."
       }
     }
   },
@@ -1900,7 +1860,6 @@
     "nextTitle": "Your next step",
     "viewAll": "View all steps",
     "services": "Services for you",
-    "guides": "Useful guides",
     "incompleteTitle": "Let's get to know you",
     "incompleteBody": "Answer a few quick questions and we will build your journey.",
     "startNow": "Start now",
@@ -2448,7 +2407,11 @@
             "priceFrom": "From $1,200",
             "title": "Hair transplant with the latest techniques",
             "description": "FUE, DHI and Sapphire techniques with precise micro-extraction for high density and a 100% natural look, with a lifetime guarantee.",
-            "bullets": ["Free therapeutic plasma session", "Medical care kit and medication", "3-night stay in a 5-star hotel"]
+            "bullets": [
+              "Free therapeutic plasma session",
+              "Medical care kit and medication",
+              "3-night stay in a 5-star hotel"
+            ]
           },
           {
             "slug": "dental",
@@ -2456,7 +2419,11 @@
             "priceFrom": "From $1,500",
             "title": "Hollywood smile and dental implants",
             "description": "E-max veneers and Swiss/German implants with 3D digital smile design for fast, pain-free sessions.",
-            "bullets": ["Digital Smile Design", "Laser whitening and free cleaning", "Warranty on crowns and implants"]
+            "bullets": [
+              "Digital Smile Design",
+              "Laser whitening and free cleaning",
+              "Warranty on crowns and implants"
+            ]
           },
           {
             "slug": "bariatric",
@@ -2464,7 +2431,11 @@
             "priceFrom": "From $2,800",
             "title": "Gastric sleeve and revision surgery, laparoscopic",
             "description": "Precise laparoscopic bariatric surgery under the supervision of top professors at internationally recognized JCI hospitals.",
-            "bullets": ["3D laparoscopic technology", "One year of follow-up with a nutritionist", "Comprehensive pre-op tests and screening"]
+            "bullets": [
+              "3D laparoscopic technology",
+              "One year of follow-up with a nutritionist",
+              "Comprehensive pre-op tests and screening"
+            ]
           },
           {
             "slug": "vision",
@@ -2472,7 +2443,11 @@
             "priceFrom": "From $900",
             "title": "Vision correction with Femto Smart",
             "description": "Femto-LASIK and Femto-SMILE techniques to get rid of glasses in a procedure that takes no more than 10 minutes, pain-free.",
-            "bullets": ["German ZEISS equipment", "Fast recovery and immediate results", "Comprehensive corneal topography scan"]
+            "bullets": [
+              "German ZEISS equipment",
+              "Fast recovery and immediate results",
+              "Comprehensive corneal topography scan"
+            ]
           },
           {
             "slug": "checkup",
@@ -2480,7 +2455,11 @@
             "priceFrom": "From $450",
             "title": "Comprehensive medical check-up",
             "description": "Precise, periodic screening programs covering all lab tests and diagnostic imaging in a single day.",
-            "bullets": ["Over 50 lab tests", "Echo, ECG and X-ray", "Comprehensive medical report in Arabic"]
+            "bullets": [
+              "Over 50 lab tests",
+              "Echo, ECG and X-ray",
+              "Comprehensive medical report in Arabic"
+            ]
           },
           {
             "slug": "cardiology",
@@ -2488,7 +2467,11 @@
             "priceFrom": "From $4,500",
             "title": "Cardiovascular disease and surgery",
             "description": "Catheterization, valve replacement and artery bypass with a select group of doctors and heads of cardiology in Istanbul.",
-            "bullets": ["State-of-the-art operating rooms", "Specialized cardiac intensive care", "Free professor consultation"]
+            "bullets": [
+              "State-of-the-art operating rooms",
+              "Specialized cardiac intensive care",
+              "Free professor consultation"
+            ]
           }
         ]
       },
@@ -2497,10 +2480,22 @@
         "title": "How does your treatment journey with Rafiq work?",
         "subtitle": "4 organized steps that guarantee you get the best treatment plan without any hassle or unplanned costs.",
         "steps": [
-          { "title": "Send your medical report", "body": "Fill out the quick consultation form and attach your medical reports or case photos for an initial assessment." },
-          { "title": "Receive comparable offers", "body": "Within 24 hours, our consultant sends you 3 detailed offers from top hospitals, with prices and the surgeon's CV." },
-          { "title": "Choose a center and book", "body": "Pick the center that suits you best, and we confirm the surgery booking, appointments and logistics with no upfront fees." },
-          { "title": "Reception and full care", "body": "We receive you at Istanbul airport in a VIP car with an accompanying interpreter who stays with you every step until you recover and return safely." }
+          {
+            "title": "Send your medical report",
+            "body": "Fill out the quick consultation form and attach your medical reports or case photos for an initial assessment."
+          },
+          {
+            "title": "Receive comparable offers",
+            "body": "Within 24 hours, our consultant sends you 3 detailed offers from top hospitals, with prices and the surgeon's CV."
+          },
+          {
+            "title": "Choose a center and book",
+            "body": "Pick the center that suits you best, and we confirm the surgery booking, appointments and logistics with no upfront fees."
+          },
+          {
+            "title": "Reception and full care",
+            "body": "We receive you at Istanbul airport in a VIP car with an accompanying interpreter who stays with you every step until you recover and return safely."
+          }
         ]
       },
       "logistics": {
@@ -2508,9 +2503,18 @@
         "title": "Full support for complete peace of mind",
         "subtitle": "We take care of every detail from the moment you arrive in Istanbul until your departure, so you can focus only on your recovery and health.",
         "cards": [
-          { "title": "VIP transport", "description": "Spacious, luxury cars with a private driver to receive you from the airport and for your daily transfers between the hotel and the hospital." },
-          { "title": "Luxury hotel booking", "description": "Comfortable stays at the best 4- and 5-star hotels very close to the medical centers, at preferential rates exclusively for our patients." },
-          { "title": "Accompanying medical interpreter", "description": "A translator specialized in medical terminology accompanies you through every consultation and examination, conveying the doctor's explanations accurately and clearly." }
+          {
+            "title": "VIP transport",
+            "description": "Spacious, luxury cars with a private driver to receive you from the airport and for your daily transfers between the hotel and the hospital."
+          },
+          {
+            "title": "Luxury hotel booking",
+            "description": "Comfortable stays at the best 4- and 5-star hotels very close to the medical centers, at preferential rates exclusively for our patients."
+          },
+          {
+            "title": "Accompanying medical interpreter",
+            "description": "A translator specialized in medical terminology accompanies you through every consultation and examination, conveying the doctor's explanations accurately and clearly."
+          }
         ]
       },
       "hospitals": {
@@ -2520,11 +2524,26 @@
         "subtitle": "We work with medical centers accredited under clear international standards.",
         "accreditationLabel": "International accreditation",
         "items": [
-          { "name": "Memorial Hospitals", "subtitle": "Memorial Healthcare" },
-          { "name": "Acibadem Group", "subtitle": "Acibadem Healthcare" },
-          { "name": "Florence Nightingale", "subtitle": "Florence Nightingale" },
-          { "name": "Liv Hospital", "subtitle": "Liv Hospital Group" },
-          { "name": "Anadolu Medical Center", "subtitle": "Anadolu Medical Center" }
+          {
+            "name": "Memorial Hospitals",
+            "subtitle": "Memorial Healthcare"
+          },
+          {
+            "name": "Acibadem Group",
+            "subtitle": "Acibadem Healthcare"
+          },
+          {
+            "name": "Florence Nightingale",
+            "subtitle": "Florence Nightingale"
+          },
+          {
+            "name": "Liv Hospital",
+            "subtitle": "Liv Hospital Group"
+          },
+          {
+            "name": "Anadolu Medical Center",
+            "subtitle": "Anadolu Medical Center"
+          }
         ]
       },
       "testimonials": {
@@ -2532,10 +2551,30 @@
         "title": "Patient reviews after their treatment journey",
         "subtitle": "We're proud to serve patients from Saudi Arabia, the Gulf states and the wider Arab world.",
         "items": [
-          { "tag": "DHI hair transplant", "quote": "An excellent experience with very precise coordination from the moment I arrived at the airport. The professionalism and price transparency impressed me the most.", "name": "Mr. Abdullah Al-Otaibi", "location": "Riyadh, Saudi Arabia" },
-          { "tag": "Hollywood smile", "quote": "The medical interpreter was with me every step of the way at the hospital and clinic. The doctor was an excellent professor and the VIP transfer was comfortable.", "name": "Eng. Khaled Al-Muhannadi", "location": "Doha, Qatar" },
-          { "tag": "Gastric sleeve", "quote": "I was hesitant at first, but Rafiq's medical advice and choice of hospital were decisive. The follow-up after the operation at the hotel was very reassuring.", "name": "Dr. Sara Al-Shammari", "location": "Kuwait City" },
-          { "tag": "Vision correction", "quote": "The procedure took only 10 minutes and I came out seeing perfectly clearly without glasses. Fast, professional scheduling with no complications at all.", "name": "Mr. Faisal Al-Kaabi", "location": "Abu Dhabi, UAE" }
+          {
+            "tag": "DHI hair transplant",
+            "quote": "An excellent experience with very precise coordination from the moment I arrived at the airport. The professionalism and price transparency impressed me the most.",
+            "name": "Mr. Abdullah Al-Otaibi",
+            "location": "Riyadh, Saudi Arabia"
+          },
+          {
+            "tag": "Hollywood smile",
+            "quote": "The medical interpreter was with me every step of the way at the hospital and clinic. The doctor was an excellent professor and the VIP transfer was comfortable.",
+            "name": "Eng. Khaled Al-Muhannadi",
+            "location": "Doha, Qatar"
+          },
+          {
+            "tag": "Gastric sleeve",
+            "quote": "I was hesitant at first, but Rafiq's medical advice and choice of hospital were decisive. The follow-up after the operation at the hotel was very reassuring.",
+            "name": "Dr. Sara Al-Shammari",
+            "location": "Kuwait City"
+          },
+          {
+            "tag": "Vision correction",
+            "quote": "The procedure took only 10 minutes and I came out seeing perfectly clearly without glasses. Fast, professional scheduling with no complications at all.",
+            "name": "Mr. Faisal Al-Kaabi",
+            "location": "Abu Dhabi, UAE"
+          }
         ]
       },
       "faq": {
@@ -2543,21 +2582,48 @@
         "subtitle": "Here are detailed answers to the most common questions about medical coordination and treatment services in Istanbul with Rafiq.",
         "searchPlaceholder": "Search the FAQ...",
         "items": [
-          { "q": "Do you offer free consultations to patients?", "a": "Yes, all medical coordination services, consultations and report reviews are 100% free for the patient. Payment is made directly to the hospital's official cashier on arrival, with no hidden fees." },
-          { "q": "What if I have multiple specialties or medical conditions?", "a": "Our medical consultant coordinates an integrated schedule that combines examinations and procedures within the same period, with full attention to safety and comfort during your stay in Istanbul." },
-          { "q": "Are there any hidden fees or additional costs?", "a": "There are absolutely no hidden fees. You receive an official invoice issued directly by the hospital at the same advertised price, with no increase to your budget." },
-          { "q": "How long does it take to prepare a treatment plan and confirm a booking?", "a": "Once you provide your medical reports, our consulting team sends you 3 comparative price offers within 24 to 48 hours." },
-          { "q": "What does the Rafiq platform offer in full to the patient?", "a": "We manage your entire treatment journey: choosing a JCI-accredited hospital, booking appointments with professor doctors, airport reception and a VIP car, medical translation, in-hotel nursing, and medical follow-up for a year after your return." },
-          { "q": "What payment methods are available in Istanbul?", "a": "Payment is made directly at the hospital's cashier upon your arrival, either in cash (USD or EUR) or via international bank cards (Mastercard / Visa)." },
-          { "q": "Can I start and use WhatsApp for direct contact?", "a": "Yes, you can start right away by contacting us via the direct WhatsApp button to send your reports and get a quick reply from your medical consultant." }
+          {
+            "q": "Do you offer free consultations to patients?",
+            "a": "Yes, all medical coordination services, consultations and report reviews are 100% free for the patient. Payment is made directly to the hospital's official cashier on arrival, with no hidden fees."
+          },
+          {
+            "q": "What if I have multiple specialties or medical conditions?",
+            "a": "Our medical consultant coordinates an integrated schedule that combines examinations and procedures within the same period, with full attention to safety and comfort during your stay in Istanbul."
+          },
+          {
+            "q": "Are there any hidden fees or additional costs?",
+            "a": "There are absolutely no hidden fees. You receive an official invoice issued directly by the hospital at the same advertised price, with no increase to your budget."
+          },
+          {
+            "q": "How long does it take to prepare a treatment plan and confirm a booking?",
+            "a": "Once you provide your medical reports, our consulting team sends you 3 comparative price offers within 24 to 48 hours."
+          },
+          {
+            "q": "What does the Rafiq platform offer in full to the patient?",
+            "a": "We manage your entire treatment journey: choosing a JCI-accredited hospital, booking appointments with professor doctors, airport reception and a VIP car, medical translation, in-hotel nursing, and medical follow-up for a year after your return."
+          },
+          {
+            "q": "What payment methods are available in Istanbul?",
+            "a": "Payment is made directly at the hospital's cashier upon your arrival, either in cash (USD or EUR) or via international bank cards (Mastercard / Visa)."
+          },
+          {
+            "q": "Can I start and use WhatsApp for direct contact?",
+            "a": "Yes, you can start right away by contacting us via the direct WhatsApp button to send your reports and get a quick reply from your medical consultant."
+          }
         ]
       },
       "form": {
         "badge": "Request a quote and consultation",
         "title": "Request your price offer and treatment plan now",
         "subtitle": "Enter your details and our medical consultant will identify the best options and hospitals suited to your case.",
-        "name": { "label": "Full name", "placeholder": "Name as it appears on your passport" },
-        "phone": { "label": "WhatsApp number with country code", "placeholder": "00966501234567" },
+        "name": {
+          "label": "Full name",
+          "placeholder": "Name as it appears on your passport"
+        },
+        "phone": {
+          "label": "WhatsApp number with country code",
+          "placeholder": "00966501234567"
+        },
         "specialty": {
           "label": "Required medical specialty",
           "placeholder": "Choose the specialty you need...",
@@ -2577,7 +2643,10 @@
           "hint": "Supports PDF, PNG, JPG, DOCX",
           "chooseFile": "Choose file"
         },
-        "notes": { "label": "Additional notes or questions", "placeholder": "Write any questions about timing or your medical condition..." },
+        "notes": {
+          "label": "Additional notes or questions",
+          "placeholder": "Write any questions about timing or your medical condition..."
+        },
         "submit": "Send request and get a price plan",
         "sending": "Sending...",
         "privacyNote": "All medical information is encrypted and kept strictly confidential.",

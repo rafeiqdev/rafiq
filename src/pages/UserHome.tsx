@@ -30,14 +30,12 @@ const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 
 // Direct, always-visible links to the main service categories — the guest
 // homepage has this row; UserHome never did, so signed-in users had no way
-// to reach real estate / health tourism / hub / districts except the
+// to reach real estate / health tourism except the
 // header's services dropdown. See home.quickLinks.* for copy.
 const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
   { to: '/real-estate', icon: 'building', key: 'realEstate' },
   { to: '/services', icon: 'layers', key: 'allServices' },
   { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
-  { to: '/hub', icon: 'compass', key: 'hub' },
-  { to: '/hub/districts', icon: 'map-pin', key: 'districts' },
 ];
 
 /** Icons for the onboarding-answer chips, by journey task key. */
@@ -48,9 +46,10 @@ const HAS_ICONS: Record<JourneyTaskKey, IconName> = {
   bankAccount: 'landmark',
 };
 
-/** Neutral card for the authenticated product surface (white + hairline). */
+/** Neutral card for the authenticated product surface — uses the shared `.card` token
+    so the signed-in dashboard matches quick links, BlockCard, and the rest of the app. */
 function Panel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-gray-200 bg-white p-5 ${className}`}>{children}</section>;
+  return <section className={`card p-5 ${className}`}>{children}</section>;
 }
 
 /**
@@ -75,7 +74,7 @@ function InvitePanel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-dashed border-navy/25 bg-white/50 p-5 ${className}`}>
+    <section className={`card border-dashed border-navy/25 bg-white/50 p-5 ${className}`}>
       <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-cream-dark text-navy/70">
         <AppIcon name={icon} className="w-5 h-5" />
       </span>
@@ -105,7 +104,7 @@ function StateCard({
 }) {
   return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
-      <div className="rounded-2xl border border-gray-200 bg-white p-8">
+      <div className="card p-8">
         <span className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-brand-blue text-navy">
           <AppIcon name={icon} className="w-6 h-6" />
         </span>
@@ -163,10 +162,10 @@ function RoadRow({
   const { t } = useTranslation();
   const done = item.status === 'done';
   return (
-    <li className={`flex items-center gap-3 py-3 border-t border-gray-100 first:border-t-0 ${done || isNext ? '' : 'opacity-60'}`}>
+    <li className={`flex items-center gap-3 py-3 border-t border-cream-dark first:border-t-0 ${done || isNext ? '' : 'opacity-60'}`}>
       <span
         className={`flex items-center justify-center w-6 h-6 rounded-full shrink-0 text-[11px] font-bold tabular-nums ${
-          done || isNext ? 'bg-navy text-white' : 'border-2 border-gray-200 text-gray-400'
+          done || isNext ? 'bg-navy text-white' : 'border-2 border-cream-dark text-navy/40'
         }`}
         aria-hidden
       >
@@ -365,16 +364,16 @@ export function UserHome() {
 
       {/* ── proof that the onboarding answers produced something ── */}
       {hasRecap && (
-        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-gray-100 bg-navy/[0.03] px-4 py-3">
+        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-card border border-cream-dark bg-navy/[0.03] px-4 py-3">
           <AppIcon name="sparkles" className="w-4 h-4 text-navy/40 shrink-0" aria-hidden />
-          <span className="text-xs font-semibold text-gray-500">{t('dash.recapTitle')}</span>
+          <span className="text-xs font-semibold text-navy/60">{t('dash.recapTitle')}</span>
           {situationLabel && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-navy">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
               {situationLabel}
             </span>
           )}
           {cityLabel && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-navy">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
               <AppIcon name="map-pin" className="w-3.5 h-3.5" aria-hidden />
               {cityLabel}
             </span>
@@ -396,7 +395,7 @@ export function UserHome() {
 
       {/* ── the single next action ── */}
       {next && (
-        <section className="relative mt-4 overflow-hidden rounded-2xl bg-navy p-6 text-white">
+        <section className="relative mt-4 overflow-hidden rounded-card bg-navy p-6 text-white">
           <span
             className="pointer-events-none absolute -top-24 -end-20 h-72 w-72 rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(255,255,255,.09), transparent 62%)' }}
@@ -483,8 +482,8 @@ export function UserHome() {
         <h2 className="font-extrabold text-navy">{t('dash.whatNowTitle')}</h2>
         <ul className="mt-3 flex flex-col">
           {NEXT_ROWS.map((k) => (
-            <li key={k} className="flex gap-4 py-3 border-t border-gray-100 first:border-t-0">
-              <span className="w-20 shrink-0 text-xs font-semibold text-gray-400 pt-0.5">
+            <li key={k} className="flex gap-4 py-3 border-t border-cream-dark first:border-t-0">
+              <span className="w-20 shrink-0 text-xs font-semibold text-navy/40 pt-0.5">
                 {t(`dash.whatNow.${k}.when`)}
               </span>
               <span className="min-w-0">
@@ -509,7 +508,7 @@ export function UserHome() {
                     ? 'border-brand-red/40 bg-brand-red/5'
                     : r.days <= 30
                       ? 'border-amber-300 bg-amber-50'
-                      : 'border-gray-200 bg-white'
+                      : 'border-cream-dark bg-white'
                 }`}
               >
                 <AppIcon name={r.days <= 30 ? 'alert-triangle' : 'calendar'} className="w-4 h-4 shrink-0 text-navy/60" />
@@ -547,7 +546,7 @@ export function UserHome() {
             </div>
             <ul className="mt-3 flex flex-col gap-2">
               {docs.slice(0, 3).map((d) => (
-                <li key={d.id} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+                <li key={d.id} className="flex items-center gap-3 rounded-xl border border-cream-dark bg-white px-3 py-2.5">
                   <AppIcon name="file-text" className="w-4 h-4 shrink-0 text-navy/60" />
                   <span className="flex-1 min-w-0 text-sm font-semibold text-navy truncate">{d.name}</span>
                 </li>
@@ -587,7 +586,7 @@ export function UserHome() {
           <h2 className="font-extrabold text-navy">{t('dash.bookingsTitle')}</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {myBookings.map((b) => (
-              <li key={b.id} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+              <li key={b.id} className="flex items-center gap-3 rounded-xl border border-cream-dark bg-white px-3 py-2.5">
                 <AppIcon name="calendar" className="w-4 h-4 shrink-0 text-navy/60" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-navy truncate">{shortSummary(b.problemSummary)}</p>
@@ -614,7 +613,7 @@ export function UserHome() {
           </div>
           <ul className="mt-3 flex flex-col gap-2">
             {notifs.map((n) => (
-              <li key={n.id} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+              <li key={n.id} className="flex items-start gap-3 rounded-xl border border-cream-dark bg-white px-3 py-2.5">
                 <span className="mt-1.5 w-2 h-2 rounded-full bg-brand-red shrink-0" aria-hidden />
                 <p className="flex-1 min-w-0 text-sm text-navy break-words">
                   {n.key === 'custom' ? n.customText : t(`notifications.${n.key}.title`)}
@@ -633,7 +632,7 @@ export function UserHome() {
               <li key={s.id}>
                 <Link
                   to={`/services?q=${encodeURIComponent(pickText(s.title, lang))}`}
-                  className="block h-full rounded-xl border border-gray-200 bg-white p-3 hover:border-navy/40 transition-colors"
+                  className="block h-full rounded-xl border border-cream-dark bg-white p-3 hover:border-navy/40 transition-colors"
                 >
                   <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-blue text-navy">
                     <AppIcon name={s.icon} className="w-4 h-4" />
@@ -645,14 +644,6 @@ export function UserHome() {
           </ul>
         </Panel>
       )}
-
-      <Panel className="mt-4">
-        <h2 className="font-extrabold text-navy">{t('dash.guides')}</h2>
-        <Link to="/hub" className="btn-secondary mt-3 min-h-[44px]">
-          {t('nav.hub')}
-          <DirArrow />
-        </Link>
-      </Panel>
 
       {/* real-estate entry point — was missing here entirely, so signed-in
           users never saw the listings/investments rail that guests get on

@@ -77,7 +77,6 @@ export const EXPLORE_PHOTOS: Record<string, string> = {
   '/real-estate': U('1545324418-cc1a3fa10c00', 800), // apartment building
   '/health-tourism': U('1538108149393-fbbd81895907', 800), // hospital
   '/map': U('1527838832700-5059252407fa', 800), // Bosphorus
-  '/hub': U('1532012197267-da84d127e765', 800), // books / guides
   '/referrals': U('1521737604893-d14cc237f11d', 800), // people / meeting
 };
 

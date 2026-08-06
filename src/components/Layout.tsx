@@ -20,7 +20,7 @@ import { ConsentBanner } from './ConsentBanner';
 // footer chrome entirely for these so the mobile screen isn't sandwiched
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
-const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/real-estate', '/health-tourism', '/tricks', '/hub', '/profile', '/requests', '/notifications']);
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/real-estate', '/health-tourism', '/tricks', '/profile', '/requests', '/notifications']);
 
 // Dropping the desktop chrome on phones also dropped the footer, so the terms /
 // privacy / refund block and the language switcher were unreachable from every
@@ -31,7 +31,6 @@ const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/
 const MOBILE_FOOTER_ROUTES = new Set([
   '/',
   '/services',
-  '/hub',
   '/tricks',
   '/real-estate',
   '/health-tourism',
@@ -52,9 +51,9 @@ interface NavItem {
 // already lives on Home + Profile. Smart.tsx / MobileSmart.tsx are kept on disk
 // (unrouted) because the profile-completeness ring may be reused later.
 //
-// P-simplify1: main bar trimmed from 5 to 4 items. "الدليل" (/hub) moved into
-// the "استكشف/الخدمات" dropdown below so it isn't a separate top-level item —
-// one grouped menu instead of two parallel navigation surfaces.
+// P-simplify1: main bar trimmed from 5 to 4 items — grouped into the
+// "استكشف/الخدمات" dropdown below instead of parallel top-level nav items.
+// The "الأدلة" (/hub) guide center has since been removed entirely.
 const NAV: NavItem[] = [
   { to: '/', key: 'nav.home', icon: 'home' },
   { to: '/premium', key: 'nav.premium', icon: 'message-circle' },
@@ -63,7 +62,6 @@ const NAV: NavItem[] = [
 
 const SERVICE_LINKS: NavItem[] = [
   { to: '/services', key: 'nav.allServices', icon: 'layers' },
-  { to: '/hub', key: 'nav.hub', icon: 'compass' },
   { to: '/tricks', key: 'nav.tricks', icon: 'lightbulb' },
   { to: '/real-estate', key: 'nav.realEstate', icon: 'building' },
   { to: '/health-tourism', key: 'nav.health', icon: 'heart-pulse' },
@@ -170,13 +168,11 @@ export function Layout() {
   const hideChrome =
     isMobile &&
     (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
-      location.pathname.startsWith('/services/') ||
-      location.pathname.startsWith('/hub/'));
+      location.pathname.startsWith('/services/'));
   const showMobileFooter =
     hideChrome &&
     (MOBILE_FOOTER_ROUTES.has(location.pathname) ||
-      location.pathname.startsWith('/services/') ||
-      location.pathname.startsWith('/hub/'));
+      location.pathname.startsWith('/services/'));
   const [menuOpen, setMenuOpen] = useState(false);
   const [newBookings, setNewBookings] = useState(0);
   const [newRequests, setNewRequests] = useState(0);
