@@ -1,52 +1,53 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePageMeta, SITE_URL } from '../../lib/seo';
 import { AppIcon } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { useMedicalLeadForm, WA_ENABLED, humanFileSize } from '../healthTourism/useMedicalLeadForm';
+import type { SpecialtyChip } from '../healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from '../healthTourism/useAutoCarousel';
+import { useSnapCarousel } from '../healthTourism/useSnapCarousel';
 import { BEFORE_AFTER_IMAGES } from '../healthTourism/beforeAfterSlides';
 
 /**
- * /health-tourism landing page — phone viewport. Card/snap-scroll layout,
- * distinct from the desktop arrow-scroll carousels in ../HealthTourism.tsx.
- * Shares its lead-form/WhatsApp/carousel logic with the desktop page via
- * ../healthTourism/* so the two layouts can never submit a request differently.
+ * /health-tourism landing page — phone viewport. This is a 1:1 port of the
+ * client-provided mobile/index.html mockup (structure, copy, order, colors),
+ * NOT a redesign — see src/i18n/locales/*.json under
+ * `medical.landing.mobile.*` for the exact copy, transcribed from the
+ * mockup. The mockup itself has no header/footer chrome or bottom nav (it
+ * was built to "embed seamlessly into the main app layout"); the app's
+ * MobileTabBar is kept since every other mobile page in this app has one and
+ * this route otherwise has no way back to the rest of the app. The only
+ * functional addition is wiring the form to medicalRequests.create()
+ * (the app's usual pattern) instead of the mockup's WhatsApp-only
+ * submission; WhatsApp is kept as the success sheet's own "done" action,
+ * exactly as the mockup already does.
  */
 
-const SPECIALTY_SLUGS = ['hair', 'dental', 'bariatric', 'vision', 'checkup', 'cardiology'] as const;
+const SPECIALTY_SLUGS = ['hair', 'dental', 'bariatric', 'eye', 'cosmetic'] as const;
 type SpecialtySlug = (typeof SPECIALTY_SLUGS)[number];
 
-const SPECIALTY_IMAGES: Record<SpecialtySlug, string> = {
-  hair: '/img/health-tourism/hair_transplant.jpg',
-  dental: '/img/health-tourism/dental_smile.jpg',
-  bariatric: '/img/health-tourism/bariatric_1551076805.jpg',
-  vision: '/img/health-tourism/vision_1579684385127.jpg',
-  checkup: '/img/health-tourism/checkup_1584515979956.jpg',
-  cardiology: '/img/health-tourism/cardiology_1628348068343.jpg',
-};
-
-const LOGISTICS_ICONS: Array<'car' | 'building' | 'message-circle'> = ['car', 'building', 'message-circle'];
-
 interface SpecialtyCopy {
-  slug: string;
-  badge: string;
-  priceFrom: string;
+  slug: SpecialtySlug;
   title: string;
   description: string;
-  bullets: string[];
+  image: string;
 }
 interface HowStep {
   title: string;
   body: string;
 }
 interface LogisticsCard {
+  icon: 'car' | 'hotel' | 'languages';
   title: string;
   description: string;
+  tag: string;
+  availabilityLabel: string;
+  availabilityValue: string;
+  cta: string;
 }
 interface TestimonialCopy {
-  tag: string;
+  initials: string;
   quote: string;
   name: string;
   location: string;
@@ -59,21 +60,15 @@ interface HeroSlideCopy {
   title: string;
 }
 
-function SectionHeading({ badge, title, subtitle }: { badge?: string; title: string; subtitle?: string }) {
-  return (
-    <div className="text-center space-y-1.5 mb-4 px-1">
-      {badge && (
-        <span className="inline-block px-3 py-1 rounded-full bg-navy-50 text-navy text-[11px] font-bold tracking-wide">{badge}</span>
-      )}
-      <h2 className="text-lg font-extrabold text-slate-900 font-tajawal leading-snug">{title}</h2>
-      {subtitle && <p className="text-[11px] text-slate-500 leading-relaxed px-2">{subtitle}</p>}
-    </div>
-  );
-}
+const HOW_STYLES = [
+  { circle: 'bg-orange-50 text-orange-500 border-orange-200', icon: 'search' as const, shape: 'rounded-r-3xl rounded-l-full', dir: 'ltr' as const },
+  { circle: 'bg-rose-50 text-rose-500 border-rose-200', icon: 'file-text' as const, shape: 'rounded-l-3xl rounded-r-full', dir: 'rtl' as const },
+  { circle: 'bg-purple-50 text-purple-600 border-purple-200', icon: 'briefcase' as const, shape: 'rounded-r-3xl rounded-l-full', dir: 'ltr' as const },
+  { circle: 'bg-blue-50 text-blue-600 border-blue-200', icon: 'bar-chart-2' as const, shape: 'rounded-l-3xl rounded-r-full', dir: 'rtl' as const },
+];
 
 export function MobileHealthTourism() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -84,328 +79,352 @@ export function MobileHealthTourism() {
     image: `${SITE_URL}${BEFORE_AFTER_IMAGES[0]}`,
   });
 
-  const specialtyItems = t('medical.landing.specialties.items', { returnObjects: true }) as SpecialtyCopy[];
+  const M = 'medical.landing.mobile';
+  const specialtyItems = t(`${M}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
   const howSteps = t('medical.landing.how.steps', { returnObjects: true }) as HowStep[];
-  const logisticsCards = t('medical.landing.logistics.cards', { returnObjects: true }) as LogisticsCard[];
-  const testimonialItems = t('medical.landing.testimonials.items', { returnObjects: true }) as TestimonialCopy[];
-  const faqItems = t('medical.landing.faq.items', { returnObjects: true }) as FaqCopy[];
+  const logisticsCards = t(`${M}.logistics.cards`, { returnObjects: true }) as LogisticsCard[];
+  const testimonialItems = t(`${M}.testimonials.items`, { returnObjects: true }) as TestimonialCopy[];
+  const faqItems = t(`${M}.faq.items`, { returnObjects: true }) as FaqCopy[];
   const heroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
+  const beforeLabel = t('medical.landing.heroBeforeAfter.beforeLabel');
+  const afterLabel = t('medical.landing.heroBeforeAfter.afterLabel');
 
   const hero = useAutoCarousel(BEFORE_AFTER_IMAGES.length, 3000);
+  const specialtiesCarousel = useSnapCarousel(specialtyItems.length, 3200);
+  const logisticsCarousel = useSnapCarousel(logisticsCards.length, 3500);
+  const testimonialsCarousel = useSnapCarousel(testimonialItems.length, 3800);
 
-  const form = useMedicalLeadForm();
-  const scrollToForm = (slug?: string) => {
-    if (slug) form.selectSpecialty(slug);
-    document.getElementById('mobile-lead-form')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const chips: SpecialtyChip[] = (t(`${M}.form.specialtyChips`, { returnObjects: true }) as string[]).map((label, i) => ({
+    slug: SPECIALTY_SLUGS[i] ?? label,
+    label,
+  }));
+  const form = useMedicalLeadForm(chips);
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
-      <div className={`pb-[calc(env(safe-area-inset-bottom)+84px)] transition-all duration-300 ${form.successOpen ? 'blur-md scale-[0.98] brightness-90' : ''}`}>
-        {/* ==================== HEADER ==================== */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 bg-cream/90 backdrop-blur px-4 py-3 border-b border-slate-200/70">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label={t('common.back')}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-navy border border-slate-200"
-          >
-            <AppIcon name="arrow-left" className={`h-4.5 w-4.5 ${isRTL ? 'rotate-180' : ''}`} />
-          </button>
-          <h1 className="text-sm font-extrabold text-slate-900 truncate">{t('medical.seo.title')}</h1>
-        </div>
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50">
+      <div className={`pb-[calc(env(safe-area-inset-bottom)+80px)] transition-all duration-500 ${form.successOpen ? 'blur-md scale-[0.98] brightness-90' : ''}`}>
+        {/* ==================== HERO ==================== */}
+        <section className="relative overflow-hidden rounded-b-[36px] shadow-2xl mb-6 bg-slate-950 text-white p-4 pt-6 pb-6 border-b border-slate-800">
+          <div className="text-center space-y-1.5 mb-4">
+            <h1 className="text-xl font-black text-white font-sans tracking-tight pt-1">{t(`${M}.hero.title`)}</h1>
+            <p className="text-xs text-slate-400 font-medium">{t(`${M}.hero.subtitle`)}</p>
+          </div>
 
-        {/* ==================== HERO: BEFORE/AFTER CAROUSEL ==================== */}
-        <section className="px-4 pt-4">
           <div
-            className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-800"
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar max-w-sm mx-auto rounded-3xl select-none"
             onTouchStart={hero.pause}
             onTouchEnd={hero.resume}
           >
             {BEFORE_AFTER_IMAGES.map((src, i) => (
-              <img
+              <div
                 key={src}
-                src={src}
-                alt={heroSlides[i]?.title ?? ''}
-                loading={i === 0 ? 'eager' : 'lazy'}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${i === hero.index ? 'opacity-100' : 'opacity-0'}`}
-              />
-            ))}
-
-            {/* Fixed physical placement — labels a before/after photo crop, not text flow. */}
-            <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-900/90 text-white text-[10px] font-bold z-10">
-              {t('medical.landing.heroBeforeAfter.beforeLabel')}
-            </span>
-            <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-bold z-10">
-              {t('medical.landing.heroBeforeAfter.afterLabel')}
-            </span>
-
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-4 pt-10 z-10">
-              <p className="text-xs font-bold text-white leading-snug">{heroSlides[hero.index]?.title}</p>
-              <div className="flex items-center gap-1.5 pt-2.5">
-                {BEFORE_AFTER_IMAGES.map((src, i) => (
-                  <button
-                    key={src}
-                    type="button"
-                    aria-label={`slide-${i}`}
-                    onClick={() => hero.goTo(i)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${i === hero.index ? 'w-5 bg-white' : 'w-1.5 bg-white/40'}`}
-                  />
-                ))}
+                className={`snap-start min-w-full w-full h-[220px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900 ${i === hero.index ? '' : 'hidden'}`}
+              >
+                <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-cover" />
+                <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
+                  <AppIcon name="check-circle" className="w-3 h-3 text-white" />
+                  <span>{afterLabel}</span>
+                </div>
+                <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-white/20 shadow-md flex items-center gap-1">
+                  <AppIcon name="history" className="w-3 h-3 text-slate-400" />
+                  <span>{beforeLabel}</span>
+                </div>
+                <div className="absolute bottom-3 inset-x-3 bg-slate-950/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-xl border border-white/10 text-center">
+                  {heroSlides[i]?.title}
+                </div>
+                <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
+                  <div className="w-6 h-6 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-[9px] font-black border border-slate-200">
+                    <AppIcon name="arrow-left-right" className="w-3 h-3 text-slate-900" />
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
 
-          <div className="mt-4 text-center space-y-2">
-            <h2 className="text-xl font-black text-slate-900 font-tajawal leading-tight">
-              {t('medical.landing.hero.title')}
-              <br />
-              {t('medical.landing.hero.titleLine2')}
-            </h2>
-            <p className="text-xs text-slate-500 leading-relaxed">{t('medical.landing.hero.subtitleLine1')}</p>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={() => scrollToForm()}
-              className="w-full py-3.5 rounded-2xl bg-navy text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2"
-            >
-              <span>{t('medical.landing.hero.card.cta')}</span>
-              <AppIcon name="arrow-left" className={`h-4 w-4 ${isRTL ? '' : 'rotate-180'}`} />
-            </button>
+          <div className="pt-4 text-center max-w-sm mx-auto">
             <a
-              href="#mobile-specialties"
-              className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-navy font-bold text-xs text-center"
+              href="#mobile-lead-form"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white font-black text-sm text-center flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/30 border border-emerald-400/30 active:scale-95 hover:brightness-110 transition-all group cursor-pointer"
             >
-              {t('medical.landing.hero.ctaSpecialties')}
+              <span className="text-sm font-black tracking-wide">{t(`${M}.hero.cta`)}</span>
+              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform">
+                <AppIcon name="arrow-left" className={`w-4 h-4 text-white stroke-[3] ${isRTL ? '' : 'rotate-180'}`} />
+              </span>
             </a>
           </div>
         </section>
 
         {/* ==================== SPECIALTIES ==================== */}
-        <section id="mobile-specialties" className="mt-8 px-4">
-          <SectionHeading
-            badge={t('medical.landing.specialties.badge')}
-            title={t('medical.landing.specialties.title')}
-            subtitle={t('medical.landing.specialties.subtitle')}
-          />
-          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 pb-2 no-scrollbar">
+        <section className="py-6 bg-slate-50 border-y border-slate-200/80 mb-6">
+          <div className="px-6 text-center mb-5">
+            <h2 className="text-2xl font-black text-slate-900 font-sans tracking-tight">{t(`${M}.specialties.title`)}</h2>
+          </div>
+
+          <div ref={specialtiesCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 pb-4">
             {specialtyItems.map((item) => (
               <div
                 key={item.slug}
-                className="snap-start shrink-0 w-[72vw] max-w-[280px] bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col"
+                onTouchStart={specialtiesCarousel.pause}
+                onTouchEnd={specialtiesCarousel.resume}
+                className="snap-start min-w-[82vw] max-w-[320px] h-[410px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 shrink-0 group bg-slate-900"
               >
-                <div className="relative h-32 bg-slate-800">
-                  <img src={SPECIALTY_IMAGES[item.slug as SpecialtySlug]} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-                  <span className="absolute top-2.5 start-2.5 px-2 py-0.5 rounded-md bg-slate-900/90 text-white text-[10px] font-bold">{item.badge}</span>
-                  <span className="absolute bottom-2.5 end-2.5 px-2 py-0.5 rounded-md bg-emerald-700 text-white text-[10px] font-bold">{item.priceFrom}</span>
-                </div>
-                <div className="p-3.5 space-y-2 flex-1">
-                  <h3 className="text-[13px] font-bold text-slate-900">{item.title}</h3>
-                  <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">{item.description}</p>
-                </div>
-                <div className="p-3.5 pt-0">
-                  <button
-                    type="button"
-                    onClick={() => scrollToForm(item.slug)}
-                    className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-800 text-[11px] font-bold"
-                  >
-                    {t('medical.landing.specialties.ctaQuote')}
-                  </button>
+                <img src={`/img/health-tourism/${item.image}`} alt={item.title} className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-5 flex flex-col justify-end text-white space-y-2">
+                  <h3 className="text-xl font-black text-white font-sans drop-shadow-md">{item.title}</h3>
+                  <p className="text-xs text-slate-200 font-medium leading-relaxed">{item.description}</p>
+                  <div className="pt-2">
+                    <a
+                      href="#mobile-lead-form"
+                      onClick={() => form.setFormSpecialty(item.slug)}
+                      className="w-full py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-950 text-xs font-black text-center block shadow-lg active:scale-95 transition"
+                    >
+                      {t(`${M}.specialties.ctaQuote`)} <AppIcon name="arrow-left" className={`w-4 h-4 inline ms-1 ${isRTL ? '' : 'rotate-180'}`} />
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </section>
 
-        {/* ==================== HOW IT WORKS (4-step pipeline) ==================== */}
-        <section className="mt-8 px-4">
-          <SectionHeading badge={t('medical.landing.how.badge')} title={t('medical.landing.how.title')} subtitle={t('medical.landing.how.subtitle')} />
-          <div className="space-y-2.5">
-            {howSteps.map((step, i) => (
-              <div key={step.title} className="flex items-start gap-3 bg-white rounded-2xl border border-slate-200 p-3.5">
-                <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-xl text-white font-extrabold text-xs flex items-center justify-center ${i === howSteps.length - 1 ? 'bg-emerald-700' : 'bg-navy'}`}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-[13px] font-bold text-slate-900">{step.title}</h3>
-                  <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{step.body}</p>
-                </div>
-              </div>
+          <div className="flex items-center justify-center gap-1.5 pt-1">
+            {specialtyItems.map((item, i) => (
+              <span key={item.slug} className={`rounded-full inline-block ${i === specialtiesCarousel.index ? 'w-2.5 h-2.5 bg-slate-900 shadow-sm' : 'w-2 h-2 bg-slate-300'}`} />
             ))}
           </div>
         </section>
 
-        {/* ==================== VIP LOGISTICS ==================== */}
-        <section className="mt-8 px-4">
-          <SectionHeading badge={t('medical.landing.logistics.badge')} title={t('medical.landing.logistics.title')} subtitle={t('medical.landing.logistics.subtitle')} />
-          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 pb-2 no-scrollbar">
-            {logisticsCards.map((card, i) => (
-              <div key={card.title} className="snap-start shrink-0 w-[68vw] max-w-[240px] bg-white rounded-2xl border border-slate-200 p-4 space-y-2.5">
-                <div className="w-10 h-10 rounded-xl bg-navy-50 text-navy flex items-center justify-center">
-                  <AppIcon name={LOGISTICS_ICONS[i]} className="w-5 h-5" />
+        {/* ==================== HOW IT WORKS: SNAKE INFOGRAPHIC ==================== */}
+        <section className="px-4 py-6 mb-6">
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-black text-slate-900 font-sans">{t('medical.landing.how.title')}</h2>
+          </div>
+
+          <div className="relative max-w-sm mx-auto space-y-5 px-2">
+            <div className="flex justify-center -mb-2">
+              <div className="w-6 h-6 rounded-full border-4 border-slate-700 bg-white shadow-sm" />
+            </div>
+
+            {howSteps.map((step, i) => {
+              const style = HOW_STYLES[i];
+              const numberFirst = style.dir === 'ltr';
+              return (
+                <div key={step.title} className={`relative bg-white p-3.5 border-2 border-slate-700 shadow-md flex items-center gap-3 ${style.shape}`}>
+                  {numberFirst ? (
+                    <div className={`w-12 h-12 rounded-full font-black text-3xl flex items-center justify-center shrink-0 border ${style.circle}`}>{i + 1}</div>
+                  ) : (
+                    <div className="text-slate-400 shrink-0">
+                      <AppIcon name={style.icon} className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className={`flex-1 min-w-0 ${numberFirst ? '' : 'text-end'}`}>
+                    <h3 className="text-xs font-black text-slate-900 font-sans">{step.title}</h3>
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{step.body}</p>
+                  </div>
+                  {numberFirst ? (
+                    <div className="text-slate-400 shrink-0">
+                      <AppIcon name={style.icon} className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    <div className={`w-12 h-12 rounded-full font-black text-3xl flex items-center justify-center shrink-0 border ${style.circle}`}>{i + 1}</div>
+                  )}
                 </div>
-                <h3 className="text-[13px] font-bold text-slate-900">{card.title}</h3>
-                <p className="text-[11px] text-slate-500 leading-relaxed">{card.description}</p>
+              );
+            })}
+
+            <div className="flex justify-center pt-2">
+              <AppIcon name="arrow-left" className="w-6 h-6 text-slate-700 stroke-[3] -rotate-90" />
+            </div>
+          </div>
+        </section>
+
+        {/* ==================== LOGISTICS ==================== */}
+        <section className="bg-[#2563eb] p-4 py-5 rounded-3xl mx-4 mb-6 shadow-xl text-white">
+          <div className="mb-3 text-center">
+            <h2 className="text-lg font-black font-sans text-white">{t(`${M}.logistics.title`)}</h2>
+          </div>
+
+          <div ref={logisticsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-1">
+            {logisticsCards.map((card) => (
+              <div
+                key={card.title}
+                onTouchStart={logisticsCarousel.pause}
+                onTouchEnd={logisticsCarousel.resume}
+                className="snap-start min-w-full w-full relative shrink-0"
+              >
+                <div className="absolute inset-0 bg-white/20 rounded-[24px] transform rotate-[-1.5deg] scale-[0.98]" />
+                <div className="relative bg-white rounded-[24px] p-3.5 shadow-xl text-slate-900 border border-white/60 flex flex-col justify-between h-[180px]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <AppIcon name={card.icon} className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-slate-900 font-sans leading-tight">{card.title}</h3>
+                      <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{card.description}</p>
+                    </div>
+                  </div>
+                  <div className="inline-block px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700 text-center">
+                    {card.tag}
+                  </div>
+                  <div className="border-t border-slate-100 pt-2 flex items-center justify-between">
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 block leading-none">{card.availabilityLabel}</span>
+                      <span className="text-[10px] font-black text-emerald-600">{card.availabilityValue}</span>
+                    </div>
+                    <a href="#mobile-lead-form" className="bg-slate-950 hover:bg-black text-white text-[10px] font-black px-3.5 py-1.5 rounded-full shadow-md active:scale-95 transition">
+                      {card.cta}
+                    </a>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
         {/* ==================== TESTIMONIALS ==================== */}
-        <section className="mt-8 px-4">
-          <SectionHeading
-            badge={t('medical.landing.testimonials.badge')}
-            title={t('medical.landing.testimonials.title')}
-            subtitle={t('medical.landing.testimonials.subtitle')}
-          />
-          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth -mx-4 px-4 pb-2 no-scrollbar">
+        <section className="px-4 py-4 mb-6">
+          <div className="mb-4 text-center">
+            <h2 className="text-xl font-black text-slate-900 font-sans">{t('medical.landing.testimonials.title')}</h2>
+          </div>
+
+          <div ref={testimonialsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-3">
             {testimonialItems.map((item) => (
-              <div key={item.name} className="snap-start shrink-0 w-[78vw] max-w-[300px] bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-navy-50 text-navy">{item.tag}</span>
-                  <div className="flex text-amber-400 text-xs tracking-widest">★★★★★</div>
+              <div
+                key={item.name}
+                onTouchStart={testimonialsCarousel.pause}
+                onTouchEnd={testimonialsCarousel.resume}
+                className="snap-start min-w-full w-full shrink-0 relative bg-white rounded-3xl p-5 shadow-lg border border-slate-200/80"
+              >
+                <div className="absolute top-3 start-4 text-purple-600 text-5xl leading-none opacity-20 font-serif font-black">&rdquo;</div>
+                <div className="relative z-10 space-y-3 mb-4">
+                  <div className="flex items-center text-purple-600 text-sm tracking-widest gap-1 font-bold">★ ★ ★ ★ ★</div>
+                  <p className="text-sm text-slate-800 leading-relaxed font-bold">&quot;{item.quote}&quot;</p>
                 </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed">&quot;{item.quote}&quot;</p>
-                <div className="pt-2 border-t border-slate-100">
-                  <h4 className="text-[12px] font-extrabold text-slate-900">{item.name}</h4>
-                  <span className="text-[10px] text-slate-400 font-medium">{item.location}</span>
+                <div className="pt-4 border-t border-slate-100 flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 font-black text-sm flex items-center justify-center shrink-0">
+                    {item.initials}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900">{item.name}</h4>
+                    <span className="text-xs text-slate-500 font-bold block">{item.location}</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ==================== FAQ ==================== */}
-        <section className="mt-8 px-4">
-          <SectionHeading title={t('medical.landing.faq.title')} subtitle={t('medical.landing.faq.subtitle')} />
-          <div className="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            {faqItems.map((item, i) => {
-              const open = openFaq === i;
-              return (
-                <div key={item.q} className="p-3.5">
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaq(open ? null : i)}
-                    aria-expanded={open}
-                    className="w-full flex items-center justify-between text-start font-bold text-slate-900 text-[13px]"
-                  >
-                    <span className="leading-snug pe-3">{item.q}</span>
-                    <span className="text-lg font-light text-slate-400 flex-shrink-0">{open ? '−' : '+'}</span>
-                  </button>
-                  {open && <p className="pt-2.5 text-[11px] text-slate-500 leading-relaxed">{item.a}</p>}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {/* ==================== LEAD FORM (iOS SHEET) ==================== */}
+        <section id="mobile-lead-form" className="px-4 py-4 mb-8">
+          <div className="bg-white rounded-[32px] p-6 shadow-2xl border border-slate-200/70 relative">
+            <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-4" />
 
-        {/* ==================== LEAD FORM ==================== */}
-        <section id="mobile-lead-form" className="mt-8 px-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4">
-            <div className="text-center space-y-1.5 mb-4">
-              <span className="inline-block px-3 py-1 rounded-full bg-navy-50 text-navy-light text-[11px] font-bold">
-                {t('medical.landing.form.badge')}
-              </span>
-              <h2 className="text-lg font-extrabold text-slate-900 font-tajawal leading-snug">{t('medical.landing.form.title')}</h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-black text-slate-900 font-sans mx-auto">
+                {form.requestType === 'consultation' ? t('medical.landing.form.titleConsult') : t('medical.landing.form.titleEval')}
+              </h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-slate-100 mb-4">
+            <div className="bg-[#f4f4f5] p-1 rounded-full flex max-w-xs mx-auto mb-6">
               {(['consultation', 'evaluation'] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => form.setRequestType(type)}
-                  className={`py-2.5 rounded-xl text-xs font-bold transition ${form.requestType === type ? 'bg-navy text-white shadow' : 'text-slate-600'}`}
+                  className={`w-1/2 py-2 rounded-full text-xs transition-all ${
+                    form.requestType === type ? 'bg-white text-slate-900 font-black shadow-sm' : 'text-slate-500 font-bold'
+                  }`}
                 >
                   {t(`medical.landing.form.requestType.${type}`)}
                 </button>
               ))}
             </div>
 
-            <form onSubmit={form.submitConsultation} className="space-y-3.5">
+            <form onSubmit={form.submitConsultation} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="mht-name" className="block text-[11px] font-bold text-slate-800">
-                  {t('medical.landing.form.name.label')} <span className="text-rose-500">*</span>
+                <label htmlFor="ht-name" className="block text-xs font-extrabold text-slate-500">
+                  {t(`${M}.form.name.label`)} <span className="text-rose-500">*</span>
                 </label>
                 <input
-                  id="mht-name"
+                  id="ht-name"
                   type="text"
                   required
                   value={form.name}
                   onChange={(e) => form.setName(e.target.value)}
-                  placeholder={t('medical.landing.form.name.placeholder')}
-                  className="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-navy-light"
+                  placeholder={t(`${M}.form.name.placeholder`)}
+                  className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-900 transition"
                 />
               </div>
+
               <div className="space-y-1.5">
-                <label htmlFor="mht-phone" className="block text-[11px] font-bold text-slate-800">
-                  {t('medical.landing.form.phone.label')} <span className="text-rose-500">*</span>
+                <label htmlFor="ht-phone" className="block text-xs font-extrabold text-slate-500">
+                  {t(`${M}.form.phone.label`)} <span className="text-rose-500">*</span>
                 </label>
                 <input
-                  id="mht-phone"
+                  id="ht-phone"
                   type="tel"
                   required
                   dir="ltr"
                   value={form.phone}
                   onChange={(e) => form.setPhone(e.target.value)}
-                  placeholder={t('medical.landing.form.phone.placeholder')}
-                  className="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-navy-light"
+                  placeholder={t(`${M}.form.phone.placeholder`)}
+                  className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-900 transition text-end"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold text-slate-800">
-                  {t('medical.landing.form.specialty.label')} <span className="text-rose-500">*</span>
-                </label>
-                <div className={`flex flex-wrap gap-1.5 rounded-2xl p-1 ${form.highlightSpecialty ? 'ring-2 ring-navy-light' : ''}`}>
-                  {SPECIALTY_SLUGS.map((slug) => (
+                <label className="block text-xs font-extrabold text-slate-500">{t(`${M}.form.specialtyLabel`)}</label>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                  {chips.map((chip) => (
                     <button
-                      key={slug}
+                      key={chip.slug}
                       type="button"
-                      onClick={() => form.setFormSpecialty(slug)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border ${
-                        form.formSpecialty === slug ? 'bg-navy text-white border-navy' : 'bg-slate-50 text-slate-700 border-slate-200'
+                      onClick={() => form.setFormSpecialty(chip.slug)}
+                      className={`px-4 py-2 rounded-full text-xs shrink-0 whitespace-nowrap transition-all ${
+                        form.formSpecialty === chip.slug
+                          ? 'font-extrabold bg-slate-900 text-white shadow-sm'
+                          : 'font-bold bg-[#f4f4f5] text-slate-700 border border-slate-200/80 hover:bg-slate-200'
                       }`}
                     >
-                      {t(`medical.landing.form.specialty.options.${slug}`)}
+                      {chip.label}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold text-slate-800">{t('medical.landing.form.files.label')}</label>
-                <button
-                  type="button"
+                <label className="block text-xs font-extrabold text-slate-500">{t(`${M}.form.files.label`)}</label>
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => form.fileInputRef.current?.click()}
-                  className="w-full p-3.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex items-center gap-2.5 text-start"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') form.fileInputRef.current?.click();
+                  }}
+                  className="w-full bg-[#f4f4f5] rounded-2xl p-3.5 text-center cursor-pointer hover:bg-slate-200 transition"
                 >
                   <input
                     ref={form.fileInputRef}
                     type="file"
-                    multiple
                     className="hidden"
                     accept={form.FILE_ACCEPT}
+                    multiple
                     onChange={(e) => {
                       form.addFiles(e.target.files);
                       e.target.value = '';
                     }}
                   />
-                  <AppIcon name="paperclip" className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                  <span className="text-[11px] font-semibold text-slate-600 truncate">{t('medical.landing.form.files.cta')}</span>
-                </button>
+                  <span className={`cursor-pointer text-xs font-extrabold flex items-center justify-center gap-2 ${form.files.length > 0 ? 'text-emerald-600' : 'text-slate-700'}`}>
+                    <AppIcon name="paperclip" className="w-4 h-4 text-slate-500" />
+                    <span>{form.files.length > 0 ? `تم إرفاق ${form.files.length} ملف بنجاح ✓` : t(`${M}.form.files.cta`)}</span>
+                  </span>
+                </div>
                 {form.files.length > 0 && (
                   <div className="space-y-1.5 pt-1">
                     {form.files.map((file, idx) => (
-                      <div key={`${file.name}-${idx}`} className="flex items-center justify-between px-3 py-2 rounded-lg bg-navy-50/60 text-[11px]">
-                        <span className="truncate font-semibold text-slate-800">{file.name} ({humanFileSize(file.size)})</span>
-                        <button type="button" onClick={() => form.removeFile(idx)} className="text-slate-400 font-bold px-1">✕</button>
+                      <div key={`${file.name}-${idx}`} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100 text-[11px]">
+                        <span className="truncate font-semibold text-slate-700">
+                          {file.name} ({humanFileSize(file.size)})
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -413,75 +432,139 @@ export function MobileHealthTourism() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="mht-notes" className="block text-[11px] font-bold text-slate-800">
-                  {t('medical.landing.form.notes.label')}
+                <label htmlFor="ht-notes" className="block text-xs font-extrabold text-slate-500">
+                  {t(`${M}.form.notes.label`)}
                 </label>
                 <textarea
-                  id="mht-notes"
-                  rows={3}
+                  id="ht-notes"
+                  rows={2}
                   value={form.notes}
                   onChange={(e) => form.setNotes(e.target.value)}
-                  placeholder={t('medical.landing.form.notes.placeholder')}
-                  className="w-full px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-navy-light"
+                  placeholder={t(`${M}.form.notes.placeholder`)}
+                  className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-900 transition"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={form.submitting}
-                className="w-full py-3.5 rounded-2xl bg-navy text-white font-bold text-sm shadow-md disabled:opacity-60"
-              >
-                {form.submitting ? t('medical.landing.form.sending') : t('medical.landing.form.submit')}
-              </button>
-              <p className="text-[10px] text-slate-400 text-center">{t('medical.landing.form.privacyNote')}</p>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    form.setName('');
+                    form.setPhone('');
+                    form.setNotes('');
+                    form.setFormSpecialty(chips[0]?.slug ?? '');
+                  }}
+                  className="w-1/3 py-3.5 rounded-full bg-[#f4f4f5] hover:bg-slate-200 active:scale-95 text-slate-700 font-extrabold text-xs text-center transition"
+                >
+                  {t(`${M}.form.reset`)}
+                </button>
+                <button
+                  type="submit"
+                  disabled={form.submitting}
+                  className="w-2/3 py-3.5 rounded-full bg-slate-950 hover:bg-black active:scale-95 text-white font-black text-xs text-center transition shadow-lg disabled:opacity-60"
+                >
+                  {form.submitting ? t('medical.landing.form.sending') : t(`${M}.form.submit`)}
+                </button>
+              </div>
             </form>
           </div>
         </section>
+
+        {/* ==================== FAQ ==================== */}
+        <FaqSection items={faqItems} title={t(`${M}.faq.title`)} />
+
+        {/* ==================== FLOATING WHATSAPP BUTTON ==================== */}
+        {WA_ENABLED && (
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+72px)] left-4 z-40">
+            <a
+              href={`https://wa.me/${(import.meta.env.VITE_WHATSAPP_NUMBER as string).replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-12 h-12 rounded-full bg-emerald-600 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+            >
+              <AppIcon name="message-circle" className="w-6 h-6" />
+            </a>
+          </div>
+        )}
       </div>
 
       {/* ==================== SUCCESS MODAL: iOS bottom sheet ==================== */}
       {form.successOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-slate-900/60" dir={isRTL ? 'rtl' : 'ltr'}>
-          <div className="w-full bg-white rounded-t-[2rem] p-6 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="w-10 h-1.5 mx-auto rounded-full bg-slate-200" />
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
-            <div className="text-center space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-900 font-tajawal">{t('medical.landing.form.successModal.title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {t('medical.landing.form.successModal.body')}
-                <br />
-                <span className="inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-800 font-mono font-bold rounded-md text-xs border border-slate-200">
-                  {form.refCode}
-                </span>
-              </p>
+        <div className="fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-xl flex items-end justify-center p-4" dir={isRTL ? 'rtl' : 'ltr'}>
+          <div className="bg-white rounded-[40px] p-7 pt-9 pb-7 max-w-sm w-full shadow-2xl text-center space-y-6 border border-slate-100 mb-2">
+            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-20 h-20">
+                <path
+                  d="M50 6 Q62 20 81 19 Q80 38 94 50 Q80 62 81 81 Q62 80 50 94 Q38 80 19 81 Q20 62 6 50 Q20 38 19 19 Q38 20 50 6Z"
+                  fill="#bdf581"
+                />
+                <path d="M35 51 L46 62 L67 37" stroke="#052e16" strokeWidth="7.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
-            <p className="text-[11px] text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200">{t('medical.landing.form.successModal.note')}</p>
-            {WA_ENABLED && form.waHref && (
-              <a
-                href={form.waHref}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#25d366' }}
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden>
-                  <path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-                </svg>
-                <span>{t('medical.request.whatsappCta')}</span>
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => form.setSuccessOpen(false)}
-              className="w-full py-3 rounded-xl bg-navy text-white font-bold text-xs"
-            >
-              {t('medical.landing.form.successModal.close')}
-            </button>
+
+            <div className="space-y-1.5">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight font-sans">{t(`${M}.successModal.title`)}</h3>
+              <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-[240px] mx-auto">{t(`${M}.successModal.body`)}</p>
+            </div>
+
+            <div className="pt-2">
+              {WA_ENABLED && form.waHref ? (
+                <a
+                  href={form.waHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => form.setSuccessOpen(false)}
+                  className="w-full py-3.5 rounded-2xl bg-[#262626] hover:bg-black active:scale-95 text-white font-bold text-sm text-center shadow-lg transition-all block"
+                >
+                  {t(`${M}.successModal.cta`)}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => form.setSuccessOpen(false)}
+                  className="w-full py-3.5 rounded-2xl bg-[#262626] hover:bg-black active:scale-95 text-white font-bold text-sm text-center shadow-lg transition-all"
+                >
+                  {t(`${M}.successModal.cta`)}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       <MobileTabBar />
     </div>
+  );
+}
+
+function FaqSection({ items, title }: { items: FaqCopy[]; title: string }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  return (
+    <section className="px-4 py-4 mb-8">
+      <div className="mb-4 text-center">
+        <h2 className="text-xl font-extrabold text-slate-900 font-sans">{title}</h2>
+      </div>
+      <div className="space-y-3">
+        {items.map((item, i) => {
+          const open = openIndex === i;
+          return (
+            <div key={item.q} className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden transition-all">
+              <button
+                type="button"
+                onClick={() => setOpenIndex(open ? null : i)}
+                aria-expanded={open}
+                className="w-full p-4 text-start text-xs font-bold text-slate-900 flex items-center justify-between gap-3 focus:outline-none"
+              >
+                <span>{item.q}</span>
+                <AppIcon name="plus" className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-45' : ''}`} />
+              </button>
+              <div className="overflow-hidden transition-[max-height] duration-300" style={{ maxHeight: open ? '400px' : '0px' }}>
+                <div className="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100">{item.a}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

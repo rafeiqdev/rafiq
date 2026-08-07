@@ -2374,311 +2374,422 @@
       }
     },
     "landing": {
-      "hero": {
-        "title": "Your treatment journey in Istanbul",
-        "titleLine2": "with safe coordination and full transparency",
-        "subtitleLine1": "We compare treatment options across accredited hospitals for you.",
-        "subtitleLine2": "And give you clear price offers so you can choose what fits your case and budget.",
-        "ctaSpecialties": "Explore medical specialties",
-        "ctaHowItWorks": "How it works",
-        "card": {
-          "title": "A clear treatment plan starts here",
-          "subtitle": "Send your case, and compare options and prices at your own pace.",
-          "item1": "Comparing the right treatment options",
-          "item2": "Clear, transparent price offers",
-          "cta": "Start your request"
-        }
-      },
       "heroBeforeAfter": {
         "beforeLabel": "Before treatment",
         "afterLabel": "After result",
         "slides": [
-          { "title": "Hair transplant • precise FUE technique" },
-          { "title": "Dental veneers • Hollywood smile E-max" },
-          { "title": "Rhinoplasty • sculpted, balanced facial features" },
-          { "title": "Jaw surgery • realigned facial structure" }
-        ]
-      },
-      "stats": {
-        "patients": "Patients successfully served",
-        "hospitals": "Accredited hospitals and medical complexes (JCI)",
-        "transparency": "Price transparency, no hidden commissions",
-        "support": "Support and companionship in your native language"
-      },
-      "specialties": {
-        "badge": "Most requested medical specialties",
-        "title": "Comprehensive treatment services by the most skilled surgeons",
-        "subtitle": "Choose the specialty you need to discover treatment packages, estimated costs, and get a treatment plan tailored to your case.",
-        "ctaQuote": "Request a quote",
-        "items": [
           {
-            "slug": "hair",
-            "badge": "Hair transplant",
-            "priceFrom": "From $1,200",
-            "title": "Hair transplant with the latest techniques",
-            "description": "FUE, DHI and Sapphire techniques with precise micro-extraction for high density and a 100% natural look, with a lifetime guarantee.",
-            "bullets": [
-              "Free therapeutic plasma session",
-              "Medical care kit and medication",
-              "3-night stay in a 5-star hotel"
-            ]
+            "title": "Hair transplant • precise FUE technique"
           },
           {
-            "slug": "dental",
-            "badge": "Cosmetic dentistry",
-            "priceFrom": "From $1,500",
-            "title": "Hollywood smile and dental implants",
-            "description": "E-max veneers and Swiss/German implants with 3D digital smile design for fast, pain-free sessions.",
-            "bullets": [
-              "Digital Smile Design",
-              "Laser whitening and free cleaning",
-              "Warranty on crowns and implants"
-            ]
+            "title": "Dental veneers • Hollywood smile E-max"
           },
           {
-            "slug": "bariatric",
-            "badge": "Bariatric surgery",
-            "priceFrom": "From $2,800",
-            "title": "Gastric sleeve and revision surgery, laparoscopic",
-            "description": "Precise laparoscopic bariatric surgery under the supervision of top professors at internationally recognized JCI hospitals.",
-            "bullets": [
-              "3D laparoscopic technology",
-              "One year of follow-up with a nutritionist",
-              "Comprehensive pre-op tests and screening"
-            ]
+            "title": "Rhinoplasty • sculpted, balanced facial features"
           },
           {
-            "slug": "vision",
-            "badge": "Ophthalmology",
-            "priceFrom": "From $900",
-            "title": "Vision correction with Femto Smart",
-            "description": "Femto-LASIK and Femto-SMILE techniques to get rid of glasses in a procedure that takes no more than 10 minutes, pain-free.",
-            "bullets": [
-              "German ZEISS equipment",
-              "Fast recovery and immediate results",
-              "Comprehensive corneal topography scan"
-            ]
-          },
-          {
-            "slug": "checkup",
-            "badge": "Full check-up",
-            "priceFrom": "From $450",
-            "title": "Comprehensive medical check-up",
-            "description": "Precise, periodic screening programs covering all lab tests and diagnostic imaging in a single day.",
-            "bullets": [
-              "Over 50 lab tests",
-              "Echo, ECG and X-ray",
-              "Comprehensive medical report in Arabic"
-            ]
-          },
-          {
-            "slug": "cardiology",
-            "badge": "Cardiac surgery",
-            "priceFrom": "From $4,500",
-            "title": "Cardiovascular disease and surgery",
-            "description": "Catheterization, valve replacement and artery bypass with a select group of doctors and heads of cardiology in Istanbul.",
-            "bullets": [
-              "State-of-the-art operating rooms",
-              "Specialized cardiac intensive care",
-              "Free professor consultation"
-            ]
-          }
-        ]
-      },
-      "how": {
-        "badge": "Clear, defined steps",
-        "title": "How does your treatment journey with Rafiq work?",
-        "subtitle": "4 organized steps that guarantee you get the best treatment plan without any hassle or unplanned costs.",
-        "steps": [
-          {
-            "title": "Send your medical report",
-            "body": "Fill out the quick consultation form and attach your medical reports or case photos for an initial assessment."
-          },
-          {
-            "title": "Receive comparable offers",
-            "body": "Within 24 hours, our consultant sends you 3 detailed offers from top hospitals, with prices and the surgeon's CV."
-          },
-          {
-            "title": "Choose a center and book",
-            "body": "Pick the center that suits you best, and we confirm the surgery booking, appointments and logistics with no upfront fees."
-          },
-          {
-            "title": "Reception and full care",
-            "body": "We receive you at Istanbul airport in a VIP car with an accompanying interpreter who stays with you every step until you recover and return safely."
-          }
-        ]
-      },
-      "logistics": {
-        "badge": "Comprehensive companion services",
-        "title": "Full support for complete peace of mind",
-        "subtitle": "We take care of every detail from the moment you arrive in Istanbul until your departure, so you can focus only on your recovery and health.",
-        "cards": [
-          {
-            "title": "VIP transport",
-            "description": "Spacious, luxury cars with a private driver to receive you from the airport and for your daily transfers between the hotel and the hospital."
-          },
-          {
-            "title": "Luxury hotel booking",
-            "description": "Comfortable stays at the best 4- and 5-star hotels very close to the medical centers, at preferential rates exclusively for our patients."
-          },
-          {
-            "title": "Accompanying medical interpreter",
-            "description": "A translator specialized in medical terminology accompanies you through every consultation and examination, conveying the doctor's explanations accurately and clearly."
-          }
-        ]
-      },
-      "hospitals": {
-        "badge": "Trusted strategic partnerships",
-        "title": "Internationally accredited hospitals",
-        "titleHighlight": "(JCI Accredited)",
-        "subtitle": "We work with medical centers accredited under clear international standards.",
-        "accreditationLabel": "International accreditation",
-        "items": [
-          {
-            "name": "Memorial Hospitals",
-            "subtitle": "Memorial Healthcare"
-          },
-          {
-            "name": "Acibadem Group",
-            "subtitle": "Acibadem Healthcare"
-          },
-          {
-            "name": "Florence Nightingale",
-            "subtitle": "Florence Nightingale"
-          },
-          {
-            "name": "Liv Hospital",
-            "subtitle": "Liv Hospital Group"
-          },
-          {
-            "name": "Anadolu Medical Center",
-            "subtitle": "Anadolu Medical Center"
-          }
-        ]
-      },
-      "testimonials": {
-        "badge": "Verified experiences",
-        "title": "Patient reviews after their treatment journey",
-        "subtitle": "We're proud to serve patients from Saudi Arabia, the Gulf states and the wider Arab world.",
-        "items": [
-          {
-            "tag": "DHI hair transplant",
-            "quote": "An excellent experience with very precise coordination from the moment I arrived at the airport. The professionalism and price transparency impressed me the most.",
-            "name": "Mr. Abdullah Al-Otaibi",
-            "location": "Riyadh, Saudi Arabia"
-          },
-          {
-            "tag": "Hollywood smile",
-            "quote": "The medical interpreter was with me every step of the way at the hospital and clinic. The doctor was an excellent professor and the VIP transfer was comfortable.",
-            "name": "Eng. Khaled Al-Muhannadi",
-            "location": "Doha, Qatar"
-          },
-          {
-            "tag": "Gastric sleeve",
-            "quote": "I was hesitant at first, but Rafiq's medical advice and choice of hospital were decisive. The follow-up after the operation at the hotel was very reassuring.",
-            "name": "Dr. Sara Al-Shammari",
-            "location": "Kuwait City"
-          },
-          {
-            "tag": "Vision correction",
-            "quote": "The procedure took only 10 minutes and I came out seeing perfectly clearly without glasses. Fast, professional scheduling with no complications at all.",
-            "name": "Mr. Faisal Al-Kaabi",
-            "location": "Abu Dhabi, UAE"
-          }
-        ]
-      },
-      "faq": {
-        "title": "Frequently asked questions",
-        "subtitle": "Here are detailed answers to the most common questions about medical coordination and treatment services in Istanbul with Rafiq.",
-        "searchPlaceholder": "Search the FAQ...",
-        "items": [
-          {
-            "q": "Do you offer free consultations to patients?",
-            "a": "Yes, all medical coordination services, consultations and report reviews are 100% free for the patient. Payment is made directly to the hospital's official cashier on arrival, with no hidden fees."
-          },
-          {
-            "q": "What if I have multiple specialties or medical conditions?",
-            "a": "Our medical consultant coordinates an integrated schedule that combines examinations and procedures within the same period, with full attention to safety and comfort during your stay in Istanbul."
-          },
-          {
-            "q": "Are there any hidden fees or additional costs?",
-            "a": "There are absolutely no hidden fees. You receive an official invoice issued directly by the hospital at the same advertised price, with no increase to your budget."
-          },
-          {
-            "q": "How long does it take to prepare a treatment plan and confirm a booking?",
-            "a": "Once you provide your medical reports, our consulting team sends you 3 comparative price offers within 24 to 48 hours."
-          },
-          {
-            "q": "What does the Rafiq platform offer in full to the patient?",
-            "a": "We manage your entire treatment journey: choosing a JCI-accredited hospital, booking appointments with professor doctors, airport reception and a VIP car, medical translation, in-hotel nursing, and medical follow-up for a year after your return."
-          },
-          {
-            "q": "What payment methods are available in Istanbul?",
-            "a": "Payment is made directly at the hospital's cashier upon your arrival, either in cash (USD or EUR) or via international bank cards (Mastercard / Visa)."
-          },
-          {
-            "q": "Can I start and use WhatsApp for direct contact?",
-            "a": "Yes, you can start right away by contacting us via the direct WhatsApp button to send your reports and get a quick reply from your medical consultant."
+            "title": "Jaw surgery • realigned facial structure"
           }
         ]
       },
       "form": {
-        "badge": "Request a quote and consultation",
         "requestType": {
           "consultation": "Request a consultation",
           "evaluation": "Report evaluation"
         },
-        "title": "Request your price offer and treatment plan now",
-        "subtitle": "Enter your details and our medical consultant will identify the best options and hospitals suited to your case.",
-        "name": {
-          "label": "Full name",
-          "placeholder": "Name as it appears on your passport"
-        },
-        "phone": {
-          "label": "WhatsApp number with country code",
-          "placeholder": "00966501234567"
-        },
-        "specialty": {
-          "label": "Required medical specialty",
-          "placeholder": "Choose the specialty you need...",
-          "options": {
-            "hair": "Hair transplant (FUE / DHI / Sapphire)",
-            "dental": "Cosmetic dentistry and implants (Hollywood smile)",
-            "bariatric": "Bariatric surgery (gastric sleeve / bypass)",
-            "vision": "Vision and eye correction (Femto Smart / LASIK)",
-            "checkup": "Comprehensive medical check-up",
-            "cardiology": "Cardiovascular disease and surgery",
-            "other": "Another specialty..."
+        "titleConsult": "Request a price offer and treatment plan",
+        "titleEval": "Medical report evaluation and consultation"
+      },
+      "how": {
+        "title": "How does your treatment journey with Rafiq work?",
+        "steps": [
+          {
+            "title": "Send your medical report",
+            "body": "Fill out the quick assessment form and attach your initial medical reports."
+          },
+          {
+            "title": "Receive comparable offers",
+            "body": "3 detailed price offers from top hospitals and centers within 24 hours."
+          },
+          {
+            "title": "Choose a center and book",
+            "body": "Confirm appointments and full services with no upfront or hidden fees."
+          },
+          {
+            "title": "Reception and full care",
+            "body": "A private VIP car, an accompanying medical interpreter, and full follow-up until recovery."
           }
+        ]
+      },
+      "testimonials": {
+        "title": "Patient reviews after their treatment journey"
+      },
+      "desktop": {
+        "hero": {
+          "badge": "100% real clinical results from our centers in Istanbul",
+          "title": "See the real before and after difference of treatment in Istanbul",
+          "subtitle": "Over 15,000 patients from across the Arab world got the best result and a luxury treatment experience with the highest standards of transparency and medical hygiene.",
+          "statFreeLabel": "Free consultation",
+          "statFreeValue": "100%",
+          "statPatientsLabel": "Satisfied patients",
+          "statPatientsValue": "+15,000",
+          "statCareLabel": "Luxury care",
+          "statCareValue": "VIP 24/7",
+          "cta": "Get a free consultation"
         },
-        "files": {
-          "label": "Attach medical reports (or case photos, if any) (optional)",
-          "cta": "Click here to attach files or reports",
-          "hint": "Supports PDF, PNG, JPG, DOCX",
-          "chooseFile": "Choose file"
+        "specialties": {
+          "title": "Comprehensive treatment specialties led by top consultants",
+          "subtitle": "Choose the specialty you need to get a tailored treatment plan and an all-inclusive price offer from start to recovery",
+          "ctaQuote": "Request a quote",
+          "items": [
+            {
+              "slug": "hair",
+              "title": "Hair transplant and thickening",
+              "description": "The latest FUE and DHI techniques for 100% natural results with a lifetime warranty and a professionally thickened look.",
+              "image": "specialty_hair.jpg"
+            },
+            {
+              "slug": "dental",
+              "title": "Cosmetic dentistry and smile design",
+              "description": "E-max veneers, a bright Hollywood smile, and dental implants at the highest standards of precision and medical quality.",
+              "image": "specialty_dental.jpg"
+            },
+            {
+              "slug": "bariatric",
+              "title": "Bariatric surgery and gastric sleeve",
+              "description": "Laparoscopic gastric sleeve and revision surgery under the supervision of Turkey’s top accredited hospital surgeons.",
+              "image": "specialty_bariatric.jpg"
+            },
+            {
+              "slug": "eye",
+              "title": "Ophthalmology and LASIK surgery",
+              "description": "Vision correction with Femto-LASIK and cataract surgery using the latest advanced German equipment.",
+              "image": "specialty_eye.jpg"
+            },
+            {
+              "slug": "cosmetic",
+              "title": "Cosmetic surgery and body contouring",
+              "description": "Body contouring, rhinoplasty, and jaw surgery under the supervision of elite consultants in Istanbul.",
+              "image": "specialty_cosmetic.jpg"
+            }
+          ]
         },
-        "notes": {
-          "label": "Additional notes or questions",
-          "placeholder": "Write any questions about timing or your medical condition..."
+        "how": {
+          "title": "How does your treatment journey with Rafiq work?",
+          "subtitle": "4 simple steps that guarantee a safe, comfortable treatment journey",
+          "steps": [
+            {
+              "title": "Send your medical report",
+              "body": "Fill out the quick assessment form and attach your initial medical reports."
+            },
+            {
+              "title": "Receive comparable offers",
+              "body": "3 detailed price offers from top hospitals and centers within 24 hours."
+            },
+            {
+              "title": "Choose a center and book",
+              "body": "Confirm appointments and full services with no upfront or hidden fees."
+            },
+            {
+              "title": "Reception and full care",
+              "body": "A private VIP car, an accompanying medical interpreter, and full follow-up until recovery."
+            }
+          ]
         },
-        "submit": "Send request and get a price plan",
-        "sending": "Sending...",
-        "privacyNote": "All medical information is encrypted and kept strictly confidential.",
+        "logistics": {
+          "title": "Full companion services for total comfort and luxury",
+          "subtitle": "We provide every comfort essential from the moment you land until you return home safely",
+          "cards": [
+            {
+              "icon": "car",
+              "title": "VIP transport",
+              "description": "Spacious luxury cars with a private driver to receive you from the airport.",
+              "tag": "Airport reception • Private driver • Daily transfers",
+              "availabilityLabel": "Availability",
+              "availabilityValue": "Included free with coordination",
+              "cta": "Book now"
+            },
+            {
+              "icon": "hotel",
+              "title": "Luxury hotel booking",
+              "description": "Comfortable stays at the best nearby 4- and 5-star hotels.",
+              "tag": "Preferential rates • Breakfast included • Near the hospital",
+              "availabilityLabel": "Cost",
+              "availabilityValue": "Special discount for our patients",
+              "cta": "Book now"
+            },
+            {
+              "icon": "languages",
+              "title": "Accompanying medical interpreter",
+              "description": "A translator specialized in medical terminology always by your side.",
+              "tag": "Arabic speaking • Term accuracy • 24/7 companion",
+              "availabilityLabel": "Availability",
+              "availabilityValue": "Free for the whole trip",
+              "cta": "Book now"
+            }
+          ]
+        },
+        "testimonials": {
+          "title": "Patient reviews after their treatment journey",
+          "subtitle": "Real experiences from our patients across the Arab world",
+          "items": [
+            {
+              "initials": "A.A",
+              "quote": "An excellent experience with very precise coordination from the moment I arrived at the airport. The professionalism and price transparency at Rafiq impressed me the most.",
+              "name": "Mr. Abdullah Al-Otaibi",
+              "location": "Riyadh, Saudi Arabia"
+            },
+            {
+              "initials": "K.M",
+              "quote": "The medical interpreter was with me every step of the way at the hospital and clinic. The doctor was an excellent professor and the VIP car was very comfortable.",
+              "name": "Eng. Khaled Al-Muhannadi",
+              "location": "Doha, Qatar"
+            }
+          ]
+        },
+        "form": {
+          "titleConsult": "Request a price offer and treatment plan",
+          "titleEval": "Medical report evaluation and consultation",
+          "subtitle": "Get a 100% free medical consultation and competitive price offers from the best accredited medical centers in Istanbul within 24 hours.",
+          "trust": [
+            "Free medical review of reports and scans",
+            "Lifetime warranty on hair transplant and dental results",
+            "VIP car and free airport reception"
+          ],
+          "directContactLabel": "For direct contact with your medical consultant:",
+          "directContactValue": "+90 212 890 40 50",
+          "name": {
+            "label": "Full name",
+            "placeholder": "Enter your name..."
+          },
+          "phone": {
+            "label": "WhatsApp number with country code",
+            "placeholder": "+966 50 123 4567"
+          },
+          "notes": {
+            "label": "Additional notes",
+            "placeholder": "Enter any questions or extra details..."
+          },
+          "specialtyLabel": "Specialty needed",
+          "specialtyChips": [
+            "Hair transplant",
+            "Dental veneers",
+            "Rhinoplasty",
+            "Jaw surgery"
+          ],
+          "files": {
+            "label": "Attach a medical report (optional)",
+            "cta": "Click to attach medical reports or case photos"
+          },
+          "reset": "Clear",
+          "submit": "Send request now"
+        },
+        "faq": {
+          "title": "Frequently asked questions",
+          "items": [
+            {
+              "q": "Do you offer free consultations to patients?",
+              "a": "Yes, all medical coordination services, consultations and report reviews are 100% free for the patient. Payment is made directly to the hospital cashier upon your arrival."
+            },
+            {
+              "q": "How am I received at Istanbul airport?",
+              "a": "Your private driver and medical interpreter wait for you at the arrivals gate holding a sign with your name, and take you directly to the hotel or clinic."
+            },
+            {
+              "q": "Do procedures come with an official warranty certificate?",
+              "a": "Certainly — hair transplant and dental cosmetic procedures come with a documented, hospital-stamped medical warranty certificate to guarantee the best lasting result."
+            }
+          ]
+        },
         "successModal": {
-          "title": "Your request was sent successfully",
-          "body": "Thank you for contacting the Rafiq platform. Your case reference number:",
-          "note": "One of our medical consultants will contact you via WhatsApp within 15 minutes with your price plan and free consultation.",
-          "close": "Close"
+          "title": "Request sent successfully!",
+          "body": "Your medical consultation request has been received successfully. You can continue directly now via WhatsApp for a fast reply.",
+          "cta": "Continue directly on WhatsApp"
+        }
+      },
+      "mobile": {
+        "hero": {
+          "title": "See the real before and after difference",
+          "subtitle": "Over 15,000 patients got the best result in Istanbul",
+          "cta": "Get a free consultation"
         },
-        "callbackModal": {
-          "title": "Request a call from a medical consultant",
-          "subtitle": "Enter your phone number and we'll call you right away.",
-          "nameLabel": "Full name",
-          "namePlaceholder": "Name",
-          "phoneLabel": "Phone number with country code",
-          "phonePlaceholder": "e.g. 00966501234567",
-          "submit": "Request a call now",
-          "success": "Thank you. Your medical consultant will call you within 15 minutes."
+        "specialties": {
+          "title": "Comprehensive treatment services",
+          "ctaQuote": "Request a quote",
+          "items": [
+            {
+              "slug": "hair",
+              "title": "Hair transplant",
+              "description": "The latest FUE and DHI techniques for 100% natural results with a lifetime warranty.",
+              "image": "specialty_hair.jpg"
+            },
+            {
+              "slug": "dental",
+              "title": "Cosmetic dentistry and smile design",
+              "description": "E-max veneers, Hollywood smile, and dental implants at the highest quality standards.",
+              "image": "specialty_dental.jpg"
+            },
+            {
+              "slug": "bariatric",
+              "title": "Bariatric surgery",
+              "description": "Laparoscopic gastric sleeve and revision surgery under top surgeons.",
+              "image": "specialty_bariatric.jpg"
+            },
+            {
+              "slug": "eye",
+              "title": "Ophthalmology surgery",
+              "description": "Vision correction with Femto-LASIK and cataract surgery using the latest equipment.",
+              "image": "specialty_eye.jpg"
+            },
+            {
+              "slug": "cosmetic",
+              "title": "Cosmetic surgery",
+              "description": "Body contouring and facial cosmetic surgery under elite consultants.",
+              "image": "specialty_cosmetic.jpg"
+            }
+          ]
+        },
+        "how": {
+          "title": "How does your treatment journey with Rafiq work?",
+          "steps": [
+            {
+              "title": "Send your medical report",
+              "body": "Fill out the quick assessment form and attach your initial medical reports."
+            },
+            {
+              "title": "Receive comparable offers",
+              "body": "3 detailed price offers from top hospitals and centers within 24 hours."
+            },
+            {
+              "title": "Choose a center and book",
+              "body": "Confirm appointments and full services with no upfront or hidden fees."
+            },
+            {
+              "title": "Reception and full care",
+              "body": "A private VIP car, an accompanying medical interpreter, and full follow-up until recovery."
+            }
+          ]
+        },
+        "logistics": {
+          "title": "Full companion services for total comfort",
+          "cards": [
+            {
+              "icon": "car",
+              "title": "VIP transport",
+              "description": "Spacious luxury cars with a private driver to receive you from the airport.",
+              "tag": "Airport reception • Private driver • Daily transfers",
+              "availabilityLabel": "Availability",
+              "availabilityValue": "Included free with coordination",
+              "cta": "Book now"
+            },
+            {
+              "icon": "hotel",
+              "title": "Luxury hotel booking",
+              "description": "Comfortable stays at the best nearby 4- and 5-star hotels.",
+              "tag": "Preferential rates • Breakfast included • Near the hospital",
+              "availabilityLabel": "Cost",
+              "availabilityValue": "Special discount for our patients",
+              "cta": "Book now"
+            },
+            {
+              "icon": "languages",
+              "title": "Accompanying medical interpreter",
+              "description": "A translator specialized in medical terminology always by your side.",
+              "tag": "Arabic speaking • Term accuracy • 24/7 companion",
+              "availabilityLabel": "Availability",
+              "availabilityValue": "Free for the whole trip",
+              "cta": "Book now"
+            }
+          ]
+        },
+        "testimonials": {
+          "title": "Patient reviews after their treatment journey",
+          "items": [
+            {
+              "initials": "A.A",
+              "quote": "An excellent experience with very precise coordination from the moment I arrived at the airport. The professionalism and price transparency at Rafiq impressed me the most.",
+              "name": "Mr. Abdullah Al-Otaibi",
+              "location": "Riyadh, Saudi Arabia"
+            },
+            {
+              "initials": "K.M",
+              "quote": "The medical interpreter was with me every step of the way at the hospital and clinic. The doctor was an excellent professor and the VIP car was very comfortable.",
+              "name": "Eng. Khaled Al-Muhannadi",
+              "location": "Doha, Qatar"
+            },
+            {
+              "initials": "S.S",
+              "quote": "I was hesitant at first, but Rafiq's medical advice and choice of hospital were decisive. The follow-up after the operation at the hotel was very reassuring.",
+              "name": "Dr. Sara Al-Shammari",
+              "location": "Kuwait City"
+            },
+            {
+              "initials": "F.K",
+              "quote": "The procedure took only 10 minutes and I came out seeing perfectly clearly without glasses. Fast, professional scheduling with no complications at all.",
+              "name": "Mr. Faisal Al-Kaabi",
+              "location": "Abu Dhabi, UAE"
+            }
+          ]
+        },
+        "form": {
+          "titleConsult": "Request a price offer and treatment plan",
+          "titleEval": "Medical report evaluation and consultation",
+          "name": {
+            "label": "Full name",
+            "placeholder": "Enter your name..."
+          },
+          "phone": {
+            "label": "WhatsApp number with country code",
+            "placeholder": "+966 50 123 4567"
+          },
+          "notes": {
+            "label": "Additional notes",
+            "placeholder": "Enter any questions or extra details..."
+          },
+          "specialtyLabel": "Specialty needed",
+          "specialtyChips": [
+            "Hair transplant",
+            "Dental veneers",
+            "Bariatric surgery",
+            "Ophthalmology",
+            "Full check-up"
+          ],
+          "files": {
+            "label": "Attach a medical report (optional)",
+            "cta": "Tap to attach medical reports"
+          },
+          "reset": "Clear",
+          "submit": "Send request"
+        },
+        "faq": {
+          "title": "Frequently asked questions",
+          "items": [
+            {
+              "q": "Do you offer free consultations to patients?",
+              "a": "Yes, all medical coordination services, consultations and report reviews are 100% free for the patient. Payment is made directly to the official hospital cashier on arrival with no hidden fees."
+            },
+            {
+              "q": "What if I have multiple specialties or conditions?",
+              "a": "Our medical consultant coordinates a full schedule combining checkups and procedures within the same period, with full attention to your safety and comfort during your stay in Istanbul."
+            },
+            {
+              "q": "Are there any hidden fees or extra costs?",
+              "a": "There are no hidden fees at all. You get an official invoice issued directly by the hospital at the same published price, with no addition to your budget."
+            },
+            {
+              "q": "How long does it take to prepare a treatment plan and confirm booking?",
+              "a": "Once you provide your medical reports, our consulting team sends you 3 comparative price offers within 24 to 48 hours."
+            },
+            {
+              "q": "What does Rafiq's platform fully provide the patient?",
+              "a": "We manage your entire treatment journey: choosing a JCI-accredited hospital, booking appointments with professors, VIP reception and car, medical translation, hotel nursing, and one year of medical follow-up after your return."
+            }
+          ]
+        },
+        "successModal": {
+          "title": "Request sent successfully",
+          "body": "Your request and medical data were recorded successfully and our medical consultant will contact you.",
+          "cta": "Done"
         }
       }
     }

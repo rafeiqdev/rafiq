@@ -1,90 +1,48 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageMeta, SITE_URL } from '../lib/seo';
+import { AppIcon } from '../components/AppIcon';
 import { useMedicalLeadForm, WA_ENABLED, humanFileSize } from './healthTourism/useMedicalLeadForm';
+import type { SpecialtyChip } from './healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from './healthTourism/useAutoCarousel';
 import { BEFORE_AFTER_IMAGES } from './healthTourism/beforeAfterSlides';
 
 /**
- * /health-tourism landing page (desktop/tablet). Direction follows the active
- * site language (rtl for ar/fa, ltr otherwise) via logical Tailwind properties
- * (text-start, ps-/pe-, start-/end-, rtl: variant) instead of hardcoded
- * right-/left- — EXCEPT the before/after hero badges, which are pinned to a
- * fixed physical side (dark "before" on the photo's left, green "after" on
- * its right) because they label a photograph, not text flow.
- * See src/i18n/locales/*.json under `medical.landing.*` for the copy.
- * Mobile phones get a dedicated layout: src/pages/mobile/MobileHealthTourism.tsx.
+ * /health-tourism landing page — desktop. This is a 1:1 port of the
+ * client-provided medical-desktop.html mockup (structure, copy, order,
+ * colors) into React/Tailwind/i18n, NOT a redesign — see
+ * src/i18n/locales/*.json under `medical.landing.desktop.*` for the exact
+ * copy, transcribed from the mockup. The only functional addition is wiring
+ * the form to medicalRequests.create() (the rest of the app's pattern)
+ * instead of the mockup's WhatsApp-only submission; WhatsApp is kept as the
+ * success modal's own "continue" action, exactly as the mockup already does.
+ * Phones get mobile/index.html's layout instead: src/pages/mobile/MobileHealthTourism.tsx.
  */
 
-// ---------------------------------------------------------------------------
-// Static data (images, colors, slugs) — copy lives in i18n, not here.
-// ---------------------------------------------------------------------------
-
-const SPECIALTY_SLUGS = ['hair', 'dental', 'bariatric', 'vision', 'checkup', 'cardiology'] as const;
+const SPECIALTY_SLUGS = ['hair', 'dental', 'bariatric', 'eye', 'cosmetic'] as const;
 type SpecialtySlug = (typeof SPECIALTY_SLUGS)[number];
 
-const SPECIALTY_IMAGES: Record<SpecialtySlug, string> = {
-  hair: '/img/health-tourism/hair_transplant.jpg',
-  dental: '/img/health-tourism/dental_smile.jpg',
-  bariatric: '/img/health-tourism/bariatric_1551076805.jpg',
-  vision: '/img/health-tourism/vision_1579684385127.jpg',
-  checkup: '/img/health-tourism/checkup_1584515979956.jpg',
-  cardiology: '/img/health-tourism/cardiology_1628348068343.jpg',
-};
-
-const HOSPITAL_STYLES = [
-  'bg-cream border-cream-dark',
-  'bg-brand-blue border-navy-100',
-  'bg-[#F0FDF4] border-emerald-100',
-  'bg-cream border-cream-dark',
-  'bg-brand-blue border-navy-100',
-];
-
-const TESTIMONIAL_STYLES = [
-  { card: 'bg-brand-blue border-navy-100', tag: 'bg-navy-100 text-navy', divider: 'border-navy-100/80' },
-  { card: 'bg-[#ECFDF5] border-[#A7F3D0]', tag: 'bg-[#D1FADF] text-[#065F46]', divider: 'border-[#A7F3D0]/80' },
-  { card: 'bg-[#FFFBEB] border-[#FDE68A]', tag: 'bg-[#FEF3C7] text-[#92400E]', divider: 'border-[#FDE68A]/80' },
-  { card: 'bg-[#FFF1F2] border-[#FECDD3]', tag: 'bg-[#FFE4E6] text-[#9F1239]', divider: 'border-[#FECDD3]/80' },
-];
-
-const LOGISTICS_ICONS = [
-  // VIP transport
-  <path key="car" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 17h14M5 17a2 2 0 100 4 2 2 0 000-4zm14 0a2 2 0 100 4 2 2 0 000-4zM5 17V9l2-4h10l2 4v8" />,
-  // hotel
-  <path key="hotel" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />,
-  // translator
-  <path key="translator" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 9l1.5-4.5A6.5 6.5 0 1112 19c-1.5 0-2.9-.4-4-1.2L4 21z" />,
-];
-
-const STATS = [
-  { target: 5000, prefix: '+', suffix: '', color: 'text-navy-100', labelKey: 'patients' },
-  { target: 45, prefix: '+', suffix: '', color: 'text-navy-100', labelKey: 'hospitals' },
-  { target: 100, prefix: '', suffix: '%', color: 'text-emerald-300', labelKey: 'transparency' },
-  { target: 24, prefix: '', suffix: '/7', color: 'text-navy-100', labelKey: 'support' },
-];
-
 interface SpecialtyCopy {
-  slug: string;
-  badge: string;
-  priceFrom: string;
+  slug: SpecialtySlug;
   title: string;
   description: string;
-  bullets: string[];
+  image: string;
 }
 interface HowStep {
   title: string;
   body: string;
 }
 interface LogisticsCard {
+  icon: 'car' | 'hotel' | 'languages';
   title: string;
   description: string;
-}
-interface HospitalCopy {
-  name: string;
-  subtitle: string;
+  tag: string;
+  availabilityLabel: string;
+  availabilityValue: string;
+  cta: string;
 }
 interface TestimonialCopy {
-  tag: string;
+  initials: string;
   quote: string;
   name: string;
   location: string;
@@ -97,40 +55,46 @@ interface HeroSlideCopy {
   title: string;
 }
 
-function ArrowButton({
-  dir,
-  onClick,
-  variant = 'light',
-  className = '',
+const HOW_STYLES = [
+  { circle: 'bg-orange-50 text-orange-500 border-orange-200', icon: 'search' as const },
+  { circle: 'bg-rose-50 text-rose-500 border-rose-200', icon: 'file-text' as const },
+  { circle: 'bg-purple-50 text-purple-600 border-purple-200', icon: 'briefcase' as const },
+  { circle: 'bg-blue-50 text-blue-600 border-blue-200', icon: 'bar-chart-2' as const },
+];
+
+function BeforeAfterCard({
+  src,
+  caption,
+  beforeLabel,
+  afterLabel,
 }: {
-  dir: 'prev' | 'next';
-  onClick: () => void;
-  variant?: 'light' | 'dark';
-  className?: string;
+  src: string;
+  caption: string;
+  beforeLabel: string;
+  afterLabel: string;
 }) {
-  const base =
-    variant === 'dark'
-      ? 'bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-navy border border-white/20'
-      : 'bg-white text-navy hover:bg-navy hover:text-white border border-slate-200';
   return (
-    <button
-      type="button"
-      aria-label={dir}
-      onClick={onClick}
-      className={`hidden sm:flex absolute top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full transition duration-200 shadow-md items-center justify-center cursor-pointer focus:outline-none ${base} ${className}`}
-    >
-      <svg className="w-5 h-5 stroke-[2.5] rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {dir === 'prev' ? (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        ) : (
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        )}
-      </svg>
-    </button>
+    <div className="min-w-full w-full h-[330px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900">
+      <img src={src} alt={caption} className="w-full h-full object-cover" />
+      <div className="absolute top-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1.5">
+        <AppIcon name="check-circle" className="w-4 h-4 text-white" />
+        <span>{afterLabel}</span>
+      </div>
+      <div className="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-white/20 shadow-md flex items-center gap-1.5">
+        <AppIcon name="history" className="w-4 h-4 text-slate-400" />
+        <span>{beforeLabel}</span>
+      </div>
+      <div className="absolute bottom-4 inset-x-4 bg-slate-950/90 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl border border-white/10 text-center">
+        {caption}
+      </div>
+      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
+        <div className="w-8 h-8 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-xs font-black border border-slate-200">
+          <AppIcon name="arrow-left-right" className="w-4 h-4 text-slate-900" />
+        </div>
+      </div>
+    </div>
   );
 }
-
-// ---------------------------------------------------------------------------
 
 export function HealthTourism() {
   const { t, i18n } = useTranslation();
@@ -144,94 +108,27 @@ export function HealthTourism() {
     image: `${SITE_URL}${BEFORE_AFTER_IMAGES[0]}`,
   });
 
-  const specialtyItems = t('medical.landing.specialties.items', { returnObjects: true }) as SpecialtyCopy[];
+  const D = 'medical.landing.desktop';
+  const specialtyItems = t(`${D}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
   const howSteps = t('medical.landing.how.steps', { returnObjects: true }) as HowStep[];
-  const logisticsCards = t('medical.landing.logistics.cards', { returnObjects: true }) as LogisticsCard[];
-  const hospitalItems = t('medical.landing.hospitals.items', { returnObjects: true }) as HospitalCopy[];
-  const testimonialItems = t('medical.landing.testimonials.items', { returnObjects: true }) as TestimonialCopy[];
-  const faqItems = t('medical.landing.faq.items', { returnObjects: true }) as FaqCopy[];
+  const logisticsCards = t(`${D}.logistics.cards`, { returnObjects: true }) as LogisticsCard[];
+  const testimonialItems = t(`${D}.testimonials.items`, { returnObjects: true }) as TestimonialCopy[];
+  const faqItems = t(`${D}.faq.items`, { returnObjects: true }) as FaqCopy[];
   const heroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
+  const beforeLabel = t('medical.landing.heroBeforeAfter.beforeLabel');
+  const afterLabel = t('medical.landing.heroBeforeAfter.afterLabel');
 
-  // ---- Before/after hero: autoplay every ~3.2s, pause on hover/touch ----
   const hero = useAutoCarousel(BEFORE_AFTER_IMAGES.length, 3200);
 
-  // ---- Stats counters: count up once, when the section is 40% visible ----
-  const statsSectionRef = useRef<HTMLDivElement | null>(null);
-  const [counts, setCounts] = useState<number[]>(() => STATS.map(() => 0));
-  useEffect(() => {
-    const el = statsSectionRef.current;
-    if (!el) return;
-    let started = false;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && !started) {
-            started = true;
-            const duration = 2000;
-            STATS.forEach((stat, i) => {
-              const step = Math.ceil(stat.target / (duration / 30));
-              let count = 0;
-              const timer = setInterval(() => {
-                count += step;
-                if (count >= stat.target) {
-                  count = stat.target;
-                  clearInterval(timer);
-                }
-                setCounts((prev) => prev.map((v, j) => (j === i ? count : v)));
-              }, 30);
-            });
-          }
-        }
-      },
-      { threshold: 0.4 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const leadFormRef = useRef<HTMLDivElement | null>(null);
-  const form = useMedicalLeadForm();
-  const jumpToForm = (slug?: string) => {
-    if (slug) form.selectSpecialty(slug);
-    leadFormRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // ---- Carousels: side-arrow scroll ----
-  const specialtiesTrackRef = useRef<HTMLDivElement | null>(null);
-  const hospitalsTrackRef = useRef<HTMLDivElement | null>(null);
-  const testimonialsTrackRef = useRef<HTMLDivElement | null>(null);
-  const scrollTrack = (ref: React.RefObject<HTMLDivElement | null>, amount: number) => {
-    ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
-  };
-
-  // ---- FAQ accordion + search ----
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [faqSearch, setFaqSearch] = useState('');
-  const visibleFaqItems = faqItems
-    .map((item, i) => ({ item, i }))
-    .filter(({ item }) => `${item.q} ${item.a}`.toLowerCase().includes(faqSearch.trim().toLowerCase()));
-
-  // ---- Callback ("quick call") mini-form ----
-  const [callbackOpen, setCallbackOpen] = useState(false);
-  const [callbackName, setCallbackName] = useState('');
-  const [callbackPhone, setCallbackPhone] = useState('');
-  const [callbackSent, setCallbackSent] = useState(false);
-  const submitCallback = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCallbackSent(true);
-    setCallbackName('');
-    setCallbackPhone('');
-  };
-  const closeCallback = () => {
-    setCallbackOpen(false);
-    setCallbackSent(false);
-  };
-
-  const modalOpen = form.successOpen || callbackOpen;
+  const chips: SpecialtyChip[] = (t(`${D}.form.specialtyChips`, { returnObjects: true }) as string[]).map((label, i) => ({
+    slug: ['hair', 'dental', 'rhinoplasty', 'jaw'][i] ?? label,
+    label,
+  }));
+  const form = useMedicalLeadForm(chips);
+  const formTrust = t(`${D}.form.trust`, { returnObjects: true }) as string[];
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-800 font-cairo antialiased selection:bg-navy selection:text-white">
-      {/* structured data: a coordination service, never a medical provider */}
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
@@ -247,204 +144,135 @@ export function HealthTourism() {
         }}
       />
 
-      <div className={`transition-all duration-300 ${modalOpen ? 'blur-md scale-[0.98] brightness-90' : ''}`}>
+      <div className={`transition-all duration-500 ${form.successOpen ? 'blur-md scale-[0.98] brightness-90' : ''}`}>
         {/* ==================== HERO ==================== */}
-        <section className="relative pt-8 pb-10 sm:pt-10 sm:pb-20 md:pt-16 md:pb-28 overflow-hidden bg-navy text-white">
-          <div
-            className="absolute inset-0 opacity-[0.05] pointer-events-none"
-            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}
-          />
+        <section className="relative overflow-hidden bg-slate-950 text-white py-14 lg:py-20 border-b border-slate-800">
+          <div className="absolute -top-24 -end-24 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -start-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-              <div className="lg:col-span-7 space-y-4 sm:space-y-7 text-center lg:text-start">
-                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-black leading-[1.25] sm:leading-[1.2] font-tajawal text-white tracking-tight">
-                  {t('medical.landing.hero.title')}
-                  <br />
-                  {t('medical.landing.hero.titleLine2')}
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-7 space-y-6 text-center lg:text-start">
+                <div className="inline-flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-4 py-2 rounded-full text-xs text-emerald-400 font-black shadow-md">
+                  <AppIcon name="check-circle" className="w-4 h-4 text-emerald-400" />
+                  <span>{t(`${D}.hero.badge`)}</span>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight font-sans tracking-tight">
+                  {t(`${D}.hero.title`)}
                 </h1>
-                <p className="text-sm sm:text-lg text-navy-100 max-w-xl leading-relaxed font-normal mx-auto lg:mx-0">
-                  {t('medical.landing.hero.subtitleLine1')}
-                  <br className="hidden sm:inline" />
-                  {t('medical.landing.hero.subtitleLine2')}
+
+                <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  {t(`${D}.hero.subtitle`)}
                 </p>
-                <div className="pt-1 sm:pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
+
+                <div className="grid grid-cols-3 gap-4 pt-2 max-w-xl mx-auto lg:mx-0">
+                  <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                    <span className="text-emerald-400 font-black text-xl block">{t(`${D}.hero.statFreeValue`)}</span>
+                    <span className="text-xs text-slate-400 font-bold">{t(`${D}.hero.statFreeLabel`)}</span>
+                  </div>
+                  <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                    <span className="text-emerald-400 font-black text-xl block">{t(`${D}.hero.statPatientsValue`)}</span>
+                    <span className="text-xs text-slate-400 font-bold">{t(`${D}.hero.statPatientsLabel`)}</span>
+                  </div>
+                  <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                    <span className="text-emerald-400 font-black text-xl block">{t(`${D}.hero.statCareValue`)}</span>
+                    <span className="text-xs text-slate-400 font-bold">{t(`${D}.hero.statCareLabel`)}</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 max-w-md mx-auto lg:mx-0">
                   <a
-                    href="#specialties"
-                    className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-white text-navy font-extrabold text-sm sm:text-base shadow-lg hover:shadow-xl hover:bg-brand-blue transition-all duration-300 flex items-center justify-center gap-2.5"
+                    href="#lead-form"
+                    className="w-full py-4 px-8 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white font-black text-base text-center flex items-center justify-center gap-4 shadow-2xl shadow-emerald-600/30 border border-emerald-400/30 active:scale-95 hover:brightness-110 transition-all group cursor-pointer"
                   >
-                    <span>{t('medical.landing.hero.ctaSpecialties')}</span>
-                    <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </a>
-                  <a
-                    href="#how-it-works"
-                    className="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-4 rounded-xl bg-transparent hover:bg-white/10 border-2 border-white/40 text-white font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2.5"
-                  >
-                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{t('medical.landing.hero.ctaHowItWorks')}</span>
+                    <span className="text-base font-black tracking-wide">{t(`${D}.hero.cta`)}</span>
+                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:-translate-x-1.5 rtl:group-hover:translate-x-1.5 transition-transform">
+                      <AppIcon name="arrow-left" className={`w-5 h-5 text-white stroke-[3] ${isRTL ? '' : 'rotate-180'}`} />
+                    </span>
                   </a>
                 </div>
               </div>
 
-              <div className="lg:col-span-5 flex justify-center">
-                <div
-                  className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl shadow-navy-dark/40 border border-white/10 bg-slate-800 cursor-pointer select-none"
-                  onMouseEnter={hero.pause}
-                  onMouseLeave={hero.resume}
-                  onTouchStart={hero.pause}
-                  onTouchEnd={hero.resume}
-                >
-                  {BEFORE_AFTER_IMAGES.map((src, i) => (
-                    <img
-                      key={src}
-                      src={src}
-                      alt={heroSlides[i]?.title ?? ''}
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                      className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${i === hero.index ? 'opacity-100' : 'opacity-0'}`}
-                    />
-                  ))}
-
-                  {/* Fixed physical placement: these badges label a before/after photo crop, not text flow. */}
-                  <span className="absolute top-3 left-3 sm:top-4 sm:left-4 px-3 py-1 rounded-lg bg-slate-900/90 text-white text-[11px] sm:text-xs font-bold z-10">
-                    {t('medical.landing.heroBeforeAfter.beforeLabel')}
-                  </span>
-                  <span className="absolute top-3 right-3 sm:top-4 sm:right-4 px-3 py-1 rounded-lg bg-emerald-600 text-white text-[11px] sm:text-xs font-bold z-10">
-                    {t('medical.landing.heroBeforeAfter.afterLabel')}
-                  </span>
-
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-4 sm:p-5 pt-10 z-10">
-                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">{heroSlides[hero.index]?.title}</p>
-                    <div className="flex items-center gap-1.5 pt-3">
-                      {BEFORE_AFTER_IMAGES.map((src, i) => (
-                        <button
-                          key={src}
-                          type="button"
-                          aria-label={`slide-${i}`}
-                          onClick={() => hero.goTo(i)}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${i === hero.index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
-                        />
-                      ))}
-                    </div>
+              <div className="lg:col-span-5">
+                <div className="bg-slate-900/90 p-4 rounded-[36px] border border-slate-800 shadow-2xl relative">
+                  <div
+                    className="relative overflow-hidden rounded-3xl select-none cursor-pointer"
+                    onMouseEnter={hero.pause}
+                    onMouseLeave={hero.resume}
+                    onTouchStart={hero.pause}
+                    onTouchEnd={hero.resume}
+                  >
+                    {BEFORE_AFTER_IMAGES.map((src, i) => (
+                      <div key={src} className={i === hero.index ? 'block' : 'hidden'}>
+                        <BeforeAfterCard src={src} caption={heroSlides[i]?.title ?? ''} beforeLabel={beforeLabel} afterLabel={afterLabel} />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ==================== STATS ==================== */}
-        <section ref={statsSectionRef} className="py-8 sm:py-14 bg-navy text-white relative overflow-hidden my-8 sm:my-16 shadow-lg">
-          <div
-            className="absolute inset-0 opacity-[0.05] pointer-events-none"
-            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}
-          />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div
-              className={`grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 text-center divide-y lg:divide-y-0 lg:divide-x divide-navy-light/50 ${isRTL ? 'lg:divide-x-reverse' : ''}`}
-            >
-              {STATS.map((stat, i) => (
-                <div key={stat.labelKey} className="pt-3 lg:pt-0">
-                  <div className={`text-2xl sm:text-4xl lg:text-5xl font-black mb-1 sm:mb-2 font-tajawal ${stat.color}`}>
-                    {stat.prefix}
-                    {counts[i].toLocaleString('en-US')}
-                    {stat.suffix}
-                  </div>
-                  <div className="text-xs sm:text-sm text-navy-100 font-semibold">{t(`medical.landing.stats.${stat.labelKey}`)}</div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
 
         {/* ==================== SPECIALTIES ==================== */}
-        <section id="specialties" className="py-10 sm:py-16 md:py-20 bg-slate-50 border-t border-b border-slate-200/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12 space-y-2 sm:space-y-3">
-              <span className="px-3.5 py-1 rounded-md bg-navy-50 text-navy text-xs font-bold tracking-wide border border-navy-100">
-                {t('medical.landing.specialties.badge')}
-              </span>
-              <h2 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.specialties.title')}</h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{t('medical.landing.specialties.subtitle')}</p>
+        <section id="specialties" className="py-16 bg-slate-50 border-b border-slate-200/80">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t(`${D}.specialties.title`)}</h2>
+              <p className="text-sm text-slate-600 font-medium">{t(`${D}.specialties.subtitle`)}</p>
             </div>
 
-            <div className="relative px-0 sm:px-8">
-              <ArrowButton dir="prev" onClick={() => scrollTrack(specialtiesTrackRef, 340)} className="-start-3 sm:-start-5" />
-              <ArrowButton dir="next" onClick={() => scrollTrack(specialtiesTrackRef, -340)} className="-end-3 sm:-end-5" />
-
-              <div ref={specialtiesTrackRef} className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none scroll-smooth py-3 sm:py-4 px-1">
-                {specialtyItems.map((item) => (
-                  <div
-                    key={item.slug}
-                    className="min-w-[240px] sm:min-w-[320px] md:min-w-[340px] flex-shrink-0 bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-lg transition duration-300 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="relative h-32 sm:h-48 overflow-hidden bg-slate-800">
-                        <img
-                          src={SPECIALTY_IMAGES[item.slug as SpecialtySlug]}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <span className="absolute top-3 start-3 sm:top-4 sm:start-4 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md bg-slate-900/90 text-white text-[10px] sm:text-xs font-bold">{item.badge}</span>
-                        <span className="absolute bottom-3 end-3 sm:bottom-4 sm:end-4 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md bg-emerald-700 text-white text-[10px] sm:text-xs font-bold">{item.priceFrom}</span>
-                      </div>
-                      <div className="p-4 sm:p-6 space-y-2.5 sm:space-y-4">
-                        <h3 className="text-sm sm:text-lg font-bold text-slate-900">{item.title}</h3>
-                        <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
-                        <ul className="text-xs text-slate-700 space-y-1.5 sm:space-y-2 pt-2 sm:pt-3 border-t border-slate-100">
-                          {item.bullets.map((b) => (
-                            <li key={b} className="flex items-center gap-2 text-slate-600">
-                              <span className="text-emerald-600 font-bold">✓</span> {b}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="p-4 sm:p-6 pt-0">
-                      <button
-                        type="button"
-                        onClick={() => jumpToForm(item.slug)}
-                        className="w-full py-3 rounded-xl bg-slate-100 hover:bg-navy hover:text-white text-slate-800 text-xs font-bold transition duration-200 flex items-center justify-center gap-2 border border-slate-200 cursor-pointer"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {specialtyItems.map((item, i) => (
+                <div
+                  key={item.slug}
+                  className={`h-[430px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 group bg-slate-900 transition hover:-translate-y-1 hover:shadow-2xl ${i === specialtyItems.length - 1 ? 'lg:col-span-2' : ''}`}
+                >
+                  <img
+                    src={`/img/health-tourism/${item.image}`}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105 group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 flex flex-col justify-end text-white space-y-3">
+                    <h3 className="text-2xl font-black text-white font-sans drop-shadow-md">{item.title}</h3>
+                    <p className={`text-xs text-slate-200 font-medium leading-relaxed ${i === specialtyItems.length - 1 ? 'max-w-xl' : ''}`}>{item.description}</p>
+                    <div className={`pt-2 ${i === specialtyItems.length - 1 ? 'max-w-sm' : ''}`}>
+                      <a
+                        href="#lead-form"
+                        onClick={() => form.setFormSpecialty(item.slug)}
+                        className="w-full py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-950 text-xs font-black text-center block shadow-lg active:scale-95 transition"
                       >
-                        <span>{t('medical.landing.specialties.ctaQuote')}</span>
-                        <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </button>
+                        {t(`${D}.specialties.ctaQuote`)} <AppIcon name="arrow-left" className={`w-4 h-4 inline ms-1 ${isRTL ? '' : 'rotate-180'}`} />
+                      </a>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* ==================== HOW IT WORKS ==================== */}
-        <section id="how-it-works" className="py-10 sm:py-16 bg-white border-t border-b border-slate-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-14 space-y-2 sm:space-y-3">
-              <span className="px-3.5 py-1 rounded-md bg-navy-50 text-navy text-xs font-bold tracking-wide border border-navy-100">
-                {t('medical.landing.how.badge')}
-              </span>
-              <h2 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.how.title')}</h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{t('medical.landing.how.subtitle')}</p>
+        <section id="how-it-works" className="py-16 bg-white border-b border-slate-200/80">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center max-w-xl mx-auto mb-12">
+              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t('medical.landing.how.title')}</h2>
+              <p className="text-sm text-slate-500 font-medium mt-2">{t(`${D}.how.subtitle`)}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {howSteps.map((step, i) => (
-                <div key={step.title} className="bg-slate-50 p-3.5 sm:p-6 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                <div key={step.title} className="bg-white rounded-3xl p-6 border-2 border-slate-800 shadow-lg relative flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-14 h-14 rounded-full font-black text-3xl flex items-center justify-center border shadow-sm ${HOW_STYLES[i].circle}`}>
+                      {i + 1}
+                    </div>
+                    <AppIcon name={HOW_STYLES[i].icon} className="w-6 h-6 text-slate-400" />
+                  </div>
                   <div>
-                    <div
-                      className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl text-white font-extrabold text-[11px] sm:text-sm flex items-center justify-center mb-2.5 sm:mb-5 ${i === howSteps.length - 1 ? 'bg-emerald-700' : 'bg-navy'}`}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </div>
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1 sm:mb-2">{step.title}</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">{step.body}</p>
+                    <h3 className="text-base font-black text-slate-950 font-sans mb-1.5">{step.title}</h3>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{step.body}</p>
                   </div>
                 </div>
               ))}
@@ -452,126 +280,256 @@ export function HealthTourism() {
           </div>
         </section>
 
-        {/* ==================== VIP LOGISTICS ==================== */}
-        <section id="logistics" className="py-10 sm:py-16 md:py-20 bg-slate-50 border-t border-b border-slate-200/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-14 space-y-2 sm:space-y-3">
-              <span className="px-3.5 py-1 rounded-md bg-navy-50 text-navy text-xs font-bold tracking-wide border border-navy-100">
-                {t('medical.landing.logistics.badge')}
-              </span>
-              <h2 className="text-xl sm:text-4xl font-extrabold text-slate-900 font-tajawal">{t('medical.landing.logistics.title')}</h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{t('medical.landing.logistics.subtitle')}</p>
+        {/* ==================== LOGISTICS ==================== */}
+        <section id="logistics" className="py-16 bg-[#2563eb] text-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center max-w-xl mx-auto mb-12">
+              <h2 className="text-3xl font-black font-sans text-white">{t(`${D}.logistics.title`)}</h2>
+              <p className="text-sm text-blue-100 font-medium mt-2">{t(`${D}.logistics.subtitle`)}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              {logisticsCards.map((card, i) => (
-                <div key={card.title} className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition duration-300 space-y-3 sm:space-y-4">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-navy-50 text-navy flex items-center justify-center">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {LOGISTICS_ICONS[i]}
-                    </svg>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {logisticsCards.map((card) => (
+                <div key={card.title} className="bg-white rounded-3xl p-6 text-slate-900 shadow-2xl flex flex-col justify-between h-[230px]">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                        <AppIcon name={card.icon} className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-slate-950 font-sans">{card.title}</h3>
+                        <p className="text-xs text-slate-500 font-medium">{card.description}</p>
+                      </div>
+                    </div>
+                    <div className="inline-block px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+                      {card.tag}
+                    </div>
                   </div>
-                  <h3 className="text-sm sm:text-lg font-bold text-slate-900">{card.title}</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{card.description}</p>
+                  <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 block">{card.availabilityLabel}</span>
+                      <span className="text-xs font-black text-emerald-600">{card.availabilityValue}</span>
+                    </div>
+                    <a href="#lead-form" className="bg-slate-950 hover:bg-black text-white text-xs font-black px-5 py-2.5 rounded-full shadow-md active:scale-95 transition">
+                      {card.cta}
+                    </a>
+                  </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ==================== HOSPITALS ==================== */}
-        <section id="hospitals" className="py-10 sm:py-20 md:py-28 bg-navy relative overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none"
-            style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}
-          />
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-14">
-              <span className="text-xs sm:text-sm font-semibold text-navy-100 tracking-wide">{t('medical.landing.hospitals.badge')}</span>
-              <h2 className="text-xl sm:text-4xl lg:text-5xl font-black text-white font-tajawal tracking-tight leading-tight">
-                {t('medical.landing.hospitals.title')}
-                <br className="hidden sm:inline" />
-                <span className="text-navy-100">{t('medical.landing.hospitals.titleHighlight')}</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-navy-100/80 font-light max-w-lg mx-auto leading-relaxed">{t('medical.landing.hospitals.subtitle')}</p>
-            </div>
-
-            <div className="relative px-0 sm:px-12">
-              <ArrowButton dir="prev" variant="dark" onClick={() => scrollTrack(hospitalsTrackRef, 280)} className="-start-1 sm:-start-2" />
-              <ArrowButton dir="next" variant="dark" onClick={() => scrollTrack(hospitalsTrackRef, -280)} className="-end-1 sm:-end-2" />
-
-              <div ref={hospitalsTrackRef} className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none scroll-smooth py-6 sm:py-8 px-1">
-                {hospitalItems.map((h, i) => (
-                  <div key={h.name} className="min-w-[200px] sm:min-w-[260px] flex-shrink-0 relative">
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
-                      <div className="w-12 h-12 rounded-full bg-navy text-white font-extrabold text-[11px] flex items-center justify-center shadow-lg border-[3px] border-white">
-                        JCI
-                      </div>
-                    </div>
-                    <div className={`rounded-2xl pt-10 pb-6 px-6 text-center space-y-2 border shadow-md hover:shadow-xl transition duration-300 ${HOSPITAL_STYLES[i]}`}>
-                      <h3 className="text-base font-bold text-slate-900">{h.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">{h.subtitle}</p>
-                      <div className="pt-3">
-                        <span className="inline-block px-4 py-1.5 rounded-lg bg-white text-[11px] font-semibold text-slate-600 border border-slate-200">
-                          {t('medical.landing.hospitals.accreditationLabel')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>
 
         {/* ==================== TESTIMONIALS ==================== */}
-        <section id="testimonials" className="py-10 sm:py-20 bg-navy relative overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-14 shadow-2xl border border-slate-100 relative">
-              <div className="text-start space-y-2 sm:space-y-3 mb-5 sm:mb-10">
-                <span className="inline-block px-4 py-1.5 rounded-full bg-[#D1FADF] text-[#027A48] text-xs font-bold tracking-wide">
-                  {t('medical.landing.testimonials.badge')}
-                </span>
-                <h2 className="text-xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-tajawal tracking-tight">
-                  {t('medical.landing.testimonials.title')}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">{t('medical.landing.testimonials.subtitle')}</p>
-              </div>
+        <section id="testimonials" className="py-16 bg-slate-50 border-b border-slate-200/80">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center max-w-xl mx-auto mb-12">
+              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t('medical.landing.testimonials.title')}</h2>
+              <p className="text-sm text-slate-500 font-medium mt-2">{t(`${D}.testimonials.subtitle`)}</p>
+            </div>
 
-              <div className="relative px-0 sm:px-8">
-                <ArrowButton
-                  dir="prev"
-                  onClick={() => scrollTrack(testimonialsTrackRef, 340)}
-                  className="-start-3 sm:-start-5 bg-brand-blue text-navy hover:bg-navy hover:text-white border-0"
-                />
-                <ArrowButton
-                  dir="next"
-                  onClick={() => scrollTrack(testimonialsTrackRef, -340)}
-                  className="-end-3 sm:-end-5 bg-brand-blue text-navy hover:bg-navy hover:text-white border-0"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {testimonialItems.map((item) => (
+                <div key={item.name} className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-lg relative flex flex-col justify-between">
+                  <div className="text-purple-600 text-[60px] leading-none absolute top-4 start-6 opacity-20 font-serif font-black">&rdquo;</div>
+                  <div className="space-y-4 relative z-10 mb-6">
+                    <div className="flex items-center text-purple-600 text-base tracking-widest gap-1 font-bold">★ ★ ★ ★ ★</div>
+                    <p className="text-base text-slate-800 leading-relaxed font-bold">&quot;{item.quote}&quot;</p>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 font-black text-base flex items-center justify-center shrink-0">
+                      {item.initials}
+                    </div>
+                    <div>
+                      <h4 className="text-base font-black text-slate-950">{item.name}</h4>
+                      <span className="text-xs text-slate-500 font-bold block">{item.location}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                <div ref={testimonialsTrackRef} className="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth py-2 px-1">
-                  {testimonialItems.map((item, i) => {
-                    const style = TESTIMONIAL_STYLES[i];
-                    return (
-                      <div
-                        key={item.name}
-                        className={`w-full min-w-[230px] sm:min-w-[320px] md:min-w-[340px] flex-1 rounded-3xl p-4 sm:p-6 border flex flex-col justify-between space-y-4 sm:space-y-6 shadow-sm hover:shadow-md transition ${style.card}`}
-                      >
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-xs font-bold px-3 py-1 rounded-xl ${style.tag}`}>{item.tag}</span>
-                            <div className="flex text-amber-400 text-sm tracking-widest">★★★★★</div>
-                          </div>
-                          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal text-start">&quot;{item.quote}&quot;</p>
+        {/* ==================== LEAD FORM ==================== */}
+        <section id="lead-form" className="py-16 bg-white border-b border-slate-200/80">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="bg-white rounded-[36px] p-8 lg:p-10 shadow-2xl border border-slate-200/80 relative">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div className="lg:col-span-5 space-y-6 flex flex-col justify-between border-b lg:border-b-0 lg:border-e border-slate-200 pb-6 lg:pb-0 lg:pe-8">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-950 font-sans mb-3">
+                      {form.requestType === 'consultation' ? t(`${D}.form.titleConsult`) : t(`${D}.form.titleEval`)}
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{t(`${D}.form.subtitle`)}</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {(['check', 'shield-check', 'car'] as const).map((icon, i) => (
+                      <div key={icon} className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                          <AppIcon name={icon} className="w-5 h-5" />
                         </div>
-                        <div className={`pt-4 border-t text-start ${style.divider}`}>
-                          <h4 className="text-sm font-extrabold text-slate-900">{item.name}</h4>
-                          <span className="text-xs text-slate-500 font-medium">{item.location}</span>
-                        </div>
+                        <span className="text-xs font-bold text-slate-700">{formTrust[i]}</span>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-400 block">{t(`${D}.form.directContactLabel`)}</span>
+                    <span className="text-sm font-black text-slate-950 font-mono" dir="ltr">
+                      {t(`${D}.form.directContactValue`)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-7 space-y-5">
+                  <div className="bg-[#f4f4f5] p-1.5 rounded-full flex max-w-sm mx-auto">
+                    {(['consultation', 'evaluation'] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => form.setRequestType(type)}
+                        className={`w-1/2 py-2.5 rounded-full font-black text-xs transition-all border cursor-pointer ${
+                          form.requestType === type ? 'bg-white text-slate-900 shadow-md border-slate-200' : 'text-slate-500 font-bold border-transparent hover:text-slate-900'
+                        }`}
+                      >
+                        {t(`medical.landing.form.requestType.${type}`)}
+                      </button>
+                    ))}
+                  </div>
+
+                  <form onSubmit={form.submitConsultation} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label htmlFor="d-name" className="block text-xs font-extrabold text-slate-500">
+                          {t(`${D}.form.name.label`)} <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          id="d-name"
+                          type="text"
+                          required
+                          value={form.name}
+                          onChange={(e) => form.setName(e.target.value)}
+                          placeholder={t(`${D}.form.name.placeholder`)}
+                          className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3.5 text-xs text-slate-950 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-950 transition"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label htmlFor="d-phone" className="block text-xs font-extrabold text-slate-500">
+                          {t(`${D}.form.phone.label`)} <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          id="d-phone"
+                          type="tel"
+                          required
+                          dir="ltr"
+                          value={form.phone}
+                          onChange={(e) => form.setPhone(e.target.value)}
+                          placeholder={t(`${D}.form.phone.placeholder`)}
+                          className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3.5 text-xs text-slate-950 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-950 transition text-end"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-extrabold text-slate-500">{t(`${D}.form.specialtyLabel`)}</label>
+                      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                        {chips.map((chip) => (
+                          <button
+                            key={chip.slug}
+                            type="button"
+                            onClick={() => form.setFormSpecialty(chip.slug)}
+                            className={`px-5 py-2.5 rounded-full text-xs shrink-0 transition-all cursor-pointer ${
+                              form.formSpecialty === chip.slug
+                                ? 'font-black bg-slate-950 text-white shadow-md'
+                                : 'font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                            }`}
+                          >
+                            {chip.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-extrabold text-slate-500">{t(`${D}.form.files.label`)}</label>
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => form.fileInputRef.current?.click()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') form.fileInputRef.current?.click();
+                        }}
+                        className="w-full bg-[#f4f4f5] rounded-2xl p-4 text-center cursor-pointer hover:bg-slate-200 transition"
+                      >
+                        <input
+                          ref={form.fileInputRef}
+                          type="file"
+                          multiple
+                          className="hidden"
+                          accept={form.FILE_ACCEPT}
+                          onChange={(e) => {
+                            form.addFiles(e.target.files);
+                            e.target.value = '';
+                          }}
+                        />
+                        <span className="cursor-pointer text-xs font-extrabold text-slate-700 flex items-center justify-center gap-2">
+                          <AppIcon name="paperclip" className="w-4 h-4 text-slate-500" />
+                          <span className={form.files.length > 0 ? 'text-emerald-600' : ''}>
+                            {form.files.length > 0 ? `${form.files.length} ${form.files.length === 1 ? '' : ''}✓` : t(`${D}.form.files.cta`)}
+                          </span>
+                        </span>
+                      </div>
+                      {form.files.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                          {form.files.map((file, idx) => (
+                            <div key={`${file.name}-${idx}`} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100 text-[11px]">
+                              <span className="truncate font-semibold text-slate-700">
+                                {file.name} ({humanFileSize(file.size)})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="d-notes" className="block text-xs font-extrabold text-slate-500">
+                        {t(`${D}.form.notes.label`)}
+                      </label>
+                      <textarea
+                        id="d-notes"
+                        rows={3}
+                        value={form.notes}
+                        onChange={(e) => form.setNotes(e.target.value)}
+                        placeholder={t(`${D}.form.notes.placeholder`)}
+                        className="w-full bg-[#f4f4f5] border-none rounded-2xl px-4 py-3 text-xs text-slate-950 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-slate-950 transition"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-4 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          form.setName('');
+                          form.setPhone('');
+                          form.setNotes('');
+                          form.setFormSpecialty(chips[0]?.slug ?? '');
+                        }}
+                        className="w-1/3 py-4 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-extrabold text-xs text-center transition"
+                      >
+                        {t(`${D}.form.reset`)}
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={form.submitting}
+                        className="w-2/3 py-4 rounded-full bg-slate-950 hover:bg-black active:scale-95 text-white font-black text-xs text-center transition shadow-xl disabled:opacity-60"
+                      >
+                        {form.submitting ? t('medical.landing.form.sending') : t(`${D}.form.submit`)}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -579,388 +537,84 @@ export function HealthTourism() {
         </section>
 
         {/* ==================== FAQ ==================== */}
-        <section id="faq" className="py-10 sm:py-16 md:py-24 bg-slate-50 border-t border-b border-slate-200/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-12 items-start">
-              <div className="lg:col-span-4 space-y-2.5 sm:space-y-4 lg:sticky lg:top-28">
-                <span className="px-3.5 py-1 rounded-md bg-navy-50 text-navy text-xs font-bold tracking-wide border border-navy-100">
-                  {t('medical.landing.faq.title')}
-                </span>
-                <h2 className="text-2xl sm:text-5xl font-black text-slate-900 font-tajawal tracking-tight leading-tight">
-                  {t('medical.landing.faq.title')}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-light">{t('medical.landing.faq.subtitle')}</p>
-                <div className="pt-2 sm:pt-3 relative max-w-sm">
-                  <div className="relative">
-                    <svg
-                      className="w-[18px] h-[18px] text-slate-400 absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                      type="text"
-                      value={faqSearch}
-                      onChange={(e) => setFaqSearch(e.target.value)}
-                      placeholder={t('medical.landing.faq.searchPlaceholder')}
-                      className="w-full py-3 ps-10 pe-4 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-navy-light focus:border-navy-light shadow-sm transition text-start"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:col-span-8 divide-y divide-slate-200/90 border-t border-b border-slate-200/90">
-                {visibleFaqItems.map(({ item, i }) => {
-                  const open = openFaq === i;
-                  return (
-                    <div key={item.q} className="py-3.5 sm:py-5 transition duration-200">
-                      <button
-                        type="button"
-                        onClick={() => setOpenFaq(open ? null : i)}
-                        aria-expanded={open}
-                        className="w-full flex items-center justify-between text-start font-bold text-slate-900 text-sm sm:text-lg focus:outline-none cursor-pointer group"
-                      >
-                        <span className="leading-snug group-hover:text-navy-light transition-colors">{item.q}</span>
-                        <span className="text-2xl font-light text-slate-500 group-hover:text-navy-light flex-shrink-0 ms-4 select-none transition-colors">
-                          {open ? '✕' : '+'}
-                        </span>
-                      </button>
-                      <div
-                        className="overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out"
-                        style={{ maxHeight: open ? '600px' : '0px', opacity: open ? 1 : 0 }}
-                      >
-                        <p className="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed text-start font-light">{item.a}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+        <section id="faq" className="py-16 bg-slate-50 border-b border-slate-200/80">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="text-center max-w-xl mx-auto mb-10">
+              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t(`${D}.faq.title`)}</h2>
             </div>
-          </div>
-        </section>
 
-        {/* ==================== LEAD FORM ==================== */}
-        <section id="lead-form" ref={leadFormRef} className="py-10 sm:py-16 md:py-24 bg-cream relative overflow-hidden">
-          <div className="absolute -top-32 -end-32 w-[32rem] h-[32rem] bg-navy-light/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 -start-32 w-[32rem] h-[32rem] bg-navy/15 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="bg-white rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-12 shadow-2xl border border-slate-900/10 relative overflow-hidden">
-              <div className="text-center space-y-2 sm:space-y-2.5 mb-5 sm:mb-10 relative z-10">
-                <span className="inline-block px-4 py-1.5 rounded-full bg-navy-50 text-navy-light text-xs font-bold tracking-wide">
-                  {t('medical.landing.form.badge')}
-                </span>
-                <h2 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 font-tajawal tracking-tight">
-                  {t('medical.landing.form.title')}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-lg mx-auto leading-relaxed">{t('medical.landing.form.subtitle')}</p>
-              </div>
-
-              {/* Consultation vs. report-evaluation segmented control */}
-              <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-100 mb-5 sm:mb-8 max-w-md mx-auto relative z-10">
-                {(['consultation', 'evaluation'] as const).map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => form.setRequestType(type)}
-                    className={`py-2.5 rounded-xl text-xs sm:text-sm font-bold transition duration-200 ${
-                      form.requestType === type ? 'bg-navy text-white shadow-md' : 'text-slate-600 hover:text-navy'
-                    }`}
-                  >
-                    {t(`medical.landing.form.requestType.${type}`)}
-                  </button>
-                ))}
-              </div>
-
-              <form onSubmit={form.submitConsultation} className="space-y-4 sm:space-y-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2 text-start">
-                    <label htmlFor="ht-form-name" className="block text-xs font-bold text-slate-800">
-                      {t('medical.landing.form.name.label')} <span className="text-rose-500 font-bold">*</span>
-                    </label>
-                    <input
-                      id="ht-form-name"
-                      type="text"
-                      required
-                      value={form.name}
-                      onChange={(e) => form.setName(e.target.value)}
-                      placeholder={t('medical.landing.form.name.placeholder')}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50/70 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-light transition text-start"
-                    />
-                  </div>
-                  <div className="space-y-2 text-start">
-                    <label htmlFor="ht-form-phone" className="block text-xs font-bold text-slate-800">
-                      {t('medical.landing.form.phone.label')} <span className="text-rose-500 font-bold">*</span>
-                    </label>
-                    <input
-                      id="ht-form-phone"
-                      type="tel"
-                      required
-                      dir="ltr"
-                      value={form.phone}
-                      onChange={(e) => form.setPhone(e.target.value)}
-                      placeholder={t('medical.landing.form.phone.placeholder')}
-                      className="w-full px-4 py-3.5 rounded-2xl bg-slate-50/70 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-light transition text-start"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-start">
-                  <label className="block text-xs font-bold text-slate-800">
-                    {t('medical.landing.form.specialty.label')} <span className="text-rose-500 font-bold">*</span>
-                  </label>
-                  <div className={`flex flex-wrap gap-2 rounded-2xl p-1 transition ${form.highlightSpecialty ? 'ring-2 ring-navy-light' : ''}`}>
-                    {SPECIALTY_SLUGS.map((slug) => (
-                      <button
-                        key={slug}
-                        type="button"
-                        onClick={() => form.setFormSpecialty(slug)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition duration-150 ${
-                          form.formSpecialty === slug
-                            ? 'bg-navy text-white border-navy'
-                            : 'bg-slate-50/70 text-slate-700 border-slate-200 hover:border-navy-light hover:text-navy-light'
-                        }`}
-                      >
-                        {t(`medical.landing.form.specialty.options.${slug}`)}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => form.setFormSpecialty('other')}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition duration-150 ${
-                        form.formSpecialty === 'other'
-                          ? 'bg-navy text-white border-navy'
-                          : 'bg-slate-50/70 text-slate-700 border-slate-200 hover:border-navy-light hover:text-navy-light'
-                      }`}
-                    >
-                      {t('medical.landing.form.specialty.options.other')}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-start">
-                  <label className="block text-xs font-bold text-slate-800">{t('medical.landing.form.files.label')}</label>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => form.fileInputRef.current?.click()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') form.fileInputRef.current?.click();
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      form.setDragOver(true);
-                    }}
-                    onDragLeave={() => form.setDragOver(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      form.setDragOver(false);
-                      form.addFiles(e.dataTransfer.files);
-                    }}
-                    className={`w-full p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center justify-between group ${form.dragOver ? 'border-navy-light bg-navy-50/50' : 'bg-slate-50/80 border-slate-200 hover:border-navy-light hover:bg-navy-50/30'}`}
-                  >
-                    <input
-                      ref={form.fileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      accept={form.FILE_ACCEPT}
-                      onChange={(e) => {
-                        form.addFiles(e.target.files);
-                        e.target.value = '';
-                      }}
-                    />
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-center justify-center group-hover:border-navy-light group-hover:text-navy-light transition-colors shadow-sm">
-                        <svg className="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                          />
-                        </svg>
-                      </div>
-                      <div className="text-start">
-                        <span className="block text-xs font-bold text-slate-800 group-hover:text-navy-light transition-colors">
-                          {t('medical.landing.form.files.cta')}
-                        </span>
-                        <span className="block text-[11px] text-slate-400 font-medium">{t('medical.landing.form.files.hint')}</span>
-                      </div>
-                    </div>
-                    <span className="px-3.5 py-1.5 rounded-xl bg-white text-xs font-bold text-slate-700 border border-slate-200 group-hover:border-navy-light group-hover:text-navy-light transition-all shadow-sm">
-                      {t('medical.landing.form.files.chooseFile')}
-                    </span>
-                  </div>
-                  {form.files.length > 0 && (
-                    <div className="space-y-2 pt-1">
-                      {form.files.map((file, idx) => (
-                        <div
-                          key={`${file.name}-${idx}`}
-                          className="flex items-center justify-between p-3 rounded-xl bg-navy-50/60 border border-navy-100 text-xs text-slate-800 transition shadow-sm"
-                        >
-                          <div className="flex items-center gap-2.5 overflow-hidden">
-                            <div className="w-7 h-7 rounded-lg bg-white border border-navy-100 text-navy-light flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                                />
-                              </svg>
-                            </div>
-                            <span className="truncate font-bold text-slate-800">{file.name}</span>
-                            <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">({humanFileSize(file.size)})</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => form.removeFile(idx)}
-                            className="text-slate-400 hover:text-rose-500 font-bold p-1 transition"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2 text-start">
-                  <label htmlFor="ht-form-notes" className="block text-xs font-bold text-slate-800">
-                    {t('medical.landing.form.notes.label')}
-                  </label>
-                  <textarea
-                    id="ht-form-notes"
-                    rows={3}
-                    value={form.notes}
-                    onChange={(e) => form.setNotes(e.target.value)}
-                    placeholder={t('medical.landing.form.notes.placeholder')}
-                    className="w-full px-4 py-3.5 rounded-2xl bg-slate-50/70 border border-slate-200 text-slate-900 text-xs placeholder:text-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-light transition text-start"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={form.submitting}
-                  className="w-full py-4 rounded-2xl bg-navy hover:bg-navy-dark text-white font-bold text-sm shadow-md transition duration-200 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60"
-                >
-                  <span>{form.submitting ? t('medical.landing.form.sending') : t('medical.landing.form.submit')}</span>
-                  {!form.submitting && (
-                    <svg className="w-4 h-4 text-white rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  )}
-                </button>
-
-                <div className="pt-1 text-center">
-                  <span className="text-xs text-slate-400 font-medium flex items-center justify-center gap-1.5">
-                    <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                    <span>{t('medical.landing.form.privacyNote')}</span>
-                  </span>
-                </div>
-              </form>
-            </div>
+            <FaqAccordion items={faqItems} />
           </div>
         </section>
       </div>
 
-      {/* ==================== SUCCESS MODAL (iOS bottom-sheet style) ==================== */}
+      {/* ==================== SUCCESS MODAL ==================== */}
       {form.successOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4" dir={isRTL ? 'rtl' : 'ltr'}>
-          <div className="bg-white rounded-t-[2rem] sm:rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-5 border border-slate-200 shadow-xl animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 duration-300">
-            <div className="w-1.5 h-1.5 mx-auto rounded-full bg-slate-200 sm:hidden" />
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-900 font-tajawal">{t('medical.landing.form.successModal.title')}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {t('medical.landing.form.successModal.body')}
-                <br />
-                <span className="inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-800 font-mono font-bold rounded-md text-xs border border-slate-200">
-                  {form.refCode}
-                </span>
-              </p>
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <div className="w-full max-w-md bg-white rounded-[32px] p-6 shadow-2xl border border-slate-200/80 relative text-slate-900 space-y-5">
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-2" />
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-inner">
+                <AppIcon name="check-circle" className="w-10 h-10 stroke-[2.5]" />
+              </div>
+              <h3 className="text-xl font-black font-sans text-slate-950">{t(`${D}.successModal.title`)}</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">{t(`${D}.successModal.body`)}</p>
             </div>
-            <p className="text-xs text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200">{t('medical.landing.form.successModal.note')}</p>
-            {form.waHref && (
-              <a
-                href={form.waHref}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 rounded-xl text-white font-bold text-xs transition flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#25d366' }}
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor" aria-hidden>
-                  <path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
-                </svg>
-                <span>{t('medical.request.whatsappCta')}</span>
-              </a>
-            )}
+            <div className="pt-2">
+              {WA_ENABLED && form.waHref ? (
+                <a
+                  href={form.waHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => form.setSuccessOpen(false)}
+                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs text-center transition shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <AppIcon name="message-circle" className="w-5 h-5" />
+                  <span>{t(`${D}.successModal.cta`)}</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => form.setSuccessOpen(false)}
+                  className="w-full py-4 rounded-2xl bg-slate-950 hover:bg-black active:scale-95 text-white font-black text-xs text-center transition shadow-xl"
+                >
+                  {t(`${D}.successModal.cta`)}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FaqAccordion({ items }: { items: FaqCopy[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  return (
+    <div className="space-y-4">
+      {items.map((item, i) => {
+        const open = openIndex === i;
+        return (
+          <div key={item.q} className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm transition-all">
             <button
               type="button"
-              onClick={() => form.setSuccessOpen(false)}
-              className="w-full py-3 rounded-xl bg-navy text-white font-bold text-xs hover:bg-navy-dark transition"
+              onClick={() => setOpenIndex(open ? null : i)}
+              aria-expanded={open}
+              className="w-full p-5 text-start text-sm font-extrabold text-slate-950 flex items-center justify-between gap-4 focus:outline-none"
             >
-              {t('medical.landing.form.successModal.close')}
+              <span>{item.q}</span>
+              <AppIcon name="plus" className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-45' : ''}`} />
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== CALLBACK MODAL ==================== */}
-      {callbackOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4" dir={isRTL ? 'rtl' : 'ltr'}>
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full space-y-5 border border-slate-200 shadow-xl relative">
-            <button type="button" onClick={closeCallback} className="absolute top-4 end-4 text-slate-400 hover:text-slate-600 font-bold">
-              ✕
-            </button>
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-bold text-slate-900 font-tajawal">{t('medical.landing.form.callbackModal.title')}</h3>
-              <p className="text-xs text-slate-600">{t('medical.landing.form.callbackModal.subtitle')}</p>
+            <div className="overflow-hidden transition-[max-height] duration-300" style={{ maxHeight: open ? '400px' : '0px' }}>
+              <div className="p-5 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-100">{item.a}</div>
             </div>
-            {callbackSent ? (
-              <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center font-semibold">
-                {t('medical.landing.form.callbackModal.success')}
-              </p>
-            ) : (
-              <form onSubmit={submitCallback} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('medical.landing.form.callbackModal.nameLabel')}</label>
-                  <input
-                    type="text"
-                    required
-                    value={callbackName}
-                    onChange={(e) => setCallbackName(e.target.value)}
-                    placeholder={t('medical.landing.form.callbackModal.namePlaceholder')}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-navy focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">{t('medical.landing.form.callbackModal.phoneLabel')}</label>
-                  <input
-                    type="tel"
-                    required
-                    value={callbackPhone}
-                    onChange={(e) => setCallbackPhone(e.target.value)}
-                    placeholder={t('medical.landing.form.callbackModal.phonePlaceholder')}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-navy focus:outline-none"
-                  />
-                </div>
-                <button type="submit" className="w-full py-3 rounded-xl bg-emerald-700 text-white font-bold text-xs hover:bg-emerald-800 transition">
-                  {t('medical.landing.form.callbackModal.submit')}
-                </button>
-              </form>
-            )}
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }

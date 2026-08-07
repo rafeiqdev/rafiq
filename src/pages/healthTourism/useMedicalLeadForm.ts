@@ -10,6 +10,10 @@ const WA = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) ?? '';
 export const WA_ENABLED = /^\d{8,15}$/.test(WA) && WA !== '905000000000';
 
 export type RequestType = 'consultation' | 'evaluation';
+export interface SpecialtyChip {
+  slug: string;
+  label: string;
+}
 
 const FILE_ACCEPT = 'image/*,.pdf,.doc,.docx';
 
@@ -22,33 +26,25 @@ export function humanFileSize(bytes: number): string {
  * used by both the desktop and mobile components so the two layouts never
  * drift on how a request actually reaches the backend.
  *
- * Submission always calls medicalRequests.create() first (so the lead is
- * captured server-side even for a signed-out visitor's session-scoped
- * account); WhatsApp is offered only as an optional secondary "continue"
- * action after success, never as the only place the lead is recorded — see
- * ServiceRequestModal.test.tsx for the same rule enforced elsewhere in the app.
+ * The client-provided mockups submit purely client-side (build a wa.me
+ * message, no backend call). We keep medicalRequests.create() as the primary
+ * write — same as the rest of the app — and offer the WhatsApp message as the
+ * success-modal's "continue" action, matching the mockups' own success-sheet
+ * pattern (its button already just opens WhatsApp).
  */
-export function useMedicalLeadForm() {
+export function useMedicalLeadForm(chips: SpecialtyChip[]) {
   const { t } = useTranslation();
   const { user } = useApp();
 
   const [requestType, setRequestType] = useState<RequestType>('consultation');
-  const [formSpecialty, setFormSpecialty] = useState('');
-  const [highlightSpecialty, setHighlightSpecialty] = useState(false);
-  const selectSpecialty = (slug: string) => {
-    setFormSpecialty(slug);
-    setHighlightSpecialty(true);
-    setTimeout(() => setHighlightSpecialty(false), 1500);
-  };
+  const [formSpecialty, setFormSpecialty] = useState<string>(chips[0]?.slug ?? '');
 
   const [files, setFiles] = useState<File[]>([]);
-  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const addFiles = (list: FileList | null) => {
     if (!list || list.length === 0) return;
     setFiles((prev) => [...prev, ...Array.from(list)]);
   };
-  const removeFile = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -62,22 +58,21 @@ export function useMedicalLeadForm() {
   const resetForm = () => {
     setName('');
     setPhone('');
-    setFormSpecialty('');
+    setFormSpecialty(chips[0]?.slug ?? '');
     setNotes('');
     setFiles([]);
   };
+
+  const specialtyLabel = chips.find((c) => c.slug === formSpecialty)?.label ?? formSpecialty;
 
   const submitConsultation = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (submitting) return;
       setSubmitting(true);
-      const specialtyLabel = formSpecialty
-        ? t(`medical.landing.form.specialty.options.${formSpecialty}`)
-        : t('medical.landing.form.specialty.options.other');
       const typeLabel = t(`medical.landing.form.requestType.${requestType}`);
       const description = notes.trim() ? `${typeLabel} — ${specialtyLabel}\n\n${notes.trim()}` : `${typeLabel} — ${specialtyLabel}`;
-      const contactNotes = `${t('medical.landing.form.name.label')}: ${name}\n${t('medical.landing.form.phone.label')}: ${phone}`;
+      const contactNotes = `${name}\n${phone}`;
 
       try {
         track('request_started', { target: 'medical', meta: { specialty: formSpecialty || 'other' } });
@@ -112,11 +107,22 @@ export function useMedicalLeadForm() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [submitting, formSpecialty, requestType, notes, name, phone, files, user, t],
+    [submitting, formSpecialty, specialtyLabel, requestType, notes, name, phone, files, user, t],
   );
 
+  // Mirrors mobile.js/app.js's WhatsApp message format exactly (name/phone/specialty/notes).
   const waHref = WA_ENABLED
-    ? `https://wa.me/${WA}?text=${encodeURIComponent(`${t('medical.request.waIntro')} (${refCode ?? ''})`)}`
+    ? `https://wa.me/${WA}?text=${encodeURIComponent(
+        [
+          `${t(`medical.landing.form.requestType.${requestType}`)} — Rafiq Istanbul`,
+          `${name}`,
+          `${phone}`,
+          `${specialtyLabel}`,
+          notes.trim() || null,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      )}`
     : null;
 
   return {
@@ -124,13 +130,8 @@ export function useMedicalLeadForm() {
     setRequestType,
     formSpecialty,
     setFormSpecialty,
-    highlightSpecialty,
-    selectSpecialty,
     files,
     addFiles,
-    removeFile,
-    dragOver,
-    setDragOver,
     fileInputRef,
     FILE_ACCEPT,
     name,
