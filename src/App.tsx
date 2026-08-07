@@ -74,6 +74,9 @@ const MobileListingServices = lazyPage(() => import('./pages/mobile/MobileListin
 const RealEstateInvestments = lazyPage(() => import('./pages/RealEstateInvestments').then((m) => ({ default: m.RealEstateInvestments })));
 const InvestmentDetail = lazyPage(() => import('./pages/InvestmentDetail').then((m) => ({ default: m.InvestmentDetail })));
 const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
+const MobileHealthTourism = lazyPage(() =>
+  import('./pages/mobile/MobileHealthTourism').then((m) => ({ default: m.MobileHealthTourism })),
+);
 const MedicalRequest = lazyPage(() => import('./pages/MedicalRequest').then((m) => ({ default: m.MedicalRequest })));
 const Tricks = lazyPage(() => import('./pages/Tricks').then((m) => ({ default: m.Tricks })));
 const MobileTricks = lazyPage(() => import('./pages/mobile/MobileTricks').then((m) => ({ default: m.MobileTricks })));
@@ -230,7 +233,7 @@ function Shell() {
               path="/real-estate/:id/services"
               element={isMobile ? <MobileListingServices /> : <RealEstateDetail />}
             />
-            <Route path="/health-tourism" element={<HealthTourism />} />
+            <Route path="/health-tourism" element={isMobile ? <MobileHealthTourism /> : <HealthTourism />} />
             <Route path="/medical-request" element={<RequireAuth><MedicalRequest /></RequireAuth>} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
             <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />

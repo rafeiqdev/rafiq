@@ -2389,6 +2389,16 @@
           "cta": "Start your request"
         }
       },
+      "heroBeforeAfter": {
+        "beforeLabel": "Before treatment",
+        "afterLabel": "After result",
+        "slides": [
+          { "title": "Hair transplant • precise FUE technique" },
+          { "title": "Dental veneers • Hollywood smile E-max" },
+          { "title": "Rhinoplasty • sculpted, balanced facial features" },
+          { "title": "Jaw surgery • realigned facial structure" }
+        ]
+      },
       "stats": {
         "patients": "Patients successfully served",
         "hospitals": "Accredited hospitals and medical complexes (JCI)",
@@ -2614,6 +2624,10 @@
       },
       "form": {
         "badge": "Request a quote and consultation",
+        "requestType": {
+          "consultation": "Request a consultation",
+          "evaluation": "Report evaluation"
+        },
         "title": "Request your price offer and treatment plan now",
         "subtitle": "Enter your details and our medical consultant will identify the best options and hospitals suited to your case.",
         "name": {
