@@ -971,7 +971,11 @@
       "set": "Указать дату",
       "expired": "Просрочено",
       "daysLeft": "Осталось {{count}} дн.",
-      "noDate": "Дата не указана"
+      "monthsLeft": "Осталось {{count}} мес.",
+      "yearsLeft": "Осталось {{count}} г.",
+      "noDate": "Дата не указана",
+      "all": "Все",
+      "urgent": "Срочно"
     },
     "pipeline": {
       "title": "Мои операции",

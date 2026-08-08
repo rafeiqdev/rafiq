@@ -971,7 +971,11 @@
       "set": "تحديد التاريخ",
       "expired": "منتهٍ",
       "daysLeft": "متبقٍ {{count}} يومًا",
-      "noDate": "لم يُحدد تاريخ"
+      "monthsLeft": "متبقٍ {{count}} شهرًا",
+      "yearsLeft": "متبقٍ {{count}} سنة",
+      "noDate": "لم يُحدد تاريخ",
+      "all": "الكل",
+      "urgent": "عاجل"
     },
     "pipeline": {
       "title": "معاملاتي",

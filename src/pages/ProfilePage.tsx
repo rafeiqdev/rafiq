@@ -38,10 +38,12 @@ function RenewalDateInput({
   iso,
   label,
   onChangeIso,
+  className = 'input w-full sm:w-auto !h-9 text-xs shrink-0',
 }: {
   iso?: string;
   label: string;
   onChangeIso: (iso: string | undefined) => void;
+  className?: string;
 }) {
   const [text, setText] = useState(() => isoToDisplay(iso));
 
@@ -52,7 +54,7 @@ function RenewalDateInput({
   return (
     <input
       type="text" inputMode="numeric" dir="ltr"
-      className="input w-full sm:w-auto !h-9 text-xs shrink-0"
+      className={className}
       placeholder="DD/MM/YYYY"
       value={text}
       onChange={(e) => {
@@ -65,9 +67,23 @@ function RenewalDateInput({
   );
 }
 
+const RENEWAL_ICON: Record<'residence' | 'insurance' | 'passport', 'id-card' | 'heart-pulse' | 'plane'> = {
+  residence: 'id-card',
+  insurance: 'heart-pulse',
+  passport: 'plane',
+};
+
 function daysUntil(iso?: string): number | null {
   if (!iso) return null;
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+}
+
+// Past ~2 months a raw day count stops being readable at a glance ("612 days
+// left") — switch to the coarsest unit that keeps the number small.
+function renewalPeriod(days: number): { count: number; key: 'profile.renewals.daysLeft' | 'profile.renewals.monthsLeft' | 'profile.renewals.yearsLeft' } {
+  if (days >= 365) return { count: Math.round(days / 365), key: 'profile.renewals.yearsLeft' };
+  if (days >= 60) return { count: Math.round(days / 30), key: 'profile.renewals.monthsLeft' };
+  return { count: days, key: 'profile.renewals.daysLeft' };
 }
 
 function ProfileInner() {
@@ -100,6 +116,18 @@ function ProfileInner() {
     date: profile.renewals[k],
     days: daysUntil(profile.renewals[k]),
   }));
+  const renewalsWithDates = renewalRows.filter((r) => r.date);
+  const urgentRenewal = renewalsWithDates.length
+    ? renewalsWithDates.reduce((a, b) => ((a.days ?? Infinity) < (b.days ?? Infinity) ? a : b))
+    : null;
+  const [selectedRenewal, setSelectedRenewal] = useState<typeof renewalRows[number]['key']>(
+    () => urgentRenewal?.key ?? renewalRows[0].key,
+  );
+  const [renewalsUrgentOnly, setRenewalsUrgentOnly] = useState(false);
+  const selectedRenewalRow = renewalRows.find((r) => r.key === selectedRenewal) ?? renewalRows[0];
+  const visibleRenewalRows = renewalRows.filter(
+    (r) => !renewalsUrgentOnly || !r.date || (r.days !== null && r.days < 60),
+  );
 
 
   return (
@@ -223,34 +251,121 @@ function ProfileInner() {
 
         {/* renewal tracker — id target for /profile#renewals deep links (e.g. the
             dashboard's "add a date" invite, which used to just land on /profile
-            with no way to tell the user where to look) */}
-        <div id="renewals" className="card p-5 sm:p-6 scroll-mt-20">
-          <h2 className="font-bold text-navy">{t('profile.renewals.title')}</h2>
-          <ul className="mt-4 flex flex-col gap-3">
-            {renewalRows.map((r) => (
-              <li key={r.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy">{t(`profile.renewals.${r.key}`)}</p>
-                  {r.date ? (
-                    <p className={`text-xs font-semibold ${r.days !== null && r.days < 0 ? 'text-brand-red' : r.days !== null && r.days < 30 ? 'text-amber-600' : 'text-green-700'}`}>
-                      {r.days !== null && r.days < 0
-                        ? t('profile.renewals.expired')
-                        : t('profile.renewals.daysLeft', { count: r.days ?? 0 })}
-                      {' · '}
-                      {new Date(r.date).toLocaleDateString(i18n.language)}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-gray-500">{t('profile.renewals.noDate')}</p>
-                  )}
-                </div>
+            with no way to tell the user where to look). Glass-on-gradient look
+            requested by the user (Pinterest reference), recolored to the site's
+            own navy/gold-black brand tokens instead of the reference's pink. */}
+        <div id="renewals" className="relative overflow-hidden rounded-3xl p-5 sm:p-6 scroll-mt-20 shadow-cardHover bg-gradient-to-br from-navy-dark via-navy to-navy-light">
+          <div className="pointer-events-none absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-14 -right-8 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
+
+          <div className="relative">
+            {/* segmented toggle */}
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 p-1">
+              <button
+                onClick={() => setRenewalsUrgentOnly(false)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${!renewalsUrgentOnly ? 'bg-white text-navy shadow' : 'text-white/80'}`}
+              >
+                {t('profile.renewals.all')}
+              </button>
+              <button
+                onClick={() => setRenewalsUrgentOnly(true)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${renewalsUrgentOnly ? 'bg-white text-navy shadow' : 'text-white/80'}`}
+              >
+                {t('profile.renewals.urgent')}
+              </button>
+            </div>
+
+            {/* headline — most urgent renewal */}
+            <div className="mt-6">
+              {urgentRenewal ? (
+                <>
+                  {(() => {
+                    const expired = urgentRenewal.days !== null && urgentRenewal.days < 0;
+                    const period = renewalPeriod(urgentRenewal.days ?? 0);
+                    return (
+                      <>
+                        <div className="flex items-end justify-between gap-3">
+                          <p className="text-xl sm:text-2xl font-black text-white leading-none drop-shadow-sm truncate">
+                            {t(`profile.renewals.${urgentRenewal.key}`)}
+                          </p>
+                          <p className="text-4xl sm:text-5xl font-black text-white leading-none drop-shadow-sm shrink-0">
+                            {expired ? '—' : period.count}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs font-semibold text-white/80">
+                          {expired ? t('profile.renewals.expired') : t(period.key, { count: period.count })}
+                          {' · '}
+                          {new Date(urgentRenewal.date!).toLocaleDateString(i18n.language)}
+                        </p>
+                      </>
+                    );
+                  })()}
+                </>
+              ) : (
+                <p className="text-xl sm:text-2xl font-black text-white leading-none drop-shadow-sm">
+                  {t('profile.renewals.title')}
+                </p>
+              )}
+            </div>
+
+            {/* item row */}
+            <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1">
+              {visibleRenewalRows.map((r) => {
+                const active = r.key === selectedRenewal;
+                return (
+                  <button
+                    key={r.key}
+                    onClick={() => setSelectedRenewal(r.key)}
+                    className={`flex flex-col items-center gap-1.5 shrink-0 rounded-2xl px-3 py-2 transition ${
+                      active ? 'bg-white/95 shadow-md' : 'bg-white/10 hover:bg-white/20'
+                    }`}
+                  >
+                    <span
+                      className={`flex items-center justify-center w-9 h-9 rounded-full ${
+                        active ? 'bg-gold text-white' : 'bg-white/20 text-white'
+                      }`}
+                    >
+                      <AppIcon name={RENEWAL_ICON[r.key]} className="w-4 h-4" />
+                    </span>
+                    <span className={`text-[11px] font-bold whitespace-nowrap ${active ? 'text-navy' : 'text-white'}`}>
+                      {t(`profile.renewals.${r.key}`)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* edit selected renewal's date */}
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <label className="flex-1 flex items-center gap-2 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 px-3 h-11 min-w-0">
+                <AppIcon name="pencil" className="w-4 h-4 text-white/80 shrink-0" />
                 <RenewalDateInput
-                  iso={r.date}
+                  key={selectedRenewalRow.key}
+                  iso={selectedRenewalRow.date}
                   label={t('profile.renewals.set')}
-                  onChangeIso={(iso) => updateProfile({ renewals: { ...profile.renewals, [r.key]: iso } })}
+                  onChangeIso={(iso) => updateProfile({ renewals: { ...profile.renewals, [selectedRenewalRow.key]: iso } })}
+                  className="w-full bg-transparent text-sm font-semibold text-white placeholder-white/60 outline-none"
                 />
-              </li>
-            ))}
-          </ul>
+              </label>
+              <span
+                className={`shrink-0 rounded-full px-3.5 h-9 flex items-center justify-center text-xs font-bold ${
+                  !selectedRenewalRow.date
+                    ? 'bg-white/20 text-white'
+                    : selectedRenewalRow.days !== null && selectedRenewalRow.days < 0
+                    ? 'bg-white text-brand-red'
+                    : selectedRenewalRow.days !== null && selectedRenewalRow.days < 30
+                    ? 'bg-white text-amber-600'
+                    : 'bg-white text-green-700'
+                }`}
+              >
+                {!selectedRenewalRow.date
+                  ? t('profile.renewals.noDate')
+                  : selectedRenewalRow.days !== null && selectedRenewalRow.days < 0
+                  ? t('profile.renewals.expired')
+                  : t(renewalPeriod(selectedRenewalRow.days ?? 0).key, { count: renewalPeriod(selectedRenewalRow.days ?? 0).count })}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* document locker — id target for /profile#locker deep links */}

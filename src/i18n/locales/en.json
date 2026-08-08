@@ -971,7 +971,11 @@
       "set": "Set date",
       "expired": "Expired",
       "daysLeft": "{{count}} days left",
-      "noDate": "No date set"
+      "monthsLeft": "{{count}} months left",
+      "yearsLeft": "{{count}} years left",
+      "noDate": "No date set",
+      "all": "All",
+      "urgent": "Urgent"
     },
     "pipeline": {
       "title": "My transactions",
