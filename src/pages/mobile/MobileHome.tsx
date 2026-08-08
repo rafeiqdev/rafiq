@@ -33,9 +33,11 @@ const TRUST = [
 // only reachable via the bottom tab bar's "الخدمات" tab, which users weren't
 // finding. See home.quickLinks.* for copy.
 const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
-  { to: '/real-estate', icon: 'building', key: 'realEstate' },
-  { to: '/services', icon: 'layers', key: 'allServices' },
   { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
+  { to: '/real-estate', icon: 'building', key: 'realEstate' },
+  // Signed-in users lose /map from the bottom tab bar (that slot becomes
+  // "Requests"), so this is their only way back to it — it must stay here.
+  { to: '/map', icon: 'map', key: 'map' },
 ];
 
 type MobileCopy = {
@@ -270,18 +272,28 @@ export function MobileHome() {
         </header>
 
         {/* ================= QUICK LINKS ================= */}
-        <section className="mt-6">
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-5 py-0.5">
+        {/* One joined segmented pill, ported 1:1 (shape, colors, the
+            gradient-fill highlight) from a Pinterest reference. That
+            reference showed one segment permanently highlighted as
+            "current" — we have no such state here (none of these is the
+            page we're on), so the gradient fires on press instead of
+            sitting on one item by default, rather than faking a "you are
+            here" that isn't true. */}
+        <section className="mt-6 px-5">
+          <div className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white p-1.5 shadow-soft scrollbar-none">
             {QUICK_LINKS.map((q) => (
               <Link
                 key={q.to}
                 to={q.to}
-                className="card card-hover shrink-0 p-2.5 flex items-center gap-2 whitespace-nowrap"
+                className="group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 transition-colors active:bg-gradient-to-r active:from-[#2f6fed] active:to-[#1a4fd6]"
               >
-                <span className="icon-chip !w-7 !h-7">
-                  <AppIcon name={q.icon} className="w-3.5 h-3.5" />
+                <AppIcon
+                  name={q.icon}
+                  className="w-4 h-4 shrink-0 text-[#a9b6c9] transition-colors group-active:text-white"
+                />
+                <span className="text-sm font-semibold text-[#9aa5b8] transition-colors group-active:text-white">
+                  {t(`home.quickLinks.${q.key}`)}
                 </span>
-                <span className="text-xs font-semibold text-navy">{t(`home.quickLinks.${q.key}`)}</span>
               </Link>
             ))}
           </div>

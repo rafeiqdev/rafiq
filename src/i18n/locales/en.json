@@ -181,7 +181,8 @@
     "quickLinks": {
       "realEstate": "Real Estate",
       "allServices": "All Services",
-      "health": "Medical Tourism"
+      "health": "Medical Tourism",
+      "map": "Map"
     },
     "how": {
       "eyebrow": "How Rafiq works",

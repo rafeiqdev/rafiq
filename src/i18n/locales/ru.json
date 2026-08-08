@@ -181,7 +181,8 @@
     "quickLinks": {
       "realEstate": "Недвижимость",
       "allServices": "Все услуги",
-      "health": "Медицинский туризм"
+      "health": "Медицинский туризм",
+      "map": "Карта"
     },
     "how": {
       "eyebrow": "Как работает Rafiq?",

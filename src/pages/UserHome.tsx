@@ -41,9 +41,11 @@ const SERVICE_TAG_COLORS = [
 // to reach real estate / health tourism except the
 // header's services dropdown. See home.quickLinks.* for copy.
 const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
-  { to: '/real-estate', icon: 'building', key: 'realEstate' },
-  { to: '/services', icon: 'layers', key: 'allServices' },
   { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
+  { to: '/real-estate', icon: 'building', key: 'realEstate' },
+  // Signed-in users lose /map from the bottom tab bar (that slot becomes
+  // "Requests"), so this is their only way back to it — it must stay here.
+  { to: '/map', icon: 'map', key: 'map' },
 ];
 
 /** Icons for the onboarding-answer chips, by journey task key. */
@@ -354,18 +356,26 @@ export function UserHome() {
         <NotificationBell size={38} className="shrink-0" />
       </header>
 
-      {/* ── quick links: direct access to the main service categories ── */}
-      <div className="mt-4 flex gap-2.5 overflow-x-auto scrollbar-none px-0.5 py-0.5">
+      {/* ── quick links: one joined segmented pill, ported 1:1 (shape, colors,
+          the gradient-fill highlight) from a Pinterest reference. That
+          reference showed one segment permanently highlighted as "current" —
+          we have no such state here (none of these is the page we're on), so
+          the gradient fires on hover/press instead of sitting on one item by
+          default, rather than faking a "you are here" that isn't true. ── */}
+      <div className="mt-4 inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white p-1.5 shadow-soft scrollbar-none">
         {QUICK_LINKS.map((q) => (
           <Link
             key={q.to}
             to={q.to}
-            className="card card-hover shrink-0 p-2.5 flex items-center gap-2 whitespace-nowrap"
+            className="group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-[#2f6fed] hover:to-[#1a4fd6] active:bg-gradient-to-r active:from-[#2f6fed] active:to-[#1a4fd6]"
           >
-            <span className="icon-chip !w-7 !h-7">
-              <AppIcon name={q.icon} className="w-3.5 h-3.5" />
+            <AppIcon
+              name={q.icon}
+              className="w-4 h-4 shrink-0 text-[#a9b6c9] transition-colors group-hover:text-white group-active:text-white"
+            />
+            <span className="text-sm font-semibold text-[#9aa5b8] transition-colors group-hover:text-white group-active:text-white">
+              {t(`home.quickLinks.${q.key}`)}
             </span>
-            <span className="text-xs font-semibold text-navy">{t(`home.quickLinks.${q.key}`)}</span>
           </Link>
         ))}
       </div>
