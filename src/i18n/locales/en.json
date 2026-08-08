@@ -1864,6 +1864,8 @@
     "nextTitle": "Your next step",
     "viewAll": "View all steps",
     "services": "Services for you",
+    "serviceDirect": "We handle it directly",
+    "servicePartner": "Via a partner office",
     "incompleteTitle": "Let's get to know you",
     "incompleteBody": "Answer a few quick questions and we will build your journey.",
     "startNow": "Start now",
@@ -1905,9 +1907,9 @@
     "whatNowTitle": "What happens now",
     "whatNow": {
       "soon": {
-        "when": "Within an hour",
-        "title": "Your plan arrives by email",
-        "body": "A full copy with the required documents and official links — keep it."
+        "when": "Right away",
+        "title": "Your plan is saved to your dashboard",
+        "body": "Your roadmap and next step are ready here — come back anytime, nothing to wait for."
       },
       "week": {
         "when": "This week",
@@ -1916,8 +1918,8 @@
       },
       "after": {
         "when": "After that",
-        "title": "We follow up with you",
-        "body": "We remind you about appointments and renewals before you fall behind."
+        "title": "We notify you as things move",
+        "body": "Bookings, payments and requests update your notification bell automatically."
       }
     },
     "renewalsManage": "Manage dates",

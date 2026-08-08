@@ -6,7 +6,7 @@ import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
 import { errorMessageKey } from '../lib/errors';
 import { shortSummary } from '../lib/bookingSummary';
 import { bookings as bookingsApi, notifications as notificationsApi, documents as documentsApi } from '../lib/api';
-import { SERVICES, pickText } from '../data/services';
+import { SERVICES, SERVICE_CATEGORIES, pickText } from '../data/services';
 import { pickCity } from '../data/turkeyCities';
 import { JOURNEY_TASK_KEYS } from '../lib/types';
 import { AppIcon, DirArrow } from '../components/AppIcon';
@@ -27,6 +27,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** The three "what happens now" rows — pure copy, no data behind them. */
 const NEXT_ROWS = ['soon', 'week', 'after'] as const;
+
+/** Ported 1:1 from a Linear-style ticket-card reference — cycles through its
+ * three tag colors for the service category badge, in the same order. */
+const SERVICE_TAG_COLORS = [
+  { bg: 'bg-red-100', fg: 'text-red-600' },
+  { bg: 'bg-blue-100', fg: 'text-blue-600' },
+  { bg: 'bg-violet-100', fg: 'text-violet-600' },
+] as const;
 
 // Direct, always-visible links to the main service categories — the guest
 // homepage has this row; UserHome never did, so signed-in users had no way
@@ -387,7 +395,7 @@ export function UserHome() {
               {t(`journeyTasks.${k}.title`)}
             </span>
           ))}
-          <Link to="/onboarding" className="ms-auto text-xs font-semibold text-navy/60 hover:text-navy">
+          <Link to="/onboarding?edit=1" className="ms-auto text-xs font-semibold text-navy/60 hover:text-navy">
             {t('dash.editAnswers')}
           </Link>
         </div>
@@ -624,25 +632,66 @@ export function UserHome() {
         </Panel>
       )}
 
+      {/* Ported 1:1 (colors, spacing, layout) from a Linear ticket-card
+          reference the user picked from Pinterest — see PR discussion. Two
+          fields in that reference had no honest equivalent in our data
+          (follower count, priority ranking), so they're sourced from real
+          fields instead of invented: the bottom-left line is the service's
+          own catalog description, and the bottom-right pill reflects whether
+          we run it ourselves or route it through a partner office. */}
       {relatedServices.length > 0 && (
-        <Panel className="mt-4">
-          <h2 className="font-extrabold text-navy">{t('dash.services')}</h2>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
-            {relatedServices.map((s) => (
-              <li key={s.id}>
-                <Link
-                  to={`/services?q=${encodeURIComponent(pickText(s.title, lang))}`}
-                  className="block h-full rounded-xl border border-cream-dark bg-white p-3 hover:border-navy/40 transition-colors"
-                >
-                  <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-blue text-navy">
-                    <AppIcon name={s.icon} className="w-4 h-4" />
-                  </span>
-                  <span className="mt-2 block text-sm font-semibold text-navy break-words">{pickText(s.title, lang)}</span>
-                </Link>
-              </li>
-            ))}
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[15px] font-bold text-gray-900">{t('dash.services')}</h2>
+              <span className="text-xs font-bold text-gray-500 bg-gray-100 rounded-md px-1.5 py-0.5">
+                {relatedServices.length}
+              </span>
+            </div>
+            <Link to="/services" aria-label={t('nav.allServices')} className="text-lg leading-none text-gray-400 hover:text-gray-600">
+              +
+            </Link>
+          </div>
+
+          <ul className="mt-3.5 flex flex-col gap-3">
+            {relatedServices.map((s, i) => {
+              const category = SERVICE_CATEGORIES.find((c) => c.id === s.category);
+              const tagColor = SERVICE_TAG_COLORS[i % SERVICE_TAG_COLORS.length];
+              const direct = s.type === 'direct';
+              return (
+                <li key={s.id}>
+                  <Link
+                    to={`/services?q=${encodeURIComponent(pickText(s.title, lang))}`}
+                    className="block rounded-[18px] bg-white px-[18px] py-4 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_6px_rgba(15,15,15,0.04)] hover:shadow-[0_4px_14px_rgba(15,15,15,0.09)] transition-shadow"
+                  >
+                    <div className="flex items-center justify-between gap-2.5">
+                      <span className="text-[12.5px] font-semibold text-gray-400">#{s.id.toUpperCase()}</span>
+                      {category && (
+                        <span className={`text-xs font-bold rounded-full px-2.5 py-1 whitespace-nowrap ${tagColor.bg} ${tagColor.fg}`}>
+                          {pickText(category.title, lang)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-3 mb-4 text-[17px] font-bold text-gray-900 leading-snug">{pickText(s.title, lang)}</p>
+                    <div className="flex items-center justify-between gap-2.5">
+                      <span className="flex items-center gap-1.5 text-gray-500 text-sm font-semibold min-w-0">
+                        <AppIcon name={s.icon} className="w-[18px] h-[18px] text-gray-400 shrink-0" />
+                        <span className="truncate">{pickText(s.desc, lang)}</span>
+                      </span>
+                      <span
+                        className={`shrink-0 text-xs font-bold rounded-full px-2.5 py-1 whitespace-nowrap ${
+                          direct ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {direct ? t('dash.serviceDirect') : t('dash.servicePartner')}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
-        </Panel>
+        </div>
       )}
 
       {/* real-estate entry point — was missing here entirely, so signed-in
