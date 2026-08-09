@@ -75,7 +75,7 @@ function BeforeAfterCard({
 }) {
   return (
     <div className="min-w-full w-full h-[330px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900">
-      <img src={src} alt={caption} className="w-full h-full object-cover" />
+      <img src={src} alt={caption} className="w-full h-full object-contain" />
       <div className="absolute top-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1.5">
         <AppIcon name="check-circle" className="w-4 h-4 text-white" />
         <span>{afterLabel}</span>
@@ -128,7 +128,7 @@ export function HealthTourism() {
   const formTrust = t(`${D}.form.trust`, { returnObjects: true }) as string[];
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-800 font-cairo antialiased selection:bg-navy selection:text-white">
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-800 font-rubik antialiased selection:bg-navy selection:text-white">
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
@@ -158,7 +158,7 @@ export function HealthTourism() {
                   <span>{t(`${D}.hero.badge`)}</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight font-sans tracking-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight font-rubik tracking-tight">
                   {t(`${D}.hero.title`)}
                 </h1>
 
@@ -181,17 +181,6 @@ export function HealthTourism() {
                   </div>
                 </div>
 
-                <div className="pt-4 max-w-md mx-auto lg:mx-0">
-                  <a
-                    href="#lead-form"
-                    className="w-full py-4 px-8 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white font-black text-base text-center flex items-center justify-center gap-4 shadow-2xl shadow-emerald-600/30 border border-emerald-400/30 active:scale-95 hover:brightness-110 transition-all group cursor-pointer"
-                  >
-                    <span className="text-base font-black tracking-wide">{t(`${D}.hero.cta`)}</span>
-                    <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:-translate-x-1.5 rtl:group-hover:translate-x-1.5 transition-transform">
-                      <AppIcon name="arrow-left" className={`w-5 h-5 text-white stroke-[3] ${isRTL ? '' : 'rotate-180'}`} />
-                    </span>
-                  </a>
-                </div>
               </div>
 
               <div className="lg:col-span-5">
@@ -219,7 +208,7 @@ export function HealthTourism() {
         <section id="specialties" className="py-16 bg-slate-50 border-b border-slate-200/80">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t(`${D}.specialties.title`)}</h2>
+              <h2 className="text-3xl font-black text-slate-950 font-rubik tracking-tight">{t(`${D}.specialties.title`)}</h2>
               <p className="text-sm text-slate-600 font-medium">{t(`${D}.specialties.subtitle`)}</p>
             </div>
 
@@ -235,7 +224,7 @@ export function HealthTourism() {
                     className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 flex flex-col justify-end text-white space-y-3">
-                    <h3 className="text-2xl font-black text-white font-sans drop-shadow-md">{item.title}</h3>
+                    <h3 className="text-2xl font-black text-white font-rubik drop-shadow-md">{item.title}</h3>
                     <p className={`text-xs text-slate-200 font-medium leading-relaxed ${i === specialtyItems.length - 1 ? 'max-w-xl' : ''}`}>{item.description}</p>
                     <div className={`pt-2 ${i === specialtyItems.length - 1 ? 'max-w-sm' : ''}`}>
                       <a
@@ -257,7 +246,7 @@ export function HealthTourism() {
         <section id="how-it-works" className="py-16 bg-white border-b border-slate-200/80">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-xl mx-auto mb-12">
-              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t('medical.landing.how.title')}</h2>
+              <h2 className="text-3xl font-black text-slate-950 font-rubik tracking-tight">{t('medical.landing.how.title')}</h2>
               <p className="text-sm text-slate-500 font-medium mt-2">{t(`${D}.how.subtitle`)}</p>
             </div>
 
@@ -271,7 +260,7 @@ export function HealthTourism() {
                     <AppIcon name={HOW_STYLES[i].icon} className="w-6 h-6 text-slate-400" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-slate-950 font-sans mb-1.5">{step.title}</h3>
+                    <h3 className="text-base font-black text-slate-950 font-rubik mb-1.5">{step.title}</h3>
                     <p className="text-xs text-slate-500 font-medium leading-relaxed">{step.body}</p>
                   </div>
                 </div>
@@ -284,7 +273,7 @@ export function HealthTourism() {
         <section id="logistics" className="py-16 bg-[#2563eb] text-white">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-xl mx-auto mb-12">
-              <h2 className="text-3xl font-black font-sans text-white">{t(`${D}.logistics.title`)}</h2>
+              <h2 className="text-3xl font-black font-rubik text-white">{t(`${D}.logistics.title`)}</h2>
               <p className="text-sm text-blue-100 font-medium mt-2">{t(`${D}.logistics.subtitle`)}</p>
             </div>
 
@@ -297,7 +286,7 @@ export function HealthTourism() {
                         <AppIcon name={card.icon} className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-950 font-sans">{card.title}</h3>
+                        <h3 className="text-lg font-black text-slate-950 font-rubik">{card.title}</h3>
                         <p className="text-xs text-slate-500 font-medium">{card.description}</p>
                       </div>
                     </div>
@@ -324,7 +313,7 @@ export function HealthTourism() {
         <section id="testimonials" className="py-16 bg-slate-50 border-b border-slate-200/80">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center max-w-xl mx-auto mb-12">
-              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t('medical.landing.testimonials.title')}</h2>
+              <h2 className="text-3xl font-black text-slate-950 font-rubik tracking-tight">{t('medical.landing.testimonials.title')}</h2>
               <p className="text-sm text-slate-500 font-medium mt-2">{t(`${D}.testimonials.subtitle`)}</p>
             </div>
 
@@ -358,7 +347,7 @@ export function HealthTourism() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div className="lg:col-span-5 space-y-6 flex flex-col justify-between border-b lg:border-b-0 lg:border-e border-slate-200 pb-6 lg:pb-0 lg:pe-8">
                   <div>
-                    <h2 className="text-2xl font-black text-slate-950 font-sans mb-3">
+                    <h2 className="text-2xl font-black text-slate-950 font-rubik mb-3">
                       {form.requestType === 'consultation' ? t(`${D}.form.titleConsult`) : t(`${D}.form.titleEval`)}
                     </h2>
                     <p className="text-xs text-slate-500 font-medium leading-relaxed">{t(`${D}.form.subtitle`)}</p>
@@ -434,7 +423,7 @@ export function HealthTourism() {
 
                     <div className="space-y-1.5">
                       <label className="block text-xs font-extrabold text-slate-500">{t(`${D}.form.specialtyLabel`)}</label>
-                      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
                         {chips.map((chip) => (
                           <button
                             key={chip.slug}
@@ -540,7 +529,7 @@ export function HealthTourism() {
         <section id="faq" className="py-16 bg-slate-50 border-b border-slate-200/80">
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center max-w-xl mx-auto mb-10">
-              <h2 className="text-3xl font-black text-slate-950 font-sans tracking-tight">{t(`${D}.faq.title`)}</h2>
+              <h2 className="text-3xl font-black text-slate-950 font-rubik tracking-tight">{t(`${D}.faq.title`)}</h2>
             </div>
 
             <FaqAccordion items={faqItems} />
@@ -560,7 +549,7 @@ export function HealthTourism() {
               <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-inner">
                 <AppIcon name="check-circle" className="w-10 h-10 stroke-[2.5]" />
               </div>
-              <h3 className="text-xl font-black font-sans text-slate-950">{t(`${D}.successModal.title`)}</h3>
+              <h3 className="text-xl font-black font-rubik text-slate-950">{t(`${D}.successModal.title`)}</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">{t(`${D}.successModal.body`)}</p>
             </div>
             <div className="pt-2">

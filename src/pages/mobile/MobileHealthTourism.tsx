@@ -101,17 +101,17 @@ export function MobileHealthTourism() {
   const form = useMedicalLeadForm(chips);
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50">
+    <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 font-rubik">
       <div className={`pb-[calc(env(safe-area-inset-bottom)+80px)] transition-all duration-500 ${form.successOpen ? 'blur-md scale-[0.98] brightness-90' : ''}`}>
         {/* ==================== HERO ==================== */}
         <section className="relative overflow-hidden rounded-b-[36px] shadow-2xl mb-6 bg-slate-950 text-white p-4 pt-6 pb-6 border-b border-slate-800">
           <div className="text-center space-y-1.5 mb-4">
-            <h1 className="text-xl font-black text-white font-sans tracking-tight pt-1">{t(`${M}.hero.title`)}</h1>
+            <h1 className="text-xl font-black text-white font-rubik tracking-tight pt-1">{t(`${M}.hero.title`)}</h1>
             <p className="text-xs text-slate-400 font-medium">{t(`${M}.hero.subtitle`)}</p>
           </div>
 
           <div
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar max-w-sm mx-auto rounded-3xl select-none"
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none max-w-sm mx-auto rounded-3xl select-none"
             onTouchStart={hero.pause}
             onTouchEnd={hero.resume}
           >
@@ -120,7 +120,7 @@ export function MobileHealthTourism() {
                 key={src}
                 className={`snap-start min-w-full w-full h-[220px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900 ${i === hero.index ? '' : 'hidden'}`}
               >
-                <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-cover" />
+                <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-contain" />
                 <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
                   <AppIcon name="check-circle" className="w-3 h-3 text-white" />
                   <span>{afterLabel}</span>
@@ -140,27 +140,15 @@ export function MobileHealthTourism() {
               </div>
             ))}
           </div>
-
-          <div className="pt-4 text-center max-w-sm mx-auto">
-            <a
-              href="#mobile-lead-form"
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white font-black text-sm text-center flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/30 border border-emerald-400/30 active:scale-95 hover:brightness-110 transition-all group cursor-pointer"
-            >
-              <span className="text-sm font-black tracking-wide">{t(`${M}.hero.cta`)}</span>
-              <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform">
-                <AppIcon name="arrow-left" className={`w-4 h-4 text-white stroke-[3] ${isRTL ? '' : 'rotate-180'}`} />
-              </span>
-            </a>
-          </div>
         </section>
 
         {/* ==================== SPECIALTIES ==================== */}
         <section className="py-6 bg-slate-50 border-y border-slate-200/80 mb-6">
           <div className="px-6 text-center mb-5">
-            <h2 className="text-2xl font-black text-slate-900 font-sans tracking-tight">{t(`${M}.specialties.title`)}</h2>
+            <h2 className="text-2xl font-black text-slate-900 font-rubik tracking-tight">{t(`${M}.specialties.title`)}</h2>
           </div>
 
-          <div ref={specialtiesCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 pb-4">
+          <div ref={specialtiesCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none px-6 pb-4">
             {specialtyItems.map((item) => (
               <div
                 key={item.slug}
@@ -170,7 +158,7 @@ export function MobileHealthTourism() {
               >
                 <img src={`/img/health-tourism/${item.image}`} alt={item.title} className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-5 flex flex-col justify-end text-white space-y-2">
-                  <h3 className="text-xl font-black text-white font-sans drop-shadow-md">{item.title}</h3>
+                  <h3 className="text-xl font-black text-white font-rubik drop-shadow-md">{item.title}</h3>
                   <p className="text-xs text-slate-200 font-medium leading-relaxed">{item.description}</p>
                   <div className="pt-2">
                     <a
@@ -196,7 +184,7 @@ export function MobileHealthTourism() {
         {/* ==================== HOW IT WORKS: SNAKE INFOGRAPHIC ==================== */}
         <section className="px-4 py-6 mb-6">
           <div className="mb-6 text-center">
-            <h2 className="text-xl font-black text-slate-900 font-sans">{t('medical.landing.how.title')}</h2>
+            <h2 className="text-xl font-black text-slate-900 font-rubik">{t('medical.landing.how.title')}</h2>
           </div>
 
           <div className="relative max-w-sm mx-auto space-y-5 px-2">
@@ -217,7 +205,7 @@ export function MobileHealthTourism() {
                     </div>
                   )}
                   <div className={`flex-1 min-w-0 ${numberFirst ? '' : 'text-end'}`}>
-                    <h3 className="text-xs font-black text-slate-900 font-sans">{step.title}</h3>
+                    <h3 className="text-xs font-black text-slate-900 font-rubik">{step.title}</h3>
                     <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{step.body}</p>
                   </div>
                   {numberFirst ? (
@@ -240,10 +228,10 @@ export function MobileHealthTourism() {
         {/* ==================== LOGISTICS ==================== */}
         <section className="bg-[#2563eb] p-4 py-5 rounded-3xl mx-4 mb-6 shadow-xl text-white">
           <div className="mb-3 text-center">
-            <h2 className="text-lg font-black font-sans text-white">{t(`${M}.logistics.title`)}</h2>
+            <h2 className="text-lg font-black font-rubik text-white">{t(`${M}.logistics.title`)}</h2>
           </div>
 
-          <div ref={logisticsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-1">
+          <div ref={logisticsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-1">
             {logisticsCards.map((card) => (
               <div
                 key={card.title}
@@ -258,7 +246,7 @@ export function MobileHealthTourism() {
                       <AppIcon name={card.icon} className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-slate-900 font-sans leading-tight">{card.title}</h3>
+                      <h3 className="text-base font-black text-slate-900 font-rubik leading-tight">{card.title}</h3>
                       <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{card.description}</p>
                     </div>
                   </div>
@@ -283,10 +271,10 @@ export function MobileHealthTourism() {
         {/* ==================== TESTIMONIALS ==================== */}
         <section className="px-4 py-4 mb-6">
           <div className="mb-4 text-center">
-            <h2 className="text-xl font-black text-slate-900 font-sans">{t('medical.landing.testimonials.title')}</h2>
+            <h2 className="text-xl font-black text-slate-900 font-rubik">{t('medical.landing.testimonials.title')}</h2>
           </div>
 
-          <div ref={testimonialsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-3">
+          <div ref={testimonialsCarousel.trackRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-3">
             {testimonialItems.map((item) => (
               <div
                 key={item.name}
@@ -319,7 +307,7 @@ export function MobileHealthTourism() {
             <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-4" />
 
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-black text-slate-900 font-sans mx-auto">
+              <h2 className="text-base font-black text-slate-900 font-rubik mx-auto">
                 {form.requestType === 'consultation' ? t('medical.landing.form.titleConsult') : t('medical.landing.form.titleEval')}
               </h2>
             </div>
@@ -373,7 +361,7 @@ export function MobileHealthTourism() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-extrabold text-slate-500">{t(`${M}.form.specialtyLabel`)}</label>
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
                   {chips.map((chip) => (
                     <button
                       key={chip.slug}
@@ -503,7 +491,7 @@ export function MobileHealthTourism() {
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight font-sans">{t(`${M}.successModal.title`)}</h3>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight font-rubik">{t(`${M}.successModal.title`)}</h3>
               <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-[240px] mx-auto">{t(`${M}.successModal.body`)}</p>
             </div>
 
@@ -542,7 +530,7 @@ function FaqSection({ items, title }: { items: FaqCopy[]; title: string }) {
   return (
     <section className="px-4 py-4 mb-8">
       <div className="mb-4 text-center">
-        <h2 className="text-xl font-extrabold text-slate-900 font-sans">{title}</h2>
+        <h2 className="text-xl font-extrabold text-slate-900 font-rubik">{title}</h2>
       </div>
       <div className="space-y-3">
         {items.map((item, i) => {

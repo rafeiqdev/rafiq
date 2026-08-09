@@ -44,6 +44,7 @@ export default {
         // (src/pages/HealthTourism.tsx), ported 1:1 from an external mockup.
         cairo: ['Cairo', 'sans-serif'],
         tajawal: ['Tajawal', 'sans-serif'],
+        rubik: ['Rubik', 'sans-serif'],
       },
       // ── Radius scale ──
       borderRadius: {
