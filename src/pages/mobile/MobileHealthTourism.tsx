@@ -118,24 +118,26 @@ export function MobileHealthTourism() {
             {BEFORE_AFTER_IMAGES.map((src, i) => (
               <div
                 key={src}
-                className={`snap-start min-w-full w-full h-[220px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900 ${i === hero.index ? '' : 'hidden'}`}
+                className={`snap-start min-w-full w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900 ${i === hero.index ? '' : 'hidden'}`}
               >
-                <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-contain" />
-                <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
-                  <AppIcon name="check-circle" className="w-3 h-3 text-white" />
-                  <span>{afterLabel}</span>
-                </div>
-                <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-white/20 shadow-md flex items-center gap-1">
-                  <AppIcon name="history" className="w-3 h-3 text-slate-400" />
-                  <span>{beforeLabel}</span>
-                </div>
-                <div className="absolute bottom-3 inset-x-3 bg-slate-950/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-xl border border-white/10 text-center">
-                  {heroSlides[i]?.title}
-                </div>
-                <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
-                  <div className="w-6 h-6 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-[9px] font-black border border-slate-200">
-                    <AppIcon name="arrow-left-right" className="w-3 h-3 text-slate-900" />
+                <div className="h-[220px] relative">
+                  <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-contain" />
+                  <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
+                    <AppIcon name="check-circle" className="w-3 h-3 text-white" />
+                    <span>{afterLabel}</span>
                   </div>
+                  <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-white/20 shadow-md flex items-center gap-1">
+                    <AppIcon name="history" className="w-3 h-3 text-slate-400" />
+                    <span>{beforeLabel}</span>
+                  </div>
+                  <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
+                    <div className="w-6 h-6 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-[9px] font-black border border-slate-200">
+                      <AppIcon name="arrow-left-right" className="w-3 h-3 text-slate-900" />
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-slate-950 text-white text-[10px] font-black px-3 py-1.5 border-t border-white/10 text-center">
+                  {heroSlides[i]?.title}
                 </div>
               </div>
             ))}

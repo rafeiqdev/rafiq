@@ -74,23 +74,25 @@ function BeforeAfterCard({
   afterLabel: string;
 }) {
   return (
-    <div className="min-w-full w-full h-[330px] rounded-3xl overflow-hidden relative shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900">
-      <img src={src} alt={caption} className="w-full h-full object-contain" />
-      <div className="absolute top-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1.5">
-        <AppIcon name="check-circle" className="w-4 h-4 text-white" />
-        <span>{afterLabel}</span>
-      </div>
-      <div className="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-white/20 shadow-md flex items-center gap-1.5">
-        <AppIcon name="history" className="w-4 h-4 text-slate-400" />
-        <span>{beforeLabel}</span>
-      </div>
-      <div className="absolute bottom-4 inset-x-4 bg-slate-950/90 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl border border-white/10 text-center">
-        {caption}
-      </div>
-      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
-        <div className="w-8 h-8 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-xs font-black border border-slate-200">
-          <AppIcon name="arrow-left-right" className="w-4 h-4 text-slate-900" />
+    <div className="min-w-full w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900">
+      <div className="h-[330px] relative">
+        <img src={src} alt={caption} className="w-full h-full object-contain" />
+        <div className="absolute top-4 right-4 bg-emerald-600/90 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1.5">
+          <AppIcon name="check-circle" className="w-4 h-4 text-white" />
+          <span>{afterLabel}</span>
         </div>
+        <div className="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md text-white text-xs font-black px-4 py-1.5 rounded-full border border-white/20 shadow-md flex items-center gap-1.5">
+          <AppIcon name="history" className="w-4 h-4 text-slate-400" />
+          <span>{beforeLabel}</span>
+        </div>
+        <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80 pointer-events-none flex items-center justify-center -translate-x-1/2">
+          <div className="w-8 h-8 rounded-full bg-white text-slate-950 shadow-xl flex items-center justify-center text-xs font-black border border-slate-200">
+            <AppIcon name="arrow-left-right" className="w-4 h-4 text-slate-900" />
+          </div>
+        </div>
+      </div>
+      <div className="bg-slate-950 text-white text-xs font-black px-4 py-2.5 border-t border-white/10 text-center">
+        {caption}
       </div>
     </div>
   );
