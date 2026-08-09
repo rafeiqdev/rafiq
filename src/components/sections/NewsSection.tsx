@@ -26,7 +26,7 @@ export function NewsSection({
 
   useEffect(() => {
     let live = true;
-    news.latest(6).then(
+    news.latest(3).then(
       (p) => {
         if (!live) return;
         setPosts(p);
@@ -81,7 +81,10 @@ export function NewsSection({
           {posts.map((p) => {
             const text = localizeNewsPost(p, i18n.language);
             return (
-              <li key={p.id} className="card overflow-hidden p-4 shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72">
+              <li
+                key={p.id}
+                className="card overflow-hidden p-4 shrink-0 snap-start w-[78vw] max-w-[300px] sm:w-72 flex flex-col"
+              >
                 {photo(p, '-mx-4 -mt-4 mb-3 h-36 w-[calc(100%+2rem)] max-w-none object-cover')}
                 <p className="text-xs text-gray-500">{date(p)}</p>
                 <h3 className="mt-1 font-bold text-navy break-words line-clamp-2">{text.title}</h3>
@@ -89,7 +92,7 @@ export function NewsSection({
                 {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
                 <Link
                   to={`/news/${p.id}`}
-                  className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
+                  className="mt-auto pt-2 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
                 >
                   {t('home.news.readMore')}
                   <DirArrow className="w-3.5 h-3.5" />
