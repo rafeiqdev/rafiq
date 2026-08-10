@@ -6,6 +6,7 @@ import { pickText } from '../data/services';
 import type { ServiceItem } from '../data/services';
 import { AppIcon, DirArrow } from './AppIcon';
 import { ServiceRequestModal } from './ServiceRequestModal';
+import { TransparentFeeBreakdown } from './TransparentFeeBreakdown';
 import { annotateGlossaryTerms } from './TermTooltip';
 import { track } from '../lib/analytics';
 import type { Lang } from '../lib/types';
@@ -157,7 +158,9 @@ export function ExpandableServiceCard({
                   </button>
                 </div>
 
-                <div className="esc-card-summary">
+                <div
+                  className={`esc-card-summary ${service.governmentFees?.length ? 'esc-card-summary-scrollable' : ''}`}
+                >
                   <span className="esc-service-index">{num}</span>
                   <h2>{annotateGlossaryTerms(title, lang as Lang)}</h2>
                   <p className="esc-service-description">{annotateGlossaryTerms(desc, lang as Lang)}</p>
@@ -179,6 +182,10 @@ export function ExpandableServiceCard({
                       <DirArrow className="w-4 h-4" />
                     </span>
                   </button>
+
+                  {service.governmentFees && service.governmentFees.length > 0 && (
+                    <TransparentFeeBreakdown fees={service.governmentFees} lang={lang} />
+                  )}
                 </div>
 
                 <section className="esc-choice-panel" aria-hidden={mode !== 'choices'}>

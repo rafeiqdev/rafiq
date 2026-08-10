@@ -14,6 +14,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { useFallbackMeta, useSiteWideSeo } from '../lib/seo';
 import { useTrackPageViews } from '../lib/analytics';
 import { ConsentBanner } from './ConsentBanner';
+import { EmergencyLegalFAB } from './EmergencyLegalFAB';
 
 // Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
 // own full-bleed header/nav — on phones we skip the desktop ticker+header+
@@ -436,6 +437,7 @@ export function Layout() {
           <LangSwitcher />
         </div>
       )}
+      <EmergencyLegalFAB />
       <ConsentBanner />
     </div>
   );

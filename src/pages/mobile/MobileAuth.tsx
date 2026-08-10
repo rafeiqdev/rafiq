@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { auth as authApi, profileApi } from '../../lib/api';
@@ -248,6 +248,16 @@ export function MobileAuth() {
             <AppIcon name="alert-triangle" className="mt-0.5 h-5 w-5 shrink-0" />
             <span>{t(error)}</span>
           </div>
+        )}
+
+        {step === 'email' && (
+          <Link
+            to="/journey"
+            className="btn btn-ghost mt-4 h-[52px] w-full gap-2.5 border-2 border-navy text-[15px] text-navy"
+          >
+            <AppIcon name="compass" className="h-4 w-4" />
+            {t('home.guestJourneyCta')}
+          </Link>
         )}
 
         {(step === 'email' || step === 'googleOnly') && (

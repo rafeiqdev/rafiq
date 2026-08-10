@@ -170,6 +170,7 @@
     "heroSubtitle": "Residency, banking, housing, health and daily life — guided step by step in your language.",
     "searchPlaceholder": "Search guides and services...",
     "searchAllResults": "See all results",
+    "guestJourneyCta": "Preview my journey as a guest",
     "forYou": "Your personalized plan",
     "editAnswers": "Change my answers",
     "heroSteps": {
@@ -2022,7 +2023,12 @@
     "emptyCta": "Build my journey",
     "error": "We could not load your journey.",
     "retry": "Try again",
-    "openService": "Open the service"
+    "openService": "Open the service",
+    "guest": {
+      "bannerTitle": "You're viewing a demo",
+      "bannerBody": "Try the checklist below. Sign up to save your real progress.",
+      "cta": "Sign up to save progress"
+    }
   },
   "officialSource": {
     "eIkamet": "Verify on e-İkamet",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { ApiError, auth as authApi, profileApi } from '../lib/api';
@@ -193,6 +193,16 @@ export function Auth() {
         </div>
         <h1 className="mt-4 text-2xl font-extrabold text-navy text-center">{title}</h1>
         <p className="mt-2 text-sm text-gray-500 text-center">{subtitle}</p>
+
+        {step === 'email' && (
+          <Link
+            to="/journey"
+            className="mt-5 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-btn border-2 border-navy bg-white px-5 py-2.5 text-sm font-bold text-navy transition-colors hover:bg-brand-blue"
+          >
+            <AppIcon name="compass" className="w-4 h-4" />
+            {t('home.guestJourneyCta')}
+          </Link>
+        )}
 
         {(step === 'email' || step === 'googleOnly') && (
           <>

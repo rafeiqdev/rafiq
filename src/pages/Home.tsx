@@ -15,6 +15,7 @@ import { AboutSection } from '../components/sections/AboutSection';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
+import { JourneyProgressBar } from '../components/JourneyProgressBar';
 import { usePageMeta } from '../lib/seo';
 import { HOME_STATS } from '../data/siteStats';
 
@@ -89,6 +90,8 @@ export function Home() {
   return (
     <div>
       <LocalBusinessSchema />
+      {/* self-gates on signed-in status — renders nothing for guests */}
+      <JourneyProgressBar />
       {/* ── Hero: light "Travelvise"-style layout (ported from a Pinterest
           reference, recolored to Rafiq's navy/cream/black identity instead of
           the reference's purple/orange) — big headline + an overlapping photo
@@ -177,6 +180,19 @@ export function Home() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* guest journey preview — a low-commitment way to see the product
+                before signing up; interactive but nothing is saved until the
+                visitor creates an account (see journeyPage.guest.* copy) */}
+            <div className="mx-auto mt-5 max-w-lg md:mx-0">
+              <Link
+                to="/journey"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-btn border-2 border-navy bg-white px-5 py-3 text-sm font-bold text-navy shadow-soft transition-colors hover:bg-brand-blue sm:w-auto"
+              >
+                <AppIcon name="compass" className="w-4 h-4" />
+                {t('home.guestJourneyCta')}
+              </Link>
             </div>
 
             {/* stats bar — also doubles as filler for the dead vertical space

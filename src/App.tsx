@@ -249,7 +249,9 @@ function Shell() {
             />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/home" element={<RequireOnboarded><UserHome /></RequireOnboarded>} />
-            <Route path="/journey" element={<RequireOnboarded><Journey /></RequireOnboarded>} />
+            {/* Journey gates itself: signed out → interactive guest preview,
+                signed in but not onboarded → /onboarding, else the real page. */}
+            <Route path="/journey" element={<Journey />} />
             {/* "حسابي" is /profile. It used to mount ProfilePage a second time,
                 which meant phones got the DESKTOP page here (the isMobile branch
                 was only on /profile) — so this redirects instead of duplicating. */}
