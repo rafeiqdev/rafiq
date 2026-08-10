@@ -5,6 +5,7 @@ import { AppIcon } from '../components/AppIcon';
 import { useMedicalLeadForm, WA_ENABLED, humanFileSize } from './healthTourism/useMedicalLeadForm';
 import type { SpecialtyChip } from './healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from './healthTourism/useAutoCarousel';
+import { useSnapCarousel } from './healthTourism/useSnapCarousel';
 import { BEFORE_AFTER_IMAGES } from './healthTourism/beforeAfterSlides';
 
 /**
@@ -121,6 +122,7 @@ export function HealthTourism() {
   const afterLabel = t('medical.landing.heroBeforeAfter.afterLabel');
 
   const hero = useAutoCarousel(BEFORE_AFTER_IMAGES.length, 3200);
+  const specialtiesCarousel = useSnapCarousel(specialtyItems.length, 3200);
 
   const chips: SpecialtyChip[] = (t(`${D}.form.specialtyChips`, { returnObjects: true }) as string[]).map((label, i) => ({
     slug: ['hair', 'dental', 'rhinoplasty', 'jaw'][i] ?? label,
@@ -214,11 +216,16 @@ export function HealthTourism() {
               <p className="text-sm text-slate-600 font-medium">{t(`${D}.specialties.subtitle`)}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {specialtyItems.map((item, i) => (
+            <div
+              ref={specialtiesCarousel.trackRef}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4"
+            >
+              {specialtyItems.map((item) => (
                 <div
                   key={item.slug}
-                  className={`h-[430px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 group bg-slate-900 transition hover:-translate-y-1 hover:shadow-2xl ${i === specialtyItems.length - 1 ? 'lg:col-span-2' : ''}`}
+                  onMouseEnter={specialtiesCarousel.pause}
+                  onMouseLeave={specialtiesCarousel.resume}
+                  className="snap-center w-full shrink-0 h-[430px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 group bg-slate-900 transition hover:-translate-y-1 hover:shadow-2xl"
                 >
                   <img
                     src={`/img/health-tourism/${item.image}`}
@@ -227,8 +234,8 @@ export function HealthTourism() {
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 flex flex-col justify-end text-white space-y-3">
                     <h3 className="text-2xl font-black text-white font-rubik drop-shadow-md">{item.title}</h3>
-                    <p className={`text-xs text-slate-200 font-medium leading-relaxed ${i === specialtyItems.length - 1 ? 'max-w-xl' : ''}`}>{item.description}</p>
-                    <div className={`pt-2 ${i === specialtyItems.length - 1 ? 'max-w-sm' : ''}`}>
+                    <p className="text-xs text-slate-200 font-medium leading-relaxed max-w-xl">{item.description}</p>
+                    <div className="pt-2 max-w-sm">
                       <a
                         href="#lead-form"
                         onClick={() => form.setFormSpecialty(item.slug)}
@@ -239,6 +246,15 @@ export function HealthTourism() {
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 pt-1">
+              {specialtyItems.map((item, i) => (
+                <span
+                  key={item.slug}
+                  className={`rounded-full inline-block ${i === specialtiesCarousel.index ? 'w-2.5 h-2.5 bg-slate-900 shadow-sm' : 'w-2 h-2 bg-slate-300'}`}
+                />
               ))}
             </div>
           </div>
@@ -254,7 +270,7 @@ export function HealthTourism() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {howSteps.map((step, i) => (
-                <div key={step.title} className="bg-white rounded-3xl p-6 border-2 border-slate-800 shadow-lg relative flex flex-col justify-between">
+                <div key={step.title} className="bg-white rounded-3xl p-5 sm:p-6 border-2 border-slate-800 shadow-lg relative flex flex-col h-auto">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`w-14 h-14 rounded-full font-black text-3xl flex items-center justify-center border shadow-sm ${HOW_STYLES[i].circle}`}>
                       {i + 1}
@@ -263,7 +279,7 @@ export function HealthTourism() {
                   </div>
                   <div>
                     <h3 className="text-base font-black text-slate-950 font-rubik mb-1.5">{step.title}</h3>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{step.body}</p>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed break-words">{step.body}</p>
                   </div>
                 </div>
               ))}

@@ -155,6 +155,9 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
           ))}
         </nav>
       </div>
+      <p className="mt-4 text-center text-[11px] text-gray-500">
+        © 2026 Rafiq.ist. All rights reserved. Registered Medical Coordination Services.
+      </p>
     </div>
   );
 }

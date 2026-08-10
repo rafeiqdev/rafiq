@@ -424,12 +424,16 @@ export function Layout() {
       {showMobileFooter && <SiteFooter variant="mobile" />}
       {/* The app-shell routes (/auth /premium /chat /map /help) have neither
           header nor footer on phones — without this a visitor landing on
-          /auth in the wrong language had NO way to change it. */}
+          /auth in the wrong language had NO way to change it.
+          Pinned to the TOP corner, not the bottom: several of these screens
+          (/premium's chat composer, /map's search bar, /help's submit button)
+          own a fixed bar at the bottom of the viewport, and a bottom-anchored
+          switcher sat directly on top of it. */}
       {/* z-[60]: must stay clickable above the consent banner (z-50) — a
           first-time visitor in the wrong language has both on screen at once */}
       {hideChrome && !showMobileFooter && (
-        <div className="fixed z-[60] end-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] rounded-btn bg-white/95 shadow-card">
-          <LangSwitcher dropUp />
+        <div className="fixed z-[60] end-4 top-[calc(env(safe-area-inset-top)+0.75rem)] rounded-btn bg-white/95 shadow-card">
+          <LangSwitcher />
         </div>
       )}
       <ConsentBanner />

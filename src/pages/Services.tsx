@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../data/services';
-import type { ServiceItem, ServiceType } from '../data/services';
+import type { ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
-import { ServiceActionModal } from '../components/ServiceActionModal';
+import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { usePageMeta } from '../lib/seo';
 import { track, normalizeSearchQuery } from '../lib/analytics';
 
@@ -18,55 +18,6 @@ import { track, normalizeSearchQuery } from '../lib/analytics';
 // explicit category click always shows full results regardless.
 const POPULAR_CATEGORY_IDS = ['residency', 'realestate', 'health', 'banking', 'translation', 'tourism'];
 
-function TypeBadge({ type }: { type: ServiceType }) {
-  const { t } = useTranslation();
-  if (type === 'partner') {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft text-gold-dark text-[10px] font-bold px-2 py-0.5">
-        <AppIcon name="shield-check" className="w-3 h-3" />
-        {t('services.partnerBadge')}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue text-navy text-[10px] font-bold px-2 py-0.5">
-      <AppIcon name="check" className="w-3 h-3" />
-      {t('services.directBadge')}
-    </span>
-  );
-}
-
-function ServiceCard({ service, onOpen }: { service: ServiceItem; onOpen: () => void }) {
-  const { t, i18n } = useTranslation();
-  return (
-    <button onClick={onOpen} className="card card-hover p-4 flex flex-col h-full text-start w-full">
-      <div className="flex items-start gap-3">
-        <span className="icon-chip shrink-0">
-          <AppIcon name={service.icon} />
-        </span>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-navy text-sm leading-snug">{pickText(service.title, i18n.language)}</h3>
-          <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">{pickText(service.desc, i18n.language)}</p>
-        </div>
-      </div>
-      <div className="mt-3 flex items-center gap-2 flex-wrap">
-        <TypeBadge type={service.type} />
-        {service.onRequest && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-cream-dark text-navy/70 text-[10px] font-bold px-2 py-0.5">
-            <AppIcon name="clock" className="w-3 h-3" />
-            {t('services.onRequest')}
-          </span>
-        )}
-      </div>
-      <div className="flex-1" />
-      <span className="btn-primary w-full mt-3 h-10 text-xs pointer-events-none">
-        <AppIcon name="message-circle" className="w-4 h-4" />
-        {t('common.helpMe')}
-      </span>
-    </button>
-  );
-}
-
 export function Services() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -74,7 +25,6 @@ export function Services() {
   const [query, setQuery] = useState(params.get('q') ?? '');
   const [category, setCategory] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
-  const [active, setActive] = useState<ServiceItem | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
 
@@ -241,15 +191,8 @@ export function Services() {
                   <span className="text-xs text-navy/50 shrink-0">({items.length})</span>
                 </div>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-                  {items.map((s) => (
-                    <ServiceCard
-                      key={s.id}
-                      service={s}
-                      onOpen={() => {
-                        track('service_click', { target: s.id, meta: { category: s.category } });
-                        setActive(s);
-                      }}
-                    />
+                  {items.map((s, i) => (
+                    <ExpandableServiceCard key={s.id} service={s} index={i} categoryTitle={pickText(c.title, lang)} />
                   ))}
                 </div>
               </section>
@@ -257,8 +200,6 @@ export function Services() {
           })}
         </div>
       )}
-
-      {active && <ServiceActionModal service={active} onClose={() => setActive(null)} />}
     </div>
   );
 }

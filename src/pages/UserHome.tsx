@@ -11,6 +11,7 @@ import { pickCity } from '../data/turkeyCities';
 import { JOURNEY_TASK_KEYS } from '../lib/types';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
+import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
@@ -27,14 +28,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** The three "what happens now" rows — pure copy, no data behind them. */
 const NEXT_ROWS = ['soon', 'week', 'after'] as const;
-
-/** Ported 1:1 from a Linear-style ticket-card reference — cycles through its
- * three tag colors for the service category badge, in the same order. */
-const SERVICE_TAG_COLORS = [
-  { bg: 'bg-red-100', fg: 'text-red-600' },
-  { bg: 'bg-blue-100', fg: 'text-blue-600' },
-  { bg: 'bg-violet-100', fg: 'text-violet-600' },
-] as const;
 
 // Direct, always-visible links to the main service categories — the guest
 // homepage has this row; UserHome never did, so signed-in users had no way
@@ -207,6 +200,8 @@ export function UserHome() {
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [notifs, setNotifs] = useState<AppNotification[]>([]);
   const [docs, setDocs] = useState<StoredDocument[] | null>(null);
+  const [showAllRecap, setShowAllRecap] = useState(false);
+  const [roadExpanded, setRoadExpanded] = useState(false);
 
   usePageMeta({
     title: `${t('dash.journeyTitle')} — ${t('common.appName')}`,
@@ -284,6 +279,42 @@ export function UserHome() {
   const answeredHas = JOURNEY_TASK_KEYS.filter((k) => profile.has[k]);
   const hasRecap = Boolean(profile.situation || cityLabel || answeredHas.length);
 
+  const recapChips = [
+    situationLabel
+      ? {
+          key: 'situation',
+          node: (
+            <span key="situation" className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
+              {situationLabel}
+            </span>
+          ),
+        }
+      : null,
+    cityLabel
+      ? {
+          key: 'city',
+          node: (
+            <span key="city" className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
+              <AppIcon name="map-pin" className="w-3.5 h-3.5" aria-hidden />
+              {cityLabel}
+            </span>
+          ),
+        }
+      : null,
+    ...answeredHas.map((k) => ({
+      key: k,
+      node: (
+        <span
+          key={k}
+          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
+        >
+          <AppIcon name={HAS_ICONS[k]} className="w-3.5 h-3.5" aria-hidden />
+          {t(`journeyTasks.${k}.title`)}
+        </span>
+      ),
+    })),
+  ].filter((c): c is NonNullable<typeof c> => c !== null);
+
   // A step counts as "credited from your answers" when onboarding pre-marked it.
   const isFromAnswers = (item: JourneyItem) =>
     item.status === 'done' &&
@@ -321,6 +352,7 @@ export function UserHome() {
     .sort((a, b) => a.days - b.days);
 
   const started = progress.done > 0;
+  const roadComplete = progress.total > 0 && progress.done === progress.total;
 
   return withBar(
     <div className={`mx-auto max-w-3xl px-4 py-8 ${isMobile ? 'pb-28' : ''}`}>
@@ -380,34 +412,29 @@ export function UserHome() {
         ))}
       </div>
 
-      {/* ── proof that the onboarding answers produced something ── */}
+      {/* ── proof that the onboarding answers produced something ──
+          Capped to 3 chips by default (was showing up to 6 — situation, city
+          + 4 has-items — and the card grew tall/wrapped on narrow phones).
+          The rest sit behind a "show more" toggle instead of being cut. */}
       {hasRecap && (
-        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-card border border-cream-dark bg-navy/[0.03] px-4 py-3">
-          <AppIcon name="sparkles" className="w-4 h-4 text-navy/40 shrink-0" aria-hidden />
-          <span className="text-xs font-semibold text-navy/60">{t('dash.recapTitle')}</span>
-          {situationLabel && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
-              {situationLabel}
-            </span>
-          )}
-          {cityLabel && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy">
-              <AppIcon name="map-pin" className="w-3.5 h-3.5" aria-hidden />
-              {cityLabel}
-            </span>
-          )}
-          {answeredHas.map((k) => (
-            <span
-              key={k}
-              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
-            >
-              <AppIcon name={HAS_ICONS[k]} className="w-3.5 h-3.5" aria-hidden />
-              {t(`journeyTasks.${k}.title`)}
-            </span>
-          ))}
-          <Link to="/onboarding?edit=1" className="ms-auto text-xs font-semibold text-navy/60 hover:text-navy">
-            {t('dash.editAnswers')}
-          </Link>
+        <div className="mt-5 rounded-card border border-cream-dark bg-navy/[0.03] px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <AppIcon name="sparkles" className="w-4 h-4 text-navy/40 shrink-0" aria-hidden />
+            <span className="text-xs font-semibold text-navy/60">{t('dash.recapTitle')}</span>
+            {(showAllRecap ? recapChips : recapChips.slice(0, 3)).map((chip) => chip.node)}
+            {recapChips.length > 3 && (
+              <button
+                type="button"
+                onClick={() => setShowAllRecap((v) => !v)}
+                className="inline-flex items-center gap-1 rounded-full border border-cream-dark bg-white px-3 py-1 text-xs font-semibold text-navy/60 hover:text-navy"
+              >
+                {showAllRecap ? t('dash.recapShowLess') : t('dash.recapShowMore', { count: recapChips.length - 3 })}
+              </button>
+            )}
+            <Link to="/onboarding?edit=1" className="ms-auto text-xs font-semibold text-navy/60 hover:text-navy">
+              {t('dash.editAnswers')}
+            </Link>
+          </div>
         </div>
       )}
 
@@ -473,7 +500,9 @@ export function UserHome() {
         </Panel>
       )}
 
-      {/* ── the whole road, not a 3-item preview ── */}
+      {/* ── the whole road, not a 3-item preview — except once every step is
+          done, the full list is just a wall of checkmarks nobody needs to
+          re-scan. Collapse to a one-line summary behind "show details". ── */}
       <Panel className="mt-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-extrabold text-navy">{t('dash.roadTitle')}</h2>
@@ -481,18 +510,44 @@ export function UserHome() {
             {t('dash.stepsCount', { count: progress.total })}
           </Link>
         </div>
-        <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
-        <ul className="mt-3 flex flex-col">
-          {items.map((item, i) => (
-            <RoadRow
-              key={item.id}
-              item={item}
-              index={i}
-              isNext={next?.id === item.id}
-              fromAnswers={isFromAnswers(item)}
-            />
-          ))}
-        </ul>
+        {roadComplete && !roadExpanded ? (
+          <>
+            <p className="mt-2 text-sm font-semibold text-emerald-700">
+              {t('dash.roadAllDone', { count: progress.total })}
+            </p>
+            <button
+              type="button"
+              onClick={() => setRoadExpanded(true)}
+              className="mt-2 text-xs font-semibold text-navy/60 hover:text-navy"
+            >
+              {t('dash.roadShowDetails')}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
+            <ul className="mt-3 flex flex-col">
+              {items.map((item, i) => (
+                <RoadRow
+                  key={item.id}
+                  item={item}
+                  index={i}
+                  isNext={next?.id === item.id}
+                  fromAnswers={isFromAnswers(item)}
+                />
+              ))}
+            </ul>
+            {roadComplete && (
+              <button
+                type="button"
+                onClick={() => setRoadExpanded(false)}
+                className="mt-3 text-xs font-semibold text-navy/60 hover:text-navy"
+              >
+                {t('dash.roadShowLess')}
+              </button>
+            )}
+          </>
+        )}
       </Panel>
 
       {/* ── what happens now: the new user's real question is "and then?" ── */}
@@ -642,13 +697,9 @@ export function UserHome() {
         </Panel>
       )}
 
-      {/* Ported 1:1 (colors, spacing, layout) from a Linear ticket-card
-          reference the user picked from Pinterest — see PR discussion. Two
-          fields in that reference had no honest equivalent in our data
-          (follower count, priority ranking), so they're sourced from real
-          fields instead of invented: the bottom-left line is the service's
-          own catalog description, and the bottom-right pill reflects whether
-          we run it ourselves or route it through a partner office. */}
+      {/* Compact→detail expandable card, ported 1:1 from the user's mockup —
+          see ExpandableServiceCard.tsx/.css. Replaces the earlier Linear
+          ticket-card treatment of this same rail. */}
       {relatedServices.length > 0 && (
         <div className="mt-4">
           <div className="flex items-center justify-between gap-3 px-1">
@@ -666,37 +717,9 @@ export function UserHome() {
           <ul className="mt-3.5 flex flex-col gap-3">
             {relatedServices.map((s, i) => {
               const category = SERVICE_CATEGORIES.find((c) => c.id === s.category);
-              const tagColor = SERVICE_TAG_COLORS[i % SERVICE_TAG_COLORS.length];
-              const direct = s.type === 'direct';
               return (
                 <li key={s.id}>
-                  <Link
-                    to={`/services?q=${encodeURIComponent(pickText(s.title, lang))}`}
-                    className="block rounded-[18px] bg-white px-[18px] py-4 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_6px_rgba(15,15,15,0.04)] hover:shadow-[0_4px_14px_rgba(15,15,15,0.09)] transition-shadow"
-                  >
-                    <div className="flex items-center justify-between gap-2.5">
-                      <span className="text-[12.5px] font-semibold text-gray-400">#{s.id.toUpperCase()}</span>
-                      {category && (
-                        <span className={`text-xs font-bold rounded-full px-2.5 py-1 whitespace-nowrap ${tagColor.bg} ${tagColor.fg}`}>
-                          {pickText(category.title, lang)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-3 mb-4 text-[17px] font-bold text-gray-900 leading-snug">{pickText(s.title, lang)}</p>
-                    <div className="flex items-center justify-between gap-2.5">
-                      <span className="flex items-center gap-1.5 text-gray-500 text-sm font-semibold min-w-0">
-                        <AppIcon name={s.icon} className="w-[18px] h-[18px] text-gray-400 shrink-0" />
-                        <span className="truncate">{pickText(s.desc, lang)}</span>
-                      </span>
-                      <span
-                        className={`shrink-0 text-xs font-bold rounded-full px-2.5 py-1 whitespace-nowrap ${
-                          direct ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {direct ? t('dash.serviceDirect') : t('dash.servicePartner')}
-                      </span>
-                    </div>
-                  </Link>
+                  <ExpandableServiceCard service={s} index={i} categoryTitle={category ? pickText(category.title, lang) : ''} />
                 </li>
               );
             })}

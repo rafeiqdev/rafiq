@@ -932,6 +932,7 @@
   "serviceAction": {
     "choice": {
       "title": "كيف تريد إنجاز هذه الخدمة؟",
+      "back": "الرجوع لتفاصيل الخدمة",
       "person": {
         "label": "استعن بشخص",
         "subtitle": "فريقنا ينجزها معك",
@@ -1894,6 +1895,8 @@
     "stepsWaiting": "{{count}} خطوات بانتظارك",
     "stepsCount": "{{count}} خطوات",
     "recapTitle": "بنينا خطتك على إجاباتك",
+    "recapShowMore": "+{{count}} أكتر",
+    "recapShowLess": "عرض أقل",
     "editAnswers": "عدّل",
     "fromAnswers": "من إجاباتك",
     "askAboutStep": "اسأل رفيق عن هذه الخطوة",
@@ -1902,6 +1905,9 @@
     "factRemaining": "خطوات باقية",
     "roadTitle": "رحلتك كاملة",
     "roadBody": "رتّبناها بالترتيب الذي تطلبه الدوائر فعلاً — لا تقفز خطوة.",
+    "roadAllDone": "أنجزت كل الخطوات الـ{{count}}.",
+    "roadShowDetails": "عرض المزيد",
+    "roadShowLess": "عرض أقل",
     "cityTitle": "أنت في {{city}}",
     "cityBody": "قبل توقيع أي عقد إيجار، تأكّد أن حيّك مفتوح لتسجيل الإقامات الجديدة — الأحياء المغلقة أكثر ما يعطّل الوافدين.",
     "cityCta": "كيف تتحقّق من حيّك",

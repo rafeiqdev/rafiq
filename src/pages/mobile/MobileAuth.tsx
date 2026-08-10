@@ -226,9 +226,12 @@ export function MobileAuth() {
       <header className="relative shrink-0 overflow-hidden rounded-b-[28px] bg-navy px-6 pb-8 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
         <span aria-hidden="true" className="pointer-events-none absolute -bottom-14 end-0 select-none text-[11.5rem] font-bold leading-none text-white/5">ر</span>
         {backButton}
-        <div className="relative mt-5 animate-fade-up">
-          <h1 className="text-[26px] font-extrabold leading-tight text-white">{title}</h1>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-white/70">{subtitle}</p>
+        {/* pe-14: the fixed language-switcher badge (see Layout.tsx) floats in
+            this corner on top of the header — without room reserved for it, a
+            long title ran underneath and got covered. */}
+        <div className="relative mt-5 animate-fade-up pe-14">
+          <h1 className="truncate text-[26px] font-extrabold leading-tight text-white">{title}</h1>
+          <p className="mt-1.5 truncate text-[15px] leading-relaxed text-white/70">{subtitle}</p>
         </div>
       </header>
 

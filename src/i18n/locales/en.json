@@ -932,6 +932,7 @@
   "serviceAction": {
     "choice": {
       "title": "How would you like to handle this?",
+      "back": "Back to service details",
       "person": {
         "label": "Get help from a person",
         "subtitle": "Our team handles it with you",
@@ -1894,6 +1895,8 @@
     "stepsWaiting": "{{count}} steps waiting for you",
     "stepsCount": "{{count}} steps",
     "recapTitle": "We built your plan from your answers",
+    "recapShowMore": "+{{count}} more",
+    "recapShowLess": "Show less",
     "editAnswers": "Edit",
     "fromAnswers": "from your answers",
     "askAboutStep": "Ask Rafiq about this step",
@@ -1902,6 +1905,9 @@
     "factRemaining": "steps left",
     "roadTitle": "Your full journey",
     "roadBody": "Ordered the way the offices actually require it — do not skip a step.",
+    "roadAllDone": "All {{count}} steps done.",
+    "roadShowDetails": "Show details",
+    "roadShowLess": "Show less",
     "cityTitle": "You are in {{city}}",
     "cityBody": "Before signing any rental contract, check that your district is open for new residence registrations — closed districts are what delays newcomers most.",
     "cityCta": "How to check your district",

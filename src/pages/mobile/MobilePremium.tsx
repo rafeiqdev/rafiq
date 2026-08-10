@@ -19,6 +19,7 @@ import type { BookingMedia, ChatMessage } from '../../lib/types';
 import { RequireAuthChat } from '../../components/Gates';
 import { BookingModal } from '../../components/BookingModal';
 import { AppIcon } from '../../components/AppIcon';
+import { MobileTabBar } from '../../components/MobileTabBar';
 import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
 import { SERVICES, pickText } from '../../data/services';
@@ -341,7 +342,10 @@ function MobileChatUI() {
         <span aria-hidden="true" className="pointer-events-none select-none absolute -bottom-10 -end-3 text-[9rem] font-bold leading-none text-white/5">
           ر
         </span>
-        <div className="relative flex items-center gap-3">
+        {/* pe-12: the fixed language-switcher badge (see Layout.tsx) floats in
+            this corner on top of the header — without room reserved for it, a
+            long title ran underneath and got covered. */}
+        <div className="relative flex items-center gap-3 pe-12">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -351,8 +355,8 @@ function MobileChatUI() {
             <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
           <div className="animate-fade-up min-w-0 flex-1">
-            <h1 className="text-[19px] font-extrabold leading-tight text-white">{t('chat.title')}</h1>
-            <p className="mt-0.5 text-[12.5px] leading-snug text-white/70">{t('chat.subtitle')}</p>
+            <h1 className="truncate text-[19px] font-extrabold leading-tight text-white">{t('chat.title')}</h1>
+            <p className="mt-0.5 truncate text-[12.5px] leading-snug text-white/70">{t('chat.subtitle')}</p>
           </div>
         </div>
         <div className="relative mt-2.5 flex items-center gap-2 flex-wrap">
@@ -430,8 +434,11 @@ function MobileChatUI() {
 
       </div>
 
-      {/* ── Input bar: pinned above the safe-area bottom inset ── */}
-      <div className="shrink-0 border-t border-cream-dark bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
+      {/* ── Input bar: pinned above the bottom tab bar (not the safe-area
+          inset alone) — this screen keeps the shared tab bar like every
+          other page, so the composer needs room for it, not just the
+          notch. ── */}
+      <div className="shrink-0 border-t border-cream-dark bg-white px-4 pb-[calc(env(safe-area-inset-bottom)+4.5rem)] pt-3">
         {media.length > 0 && <MediaChips media={media} onRemove={(path) => persistMedia(media.filter((x) => x.path !== path))} />}
         <input ref={fileRef} type="file" accept={ATTACH_ACCEPT} multiple className="hidden" onChange={(e) => onFilesChosen(e.target.files)} />
         <div className="mt-1 flex gap-2">
@@ -502,6 +509,8 @@ function MobileChatUI() {
       )}
 
       {viewing && <ArchivedTopicModal topic={viewing} onClose={() => setViewing(null)} />}
+
+      <MobileTabBar />
     </div>
   );
 }

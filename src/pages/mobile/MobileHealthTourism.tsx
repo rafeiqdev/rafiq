@@ -198,7 +198,7 @@ export function MobileHealthTourism() {
               const style = HOW_STYLES[i];
               const numberFirst = style.dir === 'ltr';
               return (
-                <div key={step.title} className={`relative bg-white p-3.5 border-2 border-slate-700 shadow-md flex items-center gap-3 ${style.shape}`}>
+                <div key={step.title} className={`relative bg-white p-3 sm:p-3.5 border-2 border-slate-700 shadow-md flex items-center gap-3 h-auto ${style.shape}`}>
                   {numberFirst ? (
                     <div className={`w-12 h-12 rounded-full font-black text-3xl flex items-center justify-center shrink-0 border ${style.circle}`}>{i + 1}</div>
                   ) : (
@@ -207,8 +207,8 @@ export function MobileHealthTourism() {
                     </div>
                   )}
                   <div className={`flex-1 min-w-0 ${numberFirst ? '' : 'text-end'}`}>
-                    <h3 className="text-xs font-black text-slate-900 font-rubik">{step.title}</h3>
-                    <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">{step.body}</p>
+                    <h3 className="text-xs font-black text-slate-900 font-rubik break-words">{step.title}</h3>
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 break-words">{step.body}</p>
                   </div>
                   {numberFirst ? (
                     <div className="text-slate-400 shrink-0">

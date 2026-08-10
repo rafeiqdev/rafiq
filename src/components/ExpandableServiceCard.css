@@ -1,0 +1,612 @@
+/*
+ * Ported 1:1 (layout, spacing, colors, motion) from a Next.js mockup the user
+ * commissioned for this exact card (rafiq-service-card-files.zip: page.tsx +
+ * globals.css). Class names, values and structure match the source as closely
+ * as a scoped component allows — scoped under .esc-scope / esc- prefixes only
+ * because the mockup's globals.css set these as unscoped page-level rules and
+ * this card now lives inside the real site's CSS, not a standalone page.
+ *
+ * One deliberate deviation from the source: the mockup used a real photo
+ * (service-residency.png) in .compact-visual / .service-image. The catalog
+ * has no photography for its 79 services, so those slots render the
+ * service's own catalog icon on the mockup's navy background instead of a
+ * fabricated photo — everything else (toolbar, pills, panel, motion) is
+ * untouched.
+ */
+
+/* Defined at :root, not .esc-scope: the expanded card is rendered through a
+   React portal onto document.body (see ExpandableServiceCard.tsx), so it is
+   not a DOM descendant of .esc-scope and would not inherit variables scoped
+   there — that was silently breaking every var(--esc-*) inside the overlay
+   (the "الزر الأبيض ما بيظهر" bug: no navy background, no readable text). */
+:root {
+  --esc-navy: #102f61;
+  --esc-blue: #1d4b86;
+  --esc-light-blue: #e9f2ff;
+  --esc-ink: #0d2243;
+}
+
+.esc-scope button {
+  font: inherit;
+}
+
+/* ── compact card (grid / list item) ── */
+.esc-compact-card {
+  width: 100%;
+  height: 174px;
+  padding: 10px;
+  border: 1px solid rgba(21, 64, 116, 0.1);
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 13px;
+  overflow: hidden;
+  background: white;
+  color: var(--esc-ink);
+  text-align: start;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(16, 47, 97, 0.1);
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+.esc-compact-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(29, 75, 134, 0.28);
+  box-shadow: 0 16px 38px rgba(16, 47, 97, 0.16);
+}
+
+.esc-compact-card:focus-visible,
+.esc-primary-action:focus-visible,
+.esc-choice:focus-visible,
+.esc-detail-close:focus-visible {
+  outline: 3px solid #7fb2f1;
+  outline-offset: 3px;
+}
+
+.esc-compact-visual {
+  position: relative;
+  width: 108px;
+  height: 152px;
+  overflow: hidden;
+  border-radius: 13px;
+  background: var(--esc-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.esc-compact-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, rgba(6, 29, 64, 0.72));
+}
+
+.esc-compact-visual svg {
+  position: relative;
+  z-index: 1;
+  width: 40%;
+  height: 40%;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.esc-compact-number {
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 9px;
+  bottom: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.esc-compact-content {
+  min-width: 0;
+  padding: 4px 0 1px;
+  display: flex;
+  flex-direction: column;
+}
+
+.esc-compact-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.esc-compact-title-row strong {
+  color: var(--esc-navy);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.esc-compact-verified {
+  flex: 0 0 auto;
+  min-height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eff4fa;
+  color: #58708e;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.esc-compact-verified svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+}
+
+.esc-compact-subtitle {
+  margin-top: 3px;
+  color: var(--esc-blue);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.esc-compact-description {
+  margin-top: 8px;
+  color: #738095;
+  font-size: 10px;
+  line-height: 1.65;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.esc-compact-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.esc-new-request {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #e9f2ff;
+  color: var(--esc-blue);
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.esc-expand-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--esc-navy);
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.esc-expand-cue svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  transform: rotate(180deg);
+}
+
+[dir="ltr"] .esc-expand-cue svg {
+  transform: none;
+}
+
+/* ── overlay + expanded card ── */
+.esc-detail-overlay {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  padding: 14px;
+  display: grid;
+  place-items: center;
+  animation: esc-overlay-in 0.3s ease both;
+}
+
+.esc-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(7, 25, 53, 0.58);
+  backdrop-filter: blur(12px);
+  cursor: zoom-out;
+}
+
+@keyframes esc-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.esc-service-card {
+  position: relative;
+  z-index: 2;
+  width: min(430px, calc(100vw - 28px));
+  height: min(540px, calc(100dvh - 28px));
+  min-height: 500px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 7px solid rgba(255, 255, 255, 0.92);
+  border-radius: 34px;
+  background: var(--esc-navy);
+  box-shadow: 0 34px 90px rgba(4, 23, 49, 0.42), 0 10px 28px rgba(4, 23, 49, 0.22);
+  animation: esc-card-grow 0.58s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes esc-card-grow {
+  from { opacity: 0.35; transform: scale(0.58) translateY(24px); border-radius: 20px; }
+  to { opacity: 1; transform: scale(1) translateY(0); border-radius: 34px; }
+}
+
+.esc-service-image {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1d4b86, var(--esc-navy) 65%);
+}
+
+.esc-service-image svg {
+  width: 34%;
+  height: 34%;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.esc-image-tint {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(180deg, rgba(8, 27, 58, 0.08) 0%, rgba(8, 27, 58, 0.18) 35%, rgba(7, 29, 63, 0.94) 100%),
+    linear-gradient(105deg, rgba(17, 61, 111, 0.17), transparent 60%);
+}
+
+/* the white toolbar itself — untouched */
+.esc-card-toolbar {
+  position: absolute;
+  z-index: 8;
+  top: 14px;
+  inset-inline: 14px;
+  min-height: 48px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 28px rgba(5, 28, 62, 0.16);
+  backdrop-filter: blur(14px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.esc-detail-close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--esc-navy);
+  color: white;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(8, 31, 67, 0.18);
+}
+
+.esc-card-topline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* category-pill / verified-pill: both informational labels, not buttons —
+   see the literal override block at the end of this file. */
+.esc-category-pill,
+.esc-verified-pill {
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--esc-navy);
+  font-size: 10px;
+  font-weight: 800;
+  border: 0;
+  background: #eaf1fa;
+}
+
+.esc-verified-pill {
+  padding-inline: 7px;
+  background: transparent;
+  color: #526a88;
+}
+
+.esc-verified-pill svg,
+.esc-selection-toast svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.esc-card-summary {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 26px 24px 22px;
+  color: white;
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
+}
+
+.esc-service-index {
+  display: inline-block;
+  margin-bottom: 13px;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.esc-card-summary h2 {
+  margin: 0;
+  color: white;
+  font-size: clamp(26px, 7vw, 34px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.esc-service-subtitle {
+  margin: 6px 0 0;
+  color: #bcd8ff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.esc-service-description {
+  max-width: 360px;
+  margin: 13px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.esc-quick-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.esc-quick-facts span {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.esc-primary-action {
+  width: 100%;
+  height: 52px;
+  margin-top: 18px;
+  padding-inline: 17px 9px;
+  border: 0;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  color: var(--esc-navy);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.esc-primary-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.17);
+}
+
+.esc-action-icon,
+.esc-choice-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--esc-navy);
+  color: white;
+}
+
+.esc-action-icon svg,
+.esc-choice-arrow svg,
+.esc-choice-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[dir="rtl"] .esc-action-icon svg,
+[dir="rtl"] .esc-choice-arrow svg {
+  transform: rotate(180deg);
+}
+
+.esc-choice-panel {
+  position: absolute;
+  z-index: 10;
+  inset: auto 0 0;
+  min-height: 72%;
+  padding: 31px 22px 20px;
+  border-radius: 31px 31px 0 0;
+  background: rgba(255, 255, 255, 0.975);
+  color: var(--esc-ink);
+  box-shadow: 0 -22px 50px rgba(4, 24, 56, 0.2);
+  transform: translateY(103%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.58s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.esc-show-choices .esc-choice-panel { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.esc-show-choices .esc-card-summary { transform: translateY(22px); opacity: 0.18; }
+.esc-show-choices .esc-card-toolbar { opacity: 0; pointer-events: none; transform: translateY(-8px); }
+
+.esc-close-panel {
+  position: absolute;
+  top: 16px;
+  /* mockup used a literal left:17px — the far edge from where RTL text
+     starts. inset-inline-start would sit on the SAME edge as the kicker/h3
+     text below and get covered by them; inset-inline-end is the correct
+     logical equivalent. */
+  inset-inline-end: 17px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: #edf3fb;
+  color: var(--esc-navy);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.esc-panel-kicker { color: #5f7fa8; font-size: 10px; font-weight: 900; }
+
+.esc-choice-panel h3 {
+  max-width: 270px;
+  margin: 6px 0 18px;
+  color: var(--esc-navy);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.esc-choice {
+  width: 100%;
+  min-height: 90px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #dce7f5;
+  border-radius: 19px;
+  display: grid;
+  grid-template-columns: 48px 1fr 32px;
+  align-items: center;
+  gap: 11px;
+  background: #f7faff;
+  color: var(--esc-ink);
+  text-align: start;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.esc-choice:hover { transform: translateY(-2px); border-color: #93b4de; background: #eef5ff; }
+.esc-choice-human { background: #fff; }
+
+.esc-choice-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: var(--esc-navy);
+  color: white;
+}
+
+.esc-choice-human .esc-choice-icon { background: #e9f2ff; color: var(--esc-navy); }
+.esc-choice-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+
+.esc-choice-label {
+  width: max-content;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #dceaff;
+  color: var(--esc-blue);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.esc-choice-copy strong { color: var(--esc-navy); font-size: 14px; }
+.esc-choice-copy small { color: #718096; font-size: 10px; }
+
+.esc-choice-arrow { width: 30px; height: 30px; border: 1px solid #dce7f5; border-radius: 10px; background: white; color: var(--esc-navy); }
+.esc-choice-arrow svg { width: 14px; height: 14px; }
+
+.esc-back-action {
+  width: 100%;
+  margin-top: 13px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: #718096;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .esc-compact-card { height: 168px; grid-template-columns: 96px 1fr; }
+  .esc-compact-visual { width: 96px; height: 146px; }
+  .esc-compact-title-row { flex-direction: column; gap: 4px; }
+  .esc-compact-description { margin-top: 5px; }
+  .esc-service-card { min-height: min(500px, calc(100dvh - 28px)); border-width: 5px; border-radius: 29px; }
+  .esc-card-summary { padding: 22px 18px 17px; }
+  .esc-card-summary h2 { font-size: 28px; }
+  .esc-choice-panel { min-height: 73%; padding-inline: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esc-scope *,
+  .esc-scope *::before,
+  .esc-scope *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * ── literal override, as specified by the user ──
+ * "Residency & Transactions" (category-pill) must not look like a button:
+ * no blue background, same visual weight as the verified-pill next to it.
+ */
+.esc-category-pill,
+.esc-verified-pill {
+  min-height: 34px;
+  padding-inline: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #526a88;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: default;
+  user-select: none;
+}

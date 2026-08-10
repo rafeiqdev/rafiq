@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../../data/services';
-import type { ServiceItem, ServiceType } from '../../data/services';
+import type { ServiceType } from '../../data/services';
 import { useCatalog } from '../../data/catalogStore';
 import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
-import { ServiceActionModal } from '../../components/ServiceActionModal';
+import { ExpandableServiceCard } from '../../components/ExpandableServiceCard';
 import { usePageMeta } from '../../lib/seo';
 import { track, normalizeSearchQuery } from '../../lib/analytics';
 import { MobileTabBar } from '../../components/MobileTabBar';
@@ -23,56 +23,6 @@ const mobileCopy: Record<string, { home: string; chat: string; map: string; serv
   ru: { home: 'Главная', chat: 'ИИ-чат', map: 'Карта', services: 'Услуги', profile: 'Профиль' },
 };
 
-function TypeBadge({ type }: { type: ServiceType }) {
-  const { t } = useTranslation();
-  if (type === 'partner') {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft text-gold-dark text-[10px] font-bold px-2 py-0.5">
-        <AppIcon name="shield-check" className="w-3 h-3" />
-        {t('services.partnerBadge')}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-brand-blue text-navy text-[10px] font-bold px-2 py-0.5">
-      <AppIcon name="check" className="w-3 h-3" />
-      {t('services.directBadge')}
-    </span>
-  );
-}
-
-/** Full-width, single-column touch card. Whole card is the tap target; the
- *  bottom "help me" bar is decorative (pointer-events-none), as on desktop. */
-function ServiceCard({ service, onOpen }: { service: ServiceItem; onOpen: () => void }) {
-  const { t, i18n } = useTranslation();
-  return (
-    <button onClick={onOpen} className="card card-hover flex w-full flex-col p-4 text-start">
-      <div className="flex items-start gap-3">
-        <span className="icon-chip shrink-0">
-          <AppIcon name={service.icon} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[14.5px] font-bold leading-snug text-navy">{pickText(service.title, i18n.language)}</h3>
-          <p className="mt-0.5 text-[12.5px] leading-relaxed text-gray-500">{pickText(service.desc, i18n.language)}</p>
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <TypeBadge type={service.type} />
-        {service.onRequest && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-cream-dark text-navy/70 text-[10px] font-bold px-2 py-0.5">
-            <AppIcon name="clock" className="w-3 h-3" />
-            {t('services.onRequest')}
-          </span>
-        )}
-      </div>
-      <span className="btn-primary pointer-events-none mt-3.5 h-[42px] w-full text-xs">
-        <AppIcon name="message-circle" className="w-4 h-4" />
-        {t('common.helpMe')}
-      </span>
-    </button>
-  );
-}
-
 export function MobileServices() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -82,7 +32,6 @@ export function MobileServices() {
   const [query, setQuery] = useState(params.get('q') ?? '');
   const [category, setCategory] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
-  const [active, setActive] = useState<ServiceItem | null>(null);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
 
@@ -242,15 +191,8 @@ export function MobileServices() {
                       <span className="shrink-0 text-xs text-navy/50">({items.length})</span>
                     </div>
                     <div className="mt-3.5 flex flex-col gap-3">
-                      {items.map((s) => (
-                        <ServiceCard
-                          key={s.id}
-                          service={s}
-                          onOpen={() => {
-                            track('service_click', { target: s.id, meta: { category: s.category } });
-                            setActive(s);
-                          }}
-                        />
+                      {items.map((s, i) => (
+                        <ExpandableServiceCard key={s.id} service={s} index={i} categoryTitle={pickText(c.title, lang)} />
                       ))}
                     </div>
                   </section>
@@ -262,8 +204,6 @@ export function MobileServices() {
       </div>
 
       <MobileTabBar />
-
-      {active && <ServiceActionModal service={active} onClose={() => setActive(null)} />}
     </div>
   );
 }
