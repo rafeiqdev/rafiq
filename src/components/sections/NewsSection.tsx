@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { news, localizeNewsPost } from '../../lib/api';
 import type { NewsPost } from '../../lib/api';
-import { DirArrow } from '../AppIcon';
+import { AppIcon, DirArrow } from '../AppIcon';
 
 /**
  * Latest news on the public home page — the on-site mirror of the owner's
@@ -68,11 +68,15 @@ export function NewsSection({
     // aligned as the user swipes/drags, on touch and with a mouse alike.
     return (
       <section className={className ?? 'px-5 mt-10'}>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-end justify-between gap-3">
           <div>
             <p className="eyebrow">{t('home.news.eyebrow')}</p>
             <h2 className="section-title">{t('home.news.title')}</h2>
           </div>
+          <Link to="/news" className="text-sm font-bold text-navy inline-flex items-center gap-1 shrink-0">
+            {t('common.viewAll')}
+            <AppIcon name="arrow-right" className="w-3.5 h-3.5 dir-arrow" />
+          </Link>
         </div>
         <ul
           className="mt-4 flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-px-5 -mx-5 px-5 sm:-mx-1 sm:px-1"
@@ -112,6 +116,10 @@ export function NewsSection({
           <span className="eyebrow">{t('home.news.eyebrow')}</span>
           <h2 className="section-title mt-2">{t('home.news.title')}</h2>
         </div>
+        <Link to="/news" className="text-sm font-bold text-navy inline-flex items-center gap-1">
+          {t('common.viewAll')}
+          <AppIcon name="arrow-right" className="w-3.5 h-3.5 dir-arrow" />
+        </Link>
       </div>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((p) => {

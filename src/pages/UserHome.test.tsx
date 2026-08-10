@@ -123,7 +123,6 @@ describe('UserHome — first visit after onboarding', () => {
 
     // the invitations that must survive a completely empty account
     expect(screen.getByText('dash.noDatesTitle')).toBeInTheDocument();
-    expect(screen.getByText('dash.freeCallTitle')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('dash.noDocsTitle')).toBeInTheDocument());
   });
 
@@ -194,7 +193,7 @@ describe('UserHome — first visit after onboarding', () => {
 
     mount();
 
-    await waitFor(() => expect(screen.getByText('dash.freeCallTitle')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('dash.noDatesTitle')).toBeInTheDocument());
     // an unreadable locker shows nothing at all rather than a false "empty"
     expect(screen.queryByText('dash.noDocsTitle')).not.toBeInTheDocument();
   });

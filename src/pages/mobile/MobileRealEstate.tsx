@@ -17,9 +17,6 @@ import {
   type ListingFilters,
 } from '../../lib/listingFilters';
 import { BANNERS } from '../../lib/images';
-import { InvestmentCard } from '../../components/realestate/InvestmentCard';
-import { interleaveInvestments } from '../../lib/feed';
-import { useInvestments } from '../../hooks/useInvestments';
 import { SITE_URL, usePageMeta } from '../../lib/seo';
 
 const TABS: ListingType[] = ['sale', 'rent', 'commercial'];
@@ -53,15 +50,11 @@ export function MobileRealEstate() {
       .finally(() => setLoading(false));
   }, []);
 
-  const { items: opportunities } = useInvestments();
   const districts = useMemo(() => districtsOf(all), [all]);
   const results = useMemo(() => applyFilters(all, filters), [all, filters]);
   const draftResults = useMemo(() => applyFilters(all, draft), [all, draft]);
   const shown = results.slice(0, limit);
   const activeCount = activeFilterCount(filters);
-  // One investment file per five listings on mobile: the feed is a single
-  // column, so ten cards is a much longer scroll than it is on desktop.
-  const feed = useMemo(() => interleaveInvestments(shown, opportunities, 5), [shown, opportunities]);
 
   const update = (next: ListingFilters) => {
     setFilters(next);
@@ -176,18 +169,9 @@ export function MobileRealEstate() {
           ) : (
             <>
               <div className="stagger flex flex-col gap-4">
-                {feed.map((item) =>
-                  item.kind === 'listing' ? (
-                    <ListingCard
-                      key={item.listing.id}
-                      listing={item.listing}
-                      index={item.index}
-                      to={`/real-estate/${item.listing.id}`}
-                    />
-                  ) : (
-                    <InvestmentCard key={`inv-${item.opp.slug}`} opp={item.opp} />
-                  ),
-                )}
+                {shown.map((listing, index) => (
+                  <ListingCard key={listing.id} listing={listing} index={index} to={`/real-estate/${listing.id}`} />
+                ))}
               </div>
               {results.length > shown.length && (
                 <button onClick={() => setLimit((n) => n + PAGE_SIZE)} className="btn-secondary w-full">

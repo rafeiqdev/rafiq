@@ -244,6 +244,7 @@
       "title": "Latest from Rafiq",
       "follow": "Follow us on Telegram",
       "readMore": "Read more",
+      "empty": "No news yet.",
       "notFound": "This news post is no longer available.",
       "askAi": "Ask Rafiq AI about this news"
     },

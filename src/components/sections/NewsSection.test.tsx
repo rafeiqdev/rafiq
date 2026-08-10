@@ -62,11 +62,11 @@ describe('NewsSection', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('fetches up to six posts', async () => {
+  it('fetches up to three posts', async () => {
     latest.mockResolvedValueOnce([post]);
 
     renderIt(<NewsSection />);
-    await waitFor(() => expect(latest).toHaveBeenCalledWith(6));
+    await waitFor(() => expect(latest).toHaveBeenCalledWith(3));
   });
 
   it('shows posts, the photo, and the IN-APP read-more link, with no Telegram branding', async () => {

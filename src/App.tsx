@@ -101,6 +101,7 @@ const MobileMyRequests = lazyPage(() => import('./pages/mobile/MobileMyRequests'
 const Onboarding = lazyPage(() => import('./pages/Onboarding').then((m) => ({ default: m.Onboarding })));
 const UserHome = lazyPage(() => import('./pages/UserHome').then((m) => ({ default: m.UserHome })));
 const Journey = lazyPage(() => import('./pages/Journey').then((m) => ({ default: m.Journey })));
+const News = lazyPage(() => import('./pages/News').then((m) => ({ default: m.News })));
 const NewsArticle = lazyPage(() => import('./pages/NewsArticle').then((m) => ({ default: m.NewsArticle })));
 const Legal = lazyPage(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
 const NotFound = lazyPage(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
@@ -237,7 +238,8 @@ function Shell() {
             <Route path="/medical-request" element={<RequireAuth><MedicalRequest /></RequireAuth>} />
             <Route path="/tricks" element={isMobile ? <MobileTricks /> : <Tricks />} />
             <Route path="/tricks/:id" element={isMobile ? <MobileTrickDetail /> : <TrickDetail />} />
-            {/* one column of text either way — a single component serves both breakpoints */}
+            {/* one column/grid either way — a single component serves both breakpoints */}
+            <Route path="/news" element={<News />} />
             <Route path="/news/:id" element={<NewsArticle />} />
             {/* The authenticated product surface: every one of these routes
                 sends an unfinished user to /onboarding before it renders. */}

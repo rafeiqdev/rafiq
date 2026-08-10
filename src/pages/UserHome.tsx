@@ -640,19 +640,6 @@ export function UserHome() {
           />
         ))}
 
-      {/* ── the free expert call: the strongest offer, and it needs no data.
-          Goes straight into the booking flow (?book=1) instead of the
-          self-guide/AI/"advisor is on the way" landing page — the dashboard
-          already promised "book a call", so that's what the click should do. */}
-      <InvitePanel
-        className="mt-4"
-        icon="message-circle"
-        title={t('dash.freeCallTitle')}
-        body={t('dash.freeCallBody')}
-        ctaLabel={t('dash.freeCallCta')}
-        ctaTo="/help?book=1"
-      />
-
       {/* ── everything below only renders once there is something real ── */}
       {myBookings.length > 0 && (
         <Panel className="mt-4">
