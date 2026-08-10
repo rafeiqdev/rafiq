@@ -282,6 +282,12 @@
       "languages": "لغات مدعومة",
       "users": "مستخدم استفاد من رفيق",
       "services": "معاملة ومجال مغطّى"
+    },
+    "heroStats": {
+      "families": "عائلة استفادت من رفيق",
+      "yearsExperience": "سنوات من الخبرة",
+      "responseValue": "{{count}} س",
+      "responseTime": "متوسط وقت الرد"
     }
   },
   "help": {
@@ -915,6 +921,14 @@
       "email": "البريد الإلكتروني (اختياري)",
       "message": "رسالة (اختياري)",
       "messagePlaceholder": "اكتب باختصار ما تحتاجه…",
+      "problemLabel": "ما هي مشكلتك؟",
+      "problems": {
+        "newResidency": "طلب إقامة جديد",
+        "rejectedRenewal": "رفض تجديد",
+        "nufusAddress": "تسجيل عنوان النفوس",
+        "bankAccount": "حساب بنكي بدون إقامة"
+      },
+      "problemDetailsLabel": "تفاصيل إضافية (اختياري)",
       "send": "إرسال الطلب",
       "sending": "جارٍ الإرسال…",
       "noAccountNote": "لا حاجة لإنشاء حساب — سيتواصل معك فريق رفيق خلال ٢٤ ساعة.",
@@ -1048,6 +1062,21 @@
     "requestRejected": {
       "title": "تعذّر قبول الطلب",
       "body": "للأسف لم نتمكن من قبول هذا الطلب. تواصل معنا لنقترح بدائل."
+    },
+    "tabs": {
+      "urgent": "عاجل",
+      "updates": "تحديثات الطلبات",
+      "news": "أخبار عامة"
+    },
+    "emptyUrgent": "لا مواعيد نهائية عاجلة حاليًا.",
+    "emptyUpdates": "لا تحديثات على الطلبات بعد.",
+    "emptyNews": "لا أخبار بعد.",
+    "countdown": {
+      "overdue": "متأخر بـ {{count}} يوم",
+      "overdue_other": "متأخر بـ {{count}} أيام",
+      "dueToday": "المهلة تنتهي اليوم",
+      "oneDayLeft": "يوم واحد متبقٍ",
+      "daysLeft": "{{count}} أيام متبقية"
     }
   },
   "admin": {
@@ -1767,7 +1796,17 @@
     "viewCompany": "عرض الشركة",
     "leaveReview": "اكتب تقييماً",
     "area": "المنطقة",
-    "reviewed": "تم التقييم"
+    "reviewed": "تم التقييم",
+    "reassurance": {
+      "sla": "رد مضمون خلال ساعتين",
+      "escalate": "تواصل عبر واتساب",
+      "waMessage": "مرحباً، أرغب بمعرفة آخر تحديث على طلبي رقم #{{id}} — {{service}}.",
+      "timeline": {
+        "pending": "تم الإرسال",
+        "accepted": "قيد المراجعة",
+        "done": "مكتمل"
+      }
+    }
   },
   "reviews": {
     "leaveTitle": "قيّم هذه الشركة",
@@ -1957,6 +1996,12 @@
     "error": "تعذّر تحميل مسيرتك.",
     "retry": "إعادة المحاولة",
     "openService": "افتح الخدمة"
+  },
+  "officialSource": {
+    "eIkamet": "تحقّق عبر e-İkamet",
+    "gib": "تحقّق عبر هيئة الإيرادات (GİB)",
+    "tkgm": "تحقّق عبر السجل العقاري (TKGM)",
+    "eDevlet": "تحقّق عبر e-Devlet"
   },
   "account": {
     "title": "حسابي",

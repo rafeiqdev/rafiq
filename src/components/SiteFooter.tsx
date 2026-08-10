@@ -58,7 +58,7 @@ const LEGAL_LINKS = GROUPS[2].links;
 
 function GroupHeading({ icon, label }: { icon: IconName; label: string }) {
   return (
-    <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/50">
+    <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/65">
       <AppIcon name={icon} className="w-3.5 h-3.5" />
       {label}
     </span>
@@ -155,7 +155,7 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
           ))}
         </nav>
       </div>
-      <p className="mt-4 text-center text-[11px] text-gray-500">
+      <p className="mt-4 text-center text-[11px] text-white/60">
         © 2026 Rafiq.ist. All rights reserved. Registered Medical Coordination Services.
       </p>
     </div>
@@ -191,7 +191,7 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
               <details key={g.id} className="group">
                 <summary className="flex items-center justify-between gap-3 min-h-[52px] cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <GroupHeading icon={g.icon} label={t(g.titleKey)} />
-                  <span className="text-white/40 text-xl leading-none transition-transform group-open:rotate-45">+</span>
+                  <span className="text-white/40 text-xl leading-none transition-transform group-open:rotate-45" aria-hidden>+</span>
                 </summary>
                 <ul className="pb-3">
                   {g.links.map((l) => (

@@ -18,7 +18,7 @@ import type { ArchivedTopic } from '../../lib/chatHistory';
 import type { BookingMedia, ChatMessage } from '../../lib/types';
 import { RequireAuthChat } from '../../components/Gates';
 import { BookingModal } from '../../components/BookingModal';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { MediaChips, AttachCard, MAX_MEDIA_MB, ATTACH_ACCEPT, formatFileList, wantsMedia } from '../../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
@@ -352,7 +352,7 @@ function MobileChatUI() {
             aria-label={mc.back}
             className="relative -ms-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           <div className="animate-fade-up min-w-0 flex-1">
             <h1 className="truncate text-[19px] font-extrabold leading-tight text-white">{t('chat.title')}</h1>

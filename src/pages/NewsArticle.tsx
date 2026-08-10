@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { news, localizeNewsPost } from '../lib/api';
 import type { NewsPost } from '../lib/api';
-import { AppIcon, DirArrow } from '../components/AppIcon';
+import { AppIcon, BackArrow } from '../components/AppIcon';
 import { usePageMeta } from '../lib/seo';
 
 /**
@@ -54,7 +54,7 @@ export function NewsArticle() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy hover:underline">
-        <DirArrow className="w-4 h-4 rotate-180" />
+        <BackArrow className="w-4 h-4" />
         {t('common.back')}
       </Link>
 

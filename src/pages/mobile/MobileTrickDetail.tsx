@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { usePageMeta } from '../../lib/seo';
 import { TRICK_SLUGS, TRICK_ICONS } from '../Tricks';
 import type { TrickSlug } from '../Tricks';
@@ -48,7 +48,7 @@ export function MobileTrickDetail() {
             aria-label={mc.back}
             className="relative -ms-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           {valid && (
             <div className="animate-fade-up relative mt-4 flex items-center gap-3.5">

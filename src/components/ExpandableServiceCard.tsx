@@ -6,7 +6,9 @@ import { pickText } from '../data/services';
 import type { ServiceItem } from '../data/services';
 import { AppIcon, DirArrow } from './AppIcon';
 import { ServiceRequestModal } from './ServiceRequestModal';
+import { annotateGlossaryTerms } from './TermTooltip';
 import { track } from '../lib/analytics';
+import type { Lang } from '../lib/types';
 import './ExpandableServiceCard.css';
 
 type Mode = 'compact' | 'detail' | 'choices';
@@ -157,8 +159,8 @@ export function ExpandableServiceCard({
 
                 <div className="esc-card-summary">
                   <span className="esc-service-index">{num}</span>
-                  <h2>{title}</h2>
-                  <p className="esc-service-description">{desc}</p>
+                  <h2>{annotateGlossaryTerms(title, lang as Lang)}</h2>
+                  <p className="esc-service-description">{annotateGlossaryTerms(desc, lang as Lang)}</p>
 
                   {service.onRequest && (
                     <div className="esc-quick-facts">

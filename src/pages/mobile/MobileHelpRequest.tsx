@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
-import { AppIcon, DirArrow } from '../../components/AppIcon';
+import { AppIcon, BackArrow, DirArrow } from '../../components/AppIcon';
 import { AdvisorScene } from '../../components/AdvisorScene';
 import { BookingModal } from '../../components/BookingModal';
 import { MobileTabBar } from '../../components/MobileTabBar';
@@ -59,7 +59,7 @@ function MobileHelpRequestInner() {
             aria-label={mc.back}
             className="relative -ms-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
         </header>
 

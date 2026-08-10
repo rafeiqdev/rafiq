@@ -63,6 +63,7 @@ function Panel({ children, className = '' }: { children: React.ReactNode; classN
  */
 function InvitePanel({
   icon,
+  iconFilled = false,
   title,
   body,
   ctaLabel,
@@ -70,6 +71,7 @@ function InvitePanel({
   className = '',
 }: {
   icon: IconName;
+  iconFilled?: boolean;
   title: string;
   body: string;
   ctaLabel: string;
@@ -78,8 +80,12 @@ function InvitePanel({
 }) {
   return (
     <section className={`card border-dashed border-navy/25 bg-white/50 p-5 ${className}`}>
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-cream-dark text-navy/70">
-        <AppIcon name={icon} className="w-5 h-5" />
+      <span
+        className={`flex items-center justify-center w-10 h-10 rounded-xl ${
+          iconFilled ? 'bg-brand-blue text-navy' : 'bg-cream-dark text-navy/70'
+        }`}
+      >
+        <AppIcon name={icon} className="w-5 h-5" fill={iconFilled ? 'currentColor' : undefined} />
       </span>
       <h2 className="mt-3 font-extrabold text-navy">{title}</h2>
       <p className="mt-1 text-sm text-gray-500 leading-relaxed">{body}</p>
@@ -638,6 +644,7 @@ export function UserHome() {
           <InvitePanel
             className="mt-4"
             icon="folder"
+            iconFilled
             title={t('dash.noDocsTitle')}
             body={t('dash.noDocsBody')}
             ctaLabel={t('dash.noDocsCta')}

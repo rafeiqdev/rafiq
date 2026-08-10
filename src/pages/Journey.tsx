@@ -4,6 +4,7 @@ import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
 import { errorMessageKey } from '../lib/errors';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon, DirArrow } from '../components/AppIcon';
+import { OfficialSourceBadge } from '../components/OfficialSourceBadge';
 import type { JourneyItem } from '../lib/types';
 import { usePageMeta } from '../lib/seo';
 
@@ -53,6 +54,9 @@ function TaskCard({ item, isNext, onToggle }: { item: JourneyItem; isNext: boole
           )}
         </div>
         <p className="mt-1 text-sm text-gray-500 break-words">{journeyDesc(t, item)}</p>
+        {!done && (
+          <OfficialSourceBadge taskKey={item.taskKey} serviceId={item.relatedServiceId ?? undefined} className="mt-2" />
+        )}
         {item.relatedRoute && !done && (
           <Link to={item.relatedRoute} className="btn-secondary mt-3 min-h-[44px] !h-auto py-2 text-xs">
             {t('journeyPage.openService')}

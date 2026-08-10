@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageMeta, SITE_URL } from '../lib/seo';
-import { AppIcon } from '../components/AppIcon';
+import { AppIcon, DirArrow } from '../components/AppIcon';
 import { useMedicalLeadForm, WA_ENABLED, humanFileSize } from './healthTourism/useMedicalLeadForm';
 import type { SpecialtyChip } from './healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from './healthTourism/useAutoCarousel';
@@ -241,7 +241,7 @@ export function HealthTourism() {
                         onClick={() => form.setFormSpecialty(item.slug)}
                         className="w-full py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-950 text-xs font-black text-center block shadow-lg active:scale-95 transition"
                       >
-                        {t(`${D}.specialties.ctaQuote`)} <AppIcon name="arrow-left" className={`w-4 h-4 inline ms-1 ${isRTL ? '' : 'rotate-180'}`} />
+                        {t(`${D}.specialties.ctaQuote`)} <DirArrow className="w-4 h-4 inline ms-1" />
                       </a>
                     </div>
                   </div>

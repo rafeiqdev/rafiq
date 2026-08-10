@@ -6,7 +6,7 @@ import type { CompanyPublic as CompanyPublicT, Review } from '../lib/types';
 import { SERVICE_CATEGORIES, SERVICES, pickText } from '../data/services';
 import { pickArea } from '../data/istanbulAreas';
 import { ReviewStars } from '../components/ReviewStars';
-import { AppIcon, DirArrow } from '../components/AppIcon';
+import { AppIcon, BackArrow } from '../components/AppIcon';
 import { RafiqLoaderScreen } from '../components/RafiqLoader';
 
 export function CompanyPublic() {
@@ -46,7 +46,7 @@ export function CompanyPublic() {
       <section className="bg-gradient-to-br from-navy to-navy-light text-white">
         <div className="mx-auto max-w-3xl px-4 py-8">
           <Link to="/services" className="inline-flex items-center gap-1.5 text-xs text-white/70 hover:text-white">
-            <DirArrow className="w-3 h-3 rotate-180" />
+            <BackArrow className="w-3 h-3" />
             {t('company.public.back')}
           </Link>
           <div className="mt-4 flex items-start gap-4">

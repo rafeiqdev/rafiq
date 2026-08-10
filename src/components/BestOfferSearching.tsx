@@ -479,6 +479,16 @@ export function BestOfferSearching({
             >
               {t('bestOffer.successSub', { service: serviceName })}
             </p>
+            <p
+              style={{
+                margin: isPhone ? '8px 0 0' : '10px 0 0',
+                fontSize: isPhone ? 'clamp(12px,3.4vw,13px)' : 'clamp(13px,1.6vw,15px)',
+                color: NAVY,
+                fontWeight: 700,
+              }}
+            >
+              {t('requests.reassurance.sla')}
+            </p>
             <div
               style={{
                 display: 'inline-flex',

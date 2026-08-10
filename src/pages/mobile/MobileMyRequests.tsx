@@ -5,7 +5,7 @@ import { customerRequests, reviews } from '../../lib/api';
 import type { CompanyResponse, CustomerRequest } from '../../lib/types';
 import { pickArea } from '../../data/istanbulAreas';
 import { useApp } from '../../context/AppContext';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { RafiqLoader } from '../../components/RafiqLoader';
 import { RequireAuth } from '../../components/Gates';
 import { MedicalRequestsPanel } from '../../components/medical/MedicalRequestsPanel';
@@ -90,10 +90,6 @@ function ReviewModal({
 function RequestRow({ req }: { req: CustomerRequest }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  // This project has no RTL Tailwind variant (plugins: []) — flip in JS, as
-  // every other mobile screen does. `rtl:*` classes are silently dropped.
-  const short = (lang || 'en').split('-')[0];
-  const isRTL = short === 'ar' || short === 'fa';
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((v) => !v);
 
@@ -108,7 +104,7 @@ function RequestRow({ req }: { req: CustomerRequest }) {
         <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-cream text-navy/60">
           <AppIcon
             name="arrow-right"
-            className={`h-[18px] w-[18px] transition-transform ${open ? 'rotate-90' : isRTL ? 'rotate-180' : ''}`}
+            className={`h-[18px] w-[18px] transition-transform ${open ? 'rotate-90' : 'rtl:rotate-180'}`}
           />
         </span>
         <div className="min-w-0 flex-1">
@@ -272,7 +268,7 @@ function MobileMyRequestsInner() {
             aria-label={mc.back}
             className="relative -ms-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           <div className="animate-fade-up relative mt-3.5">
             <h1 className="text-2xl font-extrabold text-white">{t('requests.title')}</h1>

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppIcon, DirArrow } from '../../components/AppIcon';
+import { AppIcon, BackArrow, DirArrow } from '../../components/AppIcon';
 import { PageHero } from '../../components/PageHero';
 import { IstanbulApps } from '../../components/IstanbulApps';
 import { BANNERS } from '../../lib/images';
@@ -81,7 +81,7 @@ export function MobileTricks() {
             aria-label={mc.back}
             className="absolute start-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors active:bg-white/30"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           <PageHero
             image={BANNERS.tricks}

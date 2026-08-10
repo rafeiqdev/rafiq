@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { notifications } from '../../lib/api';
 import type { AppNotification } from '../../lib/types';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { RafiqLoader } from '../../components/RafiqLoader';
 import { SiteImage } from '../../components/SiteImage';
 import { ISTANBUL } from '../../lib/images';
@@ -64,7 +64,7 @@ export function MobileNotifications() {
             aria-label={mc.back}
             className="relative -ms-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           <div className="animate-fade-up relative mt-3.5 flex items-center justify-between gap-3">
             <h1 className="text-2xl font-extrabold text-white">{t('notifications.title')}</h1>

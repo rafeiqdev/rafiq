@@ -10,6 +10,8 @@ import { useApp } from '../context/AppContext';
 import { Modal } from './Modal';
 import { AppIcon } from './AppIcon';
 import { BestOfferSearching } from './BestOfferSearching';
+import { annotateGlossaryTerms } from './TermTooltip';
+import type { Lang } from '../lib/types';
 
 /** Anything a lead can be requested about — a catalog service or a hub guide. */
 export interface LeadSource {
@@ -40,6 +42,9 @@ function isValidName(s: string): boolean {
   return v.length >= 3 && (v.match(/\p{L}/gu)?.length ?? 0) >= 2;
 }
 
+/** Preset problem chips — keys resolve under services.modal.problems.* */
+const PROBLEM_CHIPS = ['newResidency', 'rejectedRenewal', 'nufusAddress', 'bankAccount'] as const;
+
 export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
@@ -53,6 +58,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [area, setArea] = useState('');
+  const [problem, setProblem] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -73,8 +79,11 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const nameValid = isValidName(name);
   const showNameError = nameTouched && name.trim().length > 0 && !nameValid;
 
+  const problemLabel = problem ? t(`services.modal.problems.${problem}`) : '';
+  const fullMessage = [problemLabel, message.trim()].filter(Boolean).join(' — ');
+
   const waText = () =>
-    `${t('services.modal.waIntro')}\n• ${t('services.modal.service')}: ${serviceTitle}\n• ${t('services.modal.name')}: ${name}\n• ${t('services.modal.phone')}: ${phone}${message ? `\n• ${t('services.modal.message')}: ${message}` : ''}`;
+    `${t('services.modal.waIntro')}\n• ${t('services.modal.service')}: ${serviceTitle}\n• ${t('services.modal.name')}: ${name}\n• ${t('services.modal.phone')}: ${phone}${fullMessage ? `\n• ${t('services.modal.message')}: ${fullMessage}` : ''}`;
 
   const submit = async () => {
     if (!nameValid || !phoneValid) {
@@ -110,7 +119,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
         name: name.trim(),
         phone: phone.trim(),
         email: email.trim() || undefined,
-        message: message.trim() || undefined,
+        message: fullMessage || undefined,
         serviceId: source.id,
         serviceTitle,
         category: source.category,
@@ -183,6 +192,10 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                 <AppIcon name="check-circle" className="w-6 h-6" />
               </div>
               <p className="mt-4 text-sm text-gray-600">{t('services.modal.successBody')}</p>
+              <p className="amber-note mt-3 inline-flex items-center gap-1.5 text-xs">
+                <AppIcon name="clock" className="w-3.5 h-3.5 shrink-0" />
+                {t('requests.reassurance.sla')}
+              </p>
               {WA_ENABLED && (
                 <a
                   href={`https://wa.me/${WA}?text=${encodeURIComponent(waText())}`}
@@ -203,7 +216,9 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
             <>
               <div className="rounded-xl bg-cream px-4 py-3">
                 <p className="text-xs font-semibold text-navy/60">{t('services.modal.service')}</p>
-                <p className="mt-1 text-sm font-semibold text-navy">{serviceTitle}</p>
+                <p className="mt-1 text-sm font-semibold text-navy">
+                  {annotateGlossaryTerms(serviceTitle, lang as Lang)}
+                </p>
               </div>
               <div className="mt-4 flex flex-col gap-3">
                 <label className="text-xs font-semibold text-navy/70">
@@ -265,8 +280,31 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                     </select>
                   </label>
                 )}
+                <div>
+                  <p className="text-xs font-semibold text-navy/70">{t('services.modal.problemLabel')}</p>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    {PROBLEM_CHIPS.map((id) => {
+                      const selected = problem === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => setProblem(selected ? null : id)}
+                          aria-pressed={selected}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            selected
+                              ? 'border-navy bg-navy text-white'
+                              : 'border-navy/15 bg-cream text-navy/70 hover:border-navy/40'
+                          }`}
+                        >
+                          {t(`services.modal.problems.${id}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <label className="text-xs font-semibold text-navy/70">
-                  {t('services.modal.message')}
+                  {t('services.modal.problemDetailsLabel')}
                   <textarea
                     className="input mt-1 min-h-[88px] py-2"
                     value={message}

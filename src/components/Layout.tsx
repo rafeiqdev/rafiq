@@ -360,7 +360,7 @@ export function Layout() {
               ))}
             </div>
 
-            <p className="mt-4 mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-navy/40">
+            <p className="mt-4 mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-navy/70">
               {t('nav.services')}
             </p>
             <div className="grid grid-cols-2 gap-2">

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
 import type { Listing } from '../../lib/types';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { LISTING_PHOTOS } from '../../lib/images';
 import { usePageMeta } from '../../lib/seo';
@@ -61,7 +61,7 @@ export function MobileListingServices() {
             aria-label={t('common.back')}
             className="flex h-9 w-9 items-center justify-center rounded-btn bg-cream-dark text-navy"
           >
-            <AppIcon name="arrow-left" className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-5 w-5" />
           </button>
           <h1 className="flex-1 font-bold text-navy">{t('realEstate.services.title')}</h1>
         </header>

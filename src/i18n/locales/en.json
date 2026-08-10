@@ -282,6 +282,12 @@
       "languages": "Supported languages",
       "users": "Users helped by Rafiq",
       "services": "Transactions & fields covered"
+    },
+    "heroStats": {
+      "families": "families helped by Rafiq",
+      "yearsExperience": "years of experience",
+      "responseValue": "{{count}}h",
+      "responseTime": "Average response time"
     }
   },
   "help": {
@@ -915,6 +921,14 @@
       "email": "Email (optional)",
       "message": "Message (optional)",
       "messagePlaceholder": "Tell us briefly what you need…",
+      "problemLabel": "What's the issue?",
+      "problems": {
+        "newResidency": "New Residency Application",
+        "rejectedRenewal": "Rejected Renewal",
+        "nufusAddress": "Nüfus Address Registration",
+        "bankAccount": "Bank Account without Residency"
+      },
+      "problemDetailsLabel": "Additional details (optional)",
       "send": "Send request",
       "sending": "Sending…",
       "noAccountNote": "No account needed — our team will reach out within 24 hours.",
@@ -1048,6 +1062,21 @@
     "requestRejected": {
       "title": "Request declined",
       "body": "Unfortunately we couldn't take this request. Contact us for alternatives."
+    },
+    "tabs": {
+      "urgent": "Urgent",
+      "updates": "Request updates",
+      "news": "General news"
+    },
+    "emptyUrgent": "No urgent deadlines right now.",
+    "emptyUpdates": "No request updates yet.",
+    "emptyNews": "No news yet.",
+    "countdown": {
+      "overdue": "Overdue by {{count}} day",
+      "overdue_other": "Overdue by {{count}} days",
+      "dueToday": "Due today",
+      "oneDayLeft": "1 day left",
+      "daysLeft": "{{count}} days left"
     }
   },
   "admin": {
@@ -1767,7 +1796,17 @@
     "viewCompany": "View company",
     "leaveReview": "Leave a review",
     "area": "Area",
-    "reviewed": "Reviewed"
+    "reviewed": "Reviewed",
+    "reassurance": {
+      "sla": "Guaranteed response within 2 hours",
+      "escalate": "Escalate on WhatsApp",
+      "waMessage": "Hi, I'd like an update on my request #{{id}} — {{service}}.",
+      "timeline": {
+        "pending": "Submitted",
+        "accepted": "In review",
+        "done": "Completed"
+      }
+    }
   },
   "reviews": {
     "leaveTitle": "Rate this company",
@@ -1957,6 +1996,12 @@
     "error": "We could not load your journey.",
     "retry": "Try again",
     "openService": "Open the service"
+  },
+  "officialSource": {
+    "eIkamet": "Verify on e-İkamet",
+    "gib": "Verify on GİB",
+    "tkgm": "Verify on TKGM (Land Registry)",
+    "eDevlet": "Verify on e-Devlet"
   },
   "account": {
     "title": "My account",

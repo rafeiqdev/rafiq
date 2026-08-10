@@ -7,7 +7,7 @@ import { SERVICE_CATEGORIES, SERVICES, pickText } from '../../data/services';
 import { ISTANBUL_AREAS, pickArea } from '../../data/istanbulAreas';
 import { RequireCompany } from '../../components/Gates';
 import { TagPicker } from '../../components/company/TagPicker';
-import { AppIcon, DirArrow } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { RafiqLoaderScreen } from '../../components/RafiqLoader';
 
 function ProfileEditInner() {
@@ -108,7 +108,7 @@ function ProfileEditInner() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <Link to="/company" className="inline-flex items-center gap-1.5 text-sm text-navy/60 hover:text-navy">
-        <DirArrow className="w-4 h-4 rotate-180" />
+        <BackArrow className="w-4 h-4" />
         {t('company.dashboard.title')}
       </Link>
       <h1 className="mt-3 text-2xl font-extrabold text-navy">{t('company.profile.title')}</h1>

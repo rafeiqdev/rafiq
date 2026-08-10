@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
 import type { Listing, ListingType } from '../../lib/types';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { PageHero } from '../../components/PageHero';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { Modal } from '../../components/Modal';
@@ -76,7 +76,7 @@ export function MobileRealEstate() {
             aria-label={t('common.back')}
             className="absolute start-4 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors active:bg-white/30"
           >
-            <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-6 w-6" />
           </button>
           <PageHero
             image={BANNERS.realEstate}

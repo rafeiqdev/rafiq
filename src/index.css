@@ -170,6 +170,14 @@ textarea,
   .input {
     font-size: 16px !important;
   }
+  .input:focus {
+    border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.5);
+  }
+  .btn:focus-visible {
+    outline-width: 3px;
+    outline-offset: 2px;
+  }
 }
 
 /* slightly larger paragraph leading for Arabic body copy */
@@ -192,8 +200,11 @@ html[dir='rtl'] li {
   .btn {
     @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-btn font-semibold text-sm leading-none
            transition-all duration-150 cursor-pointer select-none whitespace-nowrap
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-navy/40
            active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
   }
   .btn-primary {
     @apply btn bg-navy text-white hover:bg-navy-light active:bg-navy-dark;
@@ -240,7 +251,13 @@ html[dir='rtl'] li {
   }
   .input {
     @apply w-full h-11 px-4 rounded-btn border border-cream-dark bg-white text-navy placeholder:text-navy/60
-           focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy/30 text-sm transition-shadow;
+           text-sm transition-shadow;
+  }
+  .input:focus {
+    outline: none;
+    border-color: #1a3a6b;
+    border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.5);
   }
 
   /* ── Section helpers ── */
@@ -266,6 +283,17 @@ html[dir='rtl'] li {
 /* arrows flip automatically in RTL */
 [dir='rtl'] .dir-arrow {
   transform: scaleX(-1);
+}
+
+/* "back" arrows: base icon points right, rotated to point left by default
+   (LTR back), rotated back to 0 in RTL (RTL back points right). Uses
+   rotate() instead of composing with .dir-arrow's scaleX() so the two
+   states don't fight over the `transform` property's specificity. */
+.dir-arrow-back {
+  transform: rotate(180deg);
+}
+[dir='rtl'] .dir-arrow-back {
+  transform: rotate(0deg);
 }
 
 /* ---- motion / entrance animations ---- */

@@ -6,6 +6,8 @@ import {
   ArrowLeftRight,
   ArrowRight,
   BarChart2,
+  Bath,
+  BedDouble,
   Bell,
   Bookmark,
   Briefcase,
@@ -25,6 +27,7 @@ import {
   Compass,
   CreditCard,
   Download,
+  ExternalLink,
   FileCheck,
   FileText,
   Folder,
@@ -48,6 +51,7 @@ import {
   Mail,
   Map,
   MapPin,
+  Maximize,
   Megaphone,
   Menu,
   MessageCircle,
@@ -94,6 +98,8 @@ const ICONS = {
   'arrow-left': ArrowLeft,
   'arrow-left-right': ArrowLeftRight,
   'arrow-right': ArrowRight,
+  bath: Bath,
+  bed: BedDouble,
   'bar-chart-2': BarChart2,
   bell: Bell,
   bookmark: Bookmark,
@@ -114,6 +120,7 @@ const ICONS = {
   compass: Compass,
   'credit-card': CreditCard,
   download: Download,
+  'external-link': ExternalLink,
   'file-check': FileCheck,
   'file-text': FileText,
   folder: Folder,
@@ -137,6 +144,7 @@ const ICONS = {
   mail: Mail,
   map: Map,
   'map-pin': MapPin,
+  maximize: Maximize,
   megaphone: Megaphone,
   newspaper: Newspaper,
   send: Send,
@@ -187,4 +195,9 @@ export function AppIcon({ name, className = 'w-5 h-5', fill }: { name: IconName;
 /** Directional arrow that flips in RTL (via the .dir-arrow CSS rule). */
 export function DirArrow({ className = 'w-4 h-4' }: { className?: string }) {
   return <ArrowRight className={`dir-arrow ${className}`} strokeWidth={2} aria-hidden />;
+}
+
+/** "Back" arrow: points left in LTR, right in RTL (via .dir-arrow-back). */
+export function BackArrow({ className = 'w-4 h-4' }: { className?: string }) {
+  return <ArrowRight className={`dir-arrow-back ${className}`} strokeWidth={2} aria-hidden />;
 }

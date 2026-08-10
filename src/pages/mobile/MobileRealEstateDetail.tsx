@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
 import type { Listing } from '../../lib/types';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { LISTING_PHOTOS } from '../../lib/images';
 import { usePageMeta } from '../../lib/seo';
@@ -102,7 +102,7 @@ export function MobileRealEstateDetail() {
             aria-label={t('common.back')}
             className="absolute start-4 top-[calc(env(safe-area-inset-top)+0.75rem)] flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-navy backdrop-blur"
           >
-            <AppIcon name="arrow-left" className={`h-5 w-5 ${isRTL ? 'rotate-180' : ''}`} />
+            <BackArrow className="h-5 w-5" />
           </button>
           <span className="absolute end-4 top-[calc(env(safe-area-inset-top)+0.75rem)]">
             <CitizenshipBadge listing={listing} />

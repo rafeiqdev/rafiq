@@ -79,11 +79,26 @@ export function ListingCard({ listing, index, to }: { listing: Listing; index: n
       </div>
       <div className="p-4 flex flex-col flex-1 gap-1.5">
         <h3 className="font-bold text-navy leading-snug">{listing.district}</h3>
-        <p className="text-sm text-gray-500" dir="ltr">
-          {listing.rooms} · {listing.m2} {t('realEstate.perM2')}
-          {listing.bathrooms ? ` · ${listing.bathrooms} ${t('realEstate.bathShort')}` : ''}
-        </p>
         <p className="text-lg font-extrabold text-navy" dir="ltr">${listing.priceUsd.toLocaleString()}</p>
+        {/* icon-chip spec row (ported from a Pinterest listing-card reference)
+            replaces the old dot-separated text line — same three facts, more
+            scannable at a glance */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-navy/60" dir="ltr">
+          <span className="inline-flex items-center gap-1">
+            <AppIcon name="bed" className="w-3.5 h-3.5 text-navy/40" />
+            {listing.rooms}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <AppIcon name="maximize" className="w-3.5 h-3.5 text-navy/40" />
+            {listing.m2} {t('realEstate.perM2')}
+          </span>
+          {listing.bathrooms ? (
+            <span className="inline-flex items-center gap-1">
+              <AppIcon name="bath" className="w-3.5 h-3.5 text-navy/40" />
+              {listing.bathrooms} {t('realEstate.bathShort')}
+            </span>
+          ) : null}
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
           {listing.buildStatus ? <span className={CHIP}>{t(`realEstate.build.${listing.buildStatus}`)}</span> : null}

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
 import { auth as authApi, profileApi } from '../../lib/api';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { stashPostAuthRedirect } from '../../lib/authRedirect';
 
 const ERROR_KEYS: Record<string, string> = {
@@ -174,7 +174,7 @@ export function MobileAuth() {
       aria-label={copy.back}
       className="relative -ms-1 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors active:bg-white/25"
     >
-      <AppIcon name="arrow-left" className={`h-6 w-6 ${isRTL ? 'rotate-180' : ''}`} />
+      <BackArrow className="h-6 w-6" />
     </button>
   );
 

@@ -52,7 +52,7 @@ export function PhotoLightbox({
                 aria-label={t('realEstate.detail.prevPhoto')}
                 className="absolute start-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-navy shadow-card hover:bg-white"
               >
-                <AppIcon name="chevron-left" className="w-5 h-5" />
+                <AppIcon name="chevron-left" className="w-5 h-5 dir-arrow" />
               </button>
               <button
                 type="button"
@@ -60,7 +60,7 @@ export function PhotoLightbox({
                 aria-label={t('realEstate.detail.nextPhoto')}
                 className="absolute end-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-navy shadow-card hover:bg-white"
               >
-                <AppIcon name="chevron-right" className="w-5 h-5" />
+                <AppIcon name="chevron-right" className="w-5 h-5 dir-arrow" />
               </button>
               <span className="absolute bottom-2 start-1/2 -translate-x-1/2 rounded-full bg-navy/70 px-3 py-1 text-xs font-bold text-white" dir="ltr">
                 {active + 1} / {photos.length}

@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon, DirArrow } from '../../components/AppIcon';
 import type { IconName } from '../../components/AppIcon';
 import { useApp } from '../../context/AppContext';
-import { ImageCarousel } from '../../components/ImageCarousel';
-import { NotificationBell } from '../../components/NotificationBell';
+import { SiteImage } from '../../components/SiteImage';
 import { CAROUSEL } from '../../lib/images';
 import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/services';
 import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
+import { HowItWorks } from '../../components/sections/HowItWorks';
 import { Testimonials } from '../../components/sections/Testimonials';
 import { NewsSection } from '../../components/sections/NewsSection';
 import { RealEstateSection } from '../../components/sections/RealEstateSection';
@@ -25,8 +25,6 @@ const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 const TRUST = [
   { icon: 'languages', key: 'home.trustbar.languages' },
   { icon: 'users', key: 'home.trustbar.experts' },
-  { icon: 'sparkles', key: 'home.trustbar.free' },
-  { icon: 'shield-check', key: 'home.trustbar.secure' },
 ] as const;
 
 // Direct, always-visible links to the main service categories — previously
@@ -168,40 +166,45 @@ export function MobileHome() {
       {/* clears the fixed tab bar */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+88px)]">
         {/* ================= HERO ================= */}
-        {/* `overflow-hidden` lives on the decoration wrapper below, NOT here:
-            on the header it clipped the search suggestions at the hero's edge,
-            which read as results hidden behind the next section. */}
-        <header className="relative z-20 rounded-b-[28px] bg-navy">
-          <div className="absolute inset-0 overflow-hidden rounded-b-[28px]">
-            <div className="absolute inset-0">
-              <ImageCarousel images={CAROUSEL} intervalMs={3000} priority />
+        {/* Light "Travelvise"-style hero (same Pinterest-inspired direction as
+            desktop Home.tsx, recolored to navy/cream), replacing the old
+            navy-photo-overlay header. `overflow-hidden` lives on the
+            decoration wrapper below, NOT here: on the header it clipped the
+            search suggestions at the hero's edge, which read as results
+            hidden behind the next section. */}
+        <header className="relative z-20 rounded-b-[28px] bg-cream">
+          <div className="absolute inset-0 overflow-hidden rounded-b-[28px]" aria-hidden="true">
+            <svg viewBox="0 0 200 200" className="absolute -end-16 -top-10 h-64 w-64 text-navy/[0.06]" fill="currentColor">
+              <path d="M45.3,-58.7C58.5,-49.6,68.6,-35.1,71.9,-19.2C75.2,-3.3,71.7,14,63.4,28.4C55.1,42.8,42,54.3,27.1,61.6C12.2,68.9,-4.5,72,-20.6,68.4C-36.7,64.8,-52.2,54.5,-62.1,40.1C-72,25.7,-76.3,7.2,-73.4,-9.7C-70.5,-26.6,-60.4,-41.9,-46.9,-51.1C-33.4,-60.3,-16.7,-63.4,0.5,-64C17.7,-64.6,32.1,-67.8,45.3,-58.7Z" transform="translate(100 100)" />
+            </svg>
+            {/* small polaroid-style photo, echoing the desktop collage at a
+                scale that fits a phone header without crowding the headline.
+                Positioning lives on this plain wrapper div, NOT on SiteImage's
+                own className: SiteImage's root always carries `relative`,
+                and Tailwind emits `.relative` after `.absolute` in the
+                stylesheet, so an `absolute` passed in via className loses
+                the cascade and the photo stays in normal flow instead of
+                floating in the corner (see the same fix in UserHome.tsx). */}
+            <div className="absolute -end-3 top-[calc(env(safe-area-inset-top)+64px)] w-28 aspect-[4/5]">
+              <SiteImage
+                src={CAROUSEL[0]}
+                alt=""
+                priority
+                className="w-full h-full rotate-[7deg] rounded-lg border-[3px] border-white shadow-cardHover"
+              />
             </div>
-            <div className="absolute inset-0 bg-navy/80" aria-hidden="true" />
-            {/* quiet brand watermark — same trick as MobileAuth */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none select-none absolute -bottom-14 -end-4 text-[190px] leading-none font-bold text-white/5"
-            >
-              ر
-            </span>
           </div>
 
-          <div className="relative px-5 pt-[calc(env(safe-area-inset-top)+40px)] pb-10">
-            {/* Absolutely placed on a WRAPPER, not on the bell itself: the bell
-                sets `relative` for its own badge, and Tailwind emits .relative
-                after .absolute, so an `absolute` passed in via className loses
-                the cascade and the bell drifts to the start of the row.
-                Sitting in the status-bar gap the hero already reserves means
-                the title below does not shift. The site header is hidden on
-                this route, so this is the ONLY way to reach notifications from
-                a phone. */}
-            <div className="absolute top-[calc(env(safe-area-inset-top)+1px)] end-5 z-10">
-              <NotificationBell tone="onNavy" size={38} />
-            </div>
-            <h1 className="text-white text-[28px] leading-snug font-bold animate-fade-up text-balance">
+          <div className="relative px-5 pt-[calc(env(safe-area-inset-top)+40px)] pb-8">
+            {/* This screen only ever renders for a signed-out visitor (see
+                HomeGate in App.tsx: a signed-in user gets UserHome instead),
+                so a notifications bell here was always a dead button — there
+                is nothing to notify a guest about. Removed rather than
+                guarded, since `user` can never be truthy on this screen. */}
+            <h1 className="max-w-[64%] text-navy text-[28px] leading-snug font-bold animate-fade-up text-balance">
               {t('home.heroTitle')}
             </h1>
-            <p className="mt-3 text-white/75 text-[15px] leading-relaxed animate-fade-up">
+            <p className="mt-3 max-w-[64%] text-navy/70 text-[15px] leading-relaxed animate-fade-up">
               {t('home.heroSubtitle')}
             </p>
 
@@ -259,9 +262,9 @@ export function MobileHome() {
               {TRUST.map((item) => (
                 <span
                   key={item.key}
-                  className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 text-white text-[13px] px-3.5 py-2"
+                  className="flex items-center gap-1.5 rounded-full border border-cream-dark bg-white text-navy/80 text-[13px] px-3.5 py-2 shadow-soft"
                 >
-                  <AppIcon name={item.icon} className="w-4 h-4" />
+                  <AppIcon name={item.icon} className="w-4 h-4 text-navy/50" />
                   {/* bdi isolates Latin runs like (KVKK) inside Arabic text —
                       without it the parenthesis renders on the wrong side */}
                   <bdi>{t(item.key)}</bdi>
@@ -299,6 +302,14 @@ export function MobileHome() {
           </div>
         </section>
 
+        {/* ================= HOW IT WORKS ================= */}
+        {/* moved above "for you": explains the product before showing
+            personalized cards that only make sense once you know what Rafiq does.
+            Now the shared component (same photo-card treatment as desktop)
+            instead of a separately maintained numbered list — one less place
+            for the two platforms to drift apart. */}
+        <HowItWorks />
+
         {/* ================= FOR YOU ================= */}
         <section className="mt-8 stagger">
           <div className="px-5 flex items-end justify-between gap-3">
@@ -333,48 +344,22 @@ export function MobileHome() {
         <section className="px-5 mt-8">
           <Link
             to="/services"
-            className="block rounded-card bg-gradient-to-br from-navy to-navy-dark text-white p-6 card-hover"
+            className="relative block overflow-hidden rounded-card bg-navy-dark p-6 text-white card-hover"
           >
-            <h3 className="text-xl font-bold">{t('home.servicesCta.title')}</h3>
-            <p className="mt-2 text-white/75 text-[14px] leading-relaxed">
+            {/* same organic-blob decoration as the hero, recolored for a dark
+                surface — the reference's dark accent block, on-brand */}
+            <svg viewBox="0 0 200 200" className="pointer-events-none absolute -end-12 -top-14 h-48 w-48 text-white/[0.06]" fill="currentColor" aria-hidden>
+              <path d="M45.3,-58.7C58.5,-49.6,68.6,-35.1,71.9,-19.2C75.2,-3.3,71.7,14,63.4,28.4C55.1,42.8,42,54.3,27.1,61.6C12.2,68.9,-4.5,72,-20.6,68.4C-36.7,64.8,-52.2,54.5,-62.1,40.1C-72,25.7,-76.3,7.2,-73.4,-9.7C-70.5,-26.6,-60.4,-41.9,-46.9,-51.1C-33.4,-60.3,-16.7,-63.4,0.5,-64C17.7,-64.6,32.1,-67.8,45.3,-58.7Z" transform="translate(100 100)" />
+            </svg>
+            <h3 className="relative text-xl font-bold">{t('home.servicesCta.title')}</h3>
+            <p className="relative mt-2 text-white/75 text-[14px] leading-relaxed">
               {t('home.servicesCta.body')}
             </p>
-            <span className="mt-4 inline-flex items-center gap-2 rounded-btn bg-white text-navy font-semibold text-[14px] px-4 py-3">
+            <span className="relative mt-4 inline-flex items-center gap-2 rounded-btn bg-white text-navy font-semibold text-[14px] px-4 py-3">
               {t('home.servicesCta.button')}
               <DirArrow className="w-4 h-4" />
             </span>
           </Link>
-        </section>
-
-        {/* ================= HOW IT WORKS ================= */}
-        <section className="px-5 mt-10">
-          <p className="eyebrow">{t('home.how.eyebrow')}</p>
-          <h2 className="section-title">{t('home.how.title')}</h2>
-          <p className="mt-1 text-navy/60 text-[14px]">{t('home.how.subtitle')}</p>
-
-          <ol className="mt-5 relative">
-            {(['s1', 's2', 's3'] as const).map((step, i) => (
-              <li key={step} className="relative flex gap-4 pb-6 last:pb-0">
-                {i < 2 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute start-5 top-10 bottom-0 w-px bg-cream-dark"
-                  />
-                )}
-                <span className="icon-chip shrink-0 w-10 h-10 flex items-center justify-center font-bold text-[15px]">
-                  {i + 1}
-                </span>
-                <div className="pt-1.5">
-                  <h3 className="font-semibold text-navy text-[15px]">
-                    {t(`home.how.${step}.title`)}
-                  </h3>
-                  <p className="mt-1 text-navy/60 text-[14px] leading-relaxed">
-                    {t(`home.how.${step}.desc`)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
         </section>
 
         {/* ================= REAL ESTATE ================= */}
@@ -430,20 +415,22 @@ export function MobileHome() {
             ))}
           </div>
 
-          {/* closing CTA */}
-          <Link
-            to="/premium"
-            className="mt-6 block rounded-card bg-gradient-to-br from-navy to-navy-dark text-white p-6"
-          >
-            <h3 className="text-lg font-bold">{t('home.faq.ctaTitle')}</h3>
-            <p className="mt-2 text-white/75 text-[14px] leading-relaxed">
+          {/* closing CTA — quieter than the services CTA above (light blue,
+              not another navy gradient card) so the page doesn't end on a
+              third repeat of the same heavy treatment; matches desktop's style */}
+          <div className="mt-6 rounded-card bg-brand-blue/40 p-6 text-center">
+            <h3 className="text-lg font-bold text-navy">{t('home.faq.ctaTitle')}</h3>
+            <p className="mt-2 text-navy/70 text-[14px] leading-relaxed">
               {t('home.faq.ctaBody')}
             </p>
-            <span className="mt-4 inline-flex items-center gap-2 rounded-btn bg-white text-navy font-semibold text-[14px] px-4 py-3">
+            <Link
+              to="/premium"
+              className="btn btn-primary mt-4 min-h-[48px] inline-flex items-center gap-2"
+            >
+              <AppIcon name="message-circle" className="w-4 h-4" />
               {t('home.faq.ctaButton')}
-              <DirArrow className="w-4 h-4" />
-            </span>
-          </Link>
+            </Link>
+          </div>
         </section>
       </div>
 
@@ -458,7 +445,7 @@ export function MobileHome() {
                 key={tab.icon}
                 to={tab.to}
                 className={`flex flex-col items-center justify-center gap-1 min-h-[56px] pt-2 pb-1.5 ${
-                  active ? 'text-navy' : 'text-navy/40'
+                  active ? 'text-navy' : 'text-navy/70'
                 }`}
               >
                 <AppIcon name={tab.icon} className="w-5 h-5" />

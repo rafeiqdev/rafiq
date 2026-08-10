@@ -13,6 +13,82 @@ import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
 import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
 import { RafiqLoader } from '../components/RafiqLoader';
+import { track } from '../lib/analytics';
+
+// Admin WhatsApp number (international, no "+"). Same placeholder guard as
+// ServiceRequestModal / WhatsAppButton — the escalation link only renders
+// once a real number is configured.
+const WA = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) ?? '';
+const WA_ENABLED = /^\d{8,15}$/.test(WA) && WA !== '905000000000';
+
+/** Ordered steps of the customer-visible timeline. 'rejected' has no place on
+ *  a forward-moving line, so it is handled separately by the caller. */
+const TIMELINE_STEPS = ['pending', 'accepted', 'done'] as const;
+
+/**
+ * Reassurance banner for a request still awaiting resolution: a live status
+ * timeline, the response-time guarantee, and a 1-click WhatsApp escalation
+ * pre-filled with this request's id so the admin can find it instantly.
+ *
+ * Only shown for pending/accepted requests — a done or rejected request has
+ * nothing left to be reassured about.
+ */
+function ReassuranceBanner({ req }: { req: CustomerRequest }) {
+  const { t } = useTranslation();
+  const key = req.status === 'new' ? 'pending' : req.status;
+  const stepIndex = TIMELINE_STEPS.indexOf(key as (typeof TIMELINE_STEPS)[number]);
+  // Only pending/accepted are "active" — done and rejected have nothing left
+  // to guarantee a response time on.
+  if (stepIndex < 0 || stepIndex === TIMELINE_STEPS.length - 1) return null;
+
+  const waMessage = t('requests.reassurance.waMessage', { id: req.id, service: req.serviceTitle });
+  const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
+
+  return (
+    <div className="mt-3 rounded-xl border border-navy/10 bg-brand-blue/30 p-3">
+      <ol className="flex items-center" aria-label={t('requests.title')}>
+        {TIMELINE_STEPS.map((step, i) => (
+          <li key={step} className="flex flex-1 items-center last:flex-none">
+            <span className="flex flex-col items-center gap-1">
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                  i <= stepIndex ? 'bg-navy text-white' : 'border border-cream-dark bg-white text-navy/40'
+                }`}
+              >
+                {i < stepIndex ? <AppIcon name="check" className="w-3 h-3" /> : i + 1}
+              </span>
+              <span className={`text-[10px] font-semibold whitespace-nowrap ${i <= stepIndex ? 'text-navy' : 'text-navy/40'}`}>
+                {t(`requests.reassurance.timeline.${step}`)}
+              </span>
+            </span>
+            {i < TIMELINE_STEPS.length - 1 && (
+              <span className={`mx-1.5 mb-4 h-0.5 flex-1 rounded ${i < stepIndex ? 'bg-navy' : 'bg-cream-dark'}`} />
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap border-t border-navy/10 pt-3">
+        <p className="text-xs font-bold text-navy inline-flex items-center gap-1.5">
+          <AppIcon name="clock" className="w-3.5 h-3.5 shrink-0" />
+          {t('requests.reassurance.sla')}
+        </p>
+        {waHref && (
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => track('whatsapp_clicked', { target: 'requests_escalation', meta: { request_id: req.id } })}
+            className="btn-secondary !h-8 px-3 text-xs"
+          >
+            <AppIcon name="message-circle" className="w-3.5 h-3.5" />
+            {t('requests.reassurance.escalate')}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ReviewModal({ companyId, companyName, leadId, onClose, onDone }: { companyId: string; companyName: string; leadId: string; onClose: () => void; onDone: () => void }) {
   const { t } = useTranslation();
@@ -164,6 +240,8 @@ function RequestRow({ req }: { req: CustomerRequest }) {
             anyone has looked at their request. */}
         <RequestStatusPill status={req.status} />
       </button>
+
+      <ReassuranceBanner req={req} />
 
       {open && (
         <div className="mt-4 border-t border-cream-dark pt-4">

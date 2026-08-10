@@ -3,6 +3,18 @@ import { AppIcon } from '../AppIcon';
 
 const ITEMS = ['t1', 't2', 't3'];
 
+/** "Ahmad K." → "AK" — derived purely from the existing i18n name string, so
+    the avatar reads as a real initials badge instead of a single stray letter. */
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 /** Customer testimonials — template (sample content via i18n, refined in Phase 3). */
 export function Testimonials() {
   const { t } = useTranslation();
@@ -31,8 +43,8 @@ export function Testimonials() {
                   “{t(`home.testimonials.${id}.quote`)}”
                 </blockquote>
                 <figcaption className="mt-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gold/20 text-gold-light flex items-center justify-center font-bold">
-                    {name.trim().charAt(0)}
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-gold/30 to-white/5 border border-white/15 text-gold-light flex items-center justify-center font-bold text-sm tracking-wide shadow-inner shrink-0">
+                    {initials(name)}
                   </div>
                   <div>
                     <div className="font-bold text-sm">{name}</div>
