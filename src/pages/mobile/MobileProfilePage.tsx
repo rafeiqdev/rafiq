@@ -12,6 +12,7 @@ import { ISTANBUL } from '../../lib/images';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { ActivityCard } from '../../components/ActivityCard';
 import { SectionState } from '../../components/SectionState';
+import { DataPrivacySecurityCard } from '../../components/DataPrivacySecurityCard';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
 
 // ── helpers (verbatim from desktop ProfilePage.tsx) ──
@@ -434,6 +435,9 @@ function MobileProfileInner() {
               />
             </label>
           </section>
+
+          {/* ── 6b. Data privacy & security reassurance ── */}
+          <DataPrivacySecurityCard compact />
 
           {/* ── 7. Pipeline ── */}
           <section className="card animate-fade-up p-5">

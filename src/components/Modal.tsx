@@ -21,12 +21,16 @@ export function Modal({
   children,
   showClose = true,
   maxWidth = 'max-w-md',
+  mobileSheet = false,
 }: {
   onClose: () => void;
   labelId: string;
   children: ReactNode;
   showClose?: boolean;
   maxWidth?: string;
+  /** Below the md breakpoint, dock the panel to the bottom edge full-width
+   * (native bottom-sheet feel) instead of centering it like a dialog. */
+  mobileSheet?: boolean;
 }) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -81,7 +85,11 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-navy/60 backdrop-blur-sm animate-fade-in">
       <div
-        className="flex min-h-full items-center justify-center p-4"
+        className={
+          mobileSheet
+            ? 'flex min-h-full items-end justify-center p-0 md:items-center md:p-4'
+            : 'flex min-h-full items-center justify-center p-4'
+        }
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -92,7 +100,7 @@ export function Modal({
           aria-modal="true"
           aria-labelledby={labelId}
           tabIndex={-1}
-          className={`relative w-full ${maxWidth} outline-none animate-pop`}
+          className={`relative w-full outline-none animate-pop ${mobileSheet ? `md:${maxWidth}` : maxWidth}`}
         >
           {showClose && (
             <button

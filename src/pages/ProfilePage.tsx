@@ -8,6 +8,7 @@ import { RequireAuth } from '../components/Gates';
 import { AppIcon } from '../components/AppIcon';
 import { ActivityCard } from '../components/ActivityCard';
 import { SectionState } from '../components/SectionState';
+import { DataPrivacySecurityCard } from '../components/DataPrivacySecurityCard';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { pickCity } from '../data/turkeyCities';
 
@@ -409,6 +410,8 @@ function ProfileInner() {
             />
           </label>
         </div>
+
+        <DataPrivacySecurityCard />
       </div>
 
       {/* Unified activity: bookings + leads + service requests, three

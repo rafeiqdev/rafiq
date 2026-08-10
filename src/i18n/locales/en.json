@@ -172,6 +172,12 @@
     "searchAllResults": "See all results",
     "forYou": "Your personalized plan",
     "editAnswers": "Change my answers",
+    "heroSteps": {
+      "eyebrow": "How Rafiq Istanbul Services Work",
+      "s1": "1. Free Case Submission (0 TRY)",
+      "s2": "2. Receive Custom Price Quote",
+      "s3": "3. Secure Payment in 'My Requests'"
+    },
     "trustbar": {
       "languages": "4 languages",
       "experts": "Expert support",
@@ -288,7 +294,14 @@
       "yearsExperience": "years of experience",
       "responseValue": "{{count}}h",
       "responseTime": "Average response time"
-    }
+    },
+    "stepsBannerTitle": "How Rafiq Istanbul Services Work",
+    "step1Title": "1. Free Case Submission",
+    "step1Desc": "Select your service and submit case details with 0 TRY upfront.",
+    "step2Title": "2. Custom Price Quote",
+    "step2Desc": "Our specialist reviews your file and sends a tailored price quote.",
+    "step3Title": "3. Secure Payment in 'My Requests'",
+    "step3Desc": "Review quote and pay safely inside your portal to start processing."
   },
   "help": {
     "eyebrow": "Free assistance",
@@ -304,6 +317,10 @@
   "whatsapp": {
     "aria": "Chat with us on WhatsApp",
     "default": "Hello, I'd like help with your Istanbul services."
+  },
+  "emergencyLegal": {
+    "aria": "Urgent legal help on WhatsApp",
+    "message": "This is urgent — I need immediate legal assistance. Please connect me with a lawyer as soon as possible."
   },
   "rates": {
     "live": "Live rates",
@@ -932,6 +949,7 @@
       "send": "Send request",
       "sending": "Sending…",
       "noAccountNote": "No account needed — our team will reach out within 24 hours.",
+      "reassurance": "Free Initial Evaluation — Custom price quote delivered to My Requests",
       "throttled": "We already have your request and our team is on it. If you need to send another one, you can {{when}}.",
       "rateLimited": "We've received several requests from this number in the last hour and they're all safely with our team. There's no need to resend — we'll be in touch shortly.",
       "successTitle": "Request received",
@@ -979,6 +997,15 @@
       "upload": "Upload document",
       "uploadedAt": "Uploaded",
       "download": "Download"
+    },
+    "privacySecurity": {
+      "title": "Your data is protected",
+      "body": "Documents like your passport, TC number, and tax number are encrypted and protected with bank-grade Supabase Row Level Security, so only you can access them.",
+      "points": {
+        "encrypted": "Encrypted at rest and in transit",
+        "rls": "Bank-grade Row Level Security — only you can read your own documents",
+        "purpose": "Used strictly for processing your official transactions, never shared or sold"
+      }
     },
     "renewals": {
       "title": "Renewal tracker",

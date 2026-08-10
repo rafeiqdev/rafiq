@@ -226,7 +226,7 @@ export function MobileHome() {
                   type="button"
                   onClick={goServices}
                   aria-label={mc.tabServices}
-                  className="shrink-0 w-12 h-12 rounded-btn bg-navy text-white flex items-center justify-center active:scale-95 transition-transform"
+                  className="shrink-0 w-12 h-12 min-h-[48px] rounded-btn bg-navy text-white flex items-center justify-center active:scale-95 transition-transform"
                 >
                   <AppIcon name="search" className="w-5 h-5" />
                 </button>
@@ -253,6 +253,27 @@ export function MobileHome() {
                   ))}
                 </ul>
               )}
+            </div>
+
+            {/* stacked step banner — the 3-step request flow (submit → quote →
+                pay) shared by every service, surfaced right in the hero so a
+                first-time visitor sees the whole journey before scrolling */}
+            <div className="mt-6 flex flex-col gap-3 p-4 rounded-2xl bg-navy/90 text-white animate-fade-up border border-white/10 shadow-lg">
+              <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">{t('home.heroSteps.eyebrow')}</span>
+              {(['s1', 's2', 's3'] as const).map((key, i) => (
+                <div key={key} className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/10">
+                  <span
+                    dir="ltr"
+                    className="shrink-0 w-7 h-7 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black tabular-nums shadow-sm"
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="text-[14px] font-semibold leading-snug text-white">{t(`home.heroSteps.${key}`)}</span>
+                  {i < 2 && (
+                    <DirArrow className="ms-auto w-4 h-4 shrink-0 text-white/50" aria-hidden />
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* trust bar — wraps instead of scrolling: the old horizontal

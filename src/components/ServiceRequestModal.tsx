@@ -162,9 +162,9 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   };
 
   return (
-    <Modal onClose={onClose} labelId="service-request-title">
-      <div className="card overflow-hidden">
-        <div className="bg-navy px-5 py-4">
+    <Modal onClose={onClose} labelId="service-request-title" mobileSheet>
+      <div className="card overflow-hidden rounded-t-[28px] rounded-b-none max-h-[85vh] overflow-y-auto shadow-2xl md:rounded-card md:max-h-none md:shadow-card">
+        <div className="bg-navy px-5 py-4 sticky top-0 z-10">
           <h2 id="service-request-title" className="text-white font-extrabold">
             {done ? t('services.modal.successTitle') : t('services.modal.title')}
           </h2>
@@ -363,17 +363,22 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
               )}
 
               <p className="mt-3 text-xs text-center text-navy/50">{t('services.modal.noAccountNote')}</p>
-              <div className="mt-5 flex gap-2">
-                <button onClick={onClose} className="btn-secondary flex-1">
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={submit}
-                  disabled={busy || !nameValid || !phoneValid}
-                  className="btn-primary flex-1 disabled:opacity-50"
-                >
-                  {busy ? t('services.modal.sending') : t('services.modal.send')}
-                </button>
+              <div className="sticky bottom-0 -mx-5 mt-5 bg-white px-5 pt-3 pb-1">
+                <p className="rounded-full bg-brand-blue/60 px-3 py-1.5 text-center text-xs font-semibold text-navy">
+                  {t('services.modal.reassurance')}
+                </p>
+                <div className="mt-2.5 flex gap-2">
+                  <button onClick={onClose} className="btn-secondary flex-1">
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={submit}
+                    disabled={busy || !nameValid || !phoneValid}
+                    className="btn-primary flex-1 disabled:opacity-50"
+                  >
+                    {busy ? t('services.modal.sending') : t('services.modal.send')}
+                  </button>
+                </div>
               </div>
             </>
           )}
