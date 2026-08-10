@@ -613,9 +613,14 @@ export function UserHome() {
       {docs !== null &&
         (docs.length > 0 ? (
           <Panel className="mt-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="font-extrabold text-navy">{t('dash.lockerTitle')}</h2>
+            <div className="flex items-start justify-between gap-3">
               <span className="text-sm font-semibold text-gray-500 tabular-nums">{docs.length}</span>
+              <div className="flex flex-col items-end gap-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-brand-blue text-navy">
+                  <AppIcon name="folder" className="w-[18px] h-[18px]" fill="currentColor" />
+                </span>
+                <h2 className="font-extrabold text-navy">{t('dash.lockerTitle')}</h2>
+              </div>
             </div>
             <ul className="mt-3 flex flex-col gap-2">
               {docs.slice(0, 3).map((d) => (
@@ -632,7 +637,7 @@ export function UserHome() {
         ) : (
           <InvitePanel
             className="mt-4"
-            icon="upload"
+            icon="folder"
             title={t('dash.noDocsTitle')}
             body={t('dash.noDocsBody')}
             ctaLabel={t('dash.noDocsCta')}
