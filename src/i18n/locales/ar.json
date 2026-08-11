@@ -2458,6 +2458,12 @@
         "question": "السؤال",
         "answer": "الإجابة",
         "services": "الخدمات المساندة",
+        "landingCards": "بطاقات عرض التخصصات",
+        "landingCardsHint": "هذه البطاقات (مع الصور) تظهر في صفحة /health-tourism العامة.",
+        "heroSlides": "صور Hero (قبل/بعد)",
+        "caption": "التعليق",
+        "uploadImage": "رفع صورة",
+        "uploading": "جارٍ الرفع…",
         "sectionNames": {
           "hero": "الترويسة",
           "trust": "مؤشرات الثقة",

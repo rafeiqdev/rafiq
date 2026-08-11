@@ -8,6 +8,9 @@ import type { SpecialtyChip } from '../healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from '../healthTourism/useAutoCarousel';
 import { useSnapCarousel } from '../healthTourism/useSnapCarousel';
 import { BEFORE_AFTER_IMAGES } from '../healthTourism/beforeAfterSlides';
+import { pickLocalized } from '../healthTourism/pickLocalized';
+import { useAsyncSection } from '../../hooks/useAsyncSection';
+import { medicalContent } from '../../lib/api';
 
 /**
  * /health-tourism landing page — phone viewport. This is a 1:1 port of the
@@ -80,16 +83,28 @@ export function MobileHealthTourism() {
   });
 
   const M = 'medical.landing.mobile';
-  const specialtyItems = t(`${M}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
+  const fallbackSpecialtyItems = t(`${M}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
   const howSteps = t('medical.landing.how.steps', { returnObjects: true }) as HowStep[];
   const logisticsCards = t(`${M}.logistics.cards`, { returnObjects: true }) as LogisticsCard[];
   const testimonialItems = t(`${M}.testimonials.items`, { returnObjects: true }) as TestimonialCopy[];
   const faqItems = t(`${M}.faq.items`, { returnObjects: true }) as FaqCopy[];
-  const heroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
+  const fallbackHeroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
   const beforeLabel = t('medical.landing.heroBeforeAfter.beforeLabel');
   const afterLabel = t('medical.landing.heroBeforeAfter.afterLabel');
 
-  const hero = useAutoCarousel(BEFORE_AFTER_IMAGES.length, 3000);
+  // Admin-editable in AdminMedical > Content; falls back to the shipped
+  // copy/images above until the CMS has rows (or if it's briefly unreachable).
+  const landingCards = useAsyncSection(() => medicalContent.landingCards(), []);
+  const heroSlideRows = useAsyncSection(() => medicalContent.heroSlides(), []);
+
+  const specialtyItems: SpecialtyCopy[] = landingCards.data?.length
+    ? landingCards.data.map((c) => ({ slug: c.slug as SpecialtySlug, title: pickLocalized(c.title, lang), description: pickLocalized(c.description, lang), image: c.imageUrl ?? '' }))
+    : fallbackSpecialtyItems;
+
+  const heroImages: string[] = heroSlideRows.data?.length ? heroSlideRows.data.map((s) => s.imageUrl) : [...BEFORE_AFTER_IMAGES];
+  const heroCaptions: string[] = heroSlideRows.data?.length ? heroSlideRows.data.map((s) => pickLocalized(s.caption, lang)) : fallbackHeroSlides.map((s) => s.title);
+
+  const hero = useAutoCarousel(heroImages.length, 3000);
   const specialtiesCarousel = useSnapCarousel(specialtyItems.length, 3200);
   const logisticsCarousel = useSnapCarousel(logisticsCards.length, 3500);
   const testimonialsCarousel = useSnapCarousel(testimonialItems.length, 3800);
@@ -115,13 +130,13 @@ export function MobileHealthTourism() {
             onTouchStart={hero.pause}
             onTouchEnd={hero.resume}
           >
-            {BEFORE_AFTER_IMAGES.map((src, i) => (
+            {heroImages.map((src, i) => (
               <div
                 key={src}
                 className={`snap-start min-w-full w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/80 shrink-0 bg-slate-900 ${i === hero.index ? '' : 'hidden'}`}
               >
                 <div className="h-[220px] relative">
-                  <img src={src} alt={heroSlides[i]?.title ?? ''} className="w-full h-full object-contain" />
+                  <img src={src} alt={heroCaptions[i] ?? ''} className="w-full h-full object-contain" />
                   <div className="absolute top-3 right-3 bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
                     <AppIcon name="check-circle" className="w-3 h-3 text-white" />
                     <span>{afterLabel}</span>
@@ -137,7 +152,7 @@ export function MobileHealthTourism() {
                   </div>
                 </div>
                 <div className="bg-slate-950 text-white text-[10px] font-black px-3 py-1.5 border-t border-white/10 text-center">
-                  {heroSlides[i]?.title}
+                  {heroCaptions[i]}
                 </div>
               </div>
             ))}
@@ -158,7 +173,7 @@ export function MobileHealthTourism() {
                 onTouchEnd={specialtiesCarousel.resume}
                 className="snap-start min-w-[82vw] max-w-[320px] h-[410px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 shrink-0 group bg-slate-900"
               >
-                <img src={`/img/health-tourism/${item.image}`} alt={item.title} className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105" />
+                <img src={item.image.startsWith('/') || item.image.startsWith('http') ? item.image : `/img/health-tourism/${item.image}`} alt={item.title} className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-5 flex flex-col justify-end text-white space-y-2">
                   <h3 className="text-xl font-black text-white font-rubik drop-shadow-md">{item.title}</h3>
                   <p className="text-xs text-slate-200 font-medium leading-relaxed">{item.description}</p>

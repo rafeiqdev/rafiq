@@ -661,6 +661,25 @@ export interface MedicalService {
   visible: boolean;
 }
 
+/** A landing-page showcase card (/health-tourism "specialties" carousel) — distinct from MedicalSpecialty, which feeds the request-form dropdown. */
+export interface MedicalLandingCard {
+  id: string;
+  slug: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  imageUrl: string | null;
+  sort: number;
+  visible: boolean;
+}
+
+export interface MedicalHeroSlide {
+  id: string;
+  imageUrl: string;
+  caption: LocalizedText;
+  sort: number;
+  visible: boolean;
+}
+
 export interface MedicalFaq {
   id: string;
   question: LocalizedText;

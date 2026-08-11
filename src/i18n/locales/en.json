@@ -2450,6 +2450,12 @@
         "question": "Question",
         "answer": "Answer",
         "services": "Supporting services",
+        "landingCards": "Specialty showcase cards",
+        "landingCardsHint": "These cards (with photos) appear on the public /health-tourism page.",
+        "heroSlides": "Hero before/after images",
+        "caption": "Caption",
+        "uploadImage": "Upload image",
+        "uploading": "Uploading…",
         "sectionNames": {
           "hero": "Hero",
           "trust": "Trust indicators",

@@ -2458,6 +2458,12 @@
         "question": "سؤال",
         "answer": "پاسخ",
         "services": "خدمات پشتیبان",
+        "landingCards": "کارت‌های نمایش تخصص",
+        "landingCardsHint": "این کارت‌ها (با تصویر) در صفحه عمومی /health-tourism نمایش داده می‌شوند.",
+        "heroSlides": "تصاویر هیرو (قبل/بعد)",
+        "caption": "توضیح",
+        "uploadImage": "بارگذاری تصویر",
+        "uploading": "در حال بارگذاری…",
         "sectionNames": {
           "hero": "هیرو",
           "trust": "نشانه‌های اعتماد",

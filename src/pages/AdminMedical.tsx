@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminMedical, adminMedicalContent, medicalContent } from '../lib/api';
 import { useAsyncSection } from '../hooks/useAsyncSection';
@@ -7,8 +7,8 @@ import { AppIcon } from '../components/AppIcon';
 import { RequireMedicalCoordinator } from '../components/Gates';
 import { MedicalStatusPill } from '../components/medical/MedicalStatusPill';
 import type {
-  AdminMedicalRequest, MedicalFaq, MedicalOffer, MedicalOptionalServiceType, MedicalPageSection,
-  MedicalRequestStatus, MedicalTestimonial,
+  AdminMedicalRequest, MedicalFaq, MedicalHeroSlide, MedicalLandingCard, MedicalOffer, MedicalOptionalServiceType,
+  MedicalPageSection, MedicalRequestStatus, MedicalTestimonial,
 } from '../lib/types';
 
 const WA = (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) ?? '';
@@ -354,6 +354,45 @@ interface CatalogItem {
   description: { ar: string; en: string; fa: string; ru: string }; icon: string | null; sort: number; visible: boolean;
 }
 
+/** File-picker that uploads to the public 'medical-media' bucket and hands back a URL, with a thumbnail preview. */
+function ImageUploadField({ value, onChange }: { value: string | null; onChange: (url: string) => void }) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const url = await adminMedicalContent.uploadImage(file);
+      onChange(url);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      {value && <img src={value} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 border border-cream-dark" />}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        className="btn-secondary !h-8 flex-1 text-[11px] disabled:opacity-50"
+      >
+        {busy ? t('medical.admin.content.uploading') : t('medical.admin.content.uploadImage')}
+      </button>
+    </div>
+  );
+}
+
 /**
  * Full CRUD for one localized catalog table — specialties and services share
  * this exact shape, so one editor serves both (parameterized by load/save/delete).
@@ -631,6 +670,185 @@ function TestimonialsEditor() {
   );
 }
 
+interface LandingCardDraft {
+  id?: string; slug: string; title: { ar: string; en: string; fa: string; ru: string };
+  description: { ar: string; en: string; fa: string; ru: string }; imageUrl: string | null; sort: number; visible: boolean;
+}
+
+function LandingCardRow({ card, onChanged }: { card: MedicalLandingCard; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState<LandingCardDraft>(card);
+  const [busy, setBusy] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(card);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await adminMedicalContent.saveLandingCard(draft);
+      onChanged();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    if (!card.id) return;
+    await adminMedicalContent.deleteLandingCard(card.id);
+    onChanged();
+  };
+
+  return (
+    <li className="card p-3 flex flex-col gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] font-mono text-navy/40 shrink-0" dir="ltr">{card.slug}</span>
+        <label className="flex items-center gap-1.5 text-[11px] ms-auto">
+          <input type="checkbox" checked={draft.visible} onChange={(e) => setDraft({ ...draft, visible: e.target.checked })} />
+          {t('medical.admin.content.visible')}
+        </label>
+        <label className="flex items-center gap-1.5 text-[11px]">
+          {t('medical.admin.content.order')}
+          <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
+        </label>
+      </div>
+      <ImageUploadField value={draft.imageUrl} onChange={(url) => setDraft({ ...draft, imageUrl: url })} />
+      <LocalizedInput label={t('medical.admin.content.name')} value={draft.title} onChange={(v) => setDraft({ ...draft, title: v })} />
+      <LocalizedInput label={t('medical.admin.content.description')} value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} />
+      <div className="flex gap-2">
+        <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
+        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+      </div>
+    </li>
+  );
+}
+
+function LandingCardsEditor() {
+  const { t } = useTranslation();
+  const list = useAsyncSection<MedicalLandingCard[]>(() => adminMedicalContent.listAllLandingCards(), []);
+  const [newSlug, setNewSlug] = useState('');
+  const [newTitle, setNewTitle] = useState(EMPTY_LOCALIZED);
+  const [newImage, setNewImage] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  const addNew = async () => {
+    const slug = newSlug.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '_');
+    if (!slug) return;
+    setAdding(true);
+    try {
+      await adminMedicalContent.saveLandingCard({ slug, title: newTitle, description: EMPTY_LOCALIZED, imageUrl: newImage, sort: list.data?.length ?? 0, visible: true });
+      setNewSlug(''); setNewTitle(EMPTY_LOCALIZED); setNewImage(null);
+      list.reload();
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <section>
+      <h2 className="text-lg font-extrabold text-navy">{t('medical.admin.content.landingCards')}</h2>
+      <p className="mt-1 text-xs text-navy/50">{t('medical.admin.content.landingCardsHint')}</p>
+      <SectionState section={list} title={t('medical.admin.content.landingCards')} empty={<p className="mt-3 text-xs text-navy/40">{t('medical.admin.content.empty')}</p>}>
+        {(rows) => (
+          <ul className="mt-3 flex flex-col gap-2">
+            {[...rows].sort((a, b) => a.sort - b.sort).map((card) => <LandingCardRow key={card.id} card={card} onChanged={list.reload} />)}
+          </ul>
+        )}
+      </SectionState>
+
+      <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
+        <input className="input !h-9 text-xs" placeholder={t('medical.admin.content.newSlug')} value={newSlug} onChange={(e) => setNewSlug(e.target.value)} dir="ltr" />
+        <ImageUploadField value={newImage} onChange={setNewImage} />
+        <LocalizedInput label={t('medical.admin.content.name')} value={newTitle} onChange={setNewTitle} />
+        <button onClick={addNew} disabled={adding || !newSlug.trim()} className="btn-primary !h-9 text-xs disabled:opacity-50">
+          {t('medical.admin.content.add')}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+interface HeroSlideDraft { id?: string; imageUrl: string; caption: { ar: string; en: string; fa: string; ru: string }; sort: number; visible: boolean }
+
+function HeroSlideRow({ slide, onChanged }: { slide: MedicalHeroSlide; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState<HeroSlideDraft>(slide);
+  const [busy, setBusy] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(slide);
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      await adminMedicalContent.saveHeroSlide(draft);
+      onChanged();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    if (!slide.id) return;
+    await adminMedicalContent.deleteHeroSlide(slide.id);
+    onChanged();
+  };
+
+  return (
+    <li className="card p-3 flex flex-col gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <ImageUploadField value={draft.imageUrl} onChange={(url) => setDraft({ ...draft, imageUrl: url })} />
+        <label className="flex items-center gap-1.5 text-[11px] ms-auto">
+          <input type="checkbox" checked={draft.visible} onChange={(e) => setDraft({ ...draft, visible: e.target.checked })} />
+          {t('medical.admin.content.visible')}
+        </label>
+        <label className="flex items-center gap-1.5 text-[11px]">
+          {t('medical.admin.content.order')}
+          <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
+        </label>
+      </div>
+      <LocalizedInput label={t('medical.admin.content.caption')} value={draft.caption} onChange={(v) => setDraft({ ...draft, caption: v })} />
+      <div className="flex gap-2">
+        <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
+        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+      </div>
+    </li>
+  );
+}
+
+function HeroSlidesEditor() {
+  const { t } = useTranslation();
+  const list = useAsyncSection<MedicalHeroSlide[]>(() => adminMedicalContent.listAllHeroSlides(), []);
+  const [newImage, setNewImage] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  const addNew = async () => {
+    if (!newImage) return;
+    setAdding(true);
+    try {
+      await adminMedicalContent.saveHeroSlide({ imageUrl: newImage, caption: EMPTY_LOCALIZED, sort: list.data?.length ?? 0, visible: true });
+      setNewImage(null);
+      list.reload();
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <section>
+      <h2 className="text-lg font-extrabold text-navy">{t('medical.admin.content.heroSlides')}</h2>
+      <SectionState section={list} title={t('medical.admin.content.heroSlides')} empty={<p className="mt-3 text-xs text-navy/40">{t('medical.admin.content.empty')}</p>}>
+        {(rows) => (
+          <ul className="mt-3 flex flex-col gap-2">
+            {[...rows].sort((a, b) => a.sort - b.sort).map((slide) => <HeroSlideRow key={slide.id} slide={slide} onChanged={list.reload} />)}
+          </ul>
+        )}
+      </SectionState>
+
+      <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
+        <ImageUploadField value={newImage} onChange={setNewImage} />
+        <button onClick={addNew} disabled={adding || !newImage} className="btn-primary !h-9 text-xs disabled:opacity-50">
+          {t('medical.admin.content.add')}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 const SECTION_KEYS = [
   'hero', 'trust', 'about', 'how_it_works', 'specialties', 'center_evaluation',
   'supporting_services', 'testimonials', 'faq', 'disclaimer', 'final_cta',
@@ -677,6 +895,8 @@ function ContentManager() {
   return (
     <div className="flex flex-col gap-8">
       <SectionsEditor />
+      <HeroSlidesEditor />
+      <LandingCardsEditor />
       <CatalogEditor title={t('medical.admin.content.specialties')} load={() => medicalContent.specialties()} onSave={(v) => adminMedicalContent.saveSpecialty(v)} onDelete={(id) => adminMedicalContent.deleteSpecialty(id)} />
       <CatalogEditor title={t('medical.admin.content.services')} load={() => medicalContent.services()} onSave={(v) => adminMedicalContent.saveService(v)} onDelete={(id) => adminMedicalContent.deleteService(id)} />
       <FaqEditor />

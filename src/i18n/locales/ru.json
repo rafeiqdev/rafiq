@@ -2451,6 +2451,12 @@
         "question": "Вопрос",
         "answer": "Ответ",
         "services": "Сопутствующие услуги",
+        "landingCards": "Карточки-витрины специализаций",
+        "landingCardsHint": "Эти карточки (с фото) отображаются на публичной странице /health-tourism.",
+        "heroSlides": "Изображения Hero (до/после)",
+        "caption": "Подпись",
+        "uploadImage": "Загрузить изображение",
+        "uploading": "Загрузка…",
         "sectionNames": {
           "hero": "Заголовок",
           "trust": "Показатели доверия",

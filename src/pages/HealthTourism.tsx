@@ -7,6 +7,9 @@ import type { SpecialtyChip } from './healthTourism/useMedicalLeadForm';
 import { useAutoCarousel } from './healthTourism/useAutoCarousel';
 import { useSnapCarousel } from './healthTourism/useSnapCarousel';
 import { BEFORE_AFTER_IMAGES } from './healthTourism/beforeAfterSlides';
+import { pickLocalized } from './healthTourism/pickLocalized';
+import { useAsyncSection } from '../hooks/useAsyncSection';
+import { medicalContent } from '../lib/api';
 
 /**
  * /health-tourism landing page — desktop. This is a 1:1 port of the
@@ -112,16 +115,28 @@ export function HealthTourism() {
   });
 
   const D = 'medical.landing.desktop';
-  const specialtyItems = t(`${D}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
+  const fallbackSpecialtyItems = t(`${D}.specialties.items`, { returnObjects: true }) as SpecialtyCopy[];
   const howSteps = t('medical.landing.how.steps', { returnObjects: true }) as HowStep[];
   const logisticsCards = t(`${D}.logistics.cards`, { returnObjects: true }) as LogisticsCard[];
   const testimonialItems = t(`${D}.testimonials.items`, { returnObjects: true }) as TestimonialCopy[];
   const faqItems = t(`${D}.faq.items`, { returnObjects: true }) as FaqCopy[];
-  const heroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
+  const fallbackHeroSlides = t('medical.landing.heroBeforeAfter.slides', { returnObjects: true }) as HeroSlideCopy[];
   const beforeLabel = t('medical.landing.heroBeforeAfter.beforeLabel');
   const afterLabel = t('medical.landing.heroBeforeAfter.afterLabel');
 
-  const hero = useAutoCarousel(BEFORE_AFTER_IMAGES.length, 3200);
+  // Admin-editable in AdminMedical > Content; falls back to the shipped
+  // copy/images above until the CMS has rows (or if it's briefly unreachable).
+  const landingCards = useAsyncSection(() => medicalContent.landingCards(), []);
+  const heroSlideRows = useAsyncSection(() => medicalContent.heroSlides(), []);
+
+  const specialtyItems: SpecialtyCopy[] = landingCards.data?.length
+    ? landingCards.data.map((c) => ({ slug: c.slug as SpecialtySlug, title: pickLocalized(c.title, lang), description: pickLocalized(c.description, lang), image: c.imageUrl ?? '' }))
+    : fallbackSpecialtyItems;
+
+  const heroImages: string[] = heroSlideRows.data?.length ? heroSlideRows.data.map((s) => s.imageUrl) : [...BEFORE_AFTER_IMAGES];
+  const heroCaptions: string[] = heroSlideRows.data?.length ? heroSlideRows.data.map((s) => pickLocalized(s.caption, lang)) : fallbackHeroSlides.map((s) => s.title);
+
+  const hero = useAutoCarousel(heroImages.length, 3200);
   const specialtiesCarousel = useSnapCarousel(specialtyItems.length, 3200);
 
   const chips: SpecialtyChip[] = (t(`${D}.form.specialtyChips`, { returnObjects: true }) as string[]).map((label, i) => ({
@@ -196,9 +211,9 @@ export function HealthTourism() {
                     onTouchStart={hero.pause}
                     onTouchEnd={hero.resume}
                   >
-                    {BEFORE_AFTER_IMAGES.map((src, i) => (
+                    {heroImages.map((src, i) => (
                       <div key={src} className={i === hero.index ? 'block' : 'hidden'}>
-                        <BeforeAfterCard src={src} caption={heroSlides[i]?.title ?? ''} beforeLabel={beforeLabel} afterLabel={afterLabel} />
+                        <BeforeAfterCard src={src} caption={heroCaptions[i] ?? ''} beforeLabel={beforeLabel} afterLabel={afterLabel} />
                       </div>
                     ))}
                   </div>
@@ -228,7 +243,7 @@ export function HealthTourism() {
                   className="snap-center w-full shrink-0 h-[430px] rounded-[32px] overflow-hidden relative shadow-xl border border-slate-200/80 group bg-slate-900 transition hover:-translate-y-1 hover:shadow-2xl"
                 >
                   <img
-                    src={`/img/health-tourism/${item.image}`}
+                    src={item.image.startsWith('/') || item.image.startsWith('http') ? item.image : `/img/health-tourism/${item.image}`}
                     alt={item.title}
                     className="absolute inset-0 w-full h-full object-cover brightness-105 contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />

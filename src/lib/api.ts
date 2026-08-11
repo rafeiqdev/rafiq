@@ -61,6 +61,8 @@ import type {
   MedicalPaymentStatus,
   MedicalSpecialty,
   MedicalService,
+  MedicalLandingCard,
+  MedicalHeroSlide,
   MedicalFaq,
   MedicalTestimonial,
   MedicalPageSection,
@@ -2737,6 +2739,24 @@ export const medicalContent = {
       (rows) => (rows as Row[]).map((r) => ({ id: r.id, slug: r.slug, name: toLocalized(r.name), description: toLocalized(r.description), icon: r.icon, sort: r.sort, visible: r.visible })),
     );
   },
+  /** Landing-page showcase cards (/health-tourism "specialties" carousel) — visible only, ordered. */
+  async landingCards(): Promise<MedicalLandingCard[]> {
+    interface Row { id: string; slug: string; title: LocalizedRow; description: LocalizedRow; image_url: string | null; sort: number; visible: boolean; }
+    return loadMedicalContent(
+      'medicalContent.landingCards',
+      () => sb().from('medical_landing_cards').select('id,slug,title,description,image_url,sort,visible').eq('visible', true).order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, slug: r.slug, title: toLocalized(r.title), description: toLocalized(r.description), imageUrl: r.image_url, sort: r.sort, visible: r.visible })),
+    );
+  },
+  /** Hero before/after carousel slides — visible only, ordered. */
+  async heroSlides(): Promise<MedicalHeroSlide[]> {
+    interface Row { id: string; image_url: string; caption: LocalizedRow; sort: number; visible: boolean; }
+    return loadMedicalContent(
+      'medicalContent.heroSlides',
+      () => sb().from('medical_hero_slides').select('id,image_url,caption,sort,visible').eq('visible', true).order('sort', { ascending: true }),
+      (rows) => (rows as Row[]).map((r) => ({ id: r.id, imageUrl: r.image_url, caption: toLocalized(r.caption), sort: r.sort, visible: r.visible })),
+    );
+  },
   async faqs(): Promise<MedicalFaq[]> {
     interface Row { id: string; question: LocalizedRow; answer: LocalizedRow; sort: number; visible: boolean; }
     return loadMedicalContent(
@@ -2975,6 +2995,52 @@ export const adminMedicalContent = {
     const { error } = await sb().from('medical_services').delete().eq('id', id);
     if (error) fail(error);
     return { ok: true };
+  },
+  async listAllLandingCards(): Promise<MedicalLandingCard[]> {
+    const { data, error } = await sb().from('medical_landing_cards').select('id,slug,title,description,image_url,sort,visible').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; slug: string; title: LocalizedRow; description: LocalizedRow; image_url: string | null; sort: number; visible: boolean; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, slug: r.slug, title: toLocalized(r.title), description: toLocalized(r.description), imageUrl: r.image_url, sort: r.sort, visible: r.visible }));
+  },
+  async saveLandingCard(input: Partial<MedicalLandingCard> & { slug: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_landing_cards').upsert({
+      id: input.id, slug: input.slug, title: input.title, description: input.description,
+      image_url: input.imageUrl ?? null, sort: input.sort ?? 0, visible: input.visible ?? true,
+    }, { onConflict: 'slug' });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteLandingCard(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_landing_cards').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async listAllHeroSlides(): Promise<MedicalHeroSlide[]> {
+    const { data, error } = await sb().from('medical_hero_slides').select('id,image_url,caption,sort,visible').order('sort', { ascending: true });
+    if (error) fail(error);
+    interface Row { id: string; image_url: string; caption: LocalizedRow; sort: number; visible: boolean; }
+    return ((data ?? []) as Row[]).map((r) => ({ id: r.id, imageUrl: r.image_url, caption: toLocalized(r.caption), sort: r.sort, visible: r.visible }));
+  },
+  async saveHeroSlide(input: Partial<MedicalHeroSlide> & { imageUrl: string }): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_hero_slides').upsert({
+      id: input.id, image_url: input.imageUrl, caption: input.caption, sort: input.sort ?? 0, visible: input.visible ?? true,
+    });
+    if (error) fail(error);
+    return { ok: true };
+  },
+  async deleteHeroSlide(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().from('medical_hero_slides').delete().eq('id', id);
+    if (error) fail(error);
+    return { ok: true };
+  },
+  /** Admin: upload a landing-page image (specialty card, hero slide) to the public 'medical-media' bucket → public URL. */
+  async uploadImage(file: File): Promise<string> {
+    const c = sb();
+    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const up = await c.storage.from('medical-media').upload(path, file, { upsert: false, contentType: file.type || undefined });
+    if (up.error) fail(up.error);
+    return c.storage.from('medical-media').getPublicUrl(path).data.publicUrl;
   },
   async saveFaq(input: Partial<MedicalFaq>): Promise<{ ok: true }> {
     const { error } = await sb().from('medical_faqs').upsert({ id: input.id, question: input.question, answer: input.answer, sort: input.sort ?? 0, visible: input.visible ?? true });
