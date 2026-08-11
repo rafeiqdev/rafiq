@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
@@ -200,6 +200,7 @@ function AuthErrorScreen({ onSignOut }: { onSignOut: () => void }) {
 function Shell() {
   const { authError, signOut } = useApp();
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   // The full-screen language gate is gone on purpose: a first-time visitor
   // used to see four buttons and no product. The language now comes from the
@@ -211,7 +212,7 @@ function Shell() {
     <>
       <ReferralQueryCapture />
       <Suspense fallback={<Spinner />}>
-        <Routes>
+        <Routes location={location} key={location.pathname}>
           <Route path="/r/:code" element={<ReferralLanding />} />
           <Route element={<Layout />}>
             <Route path="/" element={<HomeGate isMobile={isMobile} />} />

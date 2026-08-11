@@ -604,6 +604,37 @@ html[dir='rtl'] li {
   animation-play-state: paused;
 }
 
+/* ── Motion Design & Animation Utilities (animate & motion-design skill) ── */
+.ease-out-back {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ease-out-cubic {
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.hover-spring {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+.hover-spring:hover {
+  transform: translateY(-3px) scale(1.015);
+}
+
+.press-tactile {
+  transition: transform 0.15s ease-out;
+}
+.press-tactile:active {
+  transform: scale(0.95);
+  transition-duration: 0.075s;
+}
+
+.motion-card-glow {
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.3s cubic-bezier(0.33, 1, 0.68, 1), border-color 0.3s ease;
+}
+.motion-card-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -5px rgba(26, 58, 107, 0.12);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in,
@@ -622,7 +653,11 @@ html[dir='rtl'] li {
   .bell-shake,
   .bell-clap,
   .bell-badge,
-  .bell-ring {
-    animation: none;
+  .bell-ring,
+  .hover-spring,
+  .motion-card-glow {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
   }
 }

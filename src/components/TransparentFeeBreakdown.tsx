@@ -1,20 +1,19 @@
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { pickText } from '../data/services';
 import type { GovFeeItem } from '../data/services';
 import { AppIcon } from './AppIcon';
 
-/**
- * Itemizes a service's official government taxes/fees separately from
- * Rafiq's own consultation fee, so users can see there's no markup hidden
- * inside a single bundled "price". Only rendered when the service actually
- * has `governmentFees` (src/data/services.ts) — no fixed amounts, since
- * harç/insurance rates change yearly and by nationality/age.
- */
 export function TransparentFeeBreakdown({ fees, lang }: { fees: GovFeeItem[]; lang: string }) {
   const { t } = useTranslation();
 
   return (
-    <div className="esc-fee-breakdown">
+    <motion.div 
+      className="esc-fee-breakdown"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+    >
       <h4 className="esc-fee-heading">
         <AppIcon name="shield-check" className="w-3.5 h-3.5" />
         {t('services.feeBreakdown.title')}
@@ -24,7 +23,14 @@ export function TransparentFeeBreakdown({ fees, lang }: { fees: GovFeeItem[]; la
         <span className="esc-fee-group-label">{t('services.feeBreakdown.govSectionTitle')}</span>
         <ul className="esc-fee-list">
           {fees.map((fee, i) => (
-            <li key={i}>{pickText(fee.label, lang)}</li>
+            <motion.li 
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+            >
+              {pickText(fee.label, lang)}
+            </motion.li>
           ))}
         </ul>
         <p className="esc-fee-note">{t('services.feeBreakdown.govSectionNote')}</p>
@@ -33,7 +39,13 @@ export function TransparentFeeBreakdown({ fees, lang }: { fees: GovFeeItem[]; la
       <div className="esc-fee-group">
         <span className="esc-fee-group-label">{t('services.feeBreakdown.platformSectionTitle')}</span>
         <ul className="esc-fee-list">
-          <li>{t('services.feeBreakdown.platformFeeLabel')}</li>
+          <motion.li
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 + fees.length * 0.05, duration: 0.3 }}
+          >
+            {t('services.feeBreakdown.platformFeeLabel')}
+          </motion.li>
         </ul>
       </div>
 
@@ -41,6 +53,6 @@ export function TransparentFeeBreakdown({ fees, lang }: { fees: GovFeeItem[]; la
         <AppIcon name="check-circle" className="w-3.5 h-3.5" />
         {t('services.feeBreakdown.assurance')}
       </p>
-    </div>
+    </motion.div>
   );
 }

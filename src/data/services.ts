@@ -23,6 +23,12 @@ export interface ServiceCategory {
   title: I18nText;
 }
 
+export interface GovFeeItem {
+  label: I18nText;
+  amount: number;
+  note?: I18nText;
+}
+
 export interface ServiceItem {
   id: string;
   category: string;
@@ -32,6 +38,7 @@ export interface ServiceItem {
   desc: I18nText;
   /** VIP / high-cost services priced per booking instead of a fixed price. */
   onRequest?: boolean;
+  governmentFees?: GovFeeItem[];
 }
 
 /** Pick the best available language for a piece of catalog text (ru/fa → en if missing). */
