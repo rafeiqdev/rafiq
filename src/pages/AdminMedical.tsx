@@ -335,22 +335,6 @@ function RequestsQueue() {
 
 const EMPTY_LOCALIZED = { ar: '', en: '', fa: '', ru: '' };
 
-function LocalizedInput({ label, value, onChange }: { label: string; value: { ar: string; en: string; fa: string; ru: string }; onChange: (v: { ar: string; en: string; fa: string; ru: string }) => void }) {
-  return (
-    <div className="grid grid-cols-2 gap-1.5">
-      {(['en', 'ar', 'ru', 'fa'] as const).map((l) => (
-        <input
-          key={l}
-          className="input !h-9 text-xs"
-          placeholder={`${label} (${l})`}
-          value={value[l]}
-          onChange={(e) => onChange({ ...value, [l]: e.target.value })}
-        />
-      ))}
-    </div>
-  );
-}
-
 interface CatalogItem {
   id: string; slug: string; name: { ar: string; en: string; fa: string; ru: string };
   description: { ar: string; en: string; fa: string; ru: string }; icon: string | null; sort: number; visible: boolean;
@@ -577,7 +561,11 @@ function CatalogEditor({
 
       <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
         <input className="input !h-9 text-xs" placeholder={t('medical.admin.content.newSlug')} value={newSlug} onChange={(e) => setNewSlug(e.target.value)} dir="ltr" />
-        <LocalizedInput label={t('medical.admin.content.name')} value={newName} onChange={setNewName} />
+        <TranslatableFields
+          fields={[{ key: 'name', label: t('medical.admin.content.name') }]}
+          value={{ name: newName }}
+          onChange={(v) => setNewName(v.name)}
+        />
         <button onClick={addNew} disabled={adding || !newSlug.trim()} className="btn-primary !h-9 text-xs disabled:opacity-50">
           {t('medical.admin.content.add')}
         </button>
@@ -614,8 +602,14 @@ function CatalogRow({ item, onSave, onDelete }: { item: CatalogItem; onSave: (it
           <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
         </label>
       </div>
-      <LocalizedInput label={t('medical.admin.content.name')} value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} />
-      <LocalizedInput label={t('medical.admin.content.description')} value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} />
+      <TranslatableFields
+        fields={[
+          { key: 'name', label: t('medical.admin.content.name') },
+          { key: 'description', label: t('medical.admin.content.description'), multiline: true },
+        ]}
+        value={{ name: draft.name, description: draft.description }}
+        onChange={(v) => setDraft({ ...draft, name: v.name, description: v.description })}
+      />
       <input className="input !h-8 text-xs" placeholder={t('medical.admin.content.icon')} value={draft.icon ?? ''} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} dir="ltr" />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
@@ -658,8 +652,14 @@ function FaqEditor() {
       </SectionState>
 
       <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
-        <LocalizedInput label={t('medical.admin.content.question')} value={newQ} onChange={setNewQ} />
-        <LocalizedInput label={t('medical.admin.content.answer')} value={newA} onChange={setNewA} />
+        <TranslatableFields
+          fields={[
+            { key: 'question', label: t('medical.admin.content.question') },
+            { key: 'answer', label: t('medical.admin.content.answer'), multiline: true },
+          ]}
+          value={{ question: newQ, answer: newA }}
+          onChange={(v) => { setNewQ(v.question); setNewA(v.answer); }}
+        />
         <button onClick={addNew} disabled={adding} className="btn-primary !h-9 text-xs disabled:opacity-50">{t('medical.admin.content.add')}</button>
       </div>
     </section>
@@ -699,8 +699,14 @@ function FaqRow({ faq, onChanged }: { faq: MedicalFaq; onChanged: () => void }) 
           <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
         </label>
       </div>
-      <LocalizedInput label={t('medical.admin.content.question')} value={draft.question} onChange={(v) => setDraft({ ...draft, question: v })} />
-      <LocalizedInput label={t('medical.admin.content.answer')} value={draft.answer} onChange={(v) => setDraft({ ...draft, answer: v })} />
+      <TranslatableFields
+        fields={[
+          { key: 'question', label: t('medical.admin.content.question') },
+          { key: 'answer', label: t('medical.admin.content.answer'), multiline: true },
+        ]}
+        value={{ question: draft.question, answer: draft.answer }}
+        onChange={(v) => setDraft({ ...draft, question: v.question, answer: v.answer })}
+      />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
         <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
@@ -743,7 +749,11 @@ function TestimonialRow({ tst, onChanged }: { tst: MedicalTestimonial; onChanged
           <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
         </label>
       </div>
-      <LocalizedInput label={t('medical.admin.content.quote')} value={draft.quote} onChange={(v) => setDraft({ ...draft, quote: v })} />
+      <TranslatableFields
+        fields={[{ key: 'quote', label: t('medical.admin.content.quote'), multiline: true }]}
+        value={{ quote: draft.quote }}
+        onChange={(v) => setDraft({ ...draft, quote: v.quote })}
+      />
       <label className="flex items-center gap-2 text-xs text-navy/70">
         <input type="checkbox" checked={draft.consentGiven} onChange={(e) => setDraft({ ...draft, consentGiven: e.target.checked })} />
         {t('medical.admin.content.consentCheckbox')}
@@ -793,7 +803,11 @@ function TestimonialsEditor() {
 
       <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
         <input className="input !h-9 text-xs" placeholder={t('medical.admin.content.authorName')} value={author} onChange={(e) => setAuthor(e.target.value)} />
-        <LocalizedInput label={t('medical.admin.content.quote')} value={quote} onChange={setQuote} />
+        <TranslatableFields
+          fields={[{ key: 'quote', label: t('medical.admin.content.quote'), multiline: true }]}
+          value={{ quote }}
+          onChange={(v) => setQuote(v.quote)}
+        />
         <label className="flex items-center gap-2 text-xs text-navy/70">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
           {t('medical.admin.content.consentCheckbox')}

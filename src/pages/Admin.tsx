@@ -383,14 +383,6 @@ function AdminInner() {
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold text-navy">{t('admin.title')}</h1>
-        {/* Medical stays a separate page on purpose: it has its own permission
-            (medical coordinators who are not admins), so it can't fold into a
-            page that's gated to admins only. It's linked from here, not from
-            the site's main top nav. */}
-        <Link to="/admin/medical" className="btn-secondary h-9 px-4 text-xs">
-          <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
-          {t('medical.admin.navLink')}
-        </Link>
       </div>
 
       {/*
@@ -419,6 +411,23 @@ function AdminInner() {
               {TAB_LABEL[tab]}
             </button>
           ))}
+
+          {/* Medical stays a separate page on purpose: it has its own
+              permission (medical coordinators who are not admins), so it
+              can't fold into a page gated to admins only. It used to sit as
+              a floating button in the header above, next to whichever tab
+              happened to be open — which read as if it belonged to THAT
+              tab (e.g. "Places"). It's a Link, not a button, because it's a
+              real route change, not a ?tab= switch like the others — but it
+              renders in the same list, same styling, so it reads as one more
+              section rather than a stray control. */}
+          <Link
+            to="/admin/medical"
+            className="shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start text-navy/70 hover:bg-cream md:mt-1 md:border-t md:border-cream-dark md:pt-3.5"
+          >
+            <AppIcon name="heart-pulse" className="w-4 h-4 shrink-0" />
+            {t('medical.admin.navLink')}
+          </Link>
         </nav>
 
         <div className="flex-1 min-w-0 w-full">
