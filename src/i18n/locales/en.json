@@ -2456,6 +2456,11 @@
         "caption": "Caption",
         "uploadImage": "Upload image",
         "uploading": "Uploading…",
+        "dropImageHint": "Drag a photo here or click to browse",
+        "remove": "Remove",
+        "translate": "Auto-translate to other languages",
+        "translating": "Translating…",
+        "manualEdit": "Edit each language by hand",
         "sectionNames": {
           "hero": "Hero",
           "trust": "Trust indicators",

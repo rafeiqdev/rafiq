@@ -3033,6 +3033,30 @@ export const adminMedicalContent = {
     if (error) fail(error);
     return { ok: true };
   },
+  /**
+   * Type it once in one language, get the other 3 back. `fields` is e.g.
+   * { title: '...', description: '...' } in `sourceLang`; the return value
+   * has one entry per OTHER language with the same keys translated.
+   * Never throws on a translation failure (rate-limited/misconfigured
+   * Gemini key) — callers should treat an empty result as "fill in the
+   * rest yourself", not as a hard error.
+   */
+  async translateFields(sourceLang: 'ar' | 'en' | 'ru' | 'fa', fields: Record<string, string>): Promise<Partial<Record<'ar' | 'en' | 'ru' | 'fa', Record<string, string>>>> {
+    const { data } = await sb().auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return {};
+    try {
+      const res = await fetch('/api/admin/medical-translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ sourceLang, fields }),
+      });
+      if (!res.ok) return {};
+      return (await res.json()) as Partial<Record<'ar' | 'en' | 'ru' | 'fa', Record<string, string>>>;
+    } catch {
+      return {};
+    }
+  },
   /** Admin: upload a landing-page image (specialty card, hero slide) to the public 'medical-media' bucket → public URL. */
   async uploadImage(file: File): Promise<string> {
     const c = sb();

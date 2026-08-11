@@ -2464,6 +2464,11 @@
         "caption": "التعليق",
         "uploadImage": "رفع صورة",
         "uploading": "جارٍ الرفع…",
+        "dropImageHint": "اسحب صورة هنا أو اضغط للاختيار",
+        "remove": "إزالة",
+        "translate": "ترجمة تلقائية لباقي اللغات",
+        "translating": "جارٍ الترجمة…",
+        "manualEdit": "تحرير كل لغة يدويًا",
         "sectionNames": {
           "hero": "الترويسة",
           "trust": "مؤشرات الثقة",

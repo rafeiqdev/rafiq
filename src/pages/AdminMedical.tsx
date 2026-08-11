@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { adminMedical, adminMedicalContent, medicalContent } from '../lib/api';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { SectionState } from '../components/SectionState';
 import { AppIcon } from '../components/AppIcon';
+import type { IconName } from '../components/AppIcon';
 import { RequireMedicalCoordinator } from '../components/Gates';
 import { MedicalStatusPill } from '../components/medical/MedicalStatusPill';
 import type {
@@ -354,14 +356,21 @@ interface CatalogItem {
   description: { ar: string; en: string; fa: string; ru: string }; icon: string | null; sort: number; visible: boolean;
 }
 
-/** File-picker that uploads to the public 'medical-media' bucket and hands back a URL, with a thumbnail preview. */
+/**
+ * Drag-and-drop (or click-to-browse) image picker: uploads straight to the
+ * public 'medical-media' bucket and hands back a URL. Shows a real preview
+ * instead of a tiny thumbnail, and an X to clear it — this is the only way
+ * a non-technical admin touches images on the landing page, so it has to
+ * read as "drop a photo here", not as a form field.
+ */
 function ImageUploadField({ value, onChange }: { value: string | null; onChange: (url: string) => void }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const pick = async (file: File | undefined) => {
-    if (!file) return;
+    if (!file || !file.type.startsWith('image/')) return;
     setBusy(true);
     try {
       const url = await adminMedicalContent.uploadImage(file);
@@ -372,8 +381,22 @@ function ImageUploadField({ value, onChange }: { value: string | null; onChange:
   };
 
   return (
-    <div className="flex items-center gap-2">
-      {value && <img src={value} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 border border-cream-dark" />}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        void pick(e.dataTransfer.files?.[0]);
+      }}
+      className={`relative flex items-center gap-3 rounded-xl border-2 border-dashed p-3 cursor-pointer transition-colors ${
+        dragOver ? 'border-navy bg-cream' : 'border-cream-dark hover:bg-cream/60'
+      }`}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -381,14 +404,127 @@ function ImageUploadField({ value, onChange }: { value: string | null; onChange:
         className="hidden"
         onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }}
       />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="btn-secondary !h-8 flex-1 text-[11px] disabled:opacity-50"
-      >
-        {busy ? t('medical.admin.content.uploading') : t('medical.admin.content.uploadImage')}
-      </button>
+      {value ? (
+        <img src={value} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0 border border-cream-dark" />
+      ) : (
+        <div className="w-16 h-16 rounded-lg shrink-0 border border-cream-dark bg-cream flex items-center justify-center">
+          <AppIcon name="camera" className="w-6 h-6 text-navy/30" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0 text-xs">
+        <p className="font-semibold text-navy">{busy ? t('medical.admin.content.uploading') : t('medical.admin.content.uploadImage')}</p>
+        {!busy && <p className="text-navy/40 mt-0.5">{t('medical.admin.content.dropImageHint')}</p>}
+      </div>
+      {value && !busy && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onChange(''); }}
+          className="shrink-0 text-navy/40 hover:text-brand-red"
+          aria-label={t('medical.admin.content.remove')}
+        >
+          <AppIcon name="x" className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * "Type it once, we translate the rest." Shows one input per field in
+ * whichever language the admin is currently using the UI in, plus a
+ * translate button that fills the other 3 languages via Gemini
+ * (api/admin/medical-translate). A collapsed "edit each language by hand"
+ * panel underneath still exposes the raw per-language grid for the rare
+ * case a translation needs a manual fix — nobody is forced to type the
+ * same sentence 4 times just to publish one card.
+ */
+function TranslatableFields<K extends string>({
+  fields, value, onChange,
+}: {
+  fields: { key: K; label: string; multiline?: boolean }[];
+  value: Record<K, { ar: string; en: string; fa: string; ru: string }>;
+  onChange: (next: Record<K, { ar: string; en: string; fa: string; ru: string }>) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const uiLang = (['ar', 'en', 'ru', 'fa'] as const).includes(i18n.language as never) ? (i18n.language as 'ar' | 'en' | 'ru' | 'fa') : 'en';
+  const [translating, setTranslating] = useState(false);
+  const [manual, setManual] = useState(false);
+
+  const setField = (key: K, lang: 'ar' | 'en' | 'ru' | 'fa', text: string) => {
+    onChange({ ...value, [key]: { ...value[key], [lang]: text } });
+  };
+
+  const translate = async () => {
+    const sourceFields: Record<string, string> = {};
+    for (const f of fields) sourceFields[f.key] = value[f.key][uiLang];
+    if (!Object.values(sourceFields).some((v) => v.trim())) return;
+    setTranslating(true);
+    try {
+      const result = await adminMedicalContent.translateFields(uiLang, sourceFields);
+      const next = { ...value };
+      for (const lang of (['ar', 'en', 'ru', 'fa'] as const)) {
+        if (lang === uiLang || !result[lang]) continue;
+        for (const f of fields) {
+          const translated = result[lang]?.[f.key];
+          if (translated) next[f.key] = { ...next[f.key], [lang]: translated };
+        }
+      }
+      onChange(next);
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {fields.map((f) => (
+        f.multiline ? (
+          <textarea
+            key={f.key}
+            className="input text-xs min-h-[60px]"
+            placeholder={f.label}
+            value={value[f.key][uiLang]}
+            onChange={(e) => setField(f.key, uiLang, e.target.value)}
+          />
+        ) : (
+          <input
+            key={f.key}
+            className="input !h-9 text-xs"
+            placeholder={f.label}
+            value={value[f.key][uiLang]}
+            onChange={(e) => setField(f.key, uiLang, e.target.value)}
+          />
+        )
+      ))}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={translate}
+          disabled={translating}
+          className="btn-secondary !h-8 text-[11px] disabled:opacity-50 inline-flex items-center gap-1.5"
+        >
+          <AppIcon name="languages" className="w-3.5 h-3.5" />
+          {translating ? t('medical.admin.content.translating') : t('medical.admin.content.translate')}
+        </button>
+        <button type="button" onClick={() => setManual((v) => !v)} className="text-[11px] font-semibold text-navy/50 underline">
+          {t('medical.admin.content.manualEdit')}
+        </button>
+      </div>
+      {manual && (
+        <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-cream p-2">
+          {fields.map((f) => (
+            (['en', 'ar', 'ru', 'fa'] as const).map((l) => (
+              <input
+                key={`${f.key}-${l}`}
+                className="input !h-8 text-xs"
+                placeholder={`${f.label} (${l})`}
+                value={value[f.key][l]}
+                onChange={(e) => setField(f.key, l, e.target.value)}
+              />
+            ))
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -710,8 +846,14 @@ function LandingCardRow({ card, onChanged }: { card: MedicalLandingCard; onChang
         </label>
       </div>
       <ImageUploadField value={draft.imageUrl} onChange={(url) => setDraft({ ...draft, imageUrl: url })} />
-      <LocalizedInput label={t('medical.admin.content.name')} value={draft.title} onChange={(v) => setDraft({ ...draft, title: v })} />
-      <LocalizedInput label={t('medical.admin.content.description')} value={draft.description} onChange={(v) => setDraft({ ...draft, description: v })} />
+      <TranslatableFields
+        fields={[
+          { key: 'title', label: t('medical.admin.content.name') },
+          { key: 'description', label: t('medical.admin.content.description'), multiline: true },
+        ]}
+        value={{ title: draft.title, description: draft.description }}
+        onChange={(v) => setDraft({ ...draft, title: v.title, description: v.description })}
+      />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
         <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
@@ -724,7 +866,7 @@ function LandingCardsEditor() {
   const { t } = useTranslation();
   const list = useAsyncSection<MedicalLandingCard[]>(() => adminMedicalContent.listAllLandingCards(), []);
   const [newSlug, setNewSlug] = useState('');
-  const [newTitle, setNewTitle] = useState(EMPTY_LOCALIZED);
+  const [newFields, setNewFields] = useState<{ title: { ar: string; en: string; fa: string; ru: string }; description: { ar: string; en: string; fa: string; ru: string } }>({ title: EMPTY_LOCALIZED, description: EMPTY_LOCALIZED });
   const [newImage, setNewImage] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -733,8 +875,8 @@ function LandingCardsEditor() {
     if (!slug) return;
     setAdding(true);
     try {
-      await adminMedicalContent.saveLandingCard({ slug, title: newTitle, description: EMPTY_LOCALIZED, imageUrl: newImage, sort: list.data?.length ?? 0, visible: true });
-      setNewSlug(''); setNewTitle(EMPTY_LOCALIZED); setNewImage(null);
+      await adminMedicalContent.saveLandingCard({ slug, title: newFields.title, description: newFields.description, imageUrl: newImage, sort: list.data?.length ?? 0, visible: true });
+      setNewSlug(''); setNewFields({ title: EMPTY_LOCALIZED, description: EMPTY_LOCALIZED }); setNewImage(null);
       list.reload();
     } finally {
       setAdding(false);
@@ -756,7 +898,14 @@ function LandingCardsEditor() {
       <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
         <input className="input !h-9 text-xs" placeholder={t('medical.admin.content.newSlug')} value={newSlug} onChange={(e) => setNewSlug(e.target.value)} dir="ltr" />
         <ImageUploadField value={newImage} onChange={setNewImage} />
-        <LocalizedInput label={t('medical.admin.content.name')} value={newTitle} onChange={setNewTitle} />
+        <TranslatableFields
+          fields={[
+            { key: 'title', label: t('medical.admin.content.name') },
+            { key: 'description', label: t('medical.admin.content.description'), multiline: true },
+          ]}
+          value={newFields}
+          onChange={setNewFields}
+        />
         <button onClick={addNew} disabled={adding || !newSlug.trim()} className="btn-primary !h-9 text-xs disabled:opacity-50">
           {t('medical.admin.content.add')}
         </button>
@@ -801,7 +950,11 @@ function HeroSlideRow({ slide, onChanged }: { slide: MedicalHeroSlide; onChanged
           <input type="number" className="input !h-8 !w-16 text-xs" value={draft.sort} onChange={(e) => setDraft({ ...draft, sort: Number(e.target.value) || 0 })} />
         </label>
       </div>
-      <LocalizedInput label={t('medical.admin.content.caption')} value={draft.caption} onChange={(v) => setDraft({ ...draft, caption: v })} />
+      <TranslatableFields
+        fields={[{ key: 'caption', label: t('medical.admin.content.caption') }]}
+        value={{ caption: draft.caption }}
+        onChange={(v) => setDraft({ ...draft, caption: v.caption })}
+      />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
         <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
@@ -814,14 +967,15 @@ function HeroSlidesEditor() {
   const { t } = useTranslation();
   const list = useAsyncSection<MedicalHeroSlide[]>(() => adminMedicalContent.listAllHeroSlides(), []);
   const [newImage, setNewImage] = useState<string | null>(null);
+  const [newCaption, setNewCaption] = useState<{ caption: { ar: string; en: string; fa: string; ru: string } }>({ caption: EMPTY_LOCALIZED });
   const [adding, setAdding] = useState(false);
 
   const addNew = async () => {
     if (!newImage) return;
     setAdding(true);
     try {
-      await adminMedicalContent.saveHeroSlide({ imageUrl: newImage, caption: EMPTY_LOCALIZED, sort: list.data?.length ?? 0, visible: true });
-      setNewImage(null);
+      await adminMedicalContent.saveHeroSlide({ imageUrl: newImage, caption: newCaption.caption, sort: list.data?.length ?? 0, visible: true });
+      setNewImage(null); setNewCaption({ caption: EMPTY_LOCALIZED });
       list.reload();
     } finally {
       setAdding(false);
@@ -841,6 +995,11 @@ function HeroSlidesEditor() {
 
       <div className="mt-3 rounded-lg border border-dashed border-cream-dark p-3 flex flex-col gap-2">
         <ImageUploadField value={newImage} onChange={setNewImage} />
+        <TranslatableFields
+          fields={[{ key: 'caption', label: t('medical.admin.content.caption') }]}
+          value={newCaption}
+          onChange={setNewCaption}
+        />
         <button onClick={addNew} disabled={adding || !newImage} className="btn-primary !h-9 text-xs disabled:opacity-50">
           {t('medical.admin.content.add')}
         </button>
@@ -890,17 +1049,86 @@ function SectionsEditor() {
   );
 }
 
+const CONTENT_TABS = ['heroSlides', 'landingCards', 'sections', 'specialties', 'services', 'faq', 'testimonials'] as const;
+type ContentTab = (typeof CONTENT_TABS)[number];
+const DEFAULT_CONTENT_TAB: ContentTab = 'heroSlides';
+function isContentTab(v: string | null): v is ContentTab {
+  return !!v && (CONTENT_TABS as readonly string[]).includes(v);
+}
+const CONTENT_TAB_ICON: Record<ContentTab, IconName> = {
+  heroSlides: 'camera',
+  landingCards: 'sparkles',
+  sections: 'layers',
+  specialties: 'stethoscope',
+  services: 'briefcase',
+  faq: 'info',
+  testimonials: 'star',
+};
+
+/**
+ * One content section visible at a time, chosen from a sidebar — same
+ * pattern as /admin's own TABS sidebar — instead of every editor stacked
+ * into one long scroll where a new section was easy to miss.
+ */
 function ContentManager() {
   const { t } = useTranslation();
+  const [params, setParams] = useSearchParams();
+  const rawTab = params.get('ctab');
+  const activeTab: ContentTab = isContentTab(rawTab) ? rawTab : DEFAULT_CONTENT_TAB;
+  const setActiveTab = (tab: ContentTab) => {
+    setParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === DEFAULT_CONTENT_TAB) next.delete('ctab');
+      else next.set('ctab', tab);
+      return next;
+    });
+  };
+
+  const CONTENT_TAB_LABEL: Record<ContentTab, string> = {
+    heroSlides: t('medical.admin.content.heroSlides'),
+    landingCards: t('medical.admin.content.landingCards'),
+    sections: t('medical.admin.content.sections'),
+    specialties: t('medical.admin.content.specialties'),
+    services: t('medical.admin.content.services'),
+    faq: t('medical.faq.title'),
+    testimonials: t('medical.admin.content.testimonials'),
+  };
+
   return (
-    <div className="flex flex-col gap-8">
-      <SectionsEditor />
-      <HeroSlidesEditor />
-      <LandingCardsEditor />
-      <CatalogEditor title={t('medical.admin.content.specialties')} load={() => medicalContent.specialties()} onSave={(v) => adminMedicalContent.saveSpecialty(v)} onDelete={(id) => adminMedicalContent.deleteSpecialty(id)} />
-      <CatalogEditor title={t('medical.admin.content.services')} load={() => medicalContent.services()} onSave={(v) => adminMedicalContent.saveService(v)} onDelete={(id) => adminMedicalContent.deleteService(id)} />
-      <FaqEditor />
-      <TestimonialsEditor />
+    <div className="flex flex-col md:flex-row gap-6 items-start">
+      <nav
+        aria-label={t('medical.admin.tabContent')}
+        className="w-full md:w-56 shrink-0 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-1 md:pb-0 md:sticky md:top-24"
+      >
+        {CONTENT_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            aria-current={activeTab === tab ? 'page' : undefined}
+            className={`shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start ${
+              activeTab === tab ? 'bg-navy text-white' : 'text-navy/70 hover:bg-cream'
+            }`}
+          >
+            <AppIcon name={CONTENT_TAB_ICON[tab]} className="w-4 h-4 shrink-0" />
+            {CONTENT_TAB_LABEL[tab]}
+          </button>
+        ))}
+      </nav>
+
+      <div className="flex-1 min-w-0 w-full">
+        {activeTab === 'heroSlides' && <HeroSlidesEditor />}
+        {activeTab === 'landingCards' && <LandingCardsEditor />}
+        {activeTab === 'sections' && <SectionsEditor />}
+        {activeTab === 'specialties' && (
+          <CatalogEditor title={t('medical.admin.content.specialties')} load={() => medicalContent.specialties()} onSave={(v) => adminMedicalContent.saveSpecialty(v)} onDelete={(id) => adminMedicalContent.deleteSpecialty(id)} />
+        )}
+        {activeTab === 'services' && (
+          <CatalogEditor title={t('medical.admin.content.services')} load={() => medicalContent.services()} onSave={(v) => adminMedicalContent.saveService(v)} onDelete={(id) => adminMedicalContent.deleteService(id)} />
+        )}
+        {activeTab === 'faq' && <FaqEditor />}
+        {activeTab === 'testimonials' && <TestimonialsEditor />}
+      </div>
     </div>
   );
 }
@@ -910,7 +1138,7 @@ function AdminMedicalInner() {
   const [tab, setTab] = useState<'queue' | 'content'>('queue');
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-2xl font-extrabold text-navy">{t('medical.admin.title')}</h1>
       <div className="mt-4 flex gap-2">
         <button onClick={() => setTab('queue')} className={`btn-secondary !h-9 px-4 text-xs ${tab === 'queue' ? '!bg-navy !text-white' : ''}`}>{t('medical.admin.tabQueue')}</button>
