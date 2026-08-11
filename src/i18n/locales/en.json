@@ -1108,6 +1108,10 @@
     }
   },
   "admin": {
+    "groups": {
+      "operations": "Requests, bookings & services",
+      "payments": "Payments & subscriptions"
+    },
     "newRequests": {
       "title": "Needs action — {{count}} waiting",
       "more": "and {{count}} more below",
@@ -1292,6 +1296,8 @@
       "fCategory": "Category",
       "fType": "Type",
       "fIcon": "Icon",
+      "fImage": "Service photo",
+      "removeImage": "Remove photo",
       "onRequest": "Priced on request",
       "hide": "Hide",
       "show": "Show"

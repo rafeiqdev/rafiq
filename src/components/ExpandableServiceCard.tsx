@@ -28,8 +28,8 @@ function CheckIcon() {
 /**
  * The service card that starts small in a grid/list and expands to a
  * full-size detail view on click — ported 1:1 (layout, motion, the white
- * toolbar) from the user's mockup. See ExpandableServiceCard.css for the
- * one deliberate deviation (icon instead of per-service photography).
+ * toolbar) from the user's mockup. Renders `service.image` when an admin has
+ * set one (Admin → catalog editor); falls back to the category icon.
  *
  * The "how do you want this done" panel wires into the site's real AI/human
  * flow (same paths as ServiceActionModal: /premium?topic= and
@@ -96,7 +96,7 @@ export function ExpandableServiceCard({
     <div className="esc-scope h-full">
       <button type="button" onClick={openCard} className="esc-compact-card" aria-haspopup="dialog">
         <span className="esc-compact-visual">
-          <AppIcon name={service.icon} />
+          {service.image ? <img src={service.image} alt="" /> : <AppIcon name={service.icon} />}
           <span className="esc-compact-number">{num}</span>
         </span>
         <span className="esc-compact-content">
@@ -141,7 +141,7 @@ export function ExpandableServiceCard({
                 aria-label={title}
               >
                 <div className="esc-service-image">
-                  <AppIcon name={service.icon} />
+                  {service.image ? <img src={service.image} alt="" /> : <AppIcon name={service.icon} />}
                 </div>
                 <div className="esc-image-tint" />
 

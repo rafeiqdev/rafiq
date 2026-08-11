@@ -90,6 +90,14 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.esc-compact-visual img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .esc-compact-number {
   position: absolute;
   z-index: 2;
@@ -265,6 +273,12 @@
   width: 34%;
   height: 34%;
   color: rgba(255, 255, 255, 0.5);
+}
+
+.esc-service-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .esc-image-tint {

@@ -1447,7 +1447,7 @@ export const adminRates = {
 // ── Admin-editable service catalog (stored in settings.service_catalog) ──────
 // Overrides layer on top of the static catalog: edit text, hide, or add services.
 export interface CatalogOverrides {
-  edits?: Record<string, Partial<Pick<ServiceItem, 'title' | 'desc' | 'category' | 'type' | 'icon' | 'onRequest'>>>;
+  edits?: Record<string, Partial<Pick<ServiceItem, 'title' | 'desc' | 'category' | 'type' | 'icon' | 'onRequest' | 'image'>>>;
   hidden?: string[];
   added?: ServiceItem[];
 }
@@ -1485,6 +1485,10 @@ export const adminCatalog = {
     const { error } = await sb().from('settings').upsert({ key: 'service_catalog', value }, { onConflict: 'key' });
     if (error) fail(error);
     return { ok: true };
+  },
+  /** Reuses the public `listings` bucket — no second bucket to police. */
+  uploadImage(file: File): Promise<string> {
+    return listings.uploadImage(file);
   },
 };
 

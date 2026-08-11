@@ -224,6 +224,24 @@ function UserRow({
   );
 }
 
+/**
+ * The sidebar used to be one flat list of 18 links — every one of them a
+ * scattered, single-purpose page even when several manage the same real-world
+ * thing (a service request IS a booking IS a catalog entry; a payment IS a
+ * subscription). These two groups fold the related tabs under one collapsible
+ * nav entry so they read as one place, without merging their (very
+ * different) underlying editors into one screen. `companies` and
+ * `companyPayments` stay valid tabs (reachable via ?tab=) but are left out of
+ * every group/flat list below — unused for now, hidden rather than deleted.
+ */
+const NAV_GROUPS: { id: string; icon: IconName; labelKey: string; tabs: AdminTab[] }[] = [
+  { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'bookings', 'catalog'] },
+  { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'cancellations'] },
+];
+const GROUPED_TABS = new Set(NAV_GROUPS.flatMap((g) => g.tabs));
+const HIDDEN_FROM_NAV = new Set<AdminTab>(['companies', 'companyPayments']);
+const FLAT_TABS = TABS.filter((tab) => !GROUPED_TABS.has(tab) && !HIDDEN_FROM_NAV.has(tab));
+
 /** icon shown next to each sidebar entry */
 const TAB_ICON: Record<AdminTab, IconName> = {
   overview: 'layers',
@@ -246,6 +264,25 @@ const TAB_ICON: Record<AdminTab, IconName> = {
   news: 'send',
 };
 
+/** One sidebar link — shared by the flat top-level tabs and the tabs nested inside a group. */
+function TabButton({
+  active, onClick, icon, label,
+}: { tab: AdminTab; active: boolean; onClick: () => void; icon: IconName; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      className={`shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start ${
+        active ? 'bg-navy text-white' : 'text-navy/70 hover:bg-cream'
+      }`}
+    >
+      <AppIcon name={icon} className="w-4 h-4 shrink-0" />
+      {label}
+    </button>
+  );
+}
+
 function AdminInner() {
   const { t, i18n } = useTranslation();
   const { refresh } = useApp();
@@ -265,6 +302,17 @@ function AdminInner() {
       return next;
     });
   };
+
+  // Manually expanded/collapsed groups. A group also reads as open whenever
+  // the active tab lives inside it, so following a link straight to e.g.
+  // ?tab=cancellations lands with "Payments & subscriptions" already open.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const toggleGroup = (id: string) =>
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const TAB_LABEL: Record<AdminTab, string> = {
     overview: t('admin.overview'),
@@ -397,19 +445,37 @@ function AdminInner() {
           aria-label={t('admin.title')}
           className="w-full md:w-60 shrink-0 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-1 md:pb-0 md:sticky md:top-24"
         >
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              aria-current={activeTab === tab ? 'page' : undefined}
-              className={`shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start ${
-                activeTab === tab ? 'bg-navy text-white' : 'text-navy/70 hover:bg-cream'
-              }`}
-            >
-              <AppIcon name={TAB_ICON[tab]} className="w-4 h-4 shrink-0" />
-              {TAB_LABEL[tab]}
-            </button>
+          {FLAT_TABS.slice(0, 2).map((tab) => (
+            <TabButton key={tab} tab={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} icon={TAB_ICON[tab]} label={TAB_LABEL[tab]} />
+          ))}
+
+          {NAV_GROUPS.map((group) => {
+            const isOpen = openGroups.has(group.id) || group.tabs.includes(activeTab);
+            return (
+              <div key={group.id} className="shrink-0 md:shrink-0 flex md:flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  aria-expanded={isOpen}
+                  className="shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start text-navy/70 hover:bg-cream"
+                >
+                  <AppIcon name={group.icon} className="w-4 h-4 shrink-0" />
+                  {t(group.labelKey)}
+                  <AppIcon name="chevron-down" className={`w-3.5 h-3.5 shrink-0 ms-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="flex flex-row md:flex-col gap-1 md:ms-4 md:ps-2 md:border-s md:border-cream-dark">
+                    {group.tabs.map((tab) => (
+                      <TabButton key={tab} tab={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} icon={TAB_ICON[tab]} label={TAB_LABEL[tab]} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {FLAT_TABS.slice(2).map((tab) => (
+            <TabButton key={tab} tab={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} icon={TAB_ICON[tab]} label={TAB_LABEL[tab]} />
           ))}
 
           {/* Medical stays a separate page on purpose: it has its own

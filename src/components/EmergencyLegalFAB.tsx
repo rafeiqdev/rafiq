@@ -5,16 +5,18 @@ import { motion } from 'framer-motion';
 
 /** Mobile-only full-width sticky bottom bar for urgent legal help.
  *  Displays horizontal banner across the width of mobile viewports. */
-const NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '905000000000').replace(/\D/g, '');
+const NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
+const CONFIGURED = !!NUMBER && NUMBER !== '905000000000';
 
 export function EmergencyLegalFAB() {
   const { t, i18n } = useTranslation();
+  if (!CONFIGURED) return null;
   const text = encodeURIComponent(t('emergencyLegal.message'));
   const href = `https://wa.me/${NUMBER}?text=${text}`;
   const isRtl = i18n.dir() === 'rtl';
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 my-4">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 my-4 pb-20 md:pb-0">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         whileInView={{ opacity: 1, y: 0 }}

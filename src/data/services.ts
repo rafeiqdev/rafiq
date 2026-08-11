@@ -39,6 +39,8 @@ export interface ServiceItem {
   /** VIP / high-cost services priced per booking instead of a fixed price. */
   onRequest?: boolean;
   governmentFees?: GovFeeItem[];
+  /** Real photo shown on the card instead of the icon, when set by an admin. */
+  image?: string;
 }
 
 /** Pick the best available language for a piece of catalog text (ru/fa → en if missing). */

@@ -20,6 +20,7 @@ interface Draft {
   category: string;
   type: ServiceType;
   icon: string;
+  image: string;
   onRequest: boolean;
   title: Record<Lang, string>;
   desc: Record<Lang, string>;
@@ -36,6 +37,7 @@ function toDraft(s: ServiceItem, isNew: boolean): Draft {
     category: s.category,
     type: s.type,
     icon: s.icon,
+    image: s.image ?? '',
     onRequest: !!s.onRequest,
     title: { ar: t.ar ?? '', en: t.en ?? '', tr: t.tr ?? '', ru: t.ru ?? '', fa: t.fa ?? '' },
     desc: { ar: d.ar ?? '', en: d.en ?? '', tr: d.tr ?? '', ru: d.ru ?? '', fa: d.fa ?? '' },
@@ -107,6 +109,7 @@ export function AdminServicesManager() {
       category: d.category,
       type: d.type,
       icon: d.icon as IconName,
+      image: d.image || undefined,
       onRequest: d.onRequest,
     };
     const next: CatalogOverrides = {
@@ -119,6 +122,7 @@ export function AdminServicesManager() {
       category: d.category,
       type: d.type,
       icon: d.icon as IconName,
+      image: d.image || undefined,
       title: d.title as I18nText,
       desc: d.desc as I18nText,
       onRequest: d.onRequest,
@@ -156,6 +160,7 @@ export function AdminServicesManager() {
     category: SERVICE_CATEGORIES[0].id,
     type: 'direct',
     icon: 'star',
+    image: '',
     onRequest: false,
     title: emptyText(),
     desc: emptyText(),
@@ -198,9 +203,13 @@ export function AdminServicesManager() {
       <div className="mt-3 max-h-[460px] overflow-y-auto divide-y divide-cream-dark/60">
         {rows.map(({ service: s, hidden, isAdded }) => (
           <div key={s.id} className={`py-2.5 flex items-center gap-3 ${hidden ? 'opacity-50' : ''}`}>
-            <span className="icon-chip !w-8 !h-8 shrink-0">
-              <AppIcon name={s.icon} className="w-4 h-4" />
-            </span>
+            {s.image ? (
+              <img src={s.image} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+            ) : (
+              <span className="icon-chip !w-8 !h-8 shrink-0">
+                <AppIcon name={s.icon} className="w-4 h-4" />
+              </span>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-navy truncate">{pickText(s.title, lang)}</p>
               <p className="text-[11px] text-navy/50 truncate">{pickText(s.desc, lang)}</p>
@@ -253,8 +262,20 @@ function EditorModal({
 }) {
   const { t } = useTranslation();
   const [d, setD] = useState<Draft>(draft);
+  const [uploading, setUploading] = useState(false);
   const setField = (lang: Lang, field: 'title' | 'desc', v: string) =>
     setD((p) => ({ ...p, [field]: { ...p[field], [lang]: v } }));
+
+  const onPickImage = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await adminCatalog.uploadImage(file);
+      setD((p) => ({ ...p, image: url }));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <Modal onClose={onClose} labelId="catalog-editor-title" maxWidth="max-w-2xl">
@@ -325,6 +346,37 @@ function EditorModal({
               dir="ltr"
               onChange={(e) => setD((p) => ({ ...p, icon: e.target.value }))}
             />
+          </label>
+          <label className="text-xs font-bold text-navy/70 sm:col-span-2">
+            {t('admin.catalog.fImage')}
+            <div className="mt-1 flex items-center gap-3">
+              {d.image ? (
+                <img src={d.image} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border border-cream-dark" />
+              ) : (
+                <span className="icon-chip !w-14 !h-14 shrink-0">
+                  <AppIcon name={d.icon as IconName} className="w-6 h-6" />
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={uploading}
+                  onChange={(e) => onPickImage(e.target.files?.[0])}
+                  className="block w-full text-xs text-navy/70"
+                />
+                {d.image && (
+                  <button
+                    type="button"
+                    onClick={() => setD((p) => ({ ...p, image: '' }))}
+                    className="mt-1 text-[11px] font-bold text-brand-red"
+                  >
+                    {t('admin.catalog.removeImage')}
+                  </button>
+                )}
+                {uploading && <p className="text-[11px] text-navy/50 mt-1">{t('admin.listings.uploading')}</p>}
+              </div>
+            </div>
           </label>
           <label className="flex items-center gap-2 text-xs font-bold text-navy/70 mt-6">
             <input
