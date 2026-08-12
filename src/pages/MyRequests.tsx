@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { customerRequests, reviews } from '../lib/api';
+import { customerRequests, reviews, serviceOffers, servicePayments } from '../lib/api';
 import { RequestStatusPill } from '../components/RequestStatusPill';
 import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
@@ -13,7 +13,23 @@ import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
 import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
 import { RafiqLoader } from '../components/RafiqLoader';
+import { ServiceOfferCard } from '../components/ServiceOfferCard';
+import { CASE_FILE_DIVIDER } from '../lib/bookingSummary';
 import { track } from '../lib/analytics';
+
+/**
+ * Some request messages carry a machine-readable block after a divider (the
+ * same CASE_FILE_DIVIDER bookings use) or are simply far longer than a
+ * "طلباتي" row should render inline. Neither belongs in a one-line preview:
+ * this keeps the human sentence, drops anything past the divider, and offers
+ * an explicit expand for a genuinely long note instead of dumping it raw.
+ */
+const MESSAGE_PREVIEW_LEN = 220;
+function humanMessage(raw: string): { preview: string; full: string; truncated: boolean } {
+  const prose = raw.split(CASE_FILE_DIVIDER)[0].trim();
+  if (prose.length <= MESSAGE_PREVIEW_LEN) return { preview: prose, full: prose, truncated: false };
+  return { preview: `${prose.slice(0, MESSAGE_PREVIEW_LEN).trimEnd()}…`, full: prose, truncated: true };
+}
 
 // Admin WhatsApp number (international, no "+"). Same placeholder guard as
 // ServiceRequestModal / WhatsAppButton — the escalation link only renders
@@ -152,16 +168,55 @@ function ReviewModal({ companyId, companyName, leadId, onClose, onDone }: { comp
 function RequestOffers({ req }: { req: CustomerRequest }) {
   const { t } = useTranslation();
   const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
+  const [messageExpanded, setMessageExpanded] = useState(false);
   const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
+  const adminOffers = useAsyncSection(
+    () => Promise.all([serviceOffers.listForRequest(req.id), servicePayments.forRequest(req.id)]),
+    [req.id],
+  );
 
   const choose = async (responseId: string) => {
     await customerRequests.choose(responseId);
     offers.reload();
   };
 
+  const msg = req.message ? humanMessage(req.message) : null;
+
   return (
     <>
-      {req.message && <p className="text-sm text-navy/70 break-anywhere mb-3">“{req.message}”</p>}
+      {msg && (
+        <p className="text-sm text-navy/70 break-anywhere mb-3">
+          “{messageExpanded ? msg.full : msg.preview}”
+          {msg.truncated && (
+            <button
+              type="button"
+              onClick={() => setMessageExpanded((v) => !v)}
+              className="ms-1.5 text-xs font-semibold text-navy underline"
+            >
+              {messageExpanded ? t('requests.showLess') : t('requests.showMore')}
+            </button>
+          )}
+        </p>
+      )}
+
+      {/* The admin's own price offer(s) on this request — separate from the
+          multi-company marketplace responses below. Only the most recent
+          non-superseded offer is actionable; older ones are history. */}
+      <SectionState section={adminOffers} title={t('serviceOffer.title')} empty={null} isEmpty={([offerList]) => offerList.length === 0}>
+        {([offerList, payments]) => (
+          <div className="mb-3 flex flex-col gap-2">
+            {offerList.map((o) => (
+              <ServiceOfferCard
+                key={o.id}
+                offer={o}
+                payment={payments.find((p) => p.offerId === o.id)}
+                onChanged={adminOffers.reload}
+              />
+            ))}
+          </div>
+        )}
+      </SectionState>
+
       <SectionState
         section={offers}
         title={t('requests.title')}

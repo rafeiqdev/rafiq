@@ -457,6 +457,42 @@ export interface CompanyLead {
   responded: boolean;
 }
 
+/**
+ * A single admin-sent price offer on a regular ("طلباتي") service request —
+ * price, details and photos, one at a time. Deliberately NOT the same shape
+ * as MedicalOffer: no booking-percentage deposit (the customer pays the full
+ * price or not at all), and no separate hidden-identity table, because a
+ * regular service has nothing analogous to a medical center to protect.
+ */
+export type ServiceOfferStatus = 'sent' | 'rejected' | 'expired' | 'superseded';
+
+export interface ServiceOffer {
+  id: string;
+  requestId: string;
+  price: number;
+  currency: string;
+  details: string;
+  imagePaths: string[];
+  expiresAt: string | null;
+  status: ServiceOfferStatus;
+  createdAt: string;
+}
+
+export type ServicePaymentStatus = 'pending' | 'verified' | 'rejected';
+
+export interface ServicePayment {
+  id: string;
+  requestId: string;
+  offerId: string;
+  amount: number;
+  currency: string;
+  status: ServicePaymentStatus;
+  createdAt: string;
+  verifiedAt: string | null;
+  /** Only present while status is 'pending' — used to resume an unfinished checkout redirect. */
+  gatewaySessionId?: string | null;
+}
+
 /** A company's offer on a lead, as seen by the customer (with company rating). */
 export interface CompanyResponse {
   id: string;

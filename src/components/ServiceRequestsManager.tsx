@@ -1,9 +1,176 @@
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { serviceRequests } from '../lib/api';
+import { serviceRequests, adminServiceOffers } from '../lib/api';
 import type { ServiceRequest } from '../lib/api';
 import { AppIcon } from './AppIcon';
 import { SectionState } from './SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+
+const OFFER_STATUS_STYLE: Record<string, string> = {
+  sent: 'bg-brand-blue text-navy',
+  rejected: 'bg-brand-red/10 text-brand-red',
+  expired: 'bg-cream-dark text-navy/50',
+  superseded: 'bg-cream-dark text-navy/50',
+};
+
+/**
+ * Drag-and-drop (or click-to-browse) multi-image picker for an offer:
+ * uploads straight to the public 'service-offer-media' bucket and appends the
+ * URL to the list. Same interaction as AdminMedical's ImageUploadField, kept
+ * as its own small copy rather than shared — this one is multi-image (an
+ * offer can carry several photos), that one is single-image.
+ */
+function OfferImagesField({ value, onChange }: { value: string[]; onChange: (urls: string[]) => void }) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const pick = async (files: FileList | null) => {
+    const list = [...(files ?? [])].filter((f) => f.type.startsWith('image/'));
+    if (list.length === 0) return;
+    setBusy(true);
+    try {
+      const urls = await Promise.all(list.map((f) => adminServiceOffers.uploadImage(f)));
+      onChange([...value, ...urls]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); void pick(e.dataTransfer.files); }}
+        className={`flex items-center gap-3 rounded-xl border-2 border-dashed p-3 cursor-pointer transition-colors ${
+          dragOver ? 'border-navy bg-cream' : 'border-cream-dark hover:bg-cream/60'
+        }`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => { void pick(e.target.files); e.target.value = ''; }}
+        />
+        <AppIcon name="camera" className="w-5 h-5 text-navy/40 shrink-0" />
+        <p className="text-xs font-semibold text-navy">
+          {busy ? t('serviceOffer.admin.uploading') : t('serviceOffer.admin.uploadImages')}
+        </p>
+      </div>
+      {value.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {value.map((url, idx) => (
+            <div key={idx} className="relative">
+              <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-cream-dark" />
+              <button
+                type="button"
+                onClick={() => onChange(value.filter((_, i) => i !== idx))}
+                className="absolute -top-1.5 -end-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-red text-white"
+                aria-label={t('serviceOffer.admin.removeImage')}
+              >
+                <AppIcon name="x" className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => void }) {
+  const { t, i18n } = useTranslation();
+  const [price, setPrice] = useState('');
+  const [currency, setCurrency] = useState('TL');
+  const [details, setDetails] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [expires, setExpires] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const detail = useAsyncSection(() => adminServiceOffers.detail(requestId), [requestId]);
+
+  const send = async () => {
+    if (!price || Number(price) <= 0) return;
+    setBusy(true);
+    try {
+      await adminServiceOffers.createOffer(requestId, {
+        price: Number(price), currency, details: details.trim(), imagePaths: images,
+        expiresAt: expires ? new Date(expires).toISOString() : null,
+      });
+      setPrice(''); setDetails(''); setImages([]); setExpires('');
+      detail.reload();
+      onSent();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resolvePayment = async (id: string) => {
+    await adminServiceOffers.resolvePayment(id);
+    detail.reload();
+  };
+
+  return (
+    <div className="basis-full border-t border-cream-dark mt-2 pt-3">
+      <SectionState section={detail} title={t('serviceOffer.admin.history')} empty={null} isEmpty={(d) => d.offers.length === 0 && d.payments.length === 0}>
+        {(d) => (
+          <div className="mb-3 flex flex-col gap-2">
+            {d.offers.map((o) => {
+              const pay = d.payments.find((p) => p.offerId === o.id);
+              return (
+                <div key={o.id} className="rounded-lg bg-white p-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="font-bold text-navy" dir="ltr">{o.price.toLocaleString()} {o.currency}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${OFFER_STATUS_STYLE[o.status] ?? ''}`}>
+                      {t(`serviceOffer.admin.offerStatus.${o.status}`)}
+                    </span>
+                    {pay && (
+                      <span className="text-[11px] text-navy/60">
+                        {t('serviceOffer.admin.paymentLabel')}: {t(`serviceOffer.admin.paymentStatus.${pay.status}`)}
+                        {pay.status === 'pending' && (
+                          <button onClick={() => resolvePayment(pay.id)} className="ms-2 font-semibold text-brand-red">
+                            {t('serviceOffer.admin.markFailed')}
+                          </button>
+                        )}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-navy/40">{new Date(o.createdAt).toLocaleDateString(i18n.language)}</span>
+                  </div>
+                  {o.details && <p className="mt-1 text-navy/70 break-anywhere">{o.details}</p>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </SectionState>
+
+      <div className="rounded-lg border border-dashed border-cream-dark p-3 grid gap-2 sm:grid-cols-2">
+        <div className="flex gap-2">
+          <input className="input !h-9 text-xs" type="number" placeholder={t('serviceOffer.admin.price')} value={price} onChange={(e) => setPrice(e.target.value)} />
+          <select className="input !h-9 !w-24 text-xs" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            <option>TL</option><option>USD</option><option>EUR</option>
+          </select>
+        </div>
+        <input className="input !h-9 text-xs" type="date" value={expires} onChange={(e) => setExpires(e.target.value)} />
+        <textarea className="input text-xs min-h-[60px] sm:col-span-2" placeholder={t('serviceOffer.admin.details')} value={details} onChange={(e) => setDetails(e.target.value)} />
+        <div className="sm:col-span-2">
+          <OfferImagesField value={images} onChange={setImages} />
+        </div>
+        <button onClick={send} disabled={busy || !price} className="btn-primary !h-9 text-xs sm:col-span-2 disabled:opacity-50">
+          {busy ? t('serviceOffer.admin.sending') : t('serviceOffer.admin.send')}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Admin panel section: incoming "Request service" submissions from /services.
@@ -17,6 +184,7 @@ import { useAsyncSection } from '../hooks/useAsyncSection';
 export function ServiceRequestsManager() {
   const { t, i18n } = useTranslation();
   const section = useAsyncSection<ServiceRequest[]>(() => serviceRequests.adminList(), []);
+  const [offerOpenId, setOfferOpenId] = useState<string | null>(null);
 
   const setStatus = async (id: string, status: 'accepted' | 'done' | 'rejected') => {
     await serviceRequests.adminSetStatus(id, status);
@@ -94,7 +262,16 @@ export function ServiceRequestsManager() {
                     {t('admin.serviceRequests.reject')}
                   </button>
                 )}
+                <button
+                  onClick={() => setOfferOpenId(offerOpenId === r.id ? null : r.id)}
+                  className="btn-secondary !h-8 px-3 text-xs"
+                >
+                  <AppIcon name="receipt" className="w-3.5 h-3.5" />
+                  {t('serviceOffer.admin.toggle')}
+                </button>
               </span>
+
+              {offerOpenId === r.id && <OfferPanel requestId={r.id} onSent={section.reload} />}
             </li>
           ))}
         </ul>

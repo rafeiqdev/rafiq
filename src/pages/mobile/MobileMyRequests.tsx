@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { customerRequests, reviews } from '../../lib/api';
+import { customerRequests, reviews, serviceOffers, servicePayments } from '../../lib/api';
 import type { CompanyResponse, CustomerRequest } from '../../lib/types';
 import { pickArea } from '../../data/istanbulAreas';
 import { useApp } from '../../context/AppContext';
@@ -17,6 +17,16 @@ import { MobileTabBar } from '../../components/MobileTabBar';
 import { RequestStatusPill } from '../../components/RequestStatusPill';
 import { SectionState } from '../../components/SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
+import { ServiceOfferCard } from '../../components/ServiceOfferCard';
+import { CASE_FILE_DIVIDER } from '../../lib/bookingSummary';
+
+/** Same defensive message rendering as the desktop page — see MyRequests.tsx. */
+const MESSAGE_PREVIEW_LEN = 220;
+function humanMessage(raw: string): { preview: string; full: string; truncated: boolean } {
+  const prose = raw.split(CASE_FILE_DIVIDER)[0].trim();
+  if (prose.length <= MESSAGE_PREVIEW_LEN) return { preview: prose, full: prose, truncated: false };
+  return { preview: `${prose.slice(0, MESSAGE_PREVIEW_LEN).trimEnd()}…`, full: prose, truncated: true };
+}
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -144,16 +154,52 @@ function RequestRow({ req }: { req: CustomerRequest }) {
 function MobileRequestOffers({ req }: { req: CustomerRequest }) {
   const { t } = useTranslation();
   const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
+  const [messageExpanded, setMessageExpanded] = useState(false);
   const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
+  const adminOffers = useAsyncSection(
+    () => Promise.all([serviceOffers.listForRequest(req.id), servicePayments.forRequest(req.id)]),
+    [req.id],
+  );
 
   const choose = async (responseId: string) => {
     await customerRequests.choose(responseId);
     offers.reload();
   };
 
+  const msg = req.message ? humanMessage(req.message) : null;
+
   return (
     <>
-      {req.message && <p className="mb-3 text-[13px] text-navy/70 break-anywhere">“{req.message}”</p>}
+      {msg && (
+        <p className="mb-3 text-[13px] text-navy/70 break-anywhere">
+          “{messageExpanded ? msg.full : msg.preview}”
+          {msg.truncated && (
+            <button
+              type="button"
+              onClick={() => setMessageExpanded((v) => !v)}
+              className="ms-1.5 text-[12px] font-bold text-navy underline"
+            >
+              {messageExpanded ? t('requests.showLess') : t('requests.showMore')}
+            </button>
+          )}
+        </p>
+      )}
+
+      <SectionState section={adminOffers} title={t('serviceOffer.title')} empty={null} isEmpty={([offerList]) => offerList.length === 0}>
+        {([offerList, payments]) => (
+          <div className="mb-3 flex flex-col gap-2.5">
+            {offerList.map((o) => (
+              <ServiceOfferCard
+                key={o.id}
+                offer={o}
+                payment={payments.find((p) => p.offerId === o.id)}
+                onChanged={adminOffers.reload}
+              />
+            ))}
+          </div>
+        )}
+      </SectionState>
+
       <SectionState
         section={offers}
         title={t('requests.title')}

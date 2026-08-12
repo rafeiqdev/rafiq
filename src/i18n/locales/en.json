@@ -1840,7 +1840,9 @@
         "accepted": "In review",
         "done": "Completed"
       }
-    }
+    },
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "reviews": {
     "leaveTitle": "Rate this company",
@@ -2900,6 +2902,47 @@
           "body": "Your request and medical data were recorded successfully and our medical consultant will contact you.",
           "cta": "Done"
         }
+      }
+    }
+  },
+  "serviceOffer": {
+    "title": "Price offer from Rafiq",
+    "expires": "Expires",
+    "youRejected": "You rejected this offer.",
+    "offerExpired": "This offer has expired.",
+    "superseded": "This offer was replaced by a newer one.",
+    "paid": "Paid successfully",
+    "resumePayment": "Resume payment",
+    "paymentRejected": "Your last payment attempt did not complete. Try again or reject this offer.",
+    "error": "Something went wrong. Please try again.",
+    "reject": "Reject offer",
+    "payCta": "Pay now",
+    "starting": "Redirecting...",
+    "rejectConfirm": "Rejecting this offer lets our team send you a new price. Continue?",
+    "rejectConfirmBtn": "Confirm rejection",
+    "rejecting": "Rejecting...",
+    "admin": {
+      "toggle": "Send price offer",
+      "history": "Offer history",
+      "price": "Price",
+      "details": "Offer details (explanation, tests, notes...)",
+      "send": "Send offer to customer",
+      "sending": "Sending...",
+      "uploadImages": "Add offer photos",
+      "uploading": "Uploading...",
+      "removeImage": "Remove photo",
+      "paymentLabel": "Payment",
+      "markFailed": "Mark failed",
+      "offerStatus": {
+        "sent": "Sent",
+        "rejected": "Rejected by customer",
+        "expired": "Expired",
+        "superseded": "Replaced"
+      },
+      "paymentStatus": {
+        "pending": "Pending",
+        "verified": "Paid",
+        "rejected": "Failed"
       }
     }
   }

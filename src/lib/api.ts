@@ -67,6 +67,10 @@ import type {
   MedicalTestimonial,
   MedicalPageSection,
   AdminMedicalRequest,
+  ServiceOffer,
+  ServiceOfferStatus,
+  ServicePayment,
+  ServicePaymentStatus,
 } from './types';
 import { COMPANY_PLAN_PRICE } from './types';
 import { classifyError, isSchemaUnavailable, logDiagnostic } from './errors';
@@ -2402,6 +2406,141 @@ export const customerRequests = {
   /** Pick one offer (sets chosen, clears siblings) — must own the lead. */
   async choose(responseId: string): Promise<{ ok: true }> {
     const { error } = await sb().rpc('choose_response', { p_response_id: responseId });
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+interface ServiceOfferRow {
+  id: string; request_id: string; price: number; currency: string; details: string;
+  image_paths: string[]; expires_at: string | null; status: string; created_at: string;
+}
+function toServiceOffer(r: ServiceOfferRow): ServiceOffer {
+  return {
+    id: r.id, requestId: r.request_id, price: r.price, currency: r.currency, details: r.details,
+    imagePaths: r.image_paths ?? [], expiresAt: r.expires_at, status: r.status as ServiceOfferStatus,
+    createdAt: r.created_at,
+  };
+}
+
+/**
+ * The customer side of the "admin sends one price offer per request" flow —
+ * sibling of medicalOffers/medicalPayments, deliberately kept separate (see
+ * supabase/migrations/20260812_service_offers.sql header for why).
+ */
+export const serviceOffers = {
+  /** Full offer history for one of the caller's own requests, newest first. */
+  async listForRequest(requestId: string): Promise<ServiceOffer[]> {
+    const { data, error } = await sb()
+      .from('service_offers')
+      .select('id,request_id,price,currency,details,image_paths,expires_at,status,created_at')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as ServiceOfferRow[]).map(toServiceOffer);
+  },
+  /** Reject a sent offer — the request stays open; admin can send a new one. */
+  async reject(offerId: string): Promise<{ ok: true }> {
+    const { error } = await sb().rpc('customer_reject_service_offer', { p_offer_id: offerId });
+    if (error) fail(error);
+    return { ok: true };
+  },
+};
+
+interface ServicePaymentRow {
+  id: string; request_id: string; offer_id: string; amount: number; currency: string;
+  status: string; created_at: string; verified_at: string | null; gateway_session_id?: string | null;
+}
+function toServicePayment(r: ServicePaymentRow): ServicePayment {
+  return {
+    id: r.id, requestId: r.request_id, offerId: r.offer_id, amount: r.amount, currency: r.currency,
+    status: r.status as ServicePaymentStatus, createdAt: r.created_at, verifiedAt: r.verified_at,
+    gatewaySessionId: r.gateway_session_id ?? null,
+  };
+}
+
+export const servicePayments = {
+  /**
+   * Creates the pending payment row with a server-computed amount (RPC reads
+   * the live offer row; the client never supplies price), and mints an
+   * opaque `gatewaySessionId`. `payUrl` is the checkout redirect — a hosted-
+   * checkout stand-in (api/payments/service-pay.ts) until a real Whop
+   * checkout session replaces it; see that file's header.
+   */
+  async createSession(offerId: string): Promise<{ paymentId: string; amount: number; currency: string; payUrl: string }> {
+    const { data, error } = await sb().rpc('create_service_payment_session', { p_offer_id: offerId });
+    if (error) fail(error);
+    const row = (data as unknown[])?.[0] as
+      | { payment_id: string; amount: number; currency: string; gateway_session_id: string }
+      | undefined;
+    if (!row) throw new ApiError('server_error', 500);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return {
+      paymentId: row.payment_id,
+      amount: row.amount,
+      currency: row.currency,
+      payUrl: `${origin}/api/payments/service-pay?session=${encodeURIComponent(row.gateway_session_id)}`,
+    };
+  },
+
+  async forRequest(requestId: string): Promise<ServicePayment[]> {
+    const { data, error } = await sb()
+      .from('service_payments')
+      .select('id,request_id,offer_id,amount,currency,status,created_at,verified_at,gateway_session_id')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as ServicePaymentRow[]).map(toServicePayment);
+  },
+
+  /** Rebuild the checkout redirect for an existing pending payment (resume, no new session minted). */
+  resumeUrl(payment: ServicePayment, returnPath: string): string | null {
+    if (payment.status !== 'pending' || !payment.gatewaySessionId) return null;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/api/payments/service-pay?session=${encodeURIComponent(payment.gatewaySessionId)}&return=${encodeURIComponent(returnPath)}`;
+  },
+};
+
+export const adminServiceOffers = {
+  /** Admin: every offer + payment on one request — feeds the "send offer" panel. */
+  async detail(requestId: string): Promise<{ offers: ServiceOffer[]; payments: ServicePayment[] }> {
+    const [offersRes, paymentsRes] = await Promise.all([
+      sb().from('service_offers').select('id,request_id,price,currency,details,image_paths,expires_at,status,created_at').eq('request_id', requestId).order('created_at', { ascending: false }),
+      sb().from('service_payments').select('id,request_id,offer_id,amount,currency,status,created_at,verified_at').eq('request_id', requestId).order('created_at', { ascending: false }),
+    ]);
+    if (offersRes.error) fail(offersRes.error);
+    if (paymentsRes.error) fail(paymentsRes.error);
+    return {
+      offers: ((offersRes.data ?? []) as ServiceOfferRow[]).map(toServiceOffer),
+      payments: ((paymentsRes.data ?? []) as ServicePaymentRow[]).map(toServicePayment),
+    };
+  },
+
+  async createOffer(requestId: string, input: {
+    price: number; currency: string; details: string; imagePaths: string[]; expiresAt?: string | null;
+  }): Promise<{ id: string }> {
+    const uid = await requireUid();
+    const { data, error } = await sb().from('service_offers').insert({
+      request_id: requestId, price: input.price, currency: input.currency, details: input.details,
+      image_paths: input.imagePaths, expires_at: input.expiresAt ?? null, status: 'sent', created_by: uid,
+    }).select('id').single();
+    if (error) fail(error);
+    return { id: data!.id };
+  },
+
+  /** Admin: upload an offer photo to the public 'service-offer-media' bucket → public URL. */
+  async uploadImage(file: File): Promise<string> {
+    const c = sb();
+    const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const up = await c.storage.from('service-offer-media').upload(path, file, { upsert: false, contentType: file.type || undefined });
+    if (up.error) fail(up.error);
+    return c.storage.from('service-offer-media').getPublicUrl(path).data.publicUrl;
+  },
+
+  /** Reject an abandoned/failed pending payment. Same "no verify path" invariant as medical. */
+  async resolvePayment(id: string): Promise<{ ok: true }> {
+    const { error } = await sb().rpc('admin_set_service_payment_status', { p_id: id, p_status: 'rejected' });
     if (error) fail(error);
     return { ok: true };
   },
