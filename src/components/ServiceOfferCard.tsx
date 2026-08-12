@@ -1,8 +1,97 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { TouchEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { servicePayments, serviceOffers } from '../lib/api';
 import { AppIcon } from './AppIcon';
+import { Modal } from './Modal';
 import type { ServiceOffer, ServicePayment } from '../lib/types';
+
+/** How far (px) a swipe must travel before it counts as a page change, not a tap. */
+const SWIPE_THRESHOLD = 40;
+
+/**
+ * Full-size viewer for an offer's photos — prev/next arrows, left/right
+ * arrow keys, and touch swipe, all moving through the same `photos` array.
+ * Built on the shared Modal (portal, focus trap, Escape-to-close) like
+ * realestate/PhotoLightbox, kept as its own small copy since offer photos
+ * have no thumbnail-CDN transform to reuse from that one.
+ */
+function OfferPhotoLightbox({
+  photos,
+  index,
+  onClose,
+}: {
+  photos: string[];
+  index: number;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [active, setActive] = useState(index);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  useEffect(() => setActive(index), [index]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') setActive((i) => (i + 1) % photos.length);
+      if (e.key === 'ArrowLeft') setActive((i) => (i - 1 + photos.length) % photos.length);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [photos.length]);
+
+  const onTouchStart = (e: TouchEvent<HTMLDivElement>) => setTouchStartX(e.touches[0].clientX);
+  const onTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (touchStartX == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      // Swipe right (dx > 0) = previous photo in a left-to-right reading gesture.
+      setActive((i) => (dx > 0 ? (i - 1 + photos.length) % photos.length : (i + 1) % photos.length));
+    }
+    setTouchStartX(null);
+  };
+
+  return (
+    <Modal onClose={onClose} labelId="offer-photo-lightbox-title" maxWidth="max-w-3xl">
+      <h2 id="offer-photo-lightbox-title" className="sr-only">{t('serviceOffer.title')}</h2>
+      <div
+        className="relative flex items-center justify-center"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        <img
+          src={photos[active]}
+          alt={t('realEstate.detail.photo', { n: active + 1 })}
+          className="max-h-[80vh] w-auto max-w-full touch-pan-y select-none rounded-card object-contain bg-navy-900"
+          draggable={false}
+        />
+        {photos.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => setActive((i) => (i - 1 + photos.length) % photos.length)}
+              aria-label={t('realEstate.detail.prevPhoto')}
+              className="absolute start-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-navy shadow-card hover:bg-white"
+            >
+              <AppIcon name="chevron-left" className="w-5 h-5 dir-arrow" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActive((i) => (i + 1) % photos.length)}
+              aria-label={t('realEstate.detail.nextPhoto')}
+              className="absolute end-2 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-navy shadow-card hover:bg-white"
+            >
+              <AppIcon name="chevron-right" className="w-5 h-5 dir-arrow" />
+            </button>
+            <span className="absolute bottom-2 start-1/2 -translate-x-1/2 rounded-full bg-navy/70 px-3 py-1 text-xs font-bold text-white" dir="ltr">
+              {active + 1} / {photos.length}
+            </span>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
 
 /**
  * One admin-sent price offer on a regular ("طلباتي") service request — price,
@@ -29,7 +118,7 @@ export function ServiceOfferCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const verified = payment?.status === 'verified';
   const expired = offer.expiresAt ? new Date(offer.expiresAt) < new Date() : false;
@@ -74,7 +163,7 @@ export function ServiceOfferCard({
       {offer.imagePaths.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {offer.imagePaths.map((url, idx) => (
-            <button key={idx} type="button" onClick={() => setLightbox(url)} className="shrink-0">
+            <button key={idx} type="button" onClick={() => setLightboxIndex(idx)} className="shrink-0">
               <img src={url} alt="" className="h-16 w-16 rounded-lg object-cover border border-cream-dark" />
             </button>
           ))}
@@ -141,16 +230,12 @@ export function ServiceOfferCard({
         </>
       )}
 
-      {lightbox && (
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setLightbox(null)}
-          onKeyDown={(e) => { if (e.key === 'Escape') setLightbox(null); }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
-        >
-          <img src={lightbox} alt="" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
-        </div>
+      {lightboxIndex != null && (
+        <OfferPhotoLightbox
+          photos={offer.imagePaths}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   );
