@@ -3,6 +3,7 @@ import { SERVICES, keywordsFor } from './services';
 import { SERVICE_SEO_AR } from './serviceSeoAr';
 import { SERVICE_SEO_EN } from './serviceSeoEn';
 import { SERVICE_SEO_RU } from './serviceSeoRu';
+import { SERVICE_SEO_FA } from './serviceSeoFa';
 
 type SeoRecord = {
   seoTitle: string;
@@ -14,6 +15,7 @@ const catalogs: ReadonlyArray<readonly [string, Record<string, SeoRecord>]> = [
   ['Arabic', SERVICE_SEO_AR],
   ['English', SERVICE_SEO_EN],
   ['Russian', SERVICE_SEO_RU],
+  ['Farsi', SERVICE_SEO_FA],
 ];
 
 function normalized(phrase: string): string {
