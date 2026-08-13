@@ -9,6 +9,7 @@ import type { ServiceType } from '../data/services';
 import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
 import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
+import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
 import { usePageMeta } from '../lib/seo';
 
 function copyFor(language: string) {
@@ -50,6 +51,25 @@ function copyFor(language: string) {
       returnButton: 'Вернуться ко всем услугам',
     };
   }
+  if (language === 'fa') {
+    return {
+      notFoundTitle: 'خدمت یافت نشد',
+      notFoundText: 'به فهرست خدمات برگردید و خدمتی را انتخاب کنید که با نیاز شما متناسب است.',
+      allServices: 'مشاهده همه خدمات',
+      breadcrumb: 'خدمات',
+      breadcrumbLabel: 'مسیر راهنما',
+      howHeading: 'Rafiq چگونه می‌تواند در این خدمت کمک کند؟',
+      directSupport: 'Rafiq این خدمت را مستقیماً هماهنگ می‌کند. نیاز خود را بفرستید تا درباره گام بعدی مناسب صحبت کنیم.',
+      partnerSupport: 'Rafiq این خدمت را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
+      topicsHeading: 'پرسش‌های رایج و موضوعات مرتبط',
+      topicsIntro: 'این‌ها موضوعات رایجی هستند که مشتریان پیش از شروع بررسی می‌کنند. شرایط و تصمیم‌های نهایی به وضعیت شما و مراجع یا ارائه‌کنندگان مربوط بستگی دارد.',
+      relatedHeading: 'خدمات مرتبط',
+      requestHeading: 'درخواست کمک',
+      requestText: 'جزئیات نیاز خود را بفرستید تا گام بعدی مناسب برای خدمت درخواستی را هماهنگ کنیم.',
+      requestButton: 'درخواست کمک برای این خدمت',
+      returnButton: 'بازگشت به همه خدمات',
+    };
+  }
   return {
     notFoundTitle: 'الخدمة غير موجودة',
     notFoundText: 'يمكنك العودة إلى قائمة الخدمات واختيار الخدمة المناسبة لك.',
@@ -83,9 +103,9 @@ function ServiceNotFound() {
 }
 
 /**
- * A crawlable service page. Arabic, English and Russian pages add reviewed,
- * service-specific search intents; other languages keep their catalog text
- * until their own reviewed SEO copy is ready.
+ * A crawlable service page. Arabic, English, Russian and Persian pages add
+ * reviewed, service-specific search intents; other languages keep their catalog
+ * text until their own reviewed SEO copy is ready.
  */
 export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -97,19 +117,21 @@ export function ServiceDetail() {
   if (!service) return <ServiceNotFound />;
 
   const language = i18n.language;
-  const isArabic = language === 'ar';
+  const isRtl = language === 'ar' || language === 'fa';
   const copy = copyFor(language);
   const category = categories.find((item) => item.id === service.category);
   const title = pickText(service.title, language);
   const description = pickText(service.desc, language);
   const categoryTitle = category ? pickText(category.title, language) : '';
-  const serviceSeo = isArabic
+  const serviceSeo = language === 'ar'
     ? SERVICE_SEO_AR[service.id]
     : language === 'en'
       ? SERVICE_SEO_EN[service.id]
       : language === 'ru'
         ? SERVICE_SEO_RU[service.id]
-        : undefined;
+        : language === 'fa'
+          ? SERVICE_SEO_FA[service.id]
+          : undefined;
   const seoTitle = serviceSeo?.seoTitle ?? `${title} — ${categoryTitle}`;
   const seoDescription = serviceSeo?.metaDescription ?? description;
   const related = services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4);
@@ -152,7 +174,7 @@ export function ServiceDetail() {
             <section className="card p-5 sm:p-6">
               <h2 className="text-lg font-extrabold text-navy">{copy.topicsHeading}</h2>
               <p className="mt-2 text-sm leading-6 text-gray-600">{copy.topicsIntro}</p>
-              <ul className="mt-4 grid gap-2 sm:grid-cols-2" dir={isArabic ? 'rtl' : 'ltr'}>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2" dir={isRtl ? 'rtl' : 'ltr'}>
                 {serviceSeo.searchPhrases.map((phrase) => (
                   <li key={phrase} className="flex gap-2 rounded-lg bg-cream px-3 py-2 text-sm leading-6 text-navy/85">
                     <AppIcon name="check" className="mt-1 h-3.5 w-3.5 shrink-0 text-gold-dark" />
