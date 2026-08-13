@@ -32,6 +32,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 // is the entire point: a wrong hostname here gets published to Google.
 const SITE_URL = resolveSiteUrlOrExit(process.env);
 const LANGS = ['ar', 'en', 'ru', 'fa'];
+// Detail pages are indexable only after their language-specific SEO copy is reviewed.
+const SERVICE_LANGS = ['ar', 'en'];
 const today = new Date().toISOString().slice(0, 10);
 
 /** @type {{ path: string, changefreq: string, priority: string }[]} */
@@ -62,9 +64,9 @@ const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 /** /ar + '/' -> https://…/ar ; /ar + '/services' -> https://…/ar/services */
 const langUrl = (lang, path) => `${SITE_URL}/${lang}${path === '/' ? '' : path}`;
 
-function urlEntry(lang, { path, changefreq, priority }) {
+function urlEntry(lang, { path, changefreq, priority }, alternateLanguages) {
   const alternates = [
-    ...LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${escapeXml(langUrl(l, path))}" />`),
+    ...alternateLanguages.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${escapeXml(langUrl(l, path))}" />`),
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(langUrl('ar', path))}" />`,
   ].join('\n');
   return [
@@ -78,8 +80,9 @@ function urlEntry(lang, { path, changefreq, priority }) {
   ].join('\n');
 }
 
-const routes = [...STATIC_ROUTES, ...dynamicRoutes];
-const body = LANGS.flatMap((lang) => routes.map((r) => urlEntry(lang, r))).join('\n');
+const staticEntries = LANGS.flatMap((lang) => STATIC_ROUTES.map((route) => urlEntry(lang, route, LANGS)));
+const dynamicEntries = SERVICE_LANGS.flatMap((lang) => dynamicRoutes.map((route) => urlEntry(lang, route, SERVICE_LANGS)));
+const body = [...staticEntries, ...dynamicEntries].join('\n');
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${body}\n</urlset>\n`;
 
 writeFileSync(join(root, 'public/sitemap.xml'), xml, 'utf8');
@@ -90,5 +93,5 @@ const robots = ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE_URL}/sitemap.x
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
 console.log(
-  `sitemap.xml + robots.txt generated: ${routes.length} routes x ${LANGS.length} languages (${SITE_URL})`,
+  `sitemap.xml + robots.txt generated: ${staticEntries.length + dynamicEntries.length} URLs (${STATIC_ROUTES.length} static routes in ${LANGS.length} languages; ${dynamicRoutes.length} service routes in ${SERVICE_LANGS.length} languages) (${SITE_URL})`,
 );
