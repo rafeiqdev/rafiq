@@ -111,7 +111,7 @@ export function setConsent(state: 'granted' | 'declined'): void {
   }
 
   // The Google tag itself is loaded only after a visitor grants analytics
-  // consent.  This keeps the site's GA4 collection aligned with the banner,
+  // consent. This keeps the site's GA4 collection aligned with the banner,
   // rather than letting an unconditional page tag measure visitors first.
   try {
     window.rafiqGoogleAnalytics?.setConsent(state);
@@ -211,7 +211,7 @@ const MAX_QUERY_LEN = 100;
 /**
  * search_performed's meta.query — call this before track(), not after. Caps
  * length so a pasted essay can't inflate the row, and normalises case/spacing
- * so "Residency  Permit" and "residency permit" roll up as the same demand
+ * so "Residency Permit" and "residency permit" roll up as the same demand
  * signal rather than two.
  */
 export function normalizeSearchQuery(raw: string): string {
@@ -275,7 +275,7 @@ function endpointUrl(): string | null {
 let sinkMissing = false;
 
 /** PostgREST answers 404 for an unknown relation. 401/403 are NOT this — those
- *  are RLS or key problems, where retrying is legitimate. */
+ * are RLS or key problems, where retrying is legitimate. */
 function isMissingTable(status: number): boolean {
   return status === 404;
 }
@@ -465,7 +465,6 @@ function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): voi
 export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): void {
   try {
     if (typeof window === 'undefined') return;
-    if (sinkMissing) return; // nowhere to store it — do not queue, do not send
     if (isDoNotTrackEnabled()) return;
     if (getConsent() !== 'granted') return;
 
@@ -479,7 +478,11 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
       return;
     }
 
+    // GA4 remains useful even if the optional first-party event table is not
+    // deployed. Its delivery must not depend on the Supabase event sink.
     sendGoogleEvent(eventType, { target, meta: meta ?? undefined });
+
+    if (sinkMissing) return; // Skip only the unavailable first-party queue.
 
     enqueue({
       event_type: eventType,
