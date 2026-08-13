@@ -23,6 +23,9 @@ import { AdminBookingsPanel } from './AdminBookings';
 import { SectionState } from '../components/SectionState';
 import { RequestStatusPill } from '../components/RequestStatusPill';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
+import { RevealField } from '../components/admin/RevealField';
+import { maskEmail } from '../lib/format';
 
 /**
  * Every section that used to be its own stacked card (or, worse, its own
@@ -56,6 +59,8 @@ function UserRow({
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Awaited<ReturnType<typeof adminUsers.detail>> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingTier, setPendingTier] = useState<PlanTier | null>(null);
+  const [pendingRole, setPendingRole] = useState(false);
   // A detail panel that failed to load must not present as a customer with no
   // history. This was `catch { /* ignore */ }`, which did exactly that.
   const [failed, setFailed] = useState(false);
@@ -87,14 +92,14 @@ function UserRow({
         <td className="py-2.5">
           <button onClick={toggle} className="text-start inline-flex items-center gap-1.5 group" aria-expanded={open}>
             <AppIcon name="arrow-right" className={`w-3 h-3 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
-            <span>
-              <span className="font-semibold text-navy inline-flex items-center gap-1.5 group-hover:underline">
-                {u.name}
-                {u.isAdmin && <AppIcon name="shield-check" className="w-3.5 h-3.5 text-brand-red" />}
-              </span>
-              <span className="block text-xs text-gray-500 break-all">{u.email}</span>
+            <span className="font-semibold text-navy inline-flex items-center gap-1.5 group-hover:underline">
+              {u.name}
+              {u.isAdmin && <AppIcon name="shield-check" className="w-3.5 h-3.5 text-brand-red" />}
             </span>
           </button>
+          <div className="ms-[18px] text-xs text-gray-500">
+            <RevealField masked={maskEmail(u.email)} full={u.email} className="break-all" />
+          </div>
         </td>
         <td className="py-2.5 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString(i18n.language)}</td>
         {/* "—" means that table could not be read. It is NOT zero. */}
@@ -104,7 +109,7 @@ function UserRow({
           <select
             className="input !h-9 !w-auto text-xs"
             value={u.tier}
-            onChange={(e) => onSetTier(u.id, e.target.value as PlanTier)}
+            onChange={(e) => setPendingTier(e.target.value as PlanTier)}
             aria-label={t('admin.users.setTier')}
           >
             {TIERS.map((x) => (
@@ -209,7 +214,7 @@ function UserRow({
               <div className="mt-3 flex items-center gap-2 border-t border-cream-dark pt-3">
                 <span className="text-xs font-semibold text-navy/60">{t('medical.admin.roleLabel')}</span>
                 <button
-                  onClick={() => onSetRole(u.id, u.isMedicalCoordinator ? 'user' : 'medical_coordinator')}
+                  onClick={() => setPendingRole(true)}
                   className="btn-secondary !h-8 px-3 text-xs"
                 >
                   <AppIcon name="heart-pulse" className="w-3.5 h-3.5" />
@@ -219,6 +224,35 @@ function UserRow({
             )}
           </td>
         </tr>
+      )}
+      {pendingTier && (
+        <ConfirmActionModal
+          title={t('admin.users.setTier')}
+          record={u.name}
+          currentStatus={u.tier === 'free' ? t('common.free') : t(`pricing.${u.tier}.name`)}
+          expectedResult={pendingTier === 'free' ? t('common.free') : t(`pricing.${pendingTier}.name`)}
+          reversible
+          notifiesCustomer={false}
+          onClose={() => setPendingTier(null)}
+          onConfirm={() => {
+            onSetTier(u.id, pendingTier);
+            setPendingTier(null);
+          }}
+        />
+      )}
+      {pendingRole && (
+        <ConfirmActionModal
+          title={u.isMedicalCoordinator ? t('medical.admin.revokeCoordinator') : t('medical.admin.makeCoordinator')}
+          record={u.name}
+          expectedResult={u.isMedicalCoordinator ? t('medical.admin.revokeCoordinator') : t('medical.admin.makeCoordinator')}
+          reversible
+          notifiesCustomer={false}
+          onClose={() => setPendingRole(false)}
+          onConfirm={() => {
+            onSetRole(u.id, u.isMedicalCoordinator ? 'user' : 'medical_coordinator');
+            setPendingRole(false);
+          }}
+        />
       )}
     </>
   );
@@ -235,8 +269,11 @@ function UserRow({
  * every group/flat list below — unused for now, hidden rather than deleted.
  */
 const NAV_GROUPS: { id: string; icon: IconName; labelKey: string; tabs: AdminTab[] }[] = [
-  { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'bookings', 'catalog'] },
+  { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'bookings', 'catalog', 'leads'] },
   { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'cancellations'] },
+  { id: 'content', icon: 'newspaper', labelKey: 'admin.groups.content', tabs: ['broadcast', 'newsFeed', 'news'] },
+  { id: 'realEstate', icon: 'home', labelKey: 'admin.groups.realEstate', tabs: ['listings', 'investments', 'places'] },
+  { id: 'settingsGroup', icon: 'trending-up', labelKey: 'admin.groups.settings', tabs: ['rates'] },
 ];
 const GROUPED_TABS = new Set(NAV_GROUPS.flatMap((g) => g.tabs));
 const HIDDEN_FROM_NAV = new Set<AdminTab>(['companies', 'companyPayments']);
@@ -403,6 +440,7 @@ function AdminInner() {
     paymentsSec.reload();
     await refresh();
   };
+  const [pendingPayment, setPendingPayment] = useState<{ id: string; status: 'verified' | 'rejected'; email: string } | null>(null);
 
   const publish = async () => {
     if (!news.trim()) return;
@@ -410,6 +448,7 @@ function AdminInner() {
     setNews('');
     broadcastsSec.reload();
   };
+  const [confirmPublish, setConfirmPublish] = useState(false);
 
   // Stats summarise the users section, so they can only be as trustworthy as it
   // is: while it is loading or failed they show "—" rather than 0. A dashboard
@@ -579,7 +618,9 @@ function AdminInner() {
                 <ul className="mt-4 flex flex-col gap-3">
                   {rows.map((p) => (
                     <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
-                      <span className="font-semibold text-navy break-all">{p.email}</span>
+                      <span className="font-semibold text-navy">
+                        <RevealField masked={maskEmail(p.email)} full={p.email} className="break-all" />
+                      </span>
                       <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
                         {t(`pricing.${p.tier}.name`)} / {t(`common.${p.billing}`)}
                       </span>
@@ -609,11 +650,11 @@ function AdminInner() {
                       )}
                       {p.status === 'pending' && (
                         <span className="ms-auto flex gap-2">
-                          <button onClick={() => resolvePayment(p.id, 'verified')} className="btn-primary h-9 px-3 text-xs">
+                          <button onClick={() => setPendingPayment({ id: p.id, status: 'verified', email: p.email })} className="btn-primary h-9 px-3 text-xs">
                             <AppIcon name="check" className="w-3.5 h-3.5" />
                             {t('admin.payments.verify')}
                           </button>
-                          <button onClick={() => resolvePayment(p.id, 'rejected')} className="btn-danger h-9 px-3 text-xs">
+                          <button onClick={() => setPendingPayment({ id: p.id, status: 'rejected', email: p.email })} className="btn-danger h-9 px-3 text-xs">
                             <AppIcon name="x" className="w-3.5 h-3.5" />
                             {t('admin.payments.reject')}
                           </button>
@@ -625,6 +666,21 @@ function AdminInner() {
                 </>
                 )}
               </SectionState>
+              {pendingPayment && (
+                <ConfirmActionModal
+                  title={pendingPayment.status === 'verified' ? t('admin.payments.verify') : t('admin.payments.reject')}
+                  record={pendingPayment.email}
+                  currentStatus={t('admin.payments.filter.pending')}
+                  expectedResult={t(`admin.payments.filter.${pendingPayment.status}`)}
+                  reversible={false}
+                  notifiesCustomer={false}
+                  onClose={() => setPendingPayment(null)}
+                  onConfirm={() => {
+                    resolvePayment(pendingPayment.id, pendingPayment.status);
+                    setPendingPayment(null);
+                  }}
+                />
+              )}
             </div>
           )}
 
@@ -751,7 +807,11 @@ function AdminInner() {
                         {t(`leads.kind.${l.kind}`)}
                       </span>
                       <span className="font-semibold text-navy break-anywhere">{l.item}</span>
-                      <span className="text-xs text-gray-500 break-all">{l.userEmail}</span>
+                      {l.userEmail && (
+                        <span className="text-xs text-gray-500">
+                          <RevealField masked={maskEmail(l.userEmail)} full={l.userEmail} className="break-all" />
+                        </span>
+                      )}
                       <span className="ms-auto text-xs text-gray-500">
                         {new Date(l.createdAt).toLocaleString(i18n.language)}
                       </span>
@@ -793,11 +853,25 @@ function AdminInner() {
               <h2 className="font-bold text-navy">{t('admin.news.title')}</h2>
               <div className="mt-3 flex gap-2">
                 <input className="input" placeholder={t('admin.news.placeholder')} value={news} onChange={(e) => setNews(e.target.value)} />
-                <button onClick={publish} className="btn-primary px-5">
+                <button onClick={() => news.trim() && setConfirmPublish(true)} className="btn-primary px-5">
                   <AppIcon name="megaphone" className="w-4 h-4" />
                   {t('admin.news.publish')}
                 </button>
               </div>
+              {confirmPublish && (
+                <ConfirmActionModal
+                  title={t('admin.news.publish')}
+                  record={news}
+                  expectedResult={t('admin.news.publish')}
+                  reversible={false}
+                  notifiesCustomer
+                  onClose={() => setConfirmPublish(false)}
+                  onConfirm={() => {
+                    publish();
+                    setConfirmPublish(false);
+                  }}
+                />
+              )}
               <SectionState
                 section={broadcastsSec}
                 title={t('admin.news.title')}

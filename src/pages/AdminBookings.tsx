@@ -6,6 +6,9 @@ import { LANGS } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
 import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
+import { RevealField } from '../components/admin/RevealField';
+import { maskEmail } from '../lib/format';
 
 const STATUSES: BookingStatus[] = ['new', 'confirmed', 'done', 'cancelled'];
 
@@ -13,13 +16,16 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState(booking.internalNote ?? '');
+  const [pendingStatus, setPendingStatus] = useState<BookingStatus | null>(null);
   const lang = LANGS.find((l) => l.code === booking.preferredLanguage);
 
   return (
     <div className="card p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-navy text-sm break-all">{booking.userEmail}</p>
+          <p className="font-bold text-navy text-sm">
+            <RevealField masked={maskEmail(booking.userEmail)} full={booking.userEmail} className="break-all" />
+          </p>
           <p className="mt-1 text-sm text-navy/80 break-words">{booking.problemSummary}</p>
           <p className="mt-1 text-xs text-gray-500 break-words">
             {t('adminBookings.datetime')}: {new Date(booking.preferredDatetime).toLocaleString(i18n.language)} ·{' '}
@@ -35,10 +41,7 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
         <select
           className="input !h-9 !w-auto text-xs"
           value={booking.status}
-          onChange={async (e) => {
-            await bookings.setStatus(booking.id, e.target.value as BookingStatus);
-            onChanged();
-          }}
+          onChange={(e) => setPendingStatus(e.target.value as BookingStatus)}
           aria-label={t('common.status')}
         >
           {STATUSES.map((s) => (
@@ -48,6 +51,22 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
           ))}
         </select>
       </div>
+      {pendingStatus && (
+        <ConfirmActionModal
+          title={t('common.status')}
+          record={booking.userEmail}
+          currentStatus={t(`adminBookings.statuses.${booking.status}`)}
+          expectedResult={t(`adminBookings.statuses.${pendingStatus}`)}
+          reversible
+          notifiesCustomer={false}
+          onClose={() => setPendingStatus(null)}
+          onConfirm={async () => {
+            await bookings.setStatus(booking.id, pendingStatus);
+            setPendingStatus(null);
+            onChanged();
+          }}
+        />
+      )}
 
       {booking.media && booking.media.length > 0 && (
         <div className="mt-3">

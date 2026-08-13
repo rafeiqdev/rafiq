@@ -8,6 +8,9 @@ import { AppIcon } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { RequireMedicalCoordinator } from '../components/Gates';
 import { MedicalStatusPill } from '../components/medical/MedicalStatusPill';
+import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
+import { RevealField } from '../components/admin/RevealField';
+import { maskEmail } from '../lib/format';
 import type {
   AdminMedicalRequest, MedicalFaq, MedicalHeroSlide, MedicalLandingCard, MedicalOffer, MedicalOptionalServiceType,
   MedicalPageSection, MedicalRequestStatus, MedicalTestimonial,
@@ -148,6 +151,7 @@ function RequestDetail({ req, onChanged }: { req: AdminMedicalRequest; onChanged
   const [internalNote, setInternalNote] = useState(req.internalNote ?? '');
   const [customerNote, setCustomerNote] = useState(req.customerNote ?? '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<MedicalRequestStatus | null>(null);
 
   const setStatus = async (status: MedicalRequestStatus) => {
     await adminMedical.setStatus(req.id, status);
@@ -179,9 +183,24 @@ function RequestDetail({ req, onChanged }: { req: AdminMedicalRequest; onChanged
   return (
     <div className="mt-4 border-t border-cream-dark pt-4 flex flex-col gap-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <select className="input !h-9 !w-auto text-xs" value={req.status} onChange={(e) => setStatus(e.target.value as MedicalRequestStatus)}>
+        <select className="input !h-9 !w-auto text-xs" value={req.status} onChange={(e) => setPendingStatus(e.target.value as MedicalRequestStatus)}>
           {STATUSES.map((s) => <option key={s} value={s}>{t(`medical.status.${s}`)}</option>)}
         </select>
+        {pendingStatus && (
+          <ConfirmActionModal
+            title={t('common.status')}
+            record={req.ownerName ?? req.ownerEmail ?? undefined}
+            currentStatus={t(`medical.status.${req.status}`)}
+            expectedResult={t(`medical.status.${pendingStatus}`)}
+            reversible
+            notifiesCustomer={false}
+            onClose={() => setPendingStatus(null)}
+            onConfirm={() => {
+              setStatus(pendingStatus);
+              setPendingStatus(null);
+            }}
+          />
+        )}
         {WA_ENABLED && (
           <a
             href={`https://wa.me/${WA}?text=${encodeURIComponent(waText)}`}
@@ -318,7 +337,10 @@ function RequestsQueue() {
                 <button onClick={() => setOpenId(openId === r.id ? null : r.id)} className="w-full flex items-center gap-3 text-start" aria-expanded={openId === r.id}>
                   <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${openId === r.id ? 'rotate-90' : ''}`} />
                   <span className="flex-1 min-w-0">
-                    <span className="font-semibold text-navy block">{r.specialty} — {r.ownerName ?? r.ownerEmail ?? '—'}</span>
+                    <span className="font-semibold text-navy block">
+                      {r.specialty} —{' '}
+                      {r.ownerName ?? (r.ownerEmail ? <RevealField masked={maskEmail(r.ownerEmail)} full={r.ownerEmail} /> : '—')}
+                    </span>
                     <span className="text-xs text-navy/50">{new Date(r.createdAt).toLocaleDateString(i18n.language)} · {r.offersCount} {t('medical.admin.offersCount')}</span>
                   </span>
                   <MedicalStatusPill status={r.status} />
@@ -578,6 +600,7 @@ function CatalogRow({ item, onSave, onDelete }: { item: CatalogItem; onSave: (it
   const { t } = useTranslation();
   const [draft, setDraft] = useState(item);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(item);
 
   const save = async () => {
@@ -613,8 +636,22 @@ function CatalogRow({ item, onSave, onDelete }: { item: CatalogItem; onSave: (it
       <input className="input !h-8 text-xs" placeholder={t('medical.admin.content.icon')} value={draft.icon ?? ''} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} dir="ltr" />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
-        <button onClick={() => onDelete(item.id)} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+        <button onClick={() => setConfirmDelete(true)} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
       </div>
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={item.slug}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            onDelete(item.id);
+            setConfirmDelete(false);
+          }}
+        />
+      )}
     </li>
   );
 }
@@ -670,6 +707,7 @@ function FaqRow({ faq, onChanged }: { faq: MedicalFaq; onChanged: () => void }) 
   const { t } = useTranslation();
   const [draft, setDraft] = useState<FaqDraft>(faq);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(faq);
 
   const save = async () => {
@@ -709,8 +747,22 @@ function FaqRow({ faq, onChanged }: { faq: MedicalFaq; onChanged: () => void }) 
       />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
-        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+        <button onClick={() => setConfirmDelete(true)} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
       </div>
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={faq.question?.en || faq.question?.ar}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            remove();
+            setConfirmDelete(false);
+          }}
+        />
+      )}
     </li>
   );
 }
@@ -721,6 +773,7 @@ function TestimonialRow({ tst, onChanged }: { tst: MedicalTestimonial; onChanged
   const { t } = useTranslation();
   const [draft, setDraft] = useState<TestimonialDraft>(tst);
   const [busy, setBusy] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | 'delete' | 'publish' | 'unpublish'>(null);
   const dirty = JSON.stringify(draft) !== JSON.stringify(tst);
 
   const save = async (patch: Partial<TestimonialDraft> = {}) => {
@@ -762,10 +815,26 @@ function TestimonialRow({ tst, onChanged }: { tst: MedicalTestimonial; onChanged
       <div className="flex gap-1.5 flex-wrap">
         <button onClick={() => save()} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
         {draft.status === 'draft'
-          ? <button onClick={() => save({ status: 'published' })} disabled={!draft.consentGiven || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.publish')}</button>
-          : <button onClick={() => save({ status: 'draft' })} disabled={busy} className="btn-secondary flex-1 !h-8 text-[11px]">{t('medical.admin.content.unpublish')}</button>}
-        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+          ? <button onClick={() => setConfirmAction('publish')} disabled={!draft.consentGiven || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.publish')}</button>
+          : <button onClick={() => setConfirmAction('unpublish')} disabled={busy} className="btn-secondary flex-1 !h-8 text-[11px]">{t('medical.admin.content.unpublish')}</button>}
+        <button onClick={() => setConfirmAction('delete')} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
       </div>
+      {confirmAction && (
+        <ConfirmActionModal
+          title={confirmAction === 'delete' ? t('common.delete') : t(`medical.admin.content.${confirmAction}`)}
+          record={draft.authorName}
+          expectedResult={confirmAction === 'delete' ? t('common.delete') : t(`medical.admin.content.${confirmAction}`)}
+          reversible={confirmAction !== 'delete'}
+          notifiesCustomer={false}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={() => {
+            if (confirmAction === 'delete') remove();
+            else if (confirmAction === 'publish') save({ status: 'published' });
+            else save({ status: 'draft' });
+            setConfirmAction(null);
+          }}
+        />
+      )}
     </li>
   );
 }
@@ -829,6 +898,7 @@ function LandingCardRow({ card, onChanged }: { card: MedicalLandingCard; onChang
   const { t } = useTranslation();
   const [draft, setDraft] = useState<LandingCardDraft>(card);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(card);
 
   const save = async () => {
@@ -870,8 +940,22 @@ function LandingCardRow({ card, onChanged }: { card: MedicalLandingCard; onChang
       />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
-        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+        <button onClick={() => setConfirmDelete(true)} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
       </div>
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={card.slug}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            remove();
+            setConfirmDelete(false);
+          }}
+        />
+      )}
     </li>
   );
 }
@@ -934,6 +1018,7 @@ function HeroSlideRow({ slide, onChanged }: { slide: MedicalHeroSlide; onChanged
   const { t } = useTranslation();
   const [draft, setDraft] = useState<HeroSlideDraft>(slide);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dirty = JSON.stringify(draft) !== JSON.stringify(slide);
 
   const save = async () => {
@@ -971,8 +1056,22 @@ function HeroSlideRow({ slide, onChanged }: { slide: MedicalHeroSlide; onChanged
       />
       <div className="flex gap-2">
         <button onClick={save} disabled={!dirty || busy} className="btn-secondary flex-1 !h-8 text-[11px] disabled:opacity-40">{t('medical.admin.content.save')}</button>
-        <button onClick={remove} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
+        <button onClick={() => setConfirmDelete(true)} className="text-brand-red shrink-0"><AppIcon name="trash" className="w-4 h-4" /></button>
       </div>
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={draft.caption?.en || draft.caption?.ar}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            remove();
+            setConfirmDelete(false);
+          }}
+        />
+      )}
     </li>
   );
 }

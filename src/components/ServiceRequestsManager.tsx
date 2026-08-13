@@ -5,6 +5,9 @@ import type { ServiceRequest } from '../lib/api';
 import { AppIcon } from './AppIcon';
 import { SectionState } from './SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+import { ConfirmActionModal } from './admin/ConfirmActionModal';
+import { RevealField } from './admin/RevealField';
+import { maskEmail, maskPhone } from '../lib/format';
 
 const OFFER_STATUS_STYLE: Record<string, string> = {
   sent: 'bg-brand-blue text-navy',
@@ -199,6 +202,7 @@ export function ServiceRequestsManager() {
   const { t, i18n } = useTranslation();
   const section = useAsyncSection<ServiceRequest[]>(() => serviceRequests.adminList(), []);
   const [offerOpenId, setOfferOpenId] = useState<string | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<{ id: string; status: 'accepted' | 'done' | 'rejected'; title: string } | null>(null);
 
   const setStatus = async (id: string, status: 'accepted' | 'done' | 'rejected') => {
     await serviceRequests.adminSetStatus(id, status);
@@ -236,12 +240,16 @@ export function ServiceRequestsManager() {
                 {r.ownerName || r.name}
               </span>
               {r.ownerEmail && (
-                <span className="text-[11px] text-navy/50 break-all" dir="ltr">{r.ownerEmail}</span>
+                <span className="text-[11px] text-navy/50" dir="ltr">
+                  <RevealField masked={maskEmail(r.ownerEmail)} full={r.ownerEmail} />
+                </span>
               )}
-              <a href={`tel:${r.phone}`} dir="ltr" className="text-xs text-navy underline inline-flex items-center gap-1">
-                <AppIcon name="message-circle" className="w-3.5 h-3.5" />
-                {r.phone}
-              </a>
+              <span className="text-xs text-navy inline-flex items-center gap-1" dir="ltr">
+                <a href={`tel:${r.phone}`} aria-label={r.phone} className="inline-flex">
+                  <AppIcon name="message-circle" className="w-3.5 h-3.5" />
+                </a>
+                <RevealField masked={maskPhone(r.phone)} full={r.phone} />
+              </span>
               {r.message && <span className="text-xs text-gray-500 basis-full">“{r.message}”</span>}
               <span className="ms-auto text-xs text-gray-500">{new Date(r.createdAt).toLocaleString(i18n.language)}</span>
 
@@ -261,18 +269,27 @@ export function ServiceRequestsManager() {
                   {t(`admin.serviceRequests.status.${r.status === 'new' ? 'pending' : r.status}`)}
                 </span>
                 {r.status !== 'accepted' && r.status !== 'done' && (
-                  <button onClick={() => setStatus(r.id, 'accepted')} className="btn-primary !h-8 px-3 text-xs">
+                  <button
+                    onClick={() => setPendingStatus({ id: r.id, status: 'accepted', title: t('admin.serviceRequests.markReady') })}
+                    className="btn-primary !h-8 px-3 text-xs"
+                  >
                     <AppIcon name="check" className="w-3.5 h-3.5" />
                     {t('admin.serviceRequests.markReady')}
                   </button>
                 )}
                 {r.status === 'accepted' && (
-                  <button onClick={() => setStatus(r.id, 'done')} className="btn-secondary !h-8 px-3 text-xs">
+                  <button
+                    onClick={() => setPendingStatus({ id: r.id, status: 'done', title: t('admin.serviceRequests.markDone') })}
+                    className="btn-secondary !h-8 px-3 text-xs"
+                  >
                     {t('admin.serviceRequests.markDone')}
                   </button>
                 )}
                 {r.status !== 'rejected' && (
-                  <button onClick={() => setStatus(r.id, 'rejected')} className="btn-danger !h-8 px-3 text-xs">
+                  <button
+                    onClick={() => setPendingStatus({ id: r.id, status: 'rejected', title: t('admin.serviceRequests.reject') })}
+                    className="btn-danger !h-8 px-3 text-xs"
+                  >
                     {t('admin.serviceRequests.reject')}
                   </button>
                 )}
@@ -291,6 +308,19 @@ export function ServiceRequestsManager() {
         </ul>
         )}
       </SectionState>
+      {pendingStatus && (
+        <ConfirmActionModal
+          title={pendingStatus.title}
+          expectedResult={t(`admin.serviceRequests.status.${pendingStatus.status}`)}
+          reversible
+          notifiesCustomer={pendingStatus.status !== 'accepted'}
+          onClose={() => setPendingStatus(null)}
+          onConfirm={() => {
+            setStatus(pendingStatus.id, pendingStatus.status);
+            setPendingStatus(null);
+          }}
+        />
+      )}
     </div>
   );
 }

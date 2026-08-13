@@ -7,6 +7,7 @@ import { AppIcon } from '../AppIcon';
 import { Modal } from '../Modal';
 import { SectionState } from '../SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
+import { ConfirmActionModal } from './ConfirmActionModal';
 
 const LANGS = ['ar', 'en', 'fa', 'ru'] as const;
 const FACT_KEYS = [
@@ -410,9 +411,10 @@ export function InvestmentsManager() {
   const [seeding, setSeeding] = useState(false);
   const section = useAsyncSection<InvestmentRecord[]>(() => api.adminList(), []);
   const load = section.reload;
+  const [confirmDelete, setConfirmDelete] = useState<InvestmentRecord | null>(null);
+  const [confirmSeed, setConfirmSeed] = useState(false);
 
   const remove = async (row: InvestmentRecord) => {
-    if (!window.confirm(t('admin.investments.confirmDelete', { name: row.name.ar || row.slug }))) return;
     await api.remove(row.id);
     load();
   };
@@ -422,7 +424,6 @@ export function InvestmentsManager() {
    * slug already exists so pressing it twice cannot duplicate the catalogue.
    */
   const importSeed = async () => {
-    if (!window.confirm(t('admin.investments.confirmSeed'))) return;
     setSeeding(true);
     try {
       const existing = new Set((section.data ?? []).map((r) => r.slug));
@@ -442,7 +443,7 @@ export function InvestmentsManager() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-bold text-navy">{t('admin.investments.title')}</h2>
         <div className="flex gap-2">
-          <button onClick={importSeed} disabled={seeding} className="btn-secondary h-9 px-4 text-xs disabled:opacity-60">
+          <button onClick={() => setConfirmSeed(true)} disabled={seeding} className="btn-secondary h-9 px-4 text-xs disabled:opacity-60">
             <AppIcon name="download" className="h-3.5 w-3.5" />
             {t('admin.investments.importSeed')}
           </button>
@@ -479,7 +480,7 @@ export function InvestmentsManager() {
                   <button onClick={() => setEditing(r)} className="btn-secondary !h-8 px-2.5 text-xs" aria-label={t('common.edit')}>
                     <AppIcon name="pencil" className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => remove(r)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
+                  <button onClick={() => setConfirmDelete(r)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
                     <AppIcon name="trash" className="h-3.5 w-3.5" />
                   </button>
                 </span>
@@ -497,6 +498,34 @@ export function InvestmentsManager() {
             setEditing(null);
           }}
           onSaved={load}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={confirmDelete.name.ar || confirmDelete.slug}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={() => {
+            remove(confirmDelete);
+            setConfirmDelete(null);
+          }}
+        />
+      )}
+      {confirmSeed && (
+        <ConfirmActionModal
+          title={t('admin.investments.importSeed')}
+          expectedResult={t('admin.investments.importSeed')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmSeed(false)}
+          onConfirm={() => {
+            importSeed();
+            setConfirmSeed(false);
+          }}
         />
       )}
     </div>

@@ -7,6 +7,7 @@ import { AppIcon } from './AppIcon';
 import { Modal } from './Modal';
 import { SectionState } from './SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
+import { ConfirmActionModal } from './admin/ConfirmActionModal';
 
 const PLACE_CATEGORIES = ['dining', 'hotels', 'notary', 'hospitals', 'government', 'shopping'] as const;
 
@@ -184,9 +185,9 @@ export function ListingsManager() {
   // Error is a state — a failed load must not read as "no listings".
   const section = useAsyncSection<Listing[]>(() => listingsApi.adminList(), []);
   const load = section.reload;
+  const [confirmDelete, setConfirmDelete] = useState<Listing | null>(null);
 
   const remove = async (id: string) => {
-    if (!window.confirm(t('admin.listings.confirmDelete'))) return;
     await listingsApi.remove(id);
     load();
   };
@@ -223,7 +224,7 @@ export function ListingsManager() {
                 <button onClick={() => setEditing(l)} className="btn-secondary !h-8 px-2.5 text-xs" aria-label={t('common.edit')}>
                   <AppIcon name="pencil" className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => remove(l.id)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
+                <button onClick={() => setConfirmDelete(l)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
                   <AppIcon name="trash" className="w-3.5 h-3.5" />
                 </button>
               </span>
@@ -241,6 +242,21 @@ export function ListingsManager() {
             setEditing(null);
           }}
           onSaved={load}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={confirmDelete.district}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={() => {
+            remove(confirmDelete.id);
+            setConfirmDelete(null);
+          }}
         />
       )}
     </div>
@@ -332,9 +348,9 @@ export function PlacesManager() {
   // Error is a state — a failed load must not read as "no places".
   const section = useAsyncSection<Place[]>(() => adminPlaces.list(), []);
   const load = section.reload;
+  const [confirmDelete, setConfirmDelete] = useState<Place | null>(null);
 
   const remove = async (id: string) => {
-    if (!window.confirm(t('admin.places.confirmDelete'))) return;
     await adminPlaces.remove(id);
     load();
   };
@@ -367,7 +383,7 @@ export function PlacesManager() {
                 <button onClick={() => setEditing(p)} className="btn-secondary !h-8 px-2.5 text-xs" aria-label={t('common.edit')}>
                   <AppIcon name="pencil" className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => remove(p.id)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
+                <button onClick={() => setConfirmDelete(p)} className="btn-danger !h-8 px-2.5 text-xs" aria-label={t('common.delete')}>
                   <AppIcon name="trash" className="w-3.5 h-3.5" />
                 </button>
               </span>
@@ -376,6 +392,21 @@ export function PlacesManager() {
         </ul>
         )}
       </SectionState>
+
+      {confirmDelete && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          record={confirmDelete.name}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={() => {
+            remove(confirmDelete.id);
+            setConfirmDelete(null);
+          }}
+        />
+      )}
 
       {(adding || editing) && (
         <PlaceEditor

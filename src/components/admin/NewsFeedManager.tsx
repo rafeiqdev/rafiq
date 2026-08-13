@@ -4,6 +4,7 @@ import { ApiError, news } from '../../lib/api';
 import { AppIcon } from '../AppIcon';
 import { SectionState } from '../SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
+import { ConfirmActionModal } from './ConfirmActionModal';
 
 /**
  * The sync endpoint reports WHY it failed (no channel saved, Telegram down,
@@ -57,6 +58,9 @@ export function NewsFeedManager() {
   /** i18n key of the failure to show, or null when all is well. */
   const [error, setError] = useState<string | null>(null);
   const [syncState, setSyncState] = useState<'idle' | 'busy' | number>('idle');
+  const [confirmSync, setConfirmSync] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   useEffect(() => {
     news.telegramChannel().then((c) => setChannel(c ?? ''), () => {});
@@ -143,7 +147,7 @@ export function NewsFeedManager() {
           <AppIcon name="save" className="w-3.5 h-3.5" />
           {t('common.save')}
         </button>
-        <button onClick={sync} disabled={syncState === 'busy'} className="btn-primary h-10 px-4 text-xs disabled:opacity-60">
+        <button onClick={() => setConfirmSync(true)} disabled={syncState === 'busy'} className="btn-primary h-10 px-4 text-xs disabled:opacity-60">
           <AppIcon name="send" className="w-3.5 h-3.5" />
           {t('admin.newsFeed.sync')}
         </button>
@@ -180,11 +184,52 @@ export function NewsFeedManager() {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <button onClick={publish} disabled={busy || !title.trim()} className="btn-primary px-5 disabled:opacity-60">
+        <button onClick={() => title.trim() && setConfirmPublish(true)} disabled={busy || !title.trim()} className="btn-primary px-5 disabled:opacity-60">
           <AppIcon name="megaphone" className="w-4 h-4" />
           {t('admin.newsFeed.publish')}
         </button>
       </div>
+
+      {confirmSync && (
+        <ConfirmActionModal
+          title={t('admin.newsFeed.sync')}
+          expectedResult={t('admin.newsFeed.sync')}
+          reversible={false}
+          notifiesCustomer
+          onClose={() => setConfirmSync(false)}
+          onConfirm={() => {
+            sync();
+            setConfirmSync(false);
+          }}
+        />
+      )}
+      {confirmPublish && (
+        <ConfirmActionModal
+          title={t('admin.newsFeed.publish')}
+          record={title}
+          expectedResult={t('admin.newsFeed.publish')}
+          reversible={false}
+          notifiesCustomer
+          onClose={() => setConfirmPublish(false)}
+          onConfirm={() => {
+            publish();
+            setConfirmPublish(false);
+          }}
+        />
+      )}
+      {confirmRemoveId && (
+        <ConfirmActionModal
+          title={t('common.delete')}
+          expectedResult={t('common.delete')}
+          reversible={false}
+          notifiesCustomer={false}
+          onClose={() => setConfirmRemoveId(null)}
+          onConfirm={() => {
+            remove(confirmRemoveId);
+            setConfirmRemoveId(null);
+          }}
+        />
+      )}
 
       {error && (
         <p role="alert" className="amber-note mt-3 flex items-center gap-2 text-sm">
@@ -220,7 +265,7 @@ export function NewsFeedManager() {
                   {new Date(p.createdAt).toLocaleDateString(i18n.language)}
                 </span>
                 <button
-                  onClick={() => remove(p.id)}
+                  onClick={() => setConfirmRemoveId(p.id)}
                   aria-label={t('common.delete')}
                   className="shrink-0 flex h-8 w-8 items-center justify-center rounded-lg text-brand-red hover:bg-brand-red/10"
                 >

@@ -55,6 +55,12 @@
     "less": "Show less",
     "phone": "Phone number"
   },
+  "pricing": {
+    "free": { "name": "Free" },
+    "light": { "name": "Light" },
+    "pro": { "name": "Pro" },
+    "elite": { "name": "Elite" }
+  },
   "nav": {
     "home": "Home",
     "contact": "Contact us",
@@ -1116,8 +1122,22 @@
   "admin": {
     "groups": {
       "operations": "Requests, bookings & services",
-      "payments": "Payments & subscriptions"
+      "payments": "Payments & subscriptions",
+      "content": "Content",
+      "realEstate": "Real estate & investment",
+      "medical": "Medical Tourism",
+      "settings": "Settings"
     },
+    "confirm": {
+      "record": "Record",
+      "currentStatus": "Current status",
+      "result": "This will",
+      "reversible": "Reversible",
+      "notifiesCustomer": "Customer notified",
+      "reason": "Reason (required)"
+    },
+    "reveal": "Reveal",
+    "hide": "Hide",
     "newRequests": {
       "title": "Needs action — {{count}} waiting",
       "more": "and {{count}} more below",

@@ -55,6 +55,12 @@
     "less": "إظهار أقل",
     "phone": "رقم الهاتف"
   },
+  "pricing": {
+    "free": { "name": "مجاني" },
+    "light": { "name": "لايت" },
+    "pro": { "name": "برو" },
+    "elite": { "name": "إيليت" }
+  },
   "nav": {
     "home": "الرئيسية",
     "contact": "تواصل معنا",
@@ -1124,8 +1130,22 @@
   "admin": {
     "groups": {
       "operations": "الطلبات والحجوزات والخدمات",
-      "payments": "المدفوعات والاشتراكات"
+      "payments": "المدفوعات والاشتراكات",
+      "content": "المحتوى",
+      "realEstate": "العقارات والاستثمار",
+      "medical": "السياحة العلاجية",
+      "settings": "الإعدادات"
     },
+    "confirm": {
+      "record": "السجل",
+      "currentStatus": "الحالة الحالية",
+      "result": "سيتم",
+      "reversible": "قابل للتراجع",
+      "notifiesCustomer": "سيتم إشعار العميل",
+      "reason": "السبب (مطلوب)"
+    },
+    "reveal": "إظهار",
+    "hide": "إخفاء",
     "newRequests": {
       "title": "بحاجة إلى إجراء — {{count}} بالانتظار",
       "more": "و{{count}} أخرى بالأسفل",

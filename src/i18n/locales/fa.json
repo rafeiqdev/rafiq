@@ -55,6 +55,12 @@
     "less": "کمتر",
     "phone": "شماره تلفن"
   },
+  "pricing": {
+    "free": { "name": "رایگان" },
+    "light": { "name": "لایت" },
+    "pro": { "name": "پرو" },
+    "elite": { "name": "الیت" }
+  },
   "nav": {
     "home": "خانه",
     "contact": "تماس با ما",
@@ -1124,8 +1130,22 @@
   "admin": {
     "groups": {
       "operations": "درخواست‌ها، رزروها و خدمات",
-      "payments": "پرداخت‌ها و اشتراک‌ها"
+      "payments": "پرداخت‌ها و اشتراک‌ها",
+      "content": "محتوا",
+      "realEstate": "املاک و سرمایه‌گذاری",
+      "medical": "گردشگری پزشکی",
+      "settings": "تنظیمات"
     },
+    "confirm": {
+      "record": "رکورد",
+      "currentStatus": "وضعیت فعلی",
+      "result": "این کار",
+      "reversible": "قابل بازگشت",
+      "notifiesCustomer": "مشتری مطلع می‌شود",
+      "reason": "دلیل (الزامی)"
+    },
+    "reveal": "نمایش",
+    "hide": "پنهان",
     "newRequests": {
       "title": "نیازمند اقدام — {{count}} در انتظار",
       "more": "و {{count}} مورد دیگر در پایین",
