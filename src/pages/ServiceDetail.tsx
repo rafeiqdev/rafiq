@@ -8,6 +8,8 @@ import { pickText } from '../data/services';
 import type { ServiceType } from '../data/services';
 import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
+import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
+import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
 import { usePageMeta } from '../lib/seo';
 
 function copyFor(language: string) {
@@ -28,6 +30,44 @@ function copyFor(language: string) {
       requestText: 'Send details about your needs and we will coordinate an appropriate next step for the requested service.',
       requestButton: 'Request help for this service',
       returnButton: 'Return to all services',
+    };
+  }
+  if (language === 'ru') {
+    return {
+      notFoundTitle: 'Услуга не найдена',
+      notFoundText: 'Вернитесь к списку услуг и выберите услугу, которая соответствует вашим потребностям.',
+      allServices: 'Все услуги',
+      breadcrumb: 'Услуги',
+      breadcrumbLabel: 'Навигационная цепочка',
+      howHeading: 'Как Rafiq может помочь с этой услугой?',
+      directSupport: 'Rafiq координирует эту услугу напрямую. Отправьте свой запрос, и мы обсудим подходящий следующий шаг.',
+      partnerSupport: 'Rafiq координирует эту услугу через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
+      topicsHeading: 'Частые вопросы и связанные темы',
+      topicsIntro: 'Это распространённые темы, которые клиенты изучают до начала процесса. Требования и окончательные решения зависят от вашей ситуации и компетентных органов или поставщиков.',
+      relatedHeading: 'Связанные услуги',
+      requestHeading: 'Запросить помощь',
+      requestText: 'Отправьте сведения о своей потребности, и мы скоординируем подходящий следующий шаг для запрошенной услуги.',
+      requestButton: 'Запросить помощь по услуге',
+      returnButton: 'Вернуться ко всем услугам',
+    };
+  }
+  if (language === 'fa') {
+    return {
+      notFoundTitle: 'خدمت یافت نشد',
+      notFoundText: 'به فهرست خدمات برگردید و خدمتی را انتخاب کنید که با نیاز شما متناسب است.',
+      allServices: 'مشاهده همه خدمات',
+      breadcrumb: 'خدمات',
+      breadcrumbLabel: 'مسیر راهنما',
+      howHeading: 'Rafiq چگونه می‌تواند در این خدمت کمک کند؟',
+      directSupport: 'Rafiq این خدمت را مستقیماً هماهنگ می‌کند. نیاز خود را بفرستید تا درباره گام بعدی مناسب صحبت کنیم.',
+      partnerSupport: 'Rafiq این خدمت را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
+      topicsHeading: 'پرسش‌های رایج و موضوعات مرتبط',
+      topicsIntro: 'این‌ها موضوعات رایجی هستند که مشتریان پیش از شروع بررسی می‌کنند. شرایط و تصمیم‌های نهایی به وضعیت شما و مراجع یا ارائه‌کنندگان مربوط بستگی دارد.',
+      relatedHeading: 'خدمات مرتبط',
+      requestHeading: 'درخواست کمک',
+      requestText: 'جزئیات نیاز خود را بفرستید تا گام بعدی مناسب برای خدمت درخواستی را هماهنگ کنیم.',
+      requestButton: 'درخواست کمک برای این خدمت',
+      returnButton: 'بازگشت به همه خدمات',
     };
   }
   return {
@@ -63,9 +103,9 @@ function ServiceNotFound() {
 }
 
 /**
- * A crawlable service page. Arabic and English pages add verified,
- * service-specific search intents; other languages keep their catalog text
- * until their own reviewed SEO copy is ready.
+ * A crawlable service page. Arabic, English, Russian and Persian pages add
+ * reviewed, service-specific search intents; other languages keep their catalog
+ * text until their own reviewed SEO copy is ready.
  */
 export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -75,18 +115,22 @@ export function ServiceDetail() {
   const service = services.find((item) => item.id === id);
 
   const language = i18n.language;
-  const isArabic = language === 'ar';
+  const isRtl = language === 'ar' || language === 'fa';
   const copy = copyFor(language);
   const category = service ? categories.find((item) => item.id === service.category) : undefined;
   const title = service ? pickText(service.title, language) : '';
   const description = service ? pickText(service.desc, language) : '';
   const categoryTitle = category ? pickText(category.title, language) : '';
   const serviceSeo = service
-    ? isArabic
+    ? language === 'ar'
       ? SERVICE_SEO_AR[service.id]
       : language === 'en'
         ? SERVICE_SEO_EN[service.id]
-        : undefined
+        : language === 'ru'
+          ? SERVICE_SEO_RU[service.id]
+          : language === 'fa'
+            ? SERVICE_SEO_FA[service.id]
+            : undefined
     : undefined;
   const seoTitle = service ? (serviceSeo?.seoTitle ?? `${title} — ${categoryTitle}`) : copy.notFoundTitle;
   const seoDescription = service ? (serviceSeo?.metaDescription ?? description) : copy.notFoundText;
@@ -140,7 +184,7 @@ export function ServiceDetail() {
             <section className="card p-5 sm:p-6">
               <h2 className="text-lg font-extrabold text-navy">{copy.topicsHeading}</h2>
               <p className="mt-2 text-sm leading-6 text-gray-600">{copy.topicsIntro}</p>
-              <ul className="mt-4 grid gap-2 sm:grid-cols-2" dir={isArabic ? 'rtl' : 'ltr'}>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2" dir={isRtl ? 'rtl' : 'ltr'}>
                 {serviceSeo.searchPhrases.map((phrase) => (
                   <li key={phrase} className="flex gap-2 rounded-lg bg-cream px-3 py-2 text-sm leading-6 text-navy/85">
                     <AppIcon name="check" className="mt-1 h-3.5 w-3.5 shrink-0 text-gold-dark" />

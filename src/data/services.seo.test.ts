@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { SERVICES, keywordsFor } from './services';
 import { SERVICE_SEO_AR } from './serviceSeoAr';
 import { SERVICE_SEO_EN } from './serviceSeoEn';
+import { SERVICE_SEO_RU } from './serviceSeoRu';
+import { SERVICE_SEO_FA } from './serviceSeoFa';
 
 describe('service SEO catalogs', () => {
   const catalogs = [
     ['Arabic', SERVICE_SEO_AR],
     ['English', SERVICE_SEO_EN],
+    ['Russian', SERVICE_SEO_RU],
+    ['Farsi', SERVICE_SEO_FA],
   ] as const;
 
   for (const [language, catalog] of catalogs) {
