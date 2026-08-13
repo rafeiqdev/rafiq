@@ -285,6 +285,16 @@ export function Layout() {
                 >
                   {t('nav.myJourney')}
                 </NavLink>
+                <NavLink
+                  to="/requests"
+                  className={({ isActive }) =>
+                    `px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? 'bg-brand-blue text-navy font-semibold' : 'text-navy/85 hover:text-navy hover:bg-cream'
+                    }`
+                  }
+                >
+                  {t('nav.myRequests')}
+                </NavLink>
               </>
             )}
             {user?.isCompany && (
