@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText } from '../data/services';
 import type { ServiceItem } from '../data/services';
@@ -118,6 +118,12 @@ export function ExpandableServiceCard({
           </span>
         </span>
       </button>
+      <Link
+        to={`/services/${service.id}`}
+        className="mt-2 block text-center text-sm font-bold text-navy/75 underline underline-offset-4 hover:text-navy"
+      >
+        {lang === 'ar' ? `تفاصيل ${title}` : `View details: ${title}`}
+      </Link>
 
       {isOpen &&
         createPortal(
@@ -182,6 +188,13 @@ export function ExpandableServiceCard({
                       <DirArrow className="w-4 h-4" />
                     </span>
                   </button>
+                  <Link
+                    to={`/services/${service.id}`}
+                    onClick={closeCard}
+                    className="mt-3 block w-full text-center text-xs font-bold text-navy/70 underline underline-offset-4 hover:text-navy"
+                  >
+                    {lang === 'ar' ? 'عرض تفاصيل الخدمة' : 'View service details'}
+                  </Link>
 
                   {service.governmentFees && service.governmentFees.length > 0 && (
                     <TransparentFeeBreakdown fees={service.governmentFees} lang={lang} />
