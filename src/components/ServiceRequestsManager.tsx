@@ -94,12 +94,15 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
   const [images, setImages] = useState<string[]>([]);
   const [expires, setExpires] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const detail = useAsyncSection(() => adminServiceOffers.detail(requestId), [requestId]);
 
   const send = async () => {
     if (!price || Number(price) <= 0) return;
     setBusy(true);
+    setError(false);
     try {
       await adminServiceOffers.createOffer(requestId, {
         price: Number(price), currency, details: details.trim(), imagePaths: images,
@@ -108,14 +111,24 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
       setPrice(''); setDetails(''); setImages([]); setExpires('');
       detail.reload();
       onSent();
+    } catch {
+      setError(true);
     } finally {
       setBusy(false);
     }
   };
 
   const resolvePayment = async (id: string) => {
-    await adminServiceOffers.resolvePayment(id);
-    detail.reload();
+    setResolvingId(id);
+    setError(false);
+    try {
+      await adminServiceOffers.resolvePayment(id);
+      detail.reload();
+    } catch {
+      setError(true);
+    } finally {
+      setResolvingId(null);
+    }
   };
 
   return (
@@ -136,7 +149,7 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
                       <span className="text-[11px] text-navy/60">
                         {t('serviceOffer.admin.paymentLabel')}: {t(`serviceOffer.admin.paymentStatus.${pay.status}`)}
                         {pay.status === 'pending' && (
-                          <button onClick={() => resolvePayment(pay.id)} className="ms-2 font-semibold text-brand-red">
+                          <button onClick={() => resolvePayment(pay.id)} disabled={resolvingId === pay.id} className="ms-2 font-semibold text-brand-red disabled:opacity-50">
                             {t('serviceOffer.admin.markFailed')}
                           </button>
                         )}
@@ -167,6 +180,7 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
         <button onClick={send} disabled={busy || !price} className="btn-primary !h-9 text-xs sm:col-span-2 disabled:opacity-50">
           {busy ? t('serviceOffer.admin.sending') : t('serviceOffer.admin.send')}
         </button>
+        {error && <p className="sm:col-span-2 text-xs text-brand-red">{t('common.error')}</p>}
       </div>
     </div>
   );

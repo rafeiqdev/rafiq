@@ -31,6 +31,10 @@ vi.mock('../lib/api', () => ({
   // stubs keep it inert (empty list) for tests that aren't about it.
   medicalRequests: { mine: () => Promise.resolve([]) },
   medicalContent: { specialties: () => Promise.resolve([]) },
+  // Every expanded request also fetches its offer/payment history — keep it
+  // inert (no offers) for tests that aren't about the offer flow.
+  serviceOffers: { listForRequest: () => Promise.resolve([]), reject: vi.fn() },
+  servicePayments: { forRequest: () => Promise.resolve([]), createSession: vi.fn(), resumeUrl: () => null },
 }));
 
 vi.mock('react-i18next', () => ({

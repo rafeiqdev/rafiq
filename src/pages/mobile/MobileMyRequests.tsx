@@ -22,7 +22,7 @@ import { CASE_FILE_DIVIDER } from '../../lib/bookingSummary';
 
 /** Same defensive message rendering as the desktop page — see MyRequests.tsx. */
 const MESSAGE_PREVIEW_LEN = 220;
-function humanMessage(raw: string): { preview: string; full: string; truncated: boolean } {
+export function humanMessage(raw: string): { preview: string; full: string; truncated: boolean } {
   const prose = raw.split(CASE_FILE_DIVIDER)[0].trim();
   if (prose.length <= MESSAGE_PREVIEW_LEN) return { preview: prose, full: prose, truncated: false };
   return { preview: `${prose.slice(0, MESSAGE_PREVIEW_LEN).trimEnd()}…`, full: prose, truncated: true };
