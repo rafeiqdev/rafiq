@@ -27,6 +27,15 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from './supabase';
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    rafiqGoogleAnalytics?: {
+      setConsent: (state: 'granted' | 'declined') => void;
+    };
+  }
+}
+
 export type AnalyticsEventType =
   | 'page_view'
   | 'service_view'
@@ -94,11 +103,26 @@ export function getConsent(): ConsentState {
 }
 
 export function setConsent(state: 'granted' | 'declined'): void {
+  const previous = getConsent();
   try {
     localStorage.setItem(CONSENT_KEY, state);
   } catch {
     /* storage unavailable — the in-memory guard below still applies this session */
   }
+
+  // The Google tag itself is loaded only after a visitor grants analytics
+  // consent.  This keeps the site's GA4 collection aligned with the banner,
+  // rather than letting an unconditional page tag measure visitors first.
+  try {
+    window.rafiqGoogleAnalytics?.setConsent(state);
+  } catch {
+    /* Google Analytics must never affect the product experience. */
+  }
+
+  if (state === 'granted' && previous !== 'granted') {
+    sendGooglePageView();
+  }
+
   if (state !== 'granted') {
     // Declining clears anything already queued this page load — none of it
     // was sent (track() already refused to enqueue without consent), but a
@@ -299,9 +323,9 @@ async function sessionToken(): Promise<string> {
  * event in the same session already carries with the real user_id attached.
  */
 /** Exported for tests, so "flush on hide" can be exercised without relying on
- *  real pagehide/visibilitychange DOM events (which, across a test file's many
- *  module reloads, would pile up stale listeners on jsdom's single shared
- *  window). Call sites should not call this directly — track() schedules it. */
+ * real pagehide/visibilitychange DOM events (which, across a test file's many
+ * module reloads, would pile up stale listeners on jsdom's single shared
+ * window). Call sites should not call this directly — track() schedules it. */
 export async function flush(reason: 'interval' | 'unload'): Promise<void> {
   if (sinkMissing) {
     queue = [];
@@ -361,6 +385,81 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// ── Google Analytics 4 ─────────────────────────────────────────────────────
+
+/**
+ * GA4 event bridge. The app's existing privacy guard runs before this function,
+ * so it only receives flat, non-identifying values after explicit consent.
+ */
+function sendGooglePageView(): void {
+  try {
+    if (typeof window === 'undefined' || getConsent() !== 'granted') return;
+    window.gtag?.('event', 'page_view', {
+      page_path: safePath(),
+      page_location: window.location.origin + safePath(),
+      page_title: document.title,
+      language: currentLocale(),
+    });
+  } catch {
+    /* Analytics must remain best-effort. */
+  }
+}
+
+function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const gtag = window.gtag;
+    if (!gtag) return;
+
+    const target = opts.target ?? undefined;
+    const meta = opts.meta ?? {};
+    const category = typeof meta.category === 'string' ? meta.category : undefined;
+
+    switch (eventType) {
+      case 'page_view':
+        sendGooglePageView();
+        return;
+      case 'service_view':
+        gtag('event', 'view_service', { service_id: target, service_category: category });
+        return;
+      case 'service_click':
+        gtag('event', 'select_service', { service_id: target, service_category: category });
+        return;
+      case 'request_started':
+        gtag('event', 'service_request_started', { service_id: target, service_category: category });
+        return;
+      case 'request_submitted':
+        // A successful server-side insert is the lead; never send request_id,
+        // contact fields, or free text to Google Analytics.
+        gtag('event', 'generate_lead', {
+          lead_source: 'service_request',
+          service_id: target,
+          service_category: category,
+          request_type: meta.broadcast === true ? 'partner' : 'direct',
+        });
+        return;
+      case 'whatsapp_clicked':
+        gtag('event', 'contact', { method: 'whatsapp', placement: target ?? 'unknown' });
+        return;
+      case 'signup':
+        gtag('event', 'sign_up', { method: typeof meta.method === 'string' ? meta.method : 'website' });
+        return;
+      case 'login':
+        gtag('event', 'login', { method: typeof meta.method === 'string' ? meta.method : 'website' });
+        return;
+      case 'checkout_opened':
+        gtag('event', 'begin_checkout', { checkout_type: target });
+        return;
+      default:
+        // Keep the remaining approved taxonomy visible in GA4 without changing
+        // their names or including any user-entered information.
+        gtag('event', eventType, { target, ...meta });
+    }
+  } catch {
+    /* Analytics must remain best-effort. */
+  }
+}
+
 // ── public API ────────────────────────────────────────────────────────────
 
 export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): void {
@@ -379,6 +478,8 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
       }
       return;
     }
+
+    sendGoogleEvent(eventType, { target, meta: meta ?? undefined });
 
     enqueue({
       event_type: eventType,
