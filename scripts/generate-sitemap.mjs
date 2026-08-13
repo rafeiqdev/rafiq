@@ -33,7 +33,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = resolveSiteUrlOrExit(process.env);
 const LANGS = ['ar', 'en', 'ru', 'fa'];
 // Detail pages are indexable only after their language-specific SEO copy is reviewed.
-const SERVICE_LANGS = ['ar', 'en', 'ru'];
+const SERVICE_LANGS = ['ar', 'en', 'ru', 'fa'];
 const today = new Date().toISOString().slice(0, 10);
 
 /** @type {{ path: string, changefreq: string, priority: string }[]} */
