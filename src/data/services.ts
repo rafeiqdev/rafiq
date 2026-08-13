@@ -11,6 +11,7 @@
  */
 import type { IconName } from '../components/AppIcon';
 import { SERVICES_RU_FA } from './services-i18n';
+import { SERVICE_SEO_AR } from './serviceSeoAr';
 
 export type ServiceType = 'direct' | 'partner';
 export type Lang3 = 'ar' | 'en' | 'tr';
@@ -152,7 +153,8 @@ export const SERVICE_KEYWORDS: Record<string, string> = {
 };
 
 export function keywordsFor(id: string): string {
-  return SERVICE_KEYWORDS[id] ?? '';
+  const arabicPhrases = SERVICE_SEO_AR[id]?.searchPhrases ?? [];
+  return [SERVICE_KEYWORDS[id] ?? '', ...arabicPhrases].join(' ');
 }
 
 export const SERVICE_CATEGORIES: ServiceCategory[] = [
