@@ -14,7 +14,7 @@ if (import.meta.env.DEV && !CONFIGURED) {
   console.warn('[Rafiq] VITE_WHATSAPP_NUMBER is missing or still the placeholder (905000000000). The WhatsApp button is hidden until it is set.');
 }
 
-export function WhatsAppButton({ message }: { message?: string }) {
+export function WhatsAppButton({ message, floating = true }: { message?: string; floating?: boolean }) {
   const { t } = useTranslation();
   if (!CONFIGURED) return null;
   const text = encodeURIComponent(message || t('whatsapp.default'));
@@ -26,8 +26,12 @@ export function WhatsAppButton({ message }: { message?: string }) {
       target="_blank"
       rel="noreferrer"
       aria-label={t('whatsapp.aria')}
-      onClick={() => track('whatsapp_clicked', { target: 'floating_button' })}
-      className="fixed bottom-5 end-5 z-40 flex items-center justify-center w-14 h-14 rounded-full text-white shadow-float animate-float-pulse transition-transform hover:scale-105 active:scale-95"
+      onClick={() => track('whatsapp_clicked', { target: floating ? 'floating_button' : 'inline_button' })}
+      className={
+        floating
+          ? 'fixed bottom-5 end-5 z-40 flex items-center justify-center w-14 h-14 rounded-full text-white shadow-float animate-float-pulse transition-transform hover:scale-105 active:scale-95'
+          : 'inline-flex items-center justify-center w-12 h-12 rounded-full text-white shadow-float transition-transform hover:scale-105 active:scale-95'
+      }
       style={{ backgroundColor: '#25d366' }}
     >
       <svg viewBox="0 0 24 24" className="w-7 h-7" fill="currentColor" aria-hidden>

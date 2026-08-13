@@ -30,10 +30,10 @@ export function EmergencyLegalFAB() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs sm:text-sm font-bold leading-tight truncate">
-              {t('emergencyLegal.title', 'طوارئ المعاملات القانونية')}
+              {t('emergencyLegal.title')}
             </p>
             <p className="text-[10px] sm:text-xs text-red-100/90 leading-tight truncate">
-              {t('emergencyLegal.subtitle', 'استجابة فورية للمهل والإنذارات')}
+              {t('emergencyLegal.subtitle')}
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export function EmergencyLegalFAB() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
         >
-          <span>{t('emergencyLegal.cta', 'تواصل الآن')}</span>
+          <span>{t('emergencyLegal.cta')}</span>
           {isRtl ? <ArrowLeft className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
         </motion.a>
       </motion.div>

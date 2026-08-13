@@ -448,8 +448,13 @@ export function Layout() {
           <LangSwitcher />
         </div>
       )}
-      <EmergencyLegalFAB />
-      <WhatsAppButton />
+      {/* Grouped together at the end of the page rather than a separate
+          floating WhatsApp circle elsewhere — one contact area, not two
+          disconnected ones. */}
+      <div className="flex flex-col items-center gap-3 pb-2">
+        <EmergencyLegalFAB />
+        <WhatsAppButton floating={false} />
+      </div>
       <ConsentBanner />
     </div>
   );

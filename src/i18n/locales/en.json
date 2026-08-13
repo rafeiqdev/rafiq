@@ -321,7 +321,10 @@
   },
   "emergencyLegal": {
     "aria": "Urgent legal help on WhatsApp",
-    "message": "This is urgent — I need immediate legal assistance. Please connect me with a lawyer as soon as possible."
+    "message": "This is urgent — I need immediate legal assistance. Please connect me with a lawyer as soon as possible.",
+    "title": "Legal Emergency",
+    "subtitle": "Immediate response to deadlines & notices",
+    "cta": "Contact now"
   },
   "rates": {
     "live": "Live rates",
