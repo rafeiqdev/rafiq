@@ -5,9 +5,10 @@ import payHandler from '../../api/payments/service-pay';
  * api/payments/service-pay.ts: sibling of medicalPaySimulator.test.ts — looks
  * the payment up server-side by its opaque session token, converts its TL
  * amount to USD using the fx_rates table (the Whop account only settles USD
- * today), creates a real Whop one-time checkout (metadata.paymentId = OUR
- * internal service_payments.id), and 303-redirects to Whop's hosted
- * purchase_url.
+ * today), creates a real Whop one-time checkout, stores the checkout's own id
+ * (whop_checkout_id) and the USD amount charged (charged_amount) on OUR
+ * internal service_payments row — NOT metadata, which Whop's live API
+ * silently drops — and 303-redirects to Whop's hosted purchase_url.
  */
 
 const SESSION = 'session-svc-abc123';
@@ -17,6 +18,7 @@ const USD_TRY_RATE = 47; // TRY per 1 USD
 let paymentStatus = 'pending';
 let fxRow: { rate: number; validation_status: string; updated_at: string } | null;
 let whopCheckoutCalls: { url: string; body: Record<string, unknown> }[] = [];
+let patchCalls: { url: string; body: Record<string, unknown> }[] = [];
 
 beforeEach(() => {
   process.env.WHOP_API_KEY = 'whop-test-key';
@@ -26,6 +28,7 @@ beforeEach(() => {
   paymentStatus = 'pending';
   fxRow = { rate: USD_TRY_RATE, validation_status: 'ok', updated_at: new Date().toISOString() };
   whopCheckoutCalls = [];
+  patchCalls = [];
 
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const u = String(url);
@@ -40,6 +43,10 @@ beforeEach(() => {
       whopCheckoutCalls.push({ url: u, body: JSON.parse(String(init?.body)) });
       return new Response(JSON.stringify({ id: 'ch_test456', purchase_url: '/checkout/plan_test456?session=sess_test' }), { status: 201 });
     }
+    if (init?.method === 'PATCH' && u.includes('/service_payments?id=eq.')) {
+      patchCalls.push({ url: u, body: JSON.parse(String(init.body)) });
+      return new Response(JSON.stringify([{ id: PAYMENT_ID }]), { status: 200 });
+    }
     return new Response(JSON.stringify([]), { status: 200 });
   }));
 });
@@ -53,22 +60,23 @@ function payReq() {
 }
 
 describe('service-pay redirect (GET)', () => {
-  it('converts the TL amount to USD via fx_rates before creating the Whop checkout', async () => {
+  it('converts TL to USD, creates the Whop checkout, and stores whop_checkout_id/charged_amount', async () => {
     const res = await payHandler(payReq());
     expect(res.status).toBe(303);
     expect(res.headers.get('Location')).toBe('https://whop.com/checkout/plan_test456?session=sess_test');
 
     expect(whopCheckoutCalls).toHaveLength(1);
     const body = whopCheckoutCalls[0].body;
-    const metadata = body.metadata as Record<string, unknown>;
     const plan = body.plan as Record<string, unknown>;
-    expect(metadata.paymentId).toBe(PAYMENT_ID);
+    expect((body.metadata as Record<string, unknown>).paymentId).toBe(PAYMENT_ID);
     // 1500 TL / 47 TRY-per-USD, rounded to cents.
     expect(plan.initial_price).toBeCloseTo(31.91, 2);
     expect(plan.currency).toBe('usd');
-    expect(metadata.chargedAmount).toBe('31.91');
-    expect(metadata.chargedCurrency).toBe('usd');
     expect(body.redirect_url).toBe('https://test.invalid/en/requests');
+
+    expect(patchCalls).toHaveLength(1);
+    expect(patchCalls[0].url).toContain(`/service_payments?id=eq.${PAYMENT_ID}`);
+    expect(patchCalls[0].body).toEqual({ whop_checkout_id: 'ch_test456', charged_amount: 31.91 });
   });
 
   it('refuses to charge rather than guess when the FX rate is unavailable', async () => {
@@ -110,6 +118,27 @@ describe('service-pay redirect (GET)', () => {
     delete process.env.WHOP_COMPANY_ID;
     const res = await payHandler(payReq());
     expect(res.status).toBe(503);
+  });
+
+  it('never redirects if storing the whop_checkout_id fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url);
+      if (u.includes('/service_payments?gateway_session_id=eq.')) {
+        return new Response(JSON.stringify([{ id: PAYMENT_ID, amount: 1500, currency: 'TL', status: 'pending' }]), { status: 200 });
+      }
+      if (u.includes('/fx_rates?pair=eq.USD')) {
+        return new Response(JSON.stringify([fxRow]), { status: 200 });
+      }
+      if (u.startsWith('https://api.whop.com/api/v1/checkout_configurations')) {
+        return new Response(JSON.stringify({ id: 'ch_test456', purchase_url: '/checkout/plan_test456?session=sess_test' }), { status: 201 });
+      }
+      if (init?.method === 'PATCH') {
+        return new Response('db down', { status: 500 });
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    }));
+    const res = await payHandler(payReq());
+    expect(res.status).toBe(502);
   });
 
   it('rejects a non-GET method', async () => {

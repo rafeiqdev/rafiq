@@ -6,9 +6,10 @@ import handler from '../../api/payments/medical-webhook';
  * booking-deposit payment to 'verified', which is in turn the only thing
  * that unlocks get_offer_center() for the customer. These tests pin its
  * load-bearing properties: Whop's Standard Webhooks signature verification,
- * metadata-based correlation to the internal payment row, and idempotency
- * under a replayed webhook (a double-send must never double-process or
- * "un-verify" an already-verified payment).
+ * checkout_configuration_id-based correlation to the internal payment row
+ * (NOT metadata — Whop's live API silently drops checkout_configuration
+ * metadata), and idempotency under a replayed webhook (a double-send must
+ * never double-process or "un-verify" an already-verified payment).
  *
  * The Supabase REST calls are stubbed via global fetch — this test does not
  * touch a real database, it proves the handler's own request-sequencing logic.
@@ -16,6 +17,7 @@ import handler from '../../api/payments/medical-webhook';
 
 const SECRET = 'test-webhook-secret';
 const PAYMENT_ID = '11111111-1111-1111-1111-111111111111';
+const CHECKOUT_ID = 'ch_test_abc123';
 
 async function hmacBase64(secret: string, message: string): Promise<string> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
@@ -68,9 +70,10 @@ beforeEach(() => {
       }
       return new Response(JSON.stringify([]), { status: 200 });
     }
-    if (u.includes('/medical_payments?')) {
+    if (u.includes('/medical_payments?whop_checkout_id=eq.')) {
+      if (!u.includes(encodeURIComponent(CHECKOUT_ID))) return new Response(JSON.stringify([]), { status: 200 });
       return new Response(JSON.stringify([{
-        id: PAYMENT_ID, request_id: 'req1', offer_id: 'offer1', user_id: 'u1', amount: 500, status: paymentStatus,
+        id: PAYMENT_ID, request_id: 'req1', offer_id: 'offer1', user_id: 'u1', amount: 500, charged_amount: 500, status: paymentStatus,
       }]), { status: 200 });
     }
     if (u.includes('/medical_requests?')) {
@@ -86,29 +89,35 @@ afterEach(() => {
 
 describe('signature verification', () => {
   it('rejects a request with a wrong signature before touching the database', async () => {
-    const body = envelope('payment.succeeded', { total: 500, metadata: { paymentId: PAYMENT_ID } });
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body, { badSig: true }));
     expect(res.status).toBe(401);
     expect(patchCalls).toHaveLength(0);
   });
 
   it('rejects a stale timestamp outside the replay window', async () => {
-    const body = envelope('payment.succeeded', { total: 500, metadata: { paymentId: PAYMENT_ID } });
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body, { timestamp: String(Math.floor(Date.now() / 1000) - 3600) }));
     expect(res.status).toBe(401);
   });
 
   it('rejects when the webhook secret is not configured, rather than accepting unsigned requests', async () => {
     delete process.env.WHOP_MEDICAL_WEBHOOK_SECRET;
-    const body = envelope('payment.succeeded', { total: 500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '500' } });
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(503);
   });
 });
 
-describe('idempotency', () => {
+describe('correlation and idempotency', () => {
+  it('404s when no row matches the checkout_configuration_id', async () => {
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: 'ch_unknown' });
+    const res = await handler(await req(body));
+    expect(res.status).toBe(404);
+  });
+
   it('flips pending -> verified exactly once, and a replay is a no-op that still reports verified', async () => {
-    const body = envelope('payment.succeeded', { total: 500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '500' } });
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: CHECKOUT_ID });
 
     const first = await handler(await req(body));
     expect(first.status).toBe(200);
@@ -130,21 +139,21 @@ describe('idempotency', () => {
 
   it('does not resurrect a payment the admin already rejected', async () => {
     paymentStatus = 'rejected';
-    const body = envelope('payment.succeeded', { total: 500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '500' } });
+    const body = envelope('payment.succeeded', { total: 500, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(409);
     expect(paymentStatus).toBe('rejected');
   });
 
   it('rejects a payload whose amount does not match what we told Whop to charge', async () => {
-    const body = envelope('payment.succeeded', { total: 999999, metadata: { paymentId: PAYMENT_ID, chargedAmount: '500' } });
+    const body = envelope('payment.succeeded', { total: 999999, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(400);
     expect(paymentStatus).toBe('pending');
   });
 
   it('a failed-payment event rejects a pending payment without ever verifying it', async () => {
-    const body = envelope('payment.failed', { total: 500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '500' } });
+    const body = envelope('payment.failed', { total: 500, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ ok: true, status: 'rejected' });
@@ -152,7 +161,7 @@ describe('idempotency', () => {
   });
 
   it('acknowledges a refund event without mutating status (no refunded state modeled yet)', async () => {
-    const body = envelope('refund.created', { payment: { metadata: { paymentId: PAYMENT_ID } } });
+    const body = envelope('refund.created', { payment: { checkout_configuration_id: CHECKOUT_ID } });
     const res = await handler(await req(body));
     expect(res.status).toBe(200);
     const json = await res.json();

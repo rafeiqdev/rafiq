@@ -3,10 +3,12 @@ import payHandler from '../../api/payments/medical-pay';
 
 /**
  * api/payments/medical-pay.ts: looks the payment up server-side by its opaque
- * session token, creates a real Whop one-time checkout (metadata.paymentId =
- * OUR internal medical_payments.id), and 303-redirects to Whop's hosted
- * purchase_url. The browser never sees a "verified" status from this page —
- * only api/payments/medical-webhook.ts (Whop's signed webhook) ever flips
+ * session token, creates a real Whop one-time checkout, stores the checkout's
+ * own id (whop_checkout_id) and the USD amount charged (charged_amount) on
+ * OUR internal medical_payments row — NOT metadata, which Whop's live API
+ * silently drops — and 303-redirects to Whop's hosted purchase_url. The
+ * browser never sees a "verified" status from this page — only
+ * api/payments/medical-webhook.ts (Whop's signed webhook) ever flips
  * medical_payments.status.
  */
 
@@ -15,6 +17,7 @@ const PAYMENT_ID = '22222222-2222-2222-2222-222222222222';
 
 let paymentStatus = 'pending';
 let whopCheckoutCalls: { url: string; body: Record<string, unknown> }[] = [];
+let patchCalls: { url: string; body: Record<string, unknown> }[] = [];
 
 beforeEach(() => {
   process.env.WHOP_API_KEY = 'whop-test-key';
@@ -23,6 +26,7 @@ beforeEach(() => {
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   paymentStatus = 'pending';
   whopCheckoutCalls = [];
+  patchCalls = [];
 
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const u = String(url);
@@ -33,6 +37,10 @@ beforeEach(() => {
     if (u.startsWith('https://api.whop.com/api/v1/checkout_configurations')) {
       whopCheckoutCalls.push({ url: u, body: JSON.parse(String(init?.body)) });
       return new Response(JSON.stringify({ id: 'ch_test123', purchase_url: '/checkout/plan_test123?session=sess_test' }), { status: 201 });
+    }
+    if (init?.method === 'PATCH' && u.includes('/medical_payments?id=eq.')) {
+      patchCalls.push({ url: u, body: JSON.parse(String(init.body)) });
+      return new Response(JSON.stringify([{ id: PAYMENT_ID }]), { status: 200 });
     }
     return new Response(JSON.stringify([]), { status: 200 });
   }));
@@ -47,7 +55,7 @@ function payReq() {
 }
 
 describe('medical-pay redirect (GET)', () => {
-  it('creates a Whop checkout keyed to the internal payment id and redirects to it', async () => {
+  it('creates a Whop checkout and stores whop_checkout_id/charged_amount on the row before redirecting', async () => {
     const res = await payHandler(payReq());
     expect(res.status).toBe(303);
     expect(res.headers.get('Location')).toBe('https://whop.com/checkout/plan_test123?session=sess_test');
@@ -58,7 +66,12 @@ describe('medical-pay redirect (GET)', () => {
     expect((body.plan as Record<string, unknown>).initial_price).toBe(750);
     expect((body.plan as Record<string, unknown>).currency).toBe('usd');
     expect((body.plan as Record<string, unknown>).company_id).toBe('biz_test123');
+    expect((body.plan as Record<string, unknown>).title).toHaveLength(21); // 'Rafiq medical deposit' <= Whop's 30-char cap
     expect(body.redirect_url).toBe('https://test.invalid/en/requests');
+
+    expect(patchCalls).toHaveLength(1);
+    expect(patchCalls[0].url).toContain(`/medical_payments?id=eq.${PAYMENT_ID}`);
+    expect(patchCalls[0].body).toEqual({ whop_checkout_id: 'ch_test123', charged_amount: 750 });
   });
 
   it('404s on an unknown session rather than revealing anything', async () => {
@@ -89,6 +102,24 @@ describe('medical-pay redirect (GET)', () => {
       }
       if (u.startsWith('https://api.whop.com/api/v1/checkout_configurations')) {
         return new Response('nope', { status: 500 });
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    }));
+    const res = await payHandler(payReq());
+    expect(res.status).toBe(502);
+  });
+
+  it('never redirects if storing the whop_checkout_id fails — a lost correlation key must not proceed', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url);
+      if (u.includes('/medical_payments?gateway_session_id=eq.')) {
+        return new Response(JSON.stringify([{ id: PAYMENT_ID, amount: 750, currency: 'USD', status: 'pending' }]), { status: 200 });
+      }
+      if (u.startsWith('https://api.whop.com/api/v1/checkout_configurations')) {
+        return new Response(JSON.stringify({ id: 'ch_test123', purchase_url: '/checkout/plan_test123?session=sess_test' }), { status: 201 });
+      }
+      if (init?.method === 'PATCH') {
+        return new Response('db down', { status: 500 });
       }
       return new Response(JSON.stringify([]), { status: 200 });
     }));

@@ -3,13 +3,21 @@
  *
  * client redirects here (opaque session token, no price/status in the URL)
  *   -> GET looks the payment up server-side, creates a Whop one-time checkout
- *      (api/_lib/whop.ts createWhopCheckout) with metadata.paymentId set to
- *      OUR internal medical_payments.id, and 302s the browser to Whop's
- *      hosted purchase_url.
+ *      (api/_lib/whop.ts createWhopCheckout), stores the checkout's own id
+ *      (whop_checkout_id) and the actual USD amount charged (charged_amount)
+ *      on OUR medical_payments row, and 303s the browser to Whop's hosted
+ *      purchase_url.
  *   -> the browser never sees a "verified" status from this page — only
  *      api/payments/medical-webhook.ts (Whop's signed webhook) ever flips
  *      medical_payments.status, and only a later read of that row (or
  *      get_offer_center()) reflects it.
+ *
+ * Correlation note: metadata sent at checkout_configuration creation is
+ * silently dropped by Whop's live API (verified empirically — comes back
+ * `null`), despite the docs describing it as persisted. So the webhook
+ * correlates by `whop_checkout_id` (Whop's own `checkout_configuration_id`,
+ * which IS reliably echoed on payment.succeeded/failed), not by metadata.
+ * See supabase/migrations/20260813_whop_checkout_correlation.sql.
  *
  * Medical offers default to USD, but if one is ever quoted in TL it's
  * converted to USD here first — the Whop account only settles USD today
@@ -82,7 +90,6 @@ export default async function handler(req: Request): Promise<Response> {
   const redirectUrl = new URL(returnTo, url.origin).toString();
 
   let chargeAmount = payment.amount;
-  let chargeCurrency = payment.currency;
   const isTry = payment.currency.trim().toUpperCase() === 'TL' || payment.currency.trim().toUpperCase() === 'TRY';
   if (isTry) {
     const rate = await getUsdTryRate(supaUrl, serviceKey);
@@ -91,7 +98,6 @@ export default async function handler(req: Request): Promise<Response> {
       return html(page('<h2>Payment unavailable</h2><p>Exchange rate temporarily unavailable — please try again shortly.</p>'), 503);
     }
     chargeAmount = tryToUsd(payment.amount, rate);
-    chargeCurrency = 'USD';
   }
 
   try {
@@ -99,11 +105,26 @@ export default async function handler(req: Request): Promise<Response> {
       apiKey,
       companyId,
       amount: chargeAmount,
-      currency: chargeCurrency,
-      title: 'Rafiq — medical booking deposit',
-      metadata: { paymentId: payment.id, chargedAmount: String(chargeAmount), chargedCurrency: chargeCurrency.toLowerCase() },
+      currency: 'USD',
+      // Whop's dynamic-plan title is capped at 30 characters.
+      title: 'Rafiq medical deposit',
+      metadata: { paymentId: payment.id },
       redirectUrl,
     });
+
+    // Store the correlation key BEFORE redirecting — if this write fails, the
+    // webhook would never be able to find this row, so treat it as a hard failure.
+    const upd = await fetch(`${supaUrl}/rest/v1/medical_payments?id=eq.${payment.id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ whop_checkout_id: checkout.id, charged_amount: chargeAmount }),
+    });
+    if (!upd.ok) throw new Error('failed_to_store_checkout_id');
+
     return new Response(null, { status: 303, headers: { Location: checkout.purchaseUrl } });
   } catch {
     return html(page('<h2>Payment unavailable</h2><p>Could not start checkout — please try again shortly.</p>'), 502);

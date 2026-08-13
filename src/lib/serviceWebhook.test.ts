@@ -5,8 +5,9 @@ import handler from '../../api/payments/service-webhook';
  * api/payments/service-webhook.ts is the ONLY path that flips a
  * service_payments row to 'verified'. Sibling of medicalWebhook.test.ts —
  * same properties pinned: Whop's Standard Webhooks signature verification,
- * metadata-based correlation to the internal payment row, and idempotency
- * under a replayed webhook.
+ * checkout_configuration_id-based correlation to the internal payment row
+ * (NOT metadata — Whop's live API silently drops checkout_configuration
+ * metadata), and idempotency under a replayed webhook.
  *
  * The Supabase REST calls are stubbed via global fetch — this test does not
  * touch a real database, it proves the handler's own request-sequencing logic.
@@ -14,6 +15,7 @@ import handler from '../../api/payments/service-webhook';
 
 const SECRET = 'test-webhook-secret';
 const PAYMENT_ID = '33333333-3333-3333-3333-333333333333';
+const CHECKOUT_ID = 'ch_test_svc456';
 
 async function hmacBase64(secret: string, message: string): Promise<string> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
@@ -63,9 +65,10 @@ beforeEach(() => {
       }
       return new Response(JSON.stringify([]), { status: 200 });
     }
-    if (u.includes('/service_payments?')) {
+    if (u.includes('/service_payments?whop_checkout_id=eq.')) {
+      if (!u.includes(encodeURIComponent(CHECKOUT_ID))) return new Response(JSON.stringify([]), { status: 200 });
       return new Response(JSON.stringify([{
-        id: PAYMENT_ID, request_id: 'req1', offer_id: 'offer1', user_id: 'u1', amount: 1500, status: paymentStatus,
+        id: PAYMENT_ID, request_id: 'req1', offer_id: 'offer1', user_id: 'u1', amount: 1500, charged_amount: 31.91, status: paymentStatus,
       }]), { status: 200 });
     }
     return new Response(JSON.stringify([]), { status: 200 });
@@ -78,7 +81,7 @@ afterEach(() => {
 
 describe('signature verification', () => {
   it('rejects a request with a wrong signature before touching the database', async () => {
-    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID } });
+    const body = envelope('payment.succeeded', { total: 31.91, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body, { badSig: true }));
     expect(res.status).toBe(401);
     expect(patchCalls).toHaveLength(0);
@@ -86,22 +89,28 @@ describe('signature verification', () => {
 
   it('rejects when the webhook secret is not configured, rather than accepting unsigned requests', async () => {
     delete process.env.WHOP_SERVICE_WEBHOOK_SECRET;
-    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const body = envelope('payment.succeeded', { total: 31.91, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(503);
   });
 
-  it('rejects a metadata paymentId that is not a UUID', async () => {
-    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: 'not-a-uuid' } });
+  it('rejects a payload missing checkout_configuration_id', async () => {
+    const body = envelope('payment.succeeded', { total: 31.91 });
     const res = await handler(await req(body));
     expect(res.status).toBe(400);
     expect(paymentStatus).toBe('pending');
   });
 });
 
-describe('idempotency', () => {
+describe('correlation and idempotency', () => {
+  it('404s when no row matches the checkout_configuration_id', async () => {
+    const body = envelope('payment.succeeded', { total: 31.91, checkout_configuration_id: 'ch_unknown' });
+    const res = await handler(await req(body));
+    expect(res.status).toBe(404);
+  });
+
   it('flips pending -> verified exactly once, and a replay is a no-op that still reports verified', async () => {
-    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const body = envelope('payment.succeeded', { total: 31.91, checkout_configuration_id: CHECKOUT_ID });
 
     const first = await handler(await req(body));
     expect(first.status).toBe(200);
@@ -118,21 +127,21 @@ describe('idempotency', () => {
 
   it('does not resurrect a payment that was already rejected', async () => {
     paymentStatus = 'rejected';
-    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const body = envelope('payment.succeeded', { total: 31.91, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(409);
     expect(paymentStatus).toBe('rejected');
   });
 
   it('rejects a payload whose amount does not match what we told Whop to charge', async () => {
-    const body = envelope('payment.succeeded', { total: 999999, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const body = envelope('payment.succeeded', { total: 999999, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(400);
     expect(paymentStatus).toBe('pending');
   });
 
   it('a failed-payment event rejects a pending payment without ever verifying it', async () => {
-    const body = envelope('payment.failed', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const body = envelope('payment.failed', { total: 31.91, checkout_configuration_id: CHECKOUT_ID });
     const res = await handler(await req(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ ok: true, status: 'rejected' });
@@ -140,7 +149,7 @@ describe('idempotency', () => {
   });
 
   it('acknowledges a refund event without mutating status (no refunded state modeled yet)', async () => {
-    const body = envelope('refund.created', { payment: { metadata: { paymentId: PAYMENT_ID } } });
+    const body = envelope('refund.created', { payment: { checkout_configuration_id: CHECKOUT_ID } });
     const res = await handler(await req(body));
     expect(res.status).toBe(200);
     const json = await res.json();
