@@ -8,6 +8,7 @@ import { pickText } from '../data/services';
 import type { ServiceType } from '../data/services';
 import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
+import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
 import { usePageMeta } from '../lib/seo';
 
 function copyFor(language: string) {
@@ -28,6 +29,25 @@ function copyFor(language: string) {
       requestText: 'Send details about your needs and we will coordinate an appropriate next step for the requested service.',
       requestButton: 'Request help for this service',
       returnButton: 'Return to all services',
+    };
+  }
+  if (language === 'ru') {
+    return {
+      notFoundTitle: 'Услуга не найдена',
+      notFoundText: 'Вернитесь к списку услуг и выберите услугу, которая соответствует вашим потребностям.',
+      allServices: 'Все услуги',
+      breadcrumb: 'Услуги',
+      breadcrumbLabel: 'Навигационная цепочка',
+      howHeading: 'Как Rafiq может помочь с этой услугой?',
+      directSupport: 'Rafiq координирует эту услугу напрямую. Отправьте свой запрос, и мы обсудим подходящий следующий шаг.',
+      partnerSupport: 'Rafiq координирует эту услугу через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
+      topicsHeading: 'Частые вопросы и связанные темы',
+      topicsIntro: 'Это распространённые темы, которые клиенты изучают до начала процесса. Требования и окончательные решения зависят от вашей ситуации и компетентных органов или поставщиков.',
+      relatedHeading: 'Связанные услуги',
+      requestHeading: 'Запросить помощь',
+      requestText: 'Отправьте сведения о своей потребности, и мы скоординируем подходящий следующий шаг для запрошенной услуги.',
+      requestButton: 'Запросить помощь по услуге',
+      returnButton: 'Вернуться ко всем услугам',
     };
   }
   return {
@@ -63,7 +83,7 @@ function ServiceNotFound() {
 }
 
 /**
- * A crawlable service page. Arabic and English pages add verified,
+ * A crawlable service page. Arabic, English and Russian pages add reviewed,
  * service-specific search intents; other languages keep their catalog text
  * until their own reviewed SEO copy is ready.
  */
@@ -87,7 +107,9 @@ export function ServiceDetail() {
     ? SERVICE_SEO_AR[service.id]
     : language === 'en'
       ? SERVICE_SEO_EN[service.id]
-      : undefined;
+      : language === 'ru'
+        ? SERVICE_SEO_RU[service.id]
+        : undefined;
   const seoTitle = serviceSeo?.seoTitle ?? `${title} — ${categoryTitle}`;
   const seoDescription = serviceSeo?.metaDescription ?? description;
   const related = services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4);
