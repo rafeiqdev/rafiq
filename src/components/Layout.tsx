@@ -450,10 +450,11 @@ export function Layout() {
       )}
       {/* Grouped together at the end of the page rather than a separate
           floating WhatsApp circle elsewhere — one contact area, not two
-          disconnected ones. */}
-      <div className="flex flex-col items-center gap-3 pb-2">
+          disconnected ones. Same ContactBanner card shape, WhatsApp-green
+          instead of legal-red. */}
+      <div className="flex flex-col items-center gap-3 my-4 pb-20 md:pb-0">
         <EmergencyLegalFAB />
-        <WhatsAppButton floating={false} />
+        <WhatsAppButton />
       </div>
       <ConsentBanner />
     </div>

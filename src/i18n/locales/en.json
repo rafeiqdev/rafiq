@@ -317,7 +317,10 @@
   },
   "whatsapp": {
     "aria": "Chat with us on WhatsApp",
-    "default": "Hello, I'd like help with your Istanbul services."
+    "default": "Hello, I'd like help with your Istanbul services.",
+    "title": "Chat with us",
+    "subtitle": "Questions? We're one message away",
+    "cta": "Message us"
   },
   "emergencyLegal": {
     "aria": "Urgent legal help on WhatsApp",
