@@ -16,7 +16,7 @@
  * actually uses this CMS.
  */
 
-import { MODEL_CHAIN, callWithFallback, extractJson } from '../_lib/gemini';
+import { MODEL_CHAIN, callWithFallback, extractJson } from '../_lib/gemini.js';
 
 export const config = { runtime: 'edge' };
 

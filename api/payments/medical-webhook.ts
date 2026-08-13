@@ -26,7 +26,7 @@
  * its next read; nothing here reveals the center directly.
  */
 
-import { verifyWhopWebhook } from '../_lib/whop';
+import { verifyWhopWebhook } from '../_lib/whop.js';
 
 export const config = { runtime: 'edge' };
 

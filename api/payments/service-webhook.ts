@@ -15,7 +15,7 @@
  * correlation.
  */
 
-import { verifyWhopWebhook } from '../_lib/whop';
+import { verifyWhopWebhook } from '../_lib/whop.js';
 
 export const config = { runtime: 'edge' };
 

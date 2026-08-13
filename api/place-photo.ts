@@ -10,7 +10,7 @@
  * each miss is a billed Places call.
  */
 
-import { candidateKeys, siteReferer } from './places-search';
+import { candidateKeys, siteReferer } from './places-search.js';
 
 export const config = { runtime: 'edge' };
 

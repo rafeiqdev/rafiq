@@ -17,7 +17,7 @@
  * Every failure returns 200 with `{ error }` so the client falls back gracefully.
  */
 
-import { MODEL_CHAIN, callWithFallback, extractJson, type GeminiContent } from './_lib/gemini';
+import { MODEL_CHAIN, callWithFallback, extractJson, type GeminiContent } from './_lib/gemini.js';
 
 export const config = { runtime: 'edge' };
 

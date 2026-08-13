@@ -12,8 +12,8 @@
  * actually told Whop to charge — not the TL amount stored on the row.
  */
 
-import { createWhopCheckout } from '../_lib/whop';
-import { getUsdTryRate, tryToUsd } from '../_lib/fx';
+import { createWhopCheckout } from '../_lib/whop.js';
+import { getUsdTryRate, tryToUsd } from '../_lib/fx.js';
 
 export const config = { runtime: 'edge' };
 

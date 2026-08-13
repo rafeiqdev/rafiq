@@ -18,8 +18,8 @@
  * rows only, the browser never activates anything here).
  */
 
-import { channelSlug, parseChannelPage, splitTitleBody } from '../../src/lib/telegramNews';
-import { MODEL_CHAIN, callWithFallback, extractJson } from '../_lib/gemini';
+import { channelSlug, parseChannelPage, splitTitleBody } from '../../src/lib/telegramNews.js';
+import { MODEL_CHAIN, callWithFallback, extractJson } from '../_lib/gemini.js';
 
 export const config = { runtime: 'edge' };
 

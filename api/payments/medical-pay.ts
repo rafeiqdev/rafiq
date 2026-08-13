@@ -17,8 +17,8 @@
  * full reasoning; both siblings share the same conversion contract.
  */
 
-import { createWhopCheckout } from '../_lib/whop';
-import { getUsdTryRate, tryToUsd } from '../_lib/fx';
+import { createWhopCheckout } from '../_lib/whop.js';
+import { getUsdTryRate, tryToUsd } from '../_lib/fx.js';
 
 export const config = { runtime: 'edge' };
 

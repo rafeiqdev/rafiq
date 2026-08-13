@@ -28,7 +28,7 @@ import {
   type DerivedRate,
   type ProviderPayload,
   type RejectCode,
-} from '../../src/lib/fxRates';
+} from '../../src/lib/fxRates.js';
 
 export const config = { runtime: 'edge' };
 
