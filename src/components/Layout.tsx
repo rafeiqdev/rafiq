@@ -15,6 +15,7 @@ import { useFallbackMeta, useSiteWideSeo } from '../lib/seo';
 import { useTrackPageViews } from '../lib/analytics';
 import { ConsentBanner } from './ConsentBanner';
 import { EmergencyLegalFAB } from './EmergencyLegalFAB';
+import { WhatsAppButton } from './WhatsAppButton';
 
 // Routes with a dedicated mobile screen (src/pages/mobile/*) that draws its
 // own full-bleed header/nav — on phones we skip the desktop ticker+header+
@@ -438,6 +439,7 @@ export function Layout() {
         </div>
       )}
       <EmergencyLegalFAB />
+      <WhatsAppButton />
       <ConsentBanner />
     </div>
   );
