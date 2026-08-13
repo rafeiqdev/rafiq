@@ -46,20 +46,62 @@
       rel="stylesheet"
     />
     <script>
-      // GA4, loaded only when VITE_GA_MEASUREMENT_ID is set (Vite replaces the
-      // %...% placeholder at build/dev time; empty in local dev by default).
+      // GA4 stays unloaded until the visitor grants analytics consent. Vite
+      // replaces the measurement-ID placeholder at build time; it is empty in
+      // local development by default.
       (function () {
         var GA_ID = "%VITE_GA_MEASUREMENT_ID%";
+        var CONSENT_KEY = 'rafiq_analytics_consent';
+        var loaded = false;
+        var host = window.location.hostname;
         if (!GA_ID || GA_ID.indexOf('%VITE_') === 0) return;
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { window.dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', GA_ID);
+        // Do not mix preview, local, or temporary Vercel deployments into the
+        // production acquisition reports for rafiq.ist.
+        if (host !== 'rafiq.ist' && host !== 'www.rafiq.ist') return;
+
+        function consentPayload(state) {
+          var granted = state === 'granted';
+          return {
+            analytics_storage: granted ? 'granted' : 'denied',
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied'
+          };
+        }
+
+        function updateConsent(state) {
+          if (window.gtag) window.gtag('consent', 'update', consentPayload(state));
+        }
+
+        function loadGoogleTag() {
+          if (loaded) return;
+          loaded = true;
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { window.dataLayer.push(arguments); }
+          window.gtag = gtag;
+          gtag('consent', 'default', consentPayload('declined'));
+          gtag('js', new Date());
+          gtag('config', GA_ID, { send_page_view: false });
+          updateConsent('granted');
+
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(s);
+        }
+
+        window.rafiqGoogleAnalytics = {
+          setConsent: function (state) {
+            if (state === 'granted') loadGoogleTag();
+            else updateConsent('declined');
+          }
+        };
+
+        try {
+          if (localStorage.getItem(CONSENT_KEY) === 'granted') loadGoogleTag();
+        } catch (_) {
+          // Storage can be unavailable in privacy modes; wait for an explicit choice.
+        }
       })();
     </script>
   </head>
