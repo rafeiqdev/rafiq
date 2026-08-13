@@ -2,40 +2,60 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SITE_URL, DEFAULT_OG_IMAGE } from '../lib/seo';
 
-const SCRIPT_ID = 'ld-localbusiness';
+const SCRIPT_ID = 'ld-organization';
 
-// Real WhatsApp number if one is actually configured (same placeholder guard
-// as WhatsAppButton.tsx) — omitted entirely rather than left as a fabricated
-// contact number.
+// The configured WhatsApp contact number is used only as a customer-service
+// contact point. It does not imply an in-person office or LocalBusiness.
 const WA = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
 const WA_CONFIGURED = !!WA && WA !== '905000000000';
 
 /**
- * LocalBusiness JSON-LD — home page only. No visible output; renders nothing.
- * Only includes fields backed by real site data (name, url, image, address,
- * languages, and telephone if actually configured) — no invented ratings,
- * reviews, or price range.
+ * Organization + WebSite JSON-LD for the public home page.
+ *
+ * Rafiq is a digital platform, not a walk-in or service-area local business.
+ * The markup therefore avoids LocalBusiness, a physical address, operating
+ * hours, ratings, and any other information the site cannot substantiate.
  */
 export function LocalBusinessSchema() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const data: Record<string, unknown> = {
-      '@context': 'https://schema.org',
-      '@type': 'LocalBusiness',
-      name: t('common.appName'),
-      alternateName: ['Rafiq Istanbul', 'رفيق إسطنبول', 'Рафик Стамбул', 'رفیق استانبول'],
+    const organization: Record<string, unknown> = {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Rafiq Istanbul',
+      alternateName: ['Rafiq', 'رفيق إسطنبول', 'Рафик Стамбул', 'رفیق استانبول'],
       description: t('common.tagline'),
       url: SITE_URL,
+      logo: `${SITE_URL}/logo-rafiq-square.png`,
       image: DEFAULT_OG_IMAGE,
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'İstanbul',
-        addressCountry: 'TR',
-      },
       availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
     };
-    if (WA_CONFIGURED) data.telephone = `+${WA}`;
+
+    if (WA_CONFIGURED) {
+      organization.contactPoint = {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        telephone: `+${WA}`,
+        availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+      };
+    }
+
+    const data = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        organization,
+        {
+          '@type': 'WebSite',
+          '@id': `${SITE_URL}/#website`,
+          url: SITE_URL,
+          name: 'Rafiq Istanbul',
+          alternateName: ['Rafiq', 'رفيق إسطنبول'],
+          publisher: { '@id': `${SITE_URL}/#organization` },
+          inLanguage: ['ar', 'en', 'ru', 'fa'],
+        },
+      ],
+    };
 
     let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
     if (!script) {
