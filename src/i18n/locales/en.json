@@ -1138,6 +1138,12 @@
     },
     "reveal": "Reveal",
     "hide": "Hide",
+    "auditLog": {
+      "title": "Audit log",
+      "body": "Who changed what — tier/role changes, payment decisions, PII reveals, content deletes, news publish.",
+      "empty": "No audit entries yet.",
+      "unknownActor": "Unknown"
+    },
     "newRequests": {
       "title": "Needs action — {{count}} waiting",
       "more": "and {{count}} more below",
@@ -1263,6 +1269,10 @@
       "postBody": "Text (optional)",
       "postLink": "Link to the Telegram post (optional)",
       "publish": "Publish",
+      "draft": "Draft",
+      "published": "Published",
+      "publishDraft": "Publish",
+      "unpublish": "Unpublish",
       "empty": "No news posts yet.",
       "errors": {
         "devOnly": "Telegram sync runs on the deployed site only — open /admin on your live domain and press Sync there.",

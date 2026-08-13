@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { bookings } from '../lib/api';
+import { bookings, logPiiReveal } from '../lib/api';
 import type { Booking, BookingStatus } from '../lib/types';
 import { LANGS } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
@@ -24,7 +24,7 @@ function Row({ booking, onChanged }: { booking: Booking; onChanged: () => void }
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex-1 min-w-0">
           <p className="font-bold text-navy text-sm">
-            <RevealField masked={maskEmail(booking.userEmail)} full={booking.userEmail} className="break-all" />
+            <RevealField masked={maskEmail(booking.userEmail)} full={booking.userEmail} className="break-all" onReveal={() => logPiiReveal('booking', booking.id)} />
           </p>
           <p className="mt-1 text-sm text-navy/80 break-words">{booking.problemSummary}</p>
           <p className="mt-1 text-xs text-gray-500 break-words">

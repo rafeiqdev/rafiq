@@ -6,6 +6,7 @@ import {
   FX_PAIRS,
   hoursSince,
   istanbulLocalTime,
+  MANUAL_ONLY_PAIRS,
   providerTime,
   ruleFor,
 } from './fxRates';
@@ -228,5 +229,12 @@ describe('hoursSince', () => {
 
   it('returns null for an unparseable timestamp', () => {
     expect(hoursSince('not a date', NOW)).toBeNull();
+  });
+});
+
+describe('MANUAL_ONLY_PAIRS', () => {
+  it('lists USD/SYP, distinct from every synced pair', () => {
+    expect(MANUAL_ONLY_PAIRS.map((p) => p.pair)).toEqual(['USD/SYP']);
+    expect(FX_PAIRS.map((p) => p.pair)).not.toContain('USD/SYP');
   });
 });

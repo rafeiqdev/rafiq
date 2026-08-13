@@ -21,6 +21,13 @@ export const FX_PAIRS = [
 
 export type FxPair = (typeof FX_PAIRS)[number]['pair'];
 
+/**
+ * Pairs with no free live feed — always manual, never touched by the daily
+ * sync. Shown on the admin override table and the public ticker exactly like
+ * a synced pair; they just never get a "provider" badge.
+ */
+export const MANUAL_ONLY_PAIRS = [{ pair: 'USD/SYP' }] as const;
+
 /** Crypto pairs, synced by the same job from a separate feed. */
 export const CRYPTO_PAIRS = [
   { pair: 'BTC/USD', id: 'bitcoin' },

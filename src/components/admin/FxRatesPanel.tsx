@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fx } from '../../lib/api';
 import type { FxAuditEntry, FxRate, FxSyncRun } from '../../lib/api';
-import { FX_PAIRS } from '../../lib/fxRates';
+import { FX_PAIRS, MANUAL_ONLY_PAIRS } from '../../lib/fxRates';
+
+const ALL_PAIRS = [...FX_PAIRS, ...MANUAL_ONLY_PAIRS];
 import { AppIcon } from '../AppIcon';
 
 /**
@@ -138,7 +140,7 @@ export function FxRatesPanel() {
             </tr>
           </thead>
           <tbody>
-            {FX_PAIRS.map(({ pair }) => {
+            {ALL_PAIRS.map(({ pair }) => {
               const r = rates.find((x) => x.pair === pair);
               const isEditing = editing === pair;
               return (

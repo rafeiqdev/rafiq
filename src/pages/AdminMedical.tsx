@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { adminMedical, adminMedicalContent, medicalContent } from '../lib/api';
+import { adminMedical, adminMedicalContent, logPiiReveal, medicalContent } from '../lib/api';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { SectionState } from '../components/SectionState';
 import { AppIcon } from '../components/AppIcon';
@@ -11,6 +11,7 @@ import { MedicalStatusPill } from '../components/medical/MedicalStatusPill';
 import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
 import { RevealField } from '../components/admin/RevealField';
 import { maskEmail } from '../lib/format';
+import { allowedNext, MEDICAL_REQUEST_TRANSITIONS } from '../lib/statusTransitions';
 import type {
   AdminMedicalRequest, MedicalFaq, MedicalHeroSlide, MedicalLandingCard, MedicalOffer, MedicalOptionalServiceType,
   MedicalPageSection, MedicalRequestStatus, MedicalTestimonial,
@@ -184,7 +185,10 @@ function RequestDetail({ req, onChanged }: { req: AdminMedicalRequest; onChanged
     <div className="mt-4 border-t border-cream-dark pt-4 flex flex-col gap-4">
       <div className="flex items-center gap-2 flex-wrap">
         <select className="input !h-9 !w-auto text-xs" value={req.status} onChange={(e) => setPendingStatus(e.target.value as MedicalRequestStatus)}>
-          {STATUSES.map((s) => <option key={s} value={s}>{t(`medical.status.${s}`)}</option>)}
+          <option value={req.status}>{t(`medical.status.${req.status}`)}</option>
+          {allowedNext(MEDICAL_REQUEST_TRANSITIONS, req.status).map((s) => (
+            <option key={s} value={s}>{t(`medical.status.${s}`)}</option>
+          ))}
         </select>
         {pendingStatus && (
           <ConfirmActionModal
@@ -339,7 +343,7 @@ function RequestsQueue() {
                   <span className="flex-1 min-w-0">
                     <span className="font-semibold text-navy block">
                       {r.specialty} —{' '}
-                      {r.ownerName ?? (r.ownerEmail ? <RevealField masked={maskEmail(r.ownerEmail)} full={r.ownerEmail} /> : '—')}
+                      {r.ownerName ?? (r.ownerEmail ? <RevealField masked={maskEmail(r.ownerEmail)} full={r.ownerEmail} onReveal={() => logPiiReveal('medical_request', r.id)} /> : '—')}
                     </span>
                     <span className="text-xs text-navy/50">{new Date(r.createdAt).toLocaleDateString(i18n.language)} · {r.offersCount} {t('medical.admin.offersCount')}</span>
                   </span>

@@ -136,9 +136,22 @@ export default async function handler(req: Request): Promise<Response> {
     return json({ error: 'no_posts_parsed', hint: 'Channel empty, private, or t.me markup changed.' }, 422);
   }
 
+  const slice = parsed.slice(-SYNC_COUNT);
+
+  // Which of these posts already exist — re-syncing an already-reviewed post
+  // (still among the channel's latest N tomorrow) must NOT reset it back to
+  // draft. `published` is only set on the INSERT branch below; omitting the
+  // key for an existing tg_id leaves its current published state untouched,
+  // same trick already used for `translations` a few lines down.
+  const idList = slice.map((p) => p.tgId).join(',');
+  const existingRes = await supa(`news_posts?tg_id=in.(${idList})&select=tg_id`);
+  const existingIds = new Set(
+    existingRes.ok ? ((await existingRes.json()) as { tg_id: string }[]).map((r) => r.tg_id) : [],
+  );
+
   const geminiKey = env('GEMINI_API_KEY');
   const rows = await Promise.all(
-    parsed.slice(-SYNC_COUNT).map(async (p) => {
+    slice.map(async (p) => {
       const { title, body } = splitTitleBody(p.text);
       const finalTitle = title || 'Telegram';
       const translations = await translatePost(geminiKey, finalTitle, body);
@@ -149,7 +162,11 @@ export default async function handler(req: Request): Promise<Response> {
         url: p.url,
         image_url: p.imageUrl,
         source: 'telegram',
-        published: true,
+        // New posts land as a draft — an admin reviews and explicitly
+        // publishes each one (NewsFeedManager.tsx) before it reaches the
+        // public home page. Manually-typed posts (news.create) are still
+        // human-authored at creation and publish immediately.
+        ...(existingIds.has(p.tgId) ? {} : { published: false }),
         // Omit on failure so the upsert's partial SET leaves any translation
         // from a previous sync in place, instead of clobbering it with {}.
         ...(Object.keys(translations).length > 0 ? { translations } : {}),

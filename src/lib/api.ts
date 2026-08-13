@@ -147,6 +147,21 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
   throw new ApiError(fallback, status);
 }
 
+/**
+ * Best-effort general admin audit log — never blocks or fails the action it
+ * accompanies. Mirrors logMedicalAudit (medical_audit_log_write) but for the
+ * rest of the admin surface (tier/role changes, payment resolve, PII reveal,
+ * content deletes, news publish). See supabase/migrations/20260813_admin_audit_log.sql.
+ */
+async function logAdminAudit(action: string, targetType: string, targetId: string | null, meta: Record<string, unknown> = {}): Promise<void> {
+  await sb().rpc('admin_audit_log_write', { p_action: action, p_target_type: targetType, p_target_id: targetId, p_meta: meta });
+}
+
+/** Log a PII reveal from RevealField.tsx — the one call site UI components need directly. */
+export function logPiiReveal(targetType: string, targetId: string): void {
+  logAdminAudit('pii_reveal', targetType, targetId);
+}
+
 // ---------- row mappers ------------------------------------------------------
 
 interface ListingRow {
@@ -1129,6 +1144,15 @@ export const news = {
   async remove(id: string): Promise<{ ok: true }> {
     const { error } = await sb().from('news_posts').delete().eq('id', id);
     if (error) fail(error);
+    await logAdminAudit('news_delete', 'news_post', id);
+    return { ok: true };
+  },
+
+  /** Draft/review gate for Telegram-synced posts — see telegram-sync.ts. */
+  async setPublished(id: string, published: boolean): Promise<{ ok: true }> {
+    const { error } = await sb().from('news_posts').update({ published }).eq('id', id);
+    if (error) fail(error);
+    await logAdminAudit(published ? 'news_publish' : 'news_unpublish', 'news_post', id);
     return { ok: true };
   },
 
@@ -1225,6 +1249,7 @@ export const adminUsers = {
   async setTier(id: string, tier: PlanTier): Promise<{ ok: true }> {
     const { error } = await sb().rpc('admin_set_tier', { p_user: id, p_tier: tier });
     if (error) fail(error);
+    await logAdminAudit('tier_change', 'profile', id, { tier });
     return { ok: true };
   },
   /**
@@ -1236,6 +1261,7 @@ export const adminUsers = {
   async setRole(id: string, role: 'user' | 'medical_coordinator'): Promise<{ ok: true }> {
     const { error } = await sb().from('profiles').update({ role }).eq('id', id);
     if (error) fail(error);
+    await logAdminAudit('role_change', 'profile', id, { role });
     return { ok: true };
   },
   /** Cancelled subscriptions with the reason/comment the user left when cancelling. */
@@ -1310,6 +1336,7 @@ export const listings = {
   async remove(id: string): Promise<{ ok: true }> {
     const { error } = await sb().from('listings').delete().eq('id', id);
     if (error) fail(error);
+    await logAdminAudit('listing_delete', 'listing', id);
     return { ok: true };
   },
 };
@@ -1383,6 +1410,7 @@ export const investments = {
   async remove(id: string): Promise<{ ok: true }> {
     const { error } = await sb().from('investment_opportunities').delete().eq('id', id);
     if (error) fail(error);
+    await logAdminAudit('investment_delete', 'investment_opportunity', id);
     return { ok: true };
   },
   /** Reuses the public `listings` bucket — no second bucket to police. */
@@ -1420,29 +1448,6 @@ export const investmentContacts = {
       whatsapp: c.whatsapp, official_url: c.officialUrl, press_url: c.pressUrl,
       permission: c.permission, notes: c.notes,
     });
-    if (error) fail(error);
-    return { ok: true };
-  },
-};
-
-// ---------- admin: currency rates override ----------------------------------
-
-interface RatesValue { usdtry: number; eurtry: number; sypusd?: number; updatedAt: string; }
-
-export const adminRates = {
-  async get(): Promise<{ usdtry: number | null; eurtry: number | null; sypusd: number | null; updatedAt: string | null }> {
-    const { data } = await sb().from('settings').select('value').eq('key', 'rates').maybeSingle();
-    const v = data?.value as RatesValue | undefined;
-    return { usdtry: v?.usdtry ?? null, eurtry: v?.eurtry ?? null, sypusd: v?.sypusd ?? null, updatedAt: v?.updatedAt ?? null };
-  },
-  async set(usdtry: number, eurtry: number, sypusd?: number): Promise<{ ok: true }> {
-    const value: RatesValue = { usdtry, eurtry, sypusd: sypusd && sypusd > 0 ? sypusd : undefined, updatedAt: new Date().toISOString() };
-    const { error } = await sb().from('settings').upsert({ key: 'rates', value }, { onConflict: 'key' });
-    if (error) fail(error);
-    return { ok: true };
-  },
-  async clear(): Promise<{ ok: true }> {
-    const { error } = await sb().from('settings').delete().eq('key', 'rates');
     if (error) fail(error);
     return { ok: true };
   },
@@ -1517,6 +1522,7 @@ export const adminPlaces = {
   async remove(id: string): Promise<{ ok: true }> {
     const { error } = await sb().from('places').delete().eq('id', id);
     if (error) fail(error);
+    await logAdminAudit('place_delete', 'place', id);
     return { ok: true };
   },
 };
@@ -1571,6 +1577,7 @@ export const adminPayments = {
   async resolve(id: string, status: 'verified' | 'rejected'): Promise<{ ok: true }> {
     const { error } = await sb().rpc('admin_resolve_payment', { p_id: id, p_status: status });
     if (error) fail(error);
+    await logAdminAudit('payment_resolve', 'payment', id, { status });
     return { ok: true };
   },
   /** Open a payment receipt via a short-lived signed URL (admin). */
@@ -1887,9 +1894,13 @@ export const serviceRequests = {
     return { status: (data.status as string) ?? 'new', adminNote: (data.admin_note as string | null) ?? null };
   },
 
-  /** Admin: move a request through the workflow. */
+  /**
+   * Admin: move a request through the workflow. The RPC enforces the same
+   * legal-transition map as the UI (src/lib/statusTransitions.ts) server-side
+   * and logs to admin_audit_log — see 20260813_status_guardrails.sql.
+   */
   async adminSetStatus(id: string, status: 'accepted' | 'done' | 'rejected'): Promise<{ ok: true }> {
-    const { error } = await sb().from('service_requests').update({ status }).eq('id', id);
+    const { error } = await sb().rpc('set_service_request_status', { p_id: id, p_status: status });
     if (error) fail(error);
     return { ok: true };
   },
@@ -2154,6 +2165,37 @@ export const fx = {
 // lived here. It called open.er-api.com and coingecko directly from the user's
 // page. Removed with the daily server-side sync: see the `fx` module above and
 // api/cron/rates-sync.ts. Do not reintroduce a client-side price fetch.
+
+export interface AdminAuditEntry {
+  id: string;
+  actorName: string | null;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  meta: Record<string, unknown>;
+  createdAt: string;
+}
+
+/** Read-only view onto admin_audit_log — writes only ever happen via logAdminAudit()/logPiiReveal() above. */
+export const adminAuditLog = {
+  async list(limit = 100): Promise<AdminAuditEntry[]> {
+    const { data, error } = await sb()
+      .from('admin_audit_log')
+      .select('id,action,target_type,target_id,meta,created_at,actor:profiles(name)')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) fail(error);
+    return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+      id: r.id as string,
+      actorName: (r.actor as { name?: string } | null)?.name ?? null,
+      action: r.action as string,
+      targetType: r.target_type as string,
+      targetId: (r.target_id as string) ?? null,
+      meta: (r.meta as Record<string, unknown>) ?? {},
+      createdAt: r.created_at as string,
+    }));
+  },
+};
 
 // ============================================================================
 // B2B Companies system — companies, billing, leads/responses, reviews, admin.
@@ -3008,10 +3050,15 @@ export const adminMedical = {
     if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener');
   },
 
+  /**
+   * The RPC enforces the same legal-transition map as the UI
+   * (src/lib/statusTransitions.ts) server-side and logs to admin_audit_log —
+   * see 20260813_status_guardrails.sql. Replaces the old direct .update() +
+   * logMedicalAudit pair, which accepted any status value.
+   */
   async setStatus(id: string, status: MedicalRequestStatus): Promise<{ ok: true }> {
-    const { error } = await sb().from('medical_requests').update({ status }).eq('id', id);
+    const { error } = await sb().rpc('set_medical_request_status', { p_id: id, p_status: status });
     if (error) fail(error);
-    await logMedicalAudit(sb(), 'status_change', 'medical_request', id, { status });
     return { ok: true };
   },
 

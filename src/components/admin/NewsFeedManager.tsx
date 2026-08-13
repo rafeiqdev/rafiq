@@ -61,6 +61,17 @@ export function NewsFeedManager() {
   const [confirmSync, setConfirmSync] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [confirmToggle, setConfirmToggle] = useState<{ id: string; next: boolean; title: string } | null>(null);
+
+  const togglePublished = async (id: string, next: boolean) => {
+    setError(null);
+    try {
+      await news.setPublished(id, next);
+      postsSec.reload();
+    } catch {
+      setError('common.error');
+    }
+  };
 
   useEffect(() => {
     news.telegramChannel().then((c) => setChannel(c ?? ''), () => {});
@@ -230,6 +241,20 @@ export function NewsFeedManager() {
           }}
         />
       )}
+      {confirmToggle && (
+        <ConfirmActionModal
+          title={t(confirmToggle.next ? 'admin.newsFeed.publishDraft' : 'admin.newsFeed.unpublish')}
+          record={confirmToggle.title}
+          expectedResult={t(confirmToggle.next ? 'admin.newsFeed.published' : 'admin.newsFeed.draft')}
+          reversible
+          notifiesCustomer={confirmToggle.next}
+          onClose={() => setConfirmToggle(null)}
+          onConfirm={() => {
+            togglePublished(confirmToggle.id, confirmToggle.next);
+            setConfirmToggle(null);
+          }}
+        />
+      )}
 
       {error && (
         <p role="alert" className="amber-note mt-3 flex items-center gap-2 text-sm">
@@ -253,7 +278,16 @@ export function NewsFeedManager() {
                   <AppIcon name={p.source === 'telegram' ? 'send' : 'newspaper'} className="w-4 h-4 mt-0.5 shrink-0 text-navy/70" />
                 )}
                 <span className="flex-1 min-w-0">
-                  <span className="font-semibold break-words">{p.title}</span>
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold break-words">{p.title}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        p.published ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {t(p.published ? 'admin.newsFeed.published' : 'admin.newsFeed.draft')}
+                    </span>
+                  </span>
                   {p.body && <span className="block text-navy/70 break-words">{p.body}</span>}
                   {p.url && (
                     <a href={p.url} target="_blank" rel="noopener noreferrer" dir="ltr" className="block text-xs text-navy underline break-all">
@@ -264,6 +298,12 @@ export function NewsFeedManager() {
                 <span className="text-xs text-gray-500 shrink-0">
                   {new Date(p.createdAt).toLocaleDateString(i18n.language)}
                 </span>
+                <button
+                  onClick={() => setConfirmToggle({ id: p.id, next: !p.published, title: p.title })}
+                  className="shrink-0 btn-secondary !h-8 px-2.5 text-xs"
+                >
+                  {t(p.published ? 'admin.newsFeed.unpublish' : 'admin.newsFeed.publishDraft')}
+                </button>
                 <button
                   onClick={() => setConfirmRemoveId(p.id)}
                   aria-label={t('common.delete')}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { adminPayments, adminRates, adminUsers, leads, notifications } from '../lib/api';
+import { adminPayments, adminUsers, leads, logPiiReveal, notifications } from '../lib/api';
 import type { PaymentStatusFilter } from '../lib/api';
 import type { AdminUser, Booking, Lead, PaymentRequest, PlanTier, Profile } from '../lib/types';
 import { RequireAdmin } from '../components/Gates';
@@ -24,6 +24,7 @@ import { SectionState } from '../components/SectionState';
 import { RequestStatusPill } from '../components/RequestStatusPill';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
+import { AdminAuditLog } from '../components/admin/AdminAuditLog';
 import { RevealField } from '../components/admin/RevealField';
 import { maskEmail } from '../lib/format';
 
@@ -36,7 +37,7 @@ import { maskEmail } from '../lib/format';
 const TABS = [
   'overview', 'users', 'bookings', 'serviceRequests', 'payments',
   'paymentSettings', 'rates', 'cancellations', 'leads', 'companies', 'companyPayments',
-  'broadcast', 'newsFeed', 'catalog', 'listings', 'investments', 'places', 'news',
+  'broadcast', 'newsFeed', 'catalog', 'listings', 'investments', 'places', 'news', 'auditLog',
 ] as const;
 type AdminTab = (typeof TABS)[number];
 const DEFAULT_TAB: AdminTab = 'overview';
@@ -98,7 +99,7 @@ function UserRow({
             </span>
           </button>
           <div className="ms-[18px] text-xs text-gray-500">
-            <RevealField masked={maskEmail(u.email)} full={u.email} className="break-all" />
+            <RevealField masked={maskEmail(u.email)} full={u.email} className="break-all" onReveal={() => logPiiReveal('profile', u.id)} />
           </div>
         </td>
         <td className="py-2.5 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString(i18n.language)}</td>
@@ -273,7 +274,7 @@ const NAV_GROUPS: { id: string; icon: IconName; labelKey: string; tabs: AdminTab
   { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'cancellations'] },
   { id: 'content', icon: 'newspaper', labelKey: 'admin.groups.content', tabs: ['broadcast', 'newsFeed', 'news'] },
   { id: 'realEstate', icon: 'home', labelKey: 'admin.groups.realEstate', tabs: ['listings', 'investments', 'places'] },
-  { id: 'settingsGroup', icon: 'trending-up', labelKey: 'admin.groups.settings', tabs: ['rates'] },
+  { id: 'settingsGroup', icon: 'trending-up', labelKey: 'admin.groups.settings', tabs: ['rates', 'auditLog'] },
 ];
 const GROUPED_TABS = new Set(NAV_GROUPS.flatMap((g) => g.tabs));
 const HIDDEN_FROM_NAV = new Set<AdminTab>(['companies', 'companyPayments']);
@@ -299,6 +300,7 @@ const TAB_ICON: Record<AdminTab, IconName> = {
   investments: 'landmark',
   places: 'map-pin',
   news: 'send',
+  auditLog: 'shield-check',
 };
 
 /** One sidebar link — shared by the flat top-level tabs and the tabs nested inside a group. */
@@ -370,12 +372,8 @@ function AdminInner() {
     investments: t('admin.investments.title'),
     places: t('admin.places.title'),
     news: t('admin.news.title'),
+    auditLog: t('admin.auditLog.title'),
   };
-  // USD/TRY and EUR/TRY moved to fx_rates (daily sync + FxRatesPanel). Only the
-  // Syrian pound is still hand-set here, because no free feed prices it reliably.
-  const [syp, setSyp] = useState('');
-  const [ratesSaved, setRatesSaved] = useState(false);
-
   /**
    * Six INDEPENDENT sections, not one Promise.all.
    *
@@ -402,26 +400,6 @@ function AdminInner() {
   const broadcastsSec = useAsyncSection(() => notifications.broadcasts(), []);
   const leadsSec = useAsyncSection(() => leads.adminList(), []);
   const cancellationsSec = useAsyncSection(() => adminUsers.cancellations(), []);
-  const ratesSec = useAsyncSection(() => adminRates.get(), []);
-
-  // The SYP input is seeded from the rates section once it lands, and only when
-  // untouched — so a reload can never overwrite what the admin is typing.
-  const loadedRates = ratesSec.status === 'ready' ? ratesSec.data : null;
-  const ratesUpdatedAt = loadedRates?.updatedAt ?? null;
-  useEffect(() => {
-    if (loadedRates) setSyp(loadedRates.sypusd != null ? String(loadedRates.sypusd) : '');
-  }, [loadedRates]);
-
-  const saveRates = async () => {
-    const s = Number(syp);
-    if (!(s > 0)) return;
-    // The legacy settings.rates row now carries only sypusd; usd/eur are passed
-    // as 0 and ignored — the live pairs come from fx_rates.
-    await adminRates.set(0, 0, s);
-    setRatesSaved(true);
-    setTimeout(() => setRatesSaved(false), 2000);
-    ratesSec.reload();
-  };
 
   const setTier = async (userId: string, tier: PlanTier) => {
     await adminUsers.setTier(userId, tier);
@@ -619,7 +597,7 @@ function AdminInner() {
                   {rows.map((p) => (
                     <li key={p.id} className="flex items-center gap-3 flex-wrap rounded-xl bg-cream px-4 py-3 text-sm">
                       <span className="font-semibold text-navy">
-                        <RevealField masked={maskEmail(p.email)} full={p.email} className="break-all" />
+                        <RevealField masked={maskEmail(p.email)} full={p.email} className="break-all" onReveal={() => logPiiReveal('payment', p.id)} />
                       </span>
                       <span className="rounded-full bg-brand-blue px-3 py-1 text-xs font-bold text-navy">
                         {t(`pricing.${p.tier}.name`)} / {t(`common.${p.billing}`)}
@@ -689,36 +667,13 @@ function AdminInner() {
               live and unnoticed again. */}
           {activeTab === 'paymentSettings' && <PaymentSettingsPanel />}
 
-          {/* currency rates: the daily FX sync (health, per-pair override,
-              audit trail) plus the hand-set USD/SYP, which no free feed
-              prices reliably */}
-          {activeTab === 'rates' && (
-            <>
-              <FxRatesPanel />
-              <div className="card p-6 mt-5">
-                <h2 className="font-bold text-navy flex items-center gap-2">
-                  <AppIcon name="trending-up" className="w-4 h-4" />
-                  USD/SYP
-                </h2>
-                <p className="mt-1 text-sm text-gray-500">{t('admin.rates.body')}</p>
-                <div className="mt-4 flex flex-wrap items-end gap-3">
-                  <label className="text-xs font-semibold text-navy/70">
-                    USD/SYP
-                    <input type="number" step="any" className="input w-full sm:!w-36 mt-1" value={syp} onChange={(e) => setSyp(e.target.value)} dir="ltr" placeholder={t('admin.rates.sypHint')} />
-                  </label>
-                  <button onClick={saveRates} className="btn-primary h-11 px-5">
-                    <AppIcon name={ratesSaved ? 'check' : 'save'} className="w-4 h-4" />
-                    {ratesSaved ? t('admin.rates.saved') : t('admin.rates.save')}
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-gray-400">
-                  {ratesUpdatedAt
-                    ? t('admin.rates.updated', { date: new Date(ratesUpdatedAt).toLocaleString(i18n.language) })
-                    : t('admin.rates.usingLive')}
-                </p>
-              </div>
-            </>
-          )}
+          {/* currency rates: the daily FX sync plus every manual-only pair
+              (USD/SYP), all through one per-pair override + audit trail */}
+          {activeTab === 'rates' && <FxRatesPanel />}
+
+          {/* who changed what — tier/role changes, payment resolve, PII
+              reveal, content deletes, news publish */}
+          {activeTab === 'auditLog' && <AdminAuditLog />}
 
           {/* users + tier control. The referral columns (clicks / signups /
               earned) are gone with the RPC: referral_clicks stores only a
@@ -809,7 +764,7 @@ function AdminInner() {
                       <span className="font-semibold text-navy break-anywhere">{l.item}</span>
                       {l.userEmail && (
                         <span className="text-xs text-gray-500">
-                          <RevealField masked={maskEmail(l.userEmail)} full={l.userEmail} className="break-all" />
+                          <RevealField masked={maskEmail(l.userEmail)} full={l.userEmail} className="break-all" onReveal={() => logPiiReveal('lead', l.id)} />
                         </span>
                       )}
                       <span className="ms-auto text-xs text-gray-500">
