@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../data/services';
 import type { ServiceType } from '../data/services';
@@ -22,6 +22,13 @@ const POPULAR_CATEGORY_IDS = ['residency', 'realestate', 'health', 'banking', 't
 export function Services() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const guideLabel = lang === 'en'
+    ? 'Read guide'
+    : lang === 'ru'
+      ? 'Открыть гид'
+      : lang === 'fa'
+        ? 'مطالعه راهنما'
+        : 'قراءة الدليل';
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
   const [category, setCategory] = useState<string>('all');
@@ -189,6 +196,9 @@ export function Services() {
                     <AppIcon name={c.icon} className="w-4 h-4" />
                   </span>
                   <h2 className="text-lg font-extrabold text-navy flex-1 min-w-0">{pickText(c.title, lang)}</h2>
+                  <Link to={`/guides/${c.id}`} className="text-xs font-semibold text-navy/70 hover:text-navy hover:underline shrink-0">
+                    {guideLabel}
+                  </Link>
                   <span className="text-xs text-navy/50 shrink-0">({items.length})</span>
                   <OfficialSourceBadge categoryId={c.id} className="shrink-0" />
                 </div>
