@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConsent, setConsent } from '../lib/analytics';
 import { AppIcon } from './AppIcon';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 /**
  * KVKK/GDPR consent banner. Nothing is collected before a choice is made here
@@ -16,6 +17,7 @@ import { AppIcon } from './AppIcon';
  */
 export function ConsentBanner() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [visible, setVisible] = useState(() => getConsent() === null);
 
   // In case consent was already decided in another tab while this one was open.
@@ -36,7 +38,14 @@ export function ConsentBanner() {
       aria-live="polite"
       aria-labelledby="consent-title"
       aria-describedby="consent-body"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-cream-dark bg-white px-4 py-4 shadow-float sm:px-6"
+      // Nearly every mobile screen renders MobileTabBar.tsx, a persistent
+      // fixed bottom-0 nav bar. This banner is also fixed bottom-0 with a
+      // higher z-index, so on phones it used to render directly on top of
+      // that nav and hide it completely until dismissed. Lifting the banner
+      // above the bar's height (56px content + safe-area inset, matching
+      // MobileTabBar's own layout) keeps both visible and tappable at once.
+      style={isMobile ? { bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))' } : undefined}
+      className={`fixed inset-x-0 z-50 border-t border-cream-dark bg-white px-4 py-4 shadow-float sm:px-6 ${isMobile ? '' : 'bottom-0'}`}
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
         <span className="icon-chip hidden shrink-0 sm:flex">

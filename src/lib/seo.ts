@@ -120,13 +120,26 @@ const claim = { current: false };
  * Restores site-wide defaults on unmount so leaving a covered page doesn't
  * leave another page's copy behind.
  */
-export function usePageMeta({ title, description, image }: { title: string; description: string; image?: string }) {
+export function usePageMeta({
+  title,
+  description,
+  image,
+  noindex,
+}: {
+  title: string;
+  description: string;
+  image?: string;
+  /** Set for pages with no real content to show — e.g. an unknown/hidden service id — so a
+   *  stale sitemap or inbound link can never get a "not found" page indexed as real content. */
+  noindex?: boolean;
+}) {
   useEffect(() => {
     claim.current = true;
     const ogImage = image ?? DEFAULT_OG_IMAGE;
 
     document.title = title;
     upsertMeta('name', 'description', description);
+    upsertMeta('name', 'robots', noindex ? 'noindex,follow' : 'index,follow');
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:image', ogImage);
@@ -138,6 +151,7 @@ export function usePageMeta({ title, description, image }: { title: string; desc
       claim.current = false;
       document.title = DEFAULT_TITLE;
       upsertMeta('name', 'description', DEFAULT_DESCRIPTION);
+      upsertMeta('name', 'robots', 'index,follow');
       upsertMeta('property', 'og:title', DEFAULT_TITLE);
       upsertMeta('property', 'og:description', DEFAULT_DESCRIPTION);
       upsertMeta('property', 'og:image', DEFAULT_OG_IMAGE);
@@ -145,7 +159,7 @@ export function usePageMeta({ title, description, image }: { title: string; desc
       upsertMeta('name', 'twitter:description', DEFAULT_DESCRIPTION);
       upsertMeta('name', 'twitter:image', DEFAULT_OG_IMAGE);
     };
-  }, [title, description, image]);
+  }, [title, description, image, noindex]);
 }
 
 /**

@@ -23,6 +23,7 @@ import 'dotenv/config';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createClient } from '@supabase/supabase-js';
 import { resolveSiteUrlOrExit } from './siteUrl.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,7 +54,45 @@ const STATIC_ROUTES = [
 // coupled to the catalog without importing TypeScript into this Node script.
 const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
 const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
-const dynamicRoutes = serviceIds.map((id) => ({
+
+/**
+ * Services can be hidden at runtime by an admin (settings.service_catalog in
+ * Supabase — see src/data/catalogStore.ts), independent of any deploy. A
+ * hidden service must not stay in the sitemap: that is exactly the divergence
+ * that once left /ar/services/tour-vip indexable, linked, and crawlable while
+ * the live catalog and detail page both treated it as gone.
+ *
+ * Best-effort and non-fatal by design, mirroring fetchCatalogOverrides() on
+ * the client (src/lib/api.ts): a Supabase hiccup during `npm run build` must
+ * not block every deploy, so on any failure this falls back to the static
+ * list — the previous, always-safe behavior — after a loud warning so the
+ * gap is visible in build output instead of silent.
+ */
+async function fetchHiddenServiceIds() {
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.warn('⚠ VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY not set — sitemap cannot check for live-hidden services, using the static catalog as-is.');
+    return new Set();
+  }
+  try {
+    const supabase = createClient(url, key);
+    const { data, error } = await Promise.race([
+      supabase.from('settings').select('value').eq('key', 'service_catalog').maybeSingle(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timed out after 5s')), 5000)),
+    ]);
+    if (error) throw error;
+    const hidden = data?.value?.hidden;
+    return new Set(Array.isArray(hidden) ? hidden : []);
+  } catch (err) {
+    console.warn(`⚠ Could not fetch live catalog overrides (${err instanceof Error ? err.message : String(err)}) — sitemap may include admin-hidden services until the next successful build.`);
+    return new Set();
+  }
+}
+
+const hiddenServiceIds = await fetchHiddenServiceIds();
+const publishedServiceIds = serviceIds.filter((id) => !hiddenServiceIds.has(id));
+const dynamicRoutes = publishedServiceIds.map((id) => ({
   path: `/services/${id}`,
   changefreq: 'monthly',
   priority: '0.7',
@@ -92,6 +131,7 @@ writeFileSync(join(root, 'public/sitemap.xml'), xml, 'utf8');
 const robots = ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE_URL}/sitemap.xml`, ''].join('\n');
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
+const hiddenNote = hiddenServiceIds.size > 0 ? `; ${hiddenServiceIds.size} live-hidden service(s) excluded` : '';
 console.log(
-  `sitemap.xml + robots.txt generated: ${staticEntries.length + dynamicEntries.length} URLs (${STATIC_ROUTES.length} static routes in ${LANGS.length} languages; ${dynamicRoutes.length} service routes in ${SERVICE_LANGS.length} languages) (${SITE_URL})`,
+  `sitemap.xml + robots.txt generated: ${staticEntries.length + dynamicEntries.length} URLs (${STATIC_ROUTES.length} static routes in ${LANGS.length} languages; ${dynamicRoutes.length} service routes in ${SERVICE_LANGS.length} languages${hiddenNote}) (${SITE_URL})`,
 );

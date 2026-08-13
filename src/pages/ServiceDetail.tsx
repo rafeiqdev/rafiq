@@ -74,26 +74,36 @@ export function ServiceDetail() {
   const [showRequest, setShowRequest] = useState(false);
   const service = services.find((item) => item.id === id);
 
-  if (!service) return <ServiceNotFound />;
-
   const language = i18n.language;
   const isArabic = language === 'ar';
   const copy = copyFor(language);
-  const category = categories.find((item) => item.id === service.category);
-  const title = pickText(service.title, language);
-  const description = pickText(service.desc, language);
+  const category = service ? categories.find((item) => item.id === service.category) : undefined;
+  const title = service ? pickText(service.title, language) : '';
+  const description = service ? pickText(service.desc, language) : '';
   const categoryTitle = category ? pickText(category.title, language) : '';
-  const serviceSeo = isArabic
-    ? SERVICE_SEO_AR[service.id]
-    : language === 'en'
-      ? SERVICE_SEO_EN[service.id]
-      : undefined;
-  const seoTitle = serviceSeo?.seoTitle ?? `${title} — ${categoryTitle}`;
-  const seoDescription = serviceSeo?.metaDescription ?? description;
-  const related = services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4);
-  const serviceMode = service.type as ServiceType;
+  const serviceSeo = service
+    ? isArabic
+      ? SERVICE_SEO_AR[service.id]
+      : language === 'en'
+        ? SERVICE_SEO_EN[service.id]
+        : undefined
+    : undefined;
+  const seoTitle = service ? (serviceSeo?.seoTitle ?? `${title} — ${categoryTitle}`) : copy.notFoundTitle;
+  const seoDescription = service ? (serviceSeo?.metaDescription ?? description) : copy.notFoundText;
+  const related = service
+    ? services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4)
+    : [];
+  const serviceMode = service?.type as ServiceType;
 
-  usePageMeta({ title: seoTitle, description: seoDescription });
+  // usePageMeta is a hook and must run unconditionally on every render — the
+  // catalog loads admin overrides asynchronously, so `service` can flip from
+  // found to not-found between renders of this same component instance.
+  // Returning <ServiceNotFound /> before this call (as before) changed the
+  // hook count between renders and crashed with React error #300 whenever
+  // that happened (e.g. tour-vip while overrides were loading/hiding it).
+  usePageMeta({ title: seoTitle, description: seoDescription, noindex: !service });
+
+  if (!service) return <ServiceNotFound />;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
