@@ -20,7 +20,7 @@
  * Run via `npm run build` (prebuild step) or directly: node scripts/generate-sitemap.mjs
  */
 import 'dotenv/config';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveSiteUrlOrExit } from './siteUrl.mjs';
@@ -47,7 +47,15 @@ const STATIC_ROUTES = [
   { path: '/refund', changefreq: 'yearly', priority: '0.3' },
 ];
 
-const dynamicRoutes = [];
+// Service pages are data-driven in src/data/services.ts. Keep sitemap discovery
+// coupled to the catalog without importing TypeScript into this Node script.
+const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
+const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
+const dynamicRoutes = serviceIds.map((id) => ({
+  path: `/services/${id}`,
+  changefreq: 'monthly',
+  priority: '0.7',
+}));
 
 const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
