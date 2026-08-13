@@ -5,20 +5,19 @@
  * near-duplicate rather than a shared abstraction — see that file's header
  * and supabase/migrations/20260812_service_offers.sql's header for why.
  *
- *   POST, raw JSON body, HMAC-SHA256 hex of the exact bytes in the
- *   `x-rafiq-signature` header, keyed with PAYMENT_WEBHOOK_SECRET.
- *   Body: { "paymentId": "<uuid>", "outcome": "success" | "failure",
- *           "amount": <optional, checked against the row> }
- *
- * TO WIRE A REAL GATEWAY (Whop): point its webhook at this URL and translate
- * its payload into { paymentId, outcome, amount } before (or instead of) the
- * signature check below — the amount/payment lookups already treat the row,
- * never the request body, as the source of truth for price.
+ * Wired to Whop (see api/_lib/whop.ts): POST, raw JSON body, signature per
+ * the Standard Webhooks spec (webhook-id/webhook-timestamp/webhook-signature
+ * headers), keyed with WHOP_SERVICE_WEBHOOK_SECRET — a secret DIFFERENT from
+ * WHOP_MEDICAL_WEBHOOK_SECRET (Whop mints one per webhook endpoint). The
+ * event's `data.metadata.paymentId` is the internal service_payments.id we
+ * set when api/payments/service-pay.ts created the checkout
+ * (createWhopCheckout) — never trust `data.id` (Whop's own pay_xxx id) for
+ * correlation.
  */
 
-export const config = { runtime: 'edge' };
+import { verifyWhopWebhook } from '../_lib/whop';
 
-const enc = new TextEncoder();
+export const config = { runtime: 'edge' };
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -32,21 +31,6 @@ function env(...names: string[]): string | undefined {
   return undefined;
 }
 
-async function hmacHex(secret: string, raw: ArrayBuffer): Promise<string> {
-  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, [
-    'sign',
-  ]);
-  const sig = await crypto.subtle.sign('HMAC', key, raw);
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function timingSafeEqualHex(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ServicePaymentRow {
@@ -58,30 +42,55 @@ interface ServicePaymentRow {
   status: string;
 }
 
+/** Pulls the internal payment id out of a Whop payment/refund object's echoed metadata. */
+function paymentIdFromMetadata(obj: unknown): string {
+  if (!obj || typeof obj !== 'object') return '';
+  const metadata = (obj as { metadata?: unknown }).metadata;
+  if (!metadata || typeof metadata !== 'object') return '';
+  return String((metadata as Record<string, unknown>).paymentId ?? '');
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
-  const secret = env('PAYMENT_WEBHOOK_SECRET');
+  const secret = env('WHOP_SERVICE_WEBHOOK_SECRET');
   const supaUrl = env('SUPABASE_URL', 'VITE_SUPABASE_URL');
   const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
   if (!secret || !supaUrl || !serviceKey) return json({ error: 'not_configured' }, 503);
 
-  const raw = await req.arrayBuffer();
-  const expected = await hmacHex(secret, raw);
-  const got = String(req.headers.get('x-rafiq-signature') ?? '').toLowerCase();
-  if (!timingSafeEqualHex(got, expected)) return json({ error: 'bad_signature' }, 401);
+  const rawBody = await req.text();
+  const envelope = await verifyWhopWebhook(secret, req, rawBody);
+  if (!envelope) return json({ error: 'bad_signature' }, 401);
 
-  let payload: { paymentId?: unknown; outcome?: unknown; amount?: unknown };
-  try {
-    payload = JSON.parse(new TextDecoder().decode(raw));
-  } catch {
-    return json({ error: 'bad_payload' }, 400);
+  let paymentId: string;
+  let outcome: 'success' | 'failure';
+  let claimedAmount: number | undefined;
+  let expectedAmount: number | undefined;
+
+  if (envelope.type === 'payment.succeeded' || envelope.type === 'payment.failed') {
+    paymentId = paymentIdFromMetadata(envelope.data);
+    outcome = envelope.type === 'payment.succeeded' ? 'success' : 'failure';
+    const total = (envelope.data as { total?: unknown }).total;
+    claimedAmount = typeof total === 'number' ? total : undefined;
+    // The row's `amount` is in its ORIGINAL currency (TL) — it's converted to
+    // USD before checkout (see service-pay.ts), so what Whop actually charged
+    // is checked against what we told Whop to charge (echoed back in
+    // metadata.chargedAmount), not the row's raw TL amount.
+    const metadata = (envelope.data as { metadata?: Record<string, unknown> }).metadata;
+    const charged = metadata ? Number(metadata.chargedAmount) : NaN;
+    expectedAmount = Number.isFinite(charged) ? charged : undefined;
+  } else if (envelope.type === 'refund.created') {
+    // A refund reverses money already verified — deciding whether/how that
+    // should revoke access needs a real status model (service_payments has no
+    // 'refunded' state yet). Acknowledge so Whop doesn't retry, but don't
+    // guess at a status mutation here.
+    return json({ ok: true, ignored: 'refund_ack_no_status_change' });
+  } else {
+    // Unknown/uninteresting event type for this endpoint — ack so Whop stops retrying.
+    return json({ ok: true, ignored: envelope.type });
   }
 
-  const paymentId = String(payload.paymentId ?? '');
-  const outcome = String(payload.outcome ?? '');
   if (!UUID_RE.test(paymentId)) return json({ error: 'bad_payment_id' }, 400);
-  if (outcome !== 'success' && outcome !== 'failure') return json({ error: 'bad_outcome' }, 400);
 
   const supa = (path: string, init: RequestInit = {}) =>
     fetch(`${supaUrl}/rest/v1/${path}`, {
@@ -99,7 +108,7 @@ export default async function handler(req: Request): Promise<Response> {
   const payment = ((await rowRes.json()) as ServicePaymentRow[])[0];
   if (!payment) return json({ error: 'payment_not_found' }, 404);
 
-  if (payload.amount != null && Number(payload.amount) !== Number(payment.amount)) {
+  if (claimedAmount != null && expectedAmount != null && Math.abs(claimedAmount - expectedAmount) > 0.01) {
     return json({ error: 'amount_mismatch' }, 400);
   }
 

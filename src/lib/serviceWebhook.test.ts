@@ -4,9 +4,9 @@ import handler from '../../api/payments/service-webhook';
 /**
  * api/payments/service-webhook.ts is the ONLY path that flips a
  * service_payments row to 'verified'. Sibling of medicalWebhook.test.ts —
- * same properties pinned: signature verification, and idempotency under a
- * replayed webhook (a double-send must never double-process or "un-verify"
- * an already-verified payment).
+ * same properties pinned: Whop's Standard Webhooks signature verification,
+ * metadata-based correlation to the internal payment row, and idempotency
+ * under a replayed webhook.
  *
  * The Supabase REST calls are stubbed via global fetch — this test does not
  * touch a real database, it proves the handler's own request-sequencing logic.
@@ -15,16 +15,26 @@ import handler from '../../api/payments/service-webhook';
 const SECRET = 'test-webhook-secret';
 const PAYMENT_ID = '33333333-3333-3333-3333-333333333333';
 
-async function sign(body: string): Promise<string> {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function hmacBase64(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  let binary = '';
+  for (const b of new Uint8Array(sig)) binary += String.fromCharCode(b);
+  return btoa(binary);
 }
 
-function req(body: string, signature: string): Request {
+function envelope(type: string, data: Record<string, unknown>) {
+  return JSON.stringify({ id: 'msg_test2', timestamp: Math.floor(Date.now() / 1000).toString(), type, company_id: 'biz_test', data });
+}
+
+async function req(body: string, opts: { id?: string; timestamp?: string; badSig?: boolean } = {}): Promise<Request> {
+  const parsed = JSON.parse(body) as { id: string; timestamp: string };
+  const id = opts.id ?? parsed.id;
+  const timestamp = opts.timestamp ?? parsed.timestamp;
+  const sig = opts.badSig ? 'deadbeef' : await hmacBase64(SECRET, `${id}.${timestamp}.${body}`);
   return new Request('https://test.invalid/api/payments/service-webhook', {
     method: 'POST',
-    headers: { 'x-rafiq-signature': signature },
+    headers: { 'webhook-id': id, 'webhook-timestamp': timestamp, 'webhook-signature': `v1,${sig}` },
     body,
   });
 }
@@ -33,7 +43,7 @@ let paymentStatus = 'pending';
 let patchCalls: { url: string; body: unknown }[] = [];
 
 beforeEach(() => {
-  process.env.PAYMENT_WEBHOOK_SECRET = SECRET;
+  process.env.WHOP_SERVICE_WEBHOOK_SECRET = SECRET;
   process.env.SUPABASE_URL = 'https://project.supabase.test';
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
   paymentStatus = 'pending';
@@ -68,23 +78,22 @@ afterEach(() => {
 
 describe('signature verification', () => {
   it('rejects a request with a wrong signature before touching the database', async () => {
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'success' });
-    const res = await handler(req(body, 'deadbeef'));
+    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID } });
+    const res = await handler(await req(body, { badSig: true }));
     expect(res.status).toBe(401);
     expect(patchCalls).toHaveLength(0);
   });
 
   it('rejects when the webhook secret is not configured, rather than accepting unsigned requests', async () => {
-    delete process.env.PAYMENT_WEBHOOK_SECRET;
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'success' });
-    const res = await handler(req(body, 'anything'));
+    delete process.env.WHOP_SERVICE_WEBHOOK_SECRET;
+    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const res = await handler(await req(body));
     expect(res.status).toBe(503);
   });
 
-  it('rejects an unrecognised outcome rather than silently defaulting to failure', async () => {
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'refunded' });
-    const signature = await sign(body);
-    const res = await handler(req(body, signature));
+  it('rejects a metadata paymentId that is not a UUID', async () => {
+    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: 'not-a-uuid' } });
+    const res = await handler(await req(body));
     expect(res.status).toBe(400);
     expect(paymentStatus).toBe('pending');
   });
@@ -92,17 +101,16 @@ describe('signature verification', () => {
 
 describe('idempotency', () => {
   it('flips pending -> verified exactly once, and a replay is a no-op that still reports verified', async () => {
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'success' });
-    const signature = await sign(body);
+    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
 
-    const first = await handler(req(body, signature));
+    const first = await handler(await req(body));
     expect(first.status).toBe(200);
     expect(await first.json()).toMatchObject({ ok: true, status: 'verified' });
     expect(paymentStatus).toBe('verified');
 
     const patchCallsAfterFirst = patchCalls.length;
 
-    const second = await handler(req(body, signature));
+    const second = await handler(await req(body));
     expect(second.status).toBe(200);
     expect(await second.json()).toMatchObject({ ok: true, status: 'verified', replay: true });
     expect(patchCalls.length).toBe(patchCallsAfterFirst);
@@ -110,27 +118,33 @@ describe('idempotency', () => {
 
   it('does not resurrect a payment that was already rejected', async () => {
     paymentStatus = 'rejected';
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'success' });
-    const signature = await sign(body);
-    const res = await handler(req(body, signature));
+    const body = envelope('payment.succeeded', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const res = await handler(await req(body));
     expect(res.status).toBe(409);
     expect(paymentStatus).toBe('rejected');
   });
 
-  it('rejects a payload whose amount does not match the stored row', async () => {
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'success', amount: 999999 });
-    const signature = await sign(body);
-    const res = await handler(req(body, signature));
+  it('rejects a payload whose amount does not match what we told Whop to charge', async () => {
+    const body = envelope('payment.succeeded', { total: 999999, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const res = await handler(await req(body));
     expect(res.status).toBe(400);
     expect(paymentStatus).toBe('pending');
   });
 
-  it('a failure outcome rejects a pending payment without ever verifying it', async () => {
-    const body = JSON.stringify({ paymentId: PAYMENT_ID, outcome: 'failure' });
-    const signature = await sign(body);
-    const res = await handler(req(body, signature));
+  it('a failed-payment event rejects a pending payment without ever verifying it', async () => {
+    const body = envelope('payment.failed', { total: 1500, metadata: { paymentId: PAYMENT_ID, chargedAmount: '1500' } });
+    const res = await handler(await req(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ ok: true, status: 'rejected' });
     expect(paymentStatus).toBe('rejected');
+  });
+
+  it('acknowledges a refund event without mutating status (no refunded state modeled yet)', async () => {
+    const body = envelope('refund.created', { payment: { metadata: { paymentId: PAYMENT_ID } } });
+    const res = await handler(await req(body));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.ignored).toBe('refund_ack_no_status_change');
+    expect(paymentStatus).toBe('pending');
   });
 });
