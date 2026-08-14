@@ -27,7 +27,7 @@ export function LocalBusinessSchema() {
       alternateName: ['Rafiq', 'رفيق إسطنبول', 'Рафик Стамбул', 'رفیق استانبول'],
       description: t('common.tagline'),
       url: SITE_URL,
-      logo: `${SITE_URL}/logo-rafiq-square.png`,
+      logo: `${SITE_URL}/icon-512.png`,
       image: DEFAULT_OG_IMAGE,
       availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
     };
