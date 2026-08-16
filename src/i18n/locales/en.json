@@ -767,10 +767,35 @@
     "distanceKm": "{{km}} km",
     "distanceM": "{{m}} m",
     "showMap": "Map",
-    "hideMap": "Hide",
+    "hideMap": "List",
     "quickFilters": {
       "openNow": "Open now",
       "topRated": "Top rated"
+    },
+    "areaLabel": "Istanbul",
+    "savedCountAria": "Saved places: {{count}}",
+    "clearSearch": "Clear search",
+    "filter": "Filter",
+    "searching": "Searching…",
+    "idleShort": "Start a search",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetFilters": "Reset filters",
+    "toastSaved": "Saved to your places",
+    "toastUnsaved": "Removed from saved",
+    "toastAddressCopied": "Address copied",
+    "toastLinkCopied": "Link copied",
+    "callNow": "Call",
+    "share": "Share",
+    "copyAddress": "Copy address",
+    "sourceGoogle": "Source: Google Maps",
+    "filterSheet": {
+      "title": "Filter options",
+      "mainCategory": "Main category",
+      "all": "All places",
+      "additional": "Additional filters",
+      "matching": "{{count}} of current results",
+      "apply": "Apply filters"
     }
   },
   "referrals": {

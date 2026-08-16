@@ -635,6 +635,111 @@ html[dir='rtl'] li {
   box-shadow: 0 12px 30px -5px rgba(26, 58, 107, 0.12);
 }
 
+/* ── Map explorer: Apple/Google-Maps style teardrop pins ──
+   Ported from the supplied map design. Every selector is prefixed `rmap-` and
+   is only ever emitted inside a Google AdvancedMarkerElement's content, so
+   nothing here can reach another page. Marker content is raw DOM (not React),
+   which is why these live in CSS rather than as Tailwind classes. */
+.rmap-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transform: translateY(-8px);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+.rmap-pin:hover,
+.rmap-pin.rmap-pin-active {
+  transform: translateY(-14px) scale(1.15);
+  z-index: 9999;
+}
+.rmap-pin-bubble {
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.15);
+  border: 2.5px solid #ffffff;
+  position: relative;
+  z-index: 2;
+  transition: box-shadow 0.2s ease;
+}
+.rmap-pin.rmap-pin-active .rmap-pin-bubble {
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+.rmap-pin-needle {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid;
+  margin-top: -2px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+.rmap-pin-icon {
+  width: 18px;
+  height: 18px;
+}
+.rmap-pin-label {
+  position: absolute;
+  top: 100%;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+/* The "you are here" dot: a solid core inside a softly pulsing halo. */
+.rmap-me {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+.rmap-me-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(37, 99, 235, 0.3);
+  animation: rmapPing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.rmap-me-core {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #2563eb;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+@keyframes rmapPing {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in,
@@ -655,7 +760,9 @@ html[dir='rtl'] li {
   .bell-badge,
   .bell-ring,
   .hover-spring,
-  .motion-card-glow {
+  .motion-card-glow,
+  .rmap-pin,
+  .rmap-me-halo {
     animation: none !important;
     transform: none !important;
     transition: none !important;

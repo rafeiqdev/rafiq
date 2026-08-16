@@ -16,7 +16,8 @@ function directionsUrl(p: GooglePlaceResult): string {
 }
 
 /**
- * The place detail card.
+ * The place detail sheet, laid out to the supplied design: banner photo with
+ * badges, one unmissable Directions CTA, then a call/save/share row.
  *
  * The trust block is the part that matters: Rafiq's verification status and
  * review date come from OUR table, never from Google. A place with no overlay
@@ -29,16 +30,19 @@ export function PlaceCard({
   saved,
   onToggleSave,
   onClose,
+  onToast,
 }: {
   place: GooglePlaceResult;
   overlay?: PlaceOverlay;
   saved: boolean;
   onToggleSave: () => void;
   onClose: () => void;
+  onToast?: (msg: string) => void;
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [imgOk, setImgOk] = useState(true);
+  const [copied, setCopied] = useState(false);
   const photo = placeSearch.photoUrl(place.photoRef, 900);
   const verified = overlay?.verifiedStatus === 'verified';
 
@@ -56,41 +60,175 @@ export function PlaceCard({
     navigate(`/help?topic=${encodeURIComponent(place.name)}&note=${encodeURIComponent(msg)}`);
   };
 
-  return (
-    <Modal onClose={onClose} labelId="place-card-title" maxWidth="max-w-lg">
-      <div className="rounded-card overflow-hidden bg-white">
-        {photo && imgOk ? (
-          <img
-            src={photo}
-            alt=""
-            className="h-44 w-full object-cover"
-            loading="lazy"
-            onError={() => setImgOk(false)}
-          />
-        ) : (
-          <div className="h-24 w-full bg-gradient-to-br from-navy to-navy-light" aria-hidden />
-        )}
+  const copyAddress = async () => {
+    if (!place.address || !navigator.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(place.address);
+      setCopied(true);
+      onToast?.(t('map.toastAddressCopied'));
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard denied — the address is still on screen to copy by hand */
+    }
+  };
 
-        <div className="p-5">
-          <div className="flex items-start gap-3">
-            <h2 id="place-card-title" className="flex-1 min-w-0 text-lg font-extrabold text-navy break-words">
+  const share = async () => {
+    const url = directionsUrl(place);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: place.name, text: place.address ?? place.name, url });
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        onToast?.(t('map.toastLinkCopied'));
+      }
+    } catch (e) {
+      // A cancelled share sheet is a normal user action, not a failure.
+      if (e instanceof DOMException && e.name === 'AbortError') return;
+    }
+  };
+
+  return (
+    <Modal onClose={onClose} labelId="place-card-title" maxWidth="max-w-md" mobileSheet showClose={false}>
+      <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[90vh] md:rounded-3xl">
+        {/* banner */}
+        <div className="relative h-40 w-full shrink-0 bg-navy">
+          {photo && imgOk ? (
+            <img
+              src={photo}
+              alt=""
+              loading="eager"
+              decoding="async"
+              className="h-full w-full object-cover"
+              onError={() => setImgOk(false)}
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-navy to-navy-light" aria-hidden />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden />
+
+          <button
+            onClick={onClose}
+            aria-label={t('common.close')}
+            className="absolute end-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+          >
+            <AppIcon name="x" className="h-4 w-4" />
+          </button>
+
+          <div className="absolute inset-x-4 bottom-3 flex items-center justify-between gap-2 text-white">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {overlay?.recommended && (
+                <span className="shrink-0 rounded-full bg-gold-dark px-2.5 py-0.5 text-[11px] font-bold text-white">
+                  {t('map.recommended')}
+                </span>
+              )}
+              {place.openNow !== null && (
+                <span
+                  className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
+                    place.openNow ? 'bg-emerald-600' : 'bg-brand-red'
+                  }`}
+                >
+                  <AppIcon name="clock" className="h-3 w-3" />
+                  {t(place.openNow ? 'map.openNow' : 'map.closedNow')}
+                </span>
+              )}
+            </div>
+            {place.rating !== null && (
+              <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-amber-300" dir="ltr">
+                <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-300" />
+                {place.rating.toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* body */}
+        <div className="flex-1 space-y-3.5 overflow-y-auto overscroll-contain p-4">
+          <div>
+            <h2 id="place-card-title" className="text-lg font-extrabold leading-snug text-navy">
               {place.name}
             </h2>
-            <button
-              onClick={onToggleSave}
-              aria-pressed={saved}
-              aria-label={t(saved ? 'map.unsave' : 'map.save')}
-              className={`shrink-0 flex items-center justify-center w-11 h-11 rounded-full border transition-colors ${
-                saved ? 'border-gold-dark bg-gold-soft text-gold-dark' : 'border-gray-200 text-navy/50 hover:border-navy/40'
-              }`}
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
+              {place.rating !== null && (
+                <span className="flex items-center gap-1 font-bold text-amber-600">
+                  <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                  <span dir="ltr">{place.rating.toFixed(1)}</span>
+                  {place.ratingCount !== null && (
+                    <span className="font-normal text-gray-400" dir="ltr">
+                      ({place.ratingCount})
+                    </span>
+                  )}
+                </span>
+              )}
+              {place.address && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="flex min-w-0 items-center gap-1">
+                    <AppIcon name="map-pin" className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                    <span className="truncate">{place.address}</span>
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* actions — one unmissable primary, then the secondary row */}
+          <div className="space-y-2 pt-1">
+            <a
+              href={directionsUrl(place)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-2xl bg-navy px-4 text-xs font-extrabold text-white shadow-md transition-colors hover:bg-navy-light sm:text-sm"
             >
-              <AppIcon name="bookmark" className="w-5 h-5" />
-            </button>
+              <AppIcon name="navigation" className="h-4 w-4 shrink-0" />
+              <span className="tracking-tight">{t('map.directory.directions')}</span>
+            </a>
+
+            <div className="grid grid-cols-3 gap-2">
+              {place.phone ? (
+                <a
+                  href={`tel:${place.phone.replace(/\s/g, '')}`}
+                  className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-2 text-xs font-bold text-navy transition-colors hover:bg-gray-200"
+                >
+                  <AppIcon name="phone" className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>{t('map.callNow')}</span>
+                </a>
+              ) : (
+                <span className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-50 px-2 text-xs font-bold text-gray-400 opacity-60">
+                  <AppIcon name="phone" className="h-3.5 w-3.5" />
+                  <span>{t('map.callNow')}</span>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={onToggleSave}
+                aria-pressed={saved}
+                className={`flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-bold transition-colors ${
+                  saved
+                    ? 'border border-gold-dark/40 bg-gold-soft text-gold-dark'
+                    : 'bg-gray-100 text-navy hover:bg-gray-200'
+                }`}
+              >
+                <AppIcon name="bookmark" className={`h-3.5 w-3.5 ${saved ? 'fill-gold-dark' : ''}`} />
+                <span>{t(saved ? 'map.saved' : 'map.save')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={share}
+                className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-2 text-xs font-bold text-navy transition-colors hover:bg-gray-200"
+              >
+                <AppIcon name="share-2" className="h-3.5 w-3.5 text-blue-600" />
+                <span>{t('map.share')}</span>
+              </button>
+            </div>
           </div>
 
           {/* Rafiq trust block — our data, not Google's */}
           <div
-            className={`mt-3 rounded-xl border p-3 ${
+            className={`rounded-xl border p-3 ${
               overlay?.recommended
                 ? 'border-gold-dark/40 bg-gold-soft'
                 : verified
@@ -101,16 +239,12 @@ export function PlaceCard({
             <p className="flex items-center gap-2 text-sm font-bold text-navy">
               <AppIcon
                 name={overlay?.recommended ? 'sparkles' : verified ? 'shield-check' : 'info'}
-                className="w-4 h-4 shrink-0"
+                className="h-4 w-4 shrink-0"
               />
-              {overlay?.recommended
-                ? t('map.recommended')
-                : verified
-                  ? t('map.verified')
-                  : t('map.notReviewed')}
+              {overlay?.recommended ? t('map.recommended') : verified ? t('map.verified') : t('map.notReviewed')}
             </p>
             {overlay?.recommended && overlay.recommendationReason && (
-              <p className="mt-1.5 text-xs text-navy/80 break-words">{overlay.recommendationReason}</p>
+              <p className="mt-1.5 break-words text-xs text-navy/80">{overlay.recommendationReason}</p>
             )}
             {!overlay?.recommended && !verified && (
               <p className="mt-1.5 text-xs text-gray-600">{t('map.notReviewedBody')}</p>
@@ -120,72 +254,54 @@ export function PlaceCard({
             )}
           </div>
 
-          <dl className="mt-4 flex flex-col gap-2.5 text-sm">
-            {place.address && (
-              <div className="flex items-start gap-2.5">
-                <AppIcon name="map-pin" className="mt-0.5 w-4 h-4 shrink-0 text-navy/50" />
-                <dd className="min-w-0 break-words text-navy/80">{place.address}</dd>
-              </div>
-            )}
-
-            {place.rating !== null && (
-              <div className="flex items-center gap-2.5">
-                <AppIcon name="star" className="w-4 h-4 shrink-0 text-gold-dark" />
-                <dd className="text-navy/80" dir="ltr">
-                  {place.rating.toFixed(1)}
-                  {place.ratingCount !== null && ` (${place.ratingCount})`}
-                </dd>
-              </div>
-            )}
-
-            {place.phone && (
-              <div className="flex items-center gap-2.5">
-                <AppIcon name="phone" className="w-4 h-4 shrink-0 text-navy/50" />
-                <dd>
-                  <a href={`tel:${place.phone.replace(/\s/g, '')}`} className="text-navy hover:underline" dir="ltr">
-                    {place.phone}
-                  </a>
-                </dd>
-              </div>
-            )}
-
+          {/* details */}
+          <div className="space-y-2 text-xs text-navy/80">
             {place.hours && place.hours.length > 0 && (
-              <div className="flex items-start gap-2.5">
-                <AppIcon name="clock" className="mt-0.5 w-4 h-4 shrink-0 text-navy/50" />
-                <dd className="min-w-0">
-                  {place.openNow !== null && (
-                    <span className={`text-xs font-bold ${place.openNow ? 'text-green-700' : 'text-brand-red'}`}>
-                      {t(place.openNow ? 'map.openNow' : 'map.closedNow')}
-                    </span>
-                  )}
-                  <ul className="mt-1 flex flex-col gap-0.5 text-xs text-gray-600">
-                    {place.hours.map((h) => (
-                      <li key={h} className="break-words">
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-                </dd>
+              <div className="flex items-start gap-2.5 rounded-xl border border-gray-100 bg-gray-50/70 p-2.5">
+                <AppIcon name="clock" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-500" />
+                <ul className="min-w-0 space-y-0.5">
+                  {place.hours.map((h) => (
+                    <li key={h} className="break-words">
+                      {h}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
-          </dl>
 
-          <div className="mt-5 flex flex-col gap-2.5">
-            <button onClick={requestHelp} className="btn-primary w-full min-h-[48px]">
-              <AppIcon name="hand-helping" className="w-4 h-4" />
-              {t('map.requestHelp')}
-            </button>
-            <a
-              href={directionsUrl(place)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary w-full min-h-[48px]"
-            >
-              <AppIcon name="navigation" className="w-4 h-4" />
-              {t('map.directory.directions')}
-              <DirArrow />
-            </a>
+            {place.address && (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2.5">
+                <span className="flex min-w-0 items-center gap-2">
+                  <AppIcon name="map-pin" className="h-3.5 w-3.5 shrink-0 text-gray-500" />
+                  <span className="truncate font-medium">{place.address}</span>
+                </span>
+                {navigator.clipboard && (
+                  <button
+                    type="button"
+                    onClick={copyAddress}
+                    aria-label={t('map.copyAddress')}
+                    title={t('map.copyAddress')}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-200"
+                  >
+                    <AppIcon
+                      name={copied ? 'check' : 'copy'}
+                      className={`h-3.5 w-3.5 ${copied ? 'text-emerald-600' : ''}`}
+                    />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+
+          <button onClick={requestHelp} className="btn-secondary min-h-[44px] w-full text-xs">
+            <AppIcon name="hand-helping" className="h-4 w-4" />
+            {t('map.requestHelp')}
+            <DirArrow />
+          </button>
+
+          <p className="border-t border-gray-100 pt-2 text-[11px] font-medium text-gray-400">
+            {t('map.sourceGoogle')}
+          </p>
         </div>
       </div>
     </Modal>

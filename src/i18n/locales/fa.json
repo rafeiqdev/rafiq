@@ -767,10 +767,35 @@
     "distanceKm": "{{km}} کیلومتر",
     "distanceM": "{{m}} متر",
     "showMap": "نقشه",
-    "hideMap": "پنهان کردن",
+    "hideMap": "فهرست",
     "quickFilters": {
       "openNow": "باز است",
       "topRated": "بالاترین امتیاز"
+    },
+    "areaLabel": "استانبول",
+    "savedCountAria": "مکان‌های ذخیره‌شده: {{count}}",
+    "clearSearch": "پاک کردن جستجو",
+    "filter": "فیلتر",
+    "searching": "در حال جستجو…",
+    "idleShort": "جستجو را شروع کنید",
+    "zoomIn": "بزرگ‌نمایی",
+    "zoomOut": "کوچک‌نمایی",
+    "resetFilters": "بازنشانی فیلترها",
+    "toastSaved": "ذخیره شد",
+    "toastUnsaved": "از ذخیره‌ها حذف شد",
+    "toastAddressCopied": "آدرس کپی شد",
+    "toastLinkCopied": "لینک کپی شد",
+    "callNow": "تماس",
+    "share": "اشتراک‌گذاری",
+    "copyAddress": "کپی آدرس",
+    "sourceGoogle": "منبع: Google Maps",
+    "filterSheet": {
+      "title": "گزینه‌های فیلتر",
+      "mainCategory": "دسته اصلی",
+      "all": "همه مکان‌ها",
+      "additional": "فیلترهای بیشتر",
+      "matching": "{{count}} از نتایج فعلی",
+      "apply": "اعمال فیلترها"
     }
   },
   "referrals": {

@@ -767,10 +767,35 @@
     "distanceKm": "{{km}} км",
     "distanceM": "{{m}} м",
     "showMap": "Карта",
-    "hideMap": "Скрыть",
+    "hideMap": "Список",
     "quickFilters": {
       "openNow": "Открыто сейчас",
       "topRated": "Высокий рейтинг"
+    },
+    "areaLabel": "Стамбул",
+    "savedCountAria": "Сохранённые места: {{count}}",
+    "clearSearch": "Очистить поиск",
+    "filter": "Фильтр",
+    "searching": "Поиск…",
+    "idleShort": "Начните поиск",
+    "zoomIn": "Приблизить",
+    "zoomOut": "Отдалить",
+    "resetFilters": "Сбросить фильтры",
+    "toastSaved": "Сохранено",
+    "toastUnsaved": "Удалено из сохранённых",
+    "toastAddressCopied": "Адрес скопирован",
+    "toastLinkCopied": "Ссылка скопирована",
+    "callNow": "Позвонить",
+    "share": "Поделиться",
+    "copyAddress": "Копировать адрес",
+    "sourceGoogle": "Источник: Google Maps",
+    "filterSheet": {
+      "title": "Параметры фильтра",
+      "mainCategory": "Основная категория",
+      "all": "Все места",
+      "additional": "Дополнительные фильтры",
+      "matching": "{{count}} из текущих результатов",
+      "apply": "Применить фильтры"
     }
   },
   "referrals": {

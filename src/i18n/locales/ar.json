@@ -767,10 +767,35 @@
     "distanceKm": "{{km}} كم",
     "distanceM": "{{m}} م",
     "showMap": "الخريطة",
-    "hideMap": "إخفاء",
+    "hideMap": "القائمة",
     "quickFilters": {
       "openNow": "مفتوح الآن",
       "topRated": "الأعلى تقييمًا"
+    },
+    "areaLabel": "إسطنبول",
+    "savedCountAria": "الأماكن المحفوظة: {{count}}",
+    "clearSearch": "مسح البحث",
+    "filter": "تصفية",
+    "searching": "جارٍ البحث…",
+    "idleShort": "ابدأ البحث",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "resetFilters": "إعادة تعيين الفلاتر",
+    "toastSaved": "تم الحفظ في المفضلة",
+    "toastUnsaved": "أُزيل من المفضلة",
+    "toastAddressCopied": "تم نسخ العنوان",
+    "toastLinkCopied": "تم نسخ الرابط",
+    "callNow": "اتصال",
+    "share": "مشاركة",
+    "copyAddress": "نسخ العنوان",
+    "sourceGoogle": "المصدر: خرائط Google",
+    "filterSheet": {
+      "title": "خيارات التصفية",
+      "mainCategory": "التصنيف الرئيسي",
+      "all": "كل الأماكن",
+      "additional": "فلاتر إضافية",
+      "matching": "{{count}} من النتائج الحالية",
+      "apply": "تطبيق الفلاتر"
     }
   },
   "referrals": {
