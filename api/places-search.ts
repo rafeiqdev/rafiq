@@ -495,9 +495,9 @@ export default async function handler(req: Request): Promise<Response> {
           },
         });
         if (res.error) {
-        logFailure(payload.mode, res);
-        return json({ error: res.error, status: res.status, detail: res.detail });
-      }
+          logFailure(payload.mode, res);
+          return json({ error: res.error, status: res.status, detail: res.detail });
+        }
         const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
         return json({ places });
       }
