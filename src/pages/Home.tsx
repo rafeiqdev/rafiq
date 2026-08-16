@@ -41,12 +41,26 @@ const QUICK_LINKS: { to: string; icon: IconName; titleKey: string; descKey: stri
 
 const FAQ_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const;
 
+/** Descriptive alternatives for the three public Istanbul photos in the home hero. */
+const HOME_HERO_IMAGE_ALTS = {
+  ar: ['آيا صوفيا والمدينة القديمة في إسطنبول', 'البوسفور وبرج غلطة في إسطنبول', 'الجامع الأزرق في إسطنبول'],
+  en: ['Hagia Sophia and Istanbul old city', 'The Bosphorus and Galata Tower in Istanbul', 'The Blue Mosque in Istanbul'],
+  ru: ['Собор Святой Софии и старый город Стамбула', 'Босфор и Галатская башня в Стамбуле', 'Голубая мечеть в Стамбуле'],
+  fa: ['ایاصوفیه و بافت تاریخی استانبول', 'بسفر و برج گالاتا در استانبول', 'مسجد آبی در استانبول'],
+} as const;
+
+function homeHeroImageAlts(language: string): readonly string[] {
+  const locale = language.split('-')[0] as keyof typeof HOME_HERO_IMAGE_ALTS;
+  return HOME_HERO_IMAGE_ALTS[locale] ?? HOME_HERO_IMAGE_ALTS.en;
+}
+
 export function Home() {
   const { t, i18n } = useTranslation();
   const { profile } = useApp();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  const heroImageAlts = homeHeroImageAlts(i18n.language);
 
   usePageMeta({
     title: `${t('common.appName')} — ${t('home.heroTitle')}`,
@@ -249,23 +263,26 @@ export function Home() {
             <div className="absolute left-[6%] top-[4%] w-[48%] aspect-[4/5]">
               <SiteImage
                 src={CAROUSEL[0]}
-                alt=""
+                                alt={heroImageAlts[0]}
                 priority
+
                 className="w-full h-full rotate-[-6deg] rounded-lg border-4 border-white shadow-cardHover"
               />
             </div>
             <div className="absolute right-[4%] top-[16%] w-[52%] aspect-[4/3]">
               <SiteImage
                 src={CAROUSEL[1]}
-                alt=""
+                                alt={heroImageAlts[1]}
                 className="w-full h-full rotate-[5deg] rounded-lg border-4 border-white shadow-cardHover"
+
               />
             </div>
             <div className="absolute bottom-[2%] left-[22%] w-[42%] aspect-square">
               <SiteImage
                 src={CAROUSEL[3]}
-                alt=""
+                                alt={heroImageAlts[2]}
                 className="w-full h-full rotate-[4deg] rounded-lg border-4 border-white shadow-cardHover"
+
               />
             </div>
           </div>
