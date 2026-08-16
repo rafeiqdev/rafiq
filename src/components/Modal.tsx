@@ -100,7 +100,12 @@ export function Modal({
           aria-modal="true"
           aria-labelledby={labelId}
           tabIndex={-1}
-          className={`relative w-full outline-none animate-pop ${mobileSheet ? `md:${maxWidth}` : maxWidth}`}
+          // `md:${maxWidth}` looked right but Tailwind never generated it —
+          // class names assembled at runtime are invisible to the compiler, so
+          // the width cap simply did not exist and sheets spanned the whole
+          // desktop viewport. Both classes here are static: the cap always
+          // applies, and `max-md:` lifts it below the breakpoint.
+          className={`relative w-full outline-none animate-pop ${maxWidth} ${mobileSheet ? 'max-md:max-w-none' : ''}`}
         >
           {showClose && (
             <button
