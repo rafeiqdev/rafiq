@@ -988,30 +988,365 @@ export const leads = {
   },
 };
 
-// ---------- referrals --------------------------------------------------------
+// ---------- referrals & wallet ------------------------------------------------
+
+export type CommissionStatus = 'pending' | 'available' | 'paid' | 'reversed' | 'failed' | 'cancelled';
+export type PayoutStatus = 'draft' | 'under_review' | 'approved' | 'processing' | 'paid' | 'failed' | 'cancelled' | 'reversed';
+
+export interface CurrencyBalance {
+  total: number;
+  pending: number;
+  available: number;
+  paid: number;
+}
 
 export interface ReferralStats {
   clicks: number;
   signups: number;
-  earnedTl: number;
   code: string;
+  totalCommissions: number;
+  pending: number;
+  available: number;
+  paid: number;
+  primaryCurrency: string;
+  currencies: Record<string, CurrencyBalance>;
+  /** Backward-compatible alias for existing callers */
+  earnedTl: number;
+}
+
+export interface WalletTransaction {
+  id: string;
+  date: string;
+  orderId: string | null;
+  paymentId: string | null;
+  serviceType: string;
+  serviceName: string;
+  transactionAmount: number;
+  currency: string;
+  commissionRate: number; // 0.05
+  commissionAmount: number;
+  status: CommissionStatus;
+  availableAt: string | null;
+  paidAt: string | null;
+  reversalOfId: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface PayoutRequest {
+  id: string;
+  amount: number;
+  currency: string;
+  payoutMethod: string;
+  payoutDetails: {
+    iban?: string;
+    accountHolder?: string;
+    bankName?: string;
+    walletAddress?: string;
+    notes?: string;
+  };
+  status: PayoutStatus;
+  adminNotes?: string | null;
+  processedAt?: string | null;
+  createdAt: string;
+}
+
+export interface WalletSummary {
+  totalCommissions: number;
+  pending: number;
+  available: number;
+  paid: number;
+  primaryCurrency: string;
+  currencies: Record<string, CurrencyBalance>;
+  totalCount: number;
+}
+
+/** Pure 5% commission calculation: transactionAmount * 0.05 */
+export function calculateCommission(amount: number, rate: number = 0.05): number {
+  if (isNaN(amount) || amount <= 0) return 0;
+  return Math.round(amount * rate * 100) / 100;
 }
 
 export const referrals = {
   async stats(): Promise<ReferralStats> {
-    const { data, error } = await sb().rpc('my_referral_stats');
-    if (error) fail(error);
-    const row = (Array.isArray(data) ? data[0] : data) as { clicks: number; signups: number; earned_tl: number; code: string } | undefined;
-    return { clicks: row?.clicks ?? 0, signups: row?.signups ?? 0, earnedTl: row?.earned_tl ?? 0, code: row?.code ?? '' };
+    const c = sb();
+    const { data: userData } = await c.auth.getUser();
+    const uid = userData?.user?.id;
+
+    let clicks = 0;
+    let signups = 0;
+    let code = '';
+
+    if (uid) {
+      const { data: prof } = await c.from('profiles').select('referral_code').eq('id', uid).maybeSingle();
+      code = prof?.referral_code ?? '';
+
+      if (code) {
+        const { count: clickCount } = await c
+          .from('referral_clicks')
+          .select('id', { count: 'exact', head: true })
+          .eq('code', code.toUpperCase());
+        clicks = clickCount ?? 0;
+      }
+
+      const { count: signupCount } = await c
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('referred_by', uid);
+      signups = signupCount ?? 0;
+    }
+
+    const walletSummary = await wallet.getSummary();
+
+    return {
+      clicks,
+      signups,
+      code,
+      totalCommissions: walletSummary.totalCommissions,
+      pending: walletSummary.pending,
+      available: walletSummary.available,
+      paid: walletSummary.paid,
+      primaryCurrency: walletSummary.primaryCurrency,
+      currencies: walletSummary.currencies,
+      earnedTl: walletSummary.currencies.TRY?.total ?? walletSummary.totalCommissions,
+    };
   },
+
   async click(code: string): Promise<{ ok: true }> {
     const { error } = await sb().from('referral_clicks').insert({ code: code.toUpperCase() });
     if (error) fail(error);
     return { ok: true };
   },
+
   /** Attribute a stored referral code to the current user once (post-signup). */
   async attributeSelf(code: string): Promise<void> {
     await sb().rpc('attribute_referral', { p_code: code });
+  },
+};
+
+export const wallet = {
+  async getSummary(): Promise<WalletSummary> {
+    const c = sb();
+    const { data: userData } = await c.auth.getUser();
+    const uid = userData?.user?.id;
+    if (!uid) {
+      return {
+        totalCommissions: 0,
+        pending: 0,
+        available: 0,
+        paid: 0,
+        primaryCurrency: 'USD',
+        currencies: {},
+        totalCount: 0,
+      };
+    }
+
+    // Try RPC first
+    try {
+      const { data: rpcData, error: rpcErr } = await c.rpc('my_wallet_summary');
+      if (!rpcErr && rpcData) {
+        const r = rpcData as {
+          total_commissions?: number;
+          pending?: number;
+          available?: number;
+          paid?: number;
+          currencies?: Record<string, CurrencyBalance>;
+          total_count?: number;
+        };
+        const currencies = r.currencies ?? {};
+        const primaryCurrency = Object.keys(currencies)[0] || 'USD';
+        return {
+          totalCommissions: Number(r.total_commissions ?? 0),
+          pending: Number(r.pending ?? 0),
+          available: Number(r.available ?? 0),
+          paid: Number(r.paid ?? 0),
+          primaryCurrency,
+          currencies,
+          totalCount: Number(r.total_count ?? 0),
+        };
+      }
+    } catch {
+      // fallback to direct table query
+    }
+
+    // Fallback: direct query on referral_commissions
+    try {
+      const { data, error } = await c
+        .from('referral_commissions')
+        .select('*')
+        .eq('referrer_id', uid);
+
+      if (error || !data) {
+        return {
+          totalCommissions: 0,
+          pending: 0,
+          available: 0,
+          paid: 0,
+          primaryCurrency: 'USD',
+          currencies: {},
+          totalCount: 0,
+        };
+      }
+
+      const currencies: Record<string, CurrencyBalance> = {};
+      let totalCommissions = 0;
+      let pending = 0;
+      let available = 0;
+      let paid = 0;
+      let validCount = 0;
+
+      for (const row of data) {
+        const curr = (row.currency as string) || 'USD';
+        if (!currencies[curr]) {
+          currencies[curr] = { total: 0, pending: 0, available: 0, paid: 0 };
+        }
+        const amt = Number(row.commission_amount || 0);
+        const status = row.status as CommissionStatus;
+
+        if (status === 'pending' || status === 'available' || status === 'paid') {
+          currencies[curr].total += amt;
+          totalCommissions += amt;
+          validCount++;
+        }
+        if (status === 'pending') {
+          currencies[curr].pending += amt;
+          pending += amt;
+        } else if (status === 'available') {
+          currencies[curr].available += amt;
+          available += amt;
+        } else if (status === 'paid') {
+          currencies[curr].paid += amt;
+          paid += amt;
+        }
+      }
+
+      const primaryCurrency = Object.keys(currencies)[0] || 'USD';
+
+      return {
+        totalCommissions: Math.round(totalCommissions * 100) / 100,
+        pending: Math.round(pending * 100) / 100,
+        available: Math.round(available * 100) / 100,
+        paid: Math.round(paid * 100) / 100,
+        primaryCurrency,
+        currencies,
+        totalCount: validCount,
+      };
+    } catch {
+      return {
+        totalCommissions: 0,
+        pending: 0,
+        available: 0,
+        paid: 0,
+        primaryCurrency: 'USD',
+        currencies: {},
+        totalCount: 0,
+      };
+    }
+  },
+
+  async getTransactions(): Promise<WalletTransaction[]> {
+    const c = sb();
+    const { data: userData } = await c.auth.getUser();
+    const uid = userData?.user?.id;
+    if (!uid) return [];
+
+    try {
+      const { data, error } = await c
+        .from('referral_commissions')
+        .select('*')
+        .eq('referrer_id', uid)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return [];
+
+      return data.map((r) => ({
+        id: r.id,
+        date: r.created_at,
+        orderId: r.order_id ?? null,
+        paymentId: r.payment_id ?? null,
+        serviceType: r.service_type ?? 'service',
+        serviceName: r.service_name ?? 'Rafiq Service',
+        transactionAmount: Number(r.transaction_amount ?? 0),
+        currency: r.currency ?? 'USD',
+        commissionRate: Number(r.commission_rate ?? 0.05),
+        commissionAmount: Number(r.commission_amount ?? 0),
+        status: (r.status as CommissionStatus) ?? 'pending',
+        availableAt: r.available_at ?? null,
+        paidAt: r.paid_at ?? null,
+        reversalOfId: r.reversal_of_id ?? null,
+        notes: r.notes ?? null,
+        createdAt: r.created_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  async getPayoutRequests(): Promise<PayoutRequest[]> {
+    const c = sb();
+    const { data: userData } = await c.auth.getUser();
+    const uid = userData?.user?.id;
+    if (!uid) return [];
+
+    try {
+      const { data, error } = await c
+        .from('payout_requests')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false });
+
+      if (error || !data) return [];
+
+      return data.map((r) => ({
+        id: r.id,
+        amount: Number(r.amount ?? 0),
+        currency: r.currency ?? 'USD',
+        payoutMethod: r.payout_method ?? 'bank_transfer',
+        payoutDetails: (r.payout_details as PayoutRequest['payoutDetails']) ?? {},
+        status: (r.status as PayoutStatus) ?? 'under_review',
+        adminNotes: r.admin_notes ?? null,
+        processedAt: r.processed_at ?? null,
+        createdAt: r.created_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  async requestPayout(input: {
+    amount: number;
+    currency: string;
+    payoutMethod: string;
+    payoutDetails: PayoutRequest['payoutDetails'];
+  }): Promise<{ ok: boolean; id?: string; error?: string }> {
+    const c = sb();
+    const { data: userData } = await c.auth.getUser();
+    const uid = userData?.user?.id;
+    if (!uid) return { ok: false, error: 'auth_required' };
+
+    if (!input.amount || input.amount <= 0) {
+      return { ok: false, error: 'invalid_amount' };
+    }
+
+    try {
+      const { data, error } = await c
+        .from('payout_requests')
+        .insert({
+          user_id: uid,
+          amount: input.amount,
+          currency: input.currency || 'USD',
+          payout_method: input.payoutMethod || 'bank_transfer',
+          payout_details: input.payoutDetails || {},
+          status: 'under_review',
+        })
+        .select('id')
+        .single();
+
+      if (error) return { ok: false, error: error.message };
+      return { ok: true, id: data?.id };
+    } catch (e: unknown) {
+      return { ok: false, error: e instanceof Error ? e.message : 'request_failed' };
+    }
   },
 };
 

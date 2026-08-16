@@ -182,6 +182,14 @@ function ProfileInner() {
             <AppIcon name="check-circle" className="w-4 h-4" />
             {t('account.myJourney')}
           </Link>
+          <Link to="/wallet" className="btn-secondary min-h-[44px] px-4 text-sm font-bold text-navy">
+            <AppIcon name="sparkles" className="w-4 h-4 text-sand" />
+            {t('wallet.title')}
+          </Link>
+          <Link to="/referrals" className="btn-secondary min-h-[44px] px-4 text-sm font-bold text-navy">
+            <AppIcon name="users" className="w-4 h-4 text-navy/70" />
+            {t('referrals.title')}
+          </Link>
           <Link to="/onboarding?edit=1" className="btn-secondary min-h-[44px] px-4 text-sm">
             <AppIcon name="pencil" className="w-4 h-4" />
             {t('account.editAnswers')}
@@ -189,6 +197,8 @@ function ProfileInner() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
+          <Link to="/wallet" className="hover:text-navy hover:underline font-bold text-sand">{t('wallet.title')}</Link>
+          <Link to="/referrals" className="hover:text-navy hover:underline">{t('referrals.title')}</Link>
           <Link to="/terms" className="hover:text-navy hover:underline">{t('nav.terms')}</Link>
           <Link to="/privacy" className="hover:text-navy hover:underline">{t('nav.privacy')}</Link>
         </div>

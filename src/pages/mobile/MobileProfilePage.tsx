@@ -208,7 +208,15 @@ function MobileProfileInner() {
               ))}
             </div>
             <div className="mt-4 flex flex-col gap-2.5">
-              <Link to="/journey" className="btn-primary flex min-h-[50px] w-full text-[14.5px]">
+              <Link to="/wallet" className="btn-primary flex min-h-[50px] w-full text-[14.5px] font-bold bg-navy text-white">
+                <AppIcon name="sparkles" className="h-[17px] w-[17px] text-sand" />
+                {t('wallet.title')}
+              </Link>
+              <Link to="/referrals" className="btn-secondary flex min-h-[50px] w-full text-[14.5px] font-bold text-navy">
+                <AppIcon name="users" className="h-4 w-4 text-navy/70" />
+                {t('referrals.title')}
+              </Link>
+              <Link to="/journey" className="btn-secondary flex min-h-[50px] w-full text-[14.5px]">
                 <AppIcon name="check-circle" className="h-[17px] w-[17px]" />
                 {t('account.myJourney')}
               </Link>
@@ -218,6 +226,10 @@ function MobileProfileInner() {
               </Link>
             </div>
             <p className="mt-3.5 text-center text-xs text-navy/50">
+              <Link to="/wallet" className="font-bold text-navy underline">{t('wallet.title')}</Link>
+              {' · '}
+              <Link to="/referrals" className="underline">{t('referrals.title')}</Link>
+              {' · '}
               <Link to="/terms" className="underline">{t('nav.terms')}</Link>
               {' · '}
               <Link to="/privacy" className="underline">{t('nav.privacy')}</Link>

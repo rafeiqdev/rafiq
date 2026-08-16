@@ -127,5 +127,33 @@ export default async function handler(req: Request): Promise<Response> {
   const updated = (await upd.json()) as ServicePaymentRow[];
   if (updated.length === 0) return json({ ok: true, status: 'verified', replay: true });
 
+  // Credit 5% referral commission if customer was referred
+  try {
+    const profRes = await supa(`profiles?id=eq.${payment.user_id}&select=referred_by`);
+    if (profRes.ok) {
+      const profs = (await profRes.json()) as { referred_by?: string | null }[];
+      const referrerId = profs[0]?.referred_by;
+      if (referrerId) {
+        await supa('rpc/credit_referral_commission', {
+          method: 'POST',
+          body: JSON.stringify({
+            p_referrer_id: referrerId,
+            p_referred_user_id: payment.user_id,
+            p_order_id: payment.request_id,
+            p_payment_id: payment.id,
+            p_service_type: 'service',
+            p_service_name: 'Rafiq Service Request',
+            p_transaction_amount: payment.charged_amount ?? payment.amount,
+            p_currency: 'USD',
+            p_commission_rate: 0.05,
+          }),
+        });
+      }
+    }
+  } catch {
+    // best effort, never fail verified payment ack
+  }
+
   return json({ ok: true, status: 'verified' });
 }
+

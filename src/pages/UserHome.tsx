@@ -6,7 +6,8 @@ import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
 import { errorMessageKey } from '../lib/errors';
 import { shortSummary } from '../lib/bookingSummary';
 import { bookings as bookingsApi, notifications as notificationsApi, documents as documentsApi } from '../lib/api';
-import { SERVICES, SERVICE_CATEGORIES, pickText } from '../data/services';
+import { pickText } from '../data/services';
+import { useCatalog } from '../data/catalogStore';
 import { pickCity } from '../data/turkeyCities';
 import { JOURNEY_TASK_KEYS } from '../lib/types';
 import { AppIcon, DirArrow } from '../components/AppIcon';
@@ -203,6 +204,10 @@ export function UserHome() {
   const isMobile = useIsMobile();
   const { user, authLoading, profile } = useApp();
   const { items, state, errorCategory, progress, next, reload } = useJourney();
+  // Live catalog, not the bundled SERVICES array: an admin's card image, edited
+  // title or hidden flag has to reach this dashboard too, otherwise the same
+  // service looks different here than on /services.
+  const { services: catalogServices, categories: catalogCategories } = useCatalog();
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [notifs, setNotifs] = useState<AppNotification[]>([]);
   const [docs, setDocs] = useState<StoredDocument[] | null>(null);
@@ -341,13 +346,13 @@ export function UserHome() {
 
   // The city-aware "before you sign a lease" tip points at one specific
   // service (notarized rental contracts), not the whole catalogue.
-  const rentalContractService = SERVICES.find((s) => s.id === 're-contracts');
+  const rentalContractService = catalogServices.find((s) => s.id === 're-contracts');
   const cityTipHref = rentalContractService
     ? `/services?q=${encodeURIComponent(pickText(rentalContractService.title, lang))}`
     : '/services';
 
   const relatedServices = items
-    .map((i) => SERVICES.find((s) => s.id === i.relatedServiceId))
+    .map((i) => catalogServices.find((s) => s.id === i.relatedServiceId))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
     .slice(0, 3);
 
@@ -715,7 +720,7 @@ export function UserHome() {
 
           <ul className="mt-3.5 flex flex-col gap-3">
             {relatedServices.map((s, i) => {
-              const category = SERVICE_CATEGORIES.find((c) => c.id === s.category);
+              const category = catalogCategories.find((c) => c.id === s.category);
               return (
                 <li key={s.id}>
                   <ExpandableServiceCard service={s} index={i} categoryTitle={category ? pickText(category.title, lang) : ''} />

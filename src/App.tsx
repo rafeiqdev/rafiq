@@ -68,6 +68,8 @@ const MapPage = lazyPage(() => import('./pages/MapPage').then((m) => ({ default:
 const MobileMapPage = lazyPage(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
 const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
 const MobileReferrals = lazyPage(() => import('./pages/mobile/MobileReferrals').then((m) => ({ default: m.MobileReferrals })));
+const Wallet = lazyPage(() => import('./pages/Wallet').then((m) => ({ default: m.Wallet })));
+const MobileWallet = lazyPage(() => import('./pages/mobile/MobileWallet').then((m) => ({ default: m.MobileWallet })));
 const RealEstate = lazyPage(() => import('./pages/RealEstate').then((m) => ({ default: m.RealEstate })));
 const MobileRealEstate = lazyPage(() => import('./pages/mobile/MobileRealEstate').then((m) => ({ default: m.MobileRealEstate })));
 const RealEstateDetail = lazyPage(() => import('./pages/RealEstateDetail').then((m) => ({ default: m.RealEstateDetail })));
@@ -229,6 +231,7 @@ function Shell() {
             <Route path="/guides/:id" element={<CategoryGuide />} />
             <Route path="/map" element={isMobile ? <MobileMapPage /> : <MapPage />} />
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
+            <Route path="/wallet" element={isMobile ? <MobileWallet /> : <Wallet />} />
             <Route path="/real-estate" element={isMobile ? <MobileRealEstate /> : <RealEstate />} />
             {/* `investments` is declared before `:id` so the literal path wins
                 over the dynamic listing route. */}
@@ -256,7 +259,7 @@ function Shell() {
             <Route path="/home" element={<RequireOnboarded><UserHome /></RequireOnboarded>} />
             {/* Journey gates itself: signed out → interactive guest preview,
                 signed in but not onboarded → /onboarding, else the real page. */}
-            <Route path="/journey" element={<Journey />} />
+            <Route path="/journey" element={<RequireOnboarded><Journey /></RequireOnboarded>} />
             {/* "حسابي" is /profile. It used to mount ProfilePage a second time,
                 which meant phones got the DESKTOP page here (the isMobile branch
                 was only on /profile) — so this redirects instead of duplicating. */}

@@ -8,7 +8,8 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { SiteImage } from '../components/SiteImage';
 import { CAROUSEL } from '../lib/images';
-import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../data/services';
+import { normalizeSearch, keywordsFor, pickText } from '../data/services';
+import { useCatalog } from '../data/catalogStore';
 import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { AboutSection } from '../components/sections/AboutSection';
@@ -61,6 +62,7 @@ export function Home() {
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const heroImageAlts = homeHeroImageAlts(i18n.language);
+  const { services: catalogServices } = useCatalog();
 
   usePageMeta({
     title: `${t('common.appName')} — ${t('home.heroTitle')}`,
@@ -77,18 +79,21 @@ export function Home() {
   const goServices = () =>
     navigate(query.trim() ? `/services?q=${encodeURIComponent(query.trim())}` : '/services');
 
-  // live, forgiving suggestions (services matched by title/desc/keywords)
+  // live, forgiving suggestions (services matched by title/desc/keywords).
+  // Searched against the live catalog so an admin's edits, added services and
+  // hidden flags apply here exactly as they do on /services — suggesting a
+  // service the admin has hidden would send the visitor to an empty result.
   const suggestions = useMemo(() => {
     const nq = normalizeSearch(query);
     if (!nq) return [];
     const toks = nq.split(' ').filter((tk) => tk.length >= 2);
-    return SERVICES.filter((s) => {
+    return catalogServices.filter((s) => {
       const hay = normalizeSearch(
         [s.title.ar, s.title.en, s.title.tr, s.desc.ar, s.desc.en, s.desc.tr, keywordsFor(s.id)].join(' '),
       );
       return hay.includes(nq) || toks.some((tk) => hay.includes(tk));
     }).slice(0, 6);
-  }, [query]);
+  }, [query, catalogServices]);
 
   const blocks = useMemo(() => blocksFor(profile), [profile]);
   const visible = query.trim()
@@ -173,9 +178,13 @@ export function Home() {
                       }}
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-cream text-start"
                     >
-                      <span className="icon-chip !w-8 !h-8 shrink-0">
-                        <AppIcon name={s.icon} className="w-4 h-4" />
-                      </span>
+                      {s.image ? (
+                        <img src={s.image} alt="" loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <span className="icon-chip !w-8 !h-8 shrink-0">
+                          <AppIcon name={s.icon} className="w-4 h-4" />
+                        </span>
+                      )}
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-semibold text-navy truncate">{pickText(s.title, i18n.language)}</span>
                         <span className="block text-xs text-navy/70 truncate">{pickText(s.desc, i18n.language)}</span>

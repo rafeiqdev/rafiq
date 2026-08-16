@@ -7,7 +7,8 @@ import type { IconName } from '../../components/AppIcon';
 import { useApp } from '../../context/AppContext';
 import { SiteImage } from '../../components/SiteImage';
 import { CAROUSEL } from '../../lib/images';
-import { SERVICES, normalizeSearch, keywordsFor, pickText } from '../../data/services';
+import { normalizeSearch, keywordsFor, pickText } from '../../data/services';
+import { useCatalog } from '../../data/catalogStore';
 import { blocksFor } from '../../blocks/registry';
 import { BlockCard } from '../../blocks/BlockCard';
 import { HowItWorks } from '../../components/sections/HowItWorks';
@@ -101,6 +102,7 @@ export function MobileHome() {
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const [showAllBlocks, setShowAllBlocks] = useState(false);
+  const { services: catalogServices } = useCatalog();
 
   usePageMeta({
     title: `${t('common.appName')} — ${t('home.heroTitle')}`,
@@ -114,13 +116,13 @@ export function MobileHome() {
     const nq = normalizeSearch(query);
     if (!nq) return [];
     const toks = nq.split(' ').filter((tk) => tk.length >= 2);
-    return SERVICES.filter((s) => {
+    return catalogServices.filter((s) => {
       const hay = normalizeSearch(
         [s.title.ar, s.title.en, s.title.tr, s.desc.ar, s.desc.en, s.desc.tr, keywordsFor(s.id)].join(' '),
       );
       return hay.includes(nq) || toks.some((tk) => hay.includes(tk));
     }).slice(0, 6);
-  }, [query]);
+  }, [query, catalogServices]);
 
   // Personalized blocks — same source + same filter predicate as desktop
   // (matches against the TRANSLATED title/body text via t(), blocks don't
@@ -246,7 +248,11 @@ export function MobileHome() {
                         }
                         className="w-full min-h-[48px] flex items-center gap-3 px-4 py-3 text-start text-[15px] text-navy border-b border-cream-dark last:border-b-0 active:bg-brand-blue"
                       >
-                        <AppIcon name="search" className="w-4 h-4 text-navy/40 shrink-0" />
+                        {s.image ? (
+                          <img src={s.image} alt="" loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <AppIcon name="search" className="w-4 h-4 text-navy/40 shrink-0" />
+                        )}
                         <span className="truncate">{pickText(s.title, i18n.language)}</span>
                       </button>
                     </li>
