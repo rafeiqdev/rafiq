@@ -149,6 +149,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [state, setState] = useState<LoadState>('idle');
   /** A real tile has painted — only then is it safe to uncover the container. */
   const [tilesReady, setTilesReady] = useState(false);
+  /**
+   * The google.maps.Map instance exists. State, not just the ref, because the
+   * effects that draw onto the map have to re-run once it appears — on phones
+   * construction is deferred until the pane is opened, which can happen long
+   * after a search has already filled `results`.
+   */
+  const [mapCreated, setMapCreated] = useState(false);
   /** Authenticated but nothing ever rendered; treated as unavailable. */
   const [tilesTimedOut, setTilesTimedOut] = useState(false);
   // Which kind of failure: a configuration problem (missing/rejected server
@@ -194,8 +201,16 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   // and gm_authFailure fires in that same moment — but only AFTER the element
   // exists. Revealing on `tilesloaded` means the container is only uncovered
   // once Google has genuinely rendered something.
+  //
+  // On phones the map surface lives inside a pane that is `h-0` until the
+  // visitor opens it. Constructing a Map into a zero-height element makes
+  // Google skip the tile request entirely, so `tilesloaded` never fires and the
+  // timeout below would condemn a perfectly healthy map as unavailable — which
+  // also removed the very button needed to open the pane. So on compact layouts
+  // the map is not built until the pane actually has height.
   useEffect(() => {
     if (mapsStatus !== 'ready' || !mapNodeRef.current || mapRef.current) return;
+    if (compact && !mobileMapOpen) return;
     const map = new google.maps.Map(mapNodeRef.current, {
       center: ISTANBUL,
       zoom: DEFAULT_ZOOM,
@@ -207,17 +222,21 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       clickableIcons: false,
     });
     mapRef.current = map;
+    setMapCreated(true);
     const listener = google.maps.event.addListenerOnce(map, 'tilesloaded', () => setTilesReady(true));
     return () => listener?.remove();
-  }, [mapsStatus]);
+  }, [mapsStatus, compact, mobileMapOpen]);
 
   // Belt-and-braces for the failures Google gives us no signal for at all: if
   // the SDK authenticated but no tile ever arrives (a degraded/over-quota
   // project, a silently dropped tile request), the visitor would otherwise sit
   // in front of our placeholder forever. After this timeout we stop pretending
   // and show the same fallback.
+  // Only armed once a Map actually exists: before that there is nothing that
+  // could have painted, and on phones "no map yet" is the normal collapsed
+  // state rather than a fault.
   useEffect(() => {
-    if (mapsStatus !== 'ready' || tilesReady) return;
+    if (mapsStatus !== 'ready' || !mapCreated || tilesReady) return;
     const timer = setTimeout(() => {
       setTilesTimedOut(true);
       devDiagnose(
@@ -227,7 +246,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       );
     }, TILE_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [mapsStatus, tilesReady]);
+  }, [mapsStatus, mapCreated, tilesReady]);
 
   useEffect(() => {
     placeFavorites.list().then(setFavorites).catch(() => {});
@@ -305,8 +324,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       map.fitBounds(bounds, 48);
     }
     // openPlace is stable enough for this effect; results/overlays drive it.
+    // `mapCreated` is here so pins searched before the phone's map pane was
+    // opened get drawn the moment it is.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredResults, overlays, mapsStatus, category, selected]);
+  }, [filteredResults, overlays, mapsStatus, mapCreated, category, selected]);
 
   // Un-hiding the mobile map pane resizes its container without a window resize
   // event ever firing — Maps must be told explicitly or it keeps painting at
@@ -338,7 +359,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       zIndex: 9999,
     });
     userMarkerRef.current.map = map;
-  }, [userLocation, mapsStatus, t]);
+  }, [userLocation, mapsStatus, mapCreated, t]);
 
   // ---- searching ------------------------------------------------------------
   const runSearch = useCallback(

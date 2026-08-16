@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 /**
@@ -91,6 +91,31 @@ describe('a Google outage takes out the map, not the page', () => {
   it('offers the map toggle again once Google is healthy', () => {
     mapsStatus = 'ready';
     show(true);
+
+    expect(screen.queryByText('map.unavailable.title')).not.toBeInTheDocument();
+    expect(document.querySelector('#mobile-map-toggle-btn')).not.toBeNull();
+  });
+});
+
+/**
+ * The phone's map pane is `h-0` until the visitor opens it. Building a Map into
+ * a zero-height element makes Google skip the tile request altogether, so
+ * `tilesloaded` never fires — and the tile timeout then condemned a perfectly
+ * healthy map as unavailable, taking the "show map" button away with it. The
+ * map is therefore not constructed until the pane actually has height.
+ */
+describe('a collapsed phone map pane is not mistaken for an outage', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('keeps the toggle after the tile timeout would have elapsed', () => {
+    vi.useFakeTimers();
+    mapsStatus = 'ready';
+    show(true);
+
+    // Well past TILE_TIMEOUT_MS, with the pane still closed.
+    act(() => {
+      vi.advanceTimersByTime(20000);
+    });
 
     expect(screen.queryByText('map.unavailable.title')).not.toBeInTheDocument();
     expect(document.querySelector('#mobile-map-toggle-btn')).not.toBeNull();
