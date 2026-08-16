@@ -586,13 +586,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   // no-key / error / blocked, plus the case where the SDK reported success but
   // no tile ever painted. All four resolve to the SAME dignified fallback: the
   // visitor is never told which, and never shown Google's own error card.
-  if (isMapUnavailable(mapsStatus) || tilesTimedOut) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16">
-        <MapUnavailable variant="map" />
-      </div>
-    );
-  }
+  //
+  // This takes out the MAP, not the page. Place search runs on our own server,
+  // so the sidebar — search, categories, filters, results, saving, directions
+  // links — keeps working perfectly while Google's tiles are down. Replacing
+  // the whole screen with this notice used to throw away a set of results the
+  // visitor had just successfully searched for.
+  const mapUnavailable = isMapUnavailable(mapsStatus) || tilesTimedOut;
 
   const recommendedCount = filteredResults.filter((r) => overlays.get(r.placeId)?.recommended).length;
   const activeQuickCount = (quickFilters.openNow ? 1 : 0) + (quickFilters.topRated ? 1 : 0);
@@ -775,7 +775,9 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             </select>
           </label>
         )}
-        {compact && (
+        {/* No toggle when there is no map behind it — offering to "show the
+            map" only to reveal an outage notice is a dead end. */}
+        {compact && !mapUnavailable && (
           <button
             id="mobile-map-toggle-btn"
             type="button"
@@ -792,7 +794,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   );
 
   /** The map surface plus its floating controls. Rendered once, in one place. */
-  const mapPane = (
+  const mapPane = mapUnavailable ? (
+    <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-cream p-4">
+      <div className="w-full max-w-md">
+        <MapUnavailable variant="map" />
+      </div>
+    </div>
+  ) : (
     <>
       <div ref={mapNodeRef} role="application" aria-label={t('map.title')} className="h-full w-full bg-cream" />
       {/* Our own placeholder, covering the container until a tile paints.
@@ -1022,16 +1030,24 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         {filterPills}
       </header>
       {summaryBar}
-      {/* Phone only: the map opens as an interactive preview above the feed. */}
-      {compact && (
-        <div
-          className={`relative w-full shrink-0 overflow-hidden border-b border-gray-200 bg-gray-100 transition-[height] duration-200 ${
-            mobileMapOpen ? 'h-[280px]' : 'h-0 border-b-0'
-          }`}
-        >
-          {mapPane}
-        </div>
-      )}
+      {/* Phone only: the map opens as an interactive preview above the feed.
+          When there is no map to open, the outage is still stated once —
+          silently dropping it would leave the visitor wondering where the map
+          went, and the notice carries the keyless Google Maps link. */}
+      {compact &&
+        (mapUnavailable ? (
+          <div className="w-full shrink-0 border-b border-gray-200 bg-cream p-3">
+            <MapUnavailable variant="map" />
+          </div>
+        ) : (
+          <div
+            className={`relative w-full shrink-0 overflow-hidden border-b border-gray-200 bg-gray-100 transition-[height] duration-200 ${
+              mobileMapOpen ? 'h-[280px]' : 'h-0 border-b-0'
+            }`}
+          >
+            {mapPane}
+          </div>
+        ))}
       {resultsFeed}
     </aside>
   );

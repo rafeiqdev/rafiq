@@ -13,28 +13,48 @@ import { SERVICES, keywordsFor, normalizeSearch } from '../data/services';
 const MIN_TOKEN = 3;
 /** Tokens shared by this many categories are too generic to identify a subject. */
 const MAX_CATEGORY_SPREAD = 4;
+/**
+ * How much harder a title word counts than a keyword.
+ *
+ * A word in a service's TITLE says what that service *is*; the same word in its
+ * keyword list often only says what it's *adjacent to*. "Limited company
+ * formation" (legal) lists فتح/حساب/بنكي because forming a company involves
+ * opening a bank account — so on raw hit-counts it tied with "Bank account
+ * opening" (banking) for the message "أريد فتح حساب بنكي", and the tie was
+ * settled by whichever category happened to come first in the catalog. Titles
+ * break that tie on meaning instead of on ordering.
+ */
+const TITLE_WEIGHT = 3;
 
-function buildCategoryTokens(): Record<string, Set<string>> {
-  const raw: Record<string, Set<string>> = {};
-  for (const s of SERVICES) {
-    const set = (raw[s.category] ??= new Set<string>());
-    const blob = [s.title.ar, s.title.en, s.title.tr, keywordsFor(s.id)].filter(Boolean).join(' ');
-    for (const tok of normalizeSearch(blob).split(' ')) {
+interface CategoryVocab {
+  title: Set<string>;
+  keyword: Set<string>;
+}
+
+function buildCategoryTokens(): Record<string, CategoryVocab> {
+  const vocab: Record<string, CategoryVocab> = {};
+  const add = (set: Set<string>, text: string) => {
+    for (const tok of normalizeSearch(text).split(' ')) {
       if (tok.length >= MIN_TOKEN) set.add(tok);
     }
+  };
+
+  for (const s of SERVICES) {
+    const v = (vocab[s.category] ??= { title: new Set<string>(), keyword: new Set<string>() });
+    add(v.title, [s.title.ar, s.title.en, s.title.tr].filter(Boolean).join(' '));
+    add(v.keyword, keywordsFor(s.id) ?? '');
   }
 
   // drop tokens that show up across many categories (e.g. "خدمة", "turkey")
   const spread: Record<string, number> = {};
-  for (const set of Object.values(raw)) {
-    for (const tok of set) spread[tok] = (spread[tok] ?? 0) + 1;
+  for (const v of Object.values(vocab)) {
+    for (const tok of new Set([...v.title, ...v.keyword])) spread[tok] = (spread[tok] ?? 0) + 1;
   }
-  for (const set of Object.values(raw)) {
-    for (const tok of [...set]) {
-      if (spread[tok] > MAX_CATEGORY_SPREAD) set.delete(tok);
-    }
+  for (const v of Object.values(vocab)) {
+    for (const tok of [...v.title]) if (spread[tok] > MAX_CATEGORY_SPREAD) v.title.delete(tok);
+    for (const tok of [...v.keyword]) if (spread[tok] > MAX_CATEGORY_SPREAD) v.keyword.delete(tok);
   }
-  return raw;
+  return vocab;
 }
 
 const CATEGORY_TOKENS = buildCategoryTokens();
@@ -62,9 +82,13 @@ export function matchSubject(text: string, sticky?: string | null): SubjectMatch
 
   let best: string | null = null;
   let bestScore = 0;
-  for (const [category, tokens] of Object.entries(CATEGORY_TOKENS)) {
+  for (const [category, vocab] of Object.entries(CATEGORY_TOKENS)) {
     let score = 0;
-    for (const w of words) if (tokens.has(w)) score += 1;
+    for (const w of words) {
+      // A title hit outranks a keyword hit; a word never counts twice.
+      if (vocab.title.has(w)) score += TITLE_WEIGHT;
+      else if (vocab.keyword.has(w)) score += 1;
+    }
     const winsTie = score === bestScore && score > 0 && category === sticky;
     if (score > bestScore || winsTie) {
       bestScore = score;
