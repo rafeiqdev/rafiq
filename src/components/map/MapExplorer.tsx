@@ -41,6 +41,17 @@ const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
   arabic: 'languages',
 };
 
+/** Pin colour per category — purely visual, distinguishes marker clusters at a glance. */
+const CATEGORY_COLORS: Record<PlaceCategory, string> = {
+  dining: '#E11D48',
+  hotels: '#7C3AED',
+  hospitals: '#DB2777',
+  notary: '#2563EB',
+  government: '#0F766E',
+  shopping: '#059669',
+  arabic: '#B45309',
+};
+
 type LoadState = 'idle' | 'loading' | 'ready' | 'empty' | 'error';
 type SortKey = 'best' | 'rating' | 'distance' | 'recommended';
 const SORT_KEYS: SortKey[] = ['best', 'rating', 'distance', 'recommended'];
@@ -118,6 +129,12 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [sort, setSort] = useState<SortKey>('best');
   // What the user typed vs. what we actually sent to Google, for the honesty chip.
   const [translation, setTranslation] = useState<{ original: string; translated: string } | null>(null);
+  // Phone-only: map is a collapsible pane above the list, not a permanent half
+  // of the screen — there isn't room for both at once on a phone.
+  const [mobileMapOpen, setMobileMapOpen] = useState(true);
+  // Client-side refinements over data Google already gave us — never a claim
+  // we can't back (no "Arabic-speaking staff" toggle: nothing in the API says so).
+  const [quickFilters, setQuickFilters] = useState({ openNow: false, topRated: false });
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.googlePlaceId)), [favorites]);
 
@@ -171,6 +188,18 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     placeFavorites.list().then(setFavorites).catch(() => {});
   }, []);
 
+  // Quick filters narrow the pool everything downstream (map pins + list)
+  // draws from — both fields come straight from Google, nothing invented.
+  const filteredResults = useMemo(
+    () =>
+      results.filter((r) => {
+        if (quickFilters.openNow && r.openNow !== true) return false;
+        if (quickFilters.topRated && (r.rating ?? 0) < 4.5) return false;
+        return true;
+      }),
+    [results, quickFilters],
+  );
+
   // ---- markers + clustering -------------------------------------------------
   useEffect(() => {
     const map = mapRef.current;
@@ -180,13 +209,15 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     markersRef.current.forEach((m) => (m.map = null));
     markersRef.current = [];
 
-    const withCoords = results.filter((r) => r.lat !== null && r.lng !== null);
+    const withCoords = filteredResults.filter((r) => r.lat !== null && r.lng !== null);
     const markers = withCoords.map((r) => {
       const overlay = overlays.get(r.placeId);
       const pin = new google.maps.marker.PinElement({
         // Recommended places are visually distinct on the map itself, not only
-        // in the list — that is the whole point of the editorial layer.
-        background: overlay?.recommended ? '#C9A227' : '#1B2A4A',
+        // in the list — that is the whole point of the editorial layer. Other
+        // pins are tinted by the active category so a results page reads as
+        // one colour family on the map, not a wall of identical navy drops.
+        background: overlay?.recommended ? '#C9A227' : category ? CATEGORY_COLORS[category] : '#1B2A4A',
         borderColor: '#ffffff',
         glyphColor: '#ffffff',
         scale: overlay?.recommended ? 1.2 : 1,
@@ -215,7 +246,17 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     }
     // openPlace is stable enough for this effect; results/overlays drive it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [results, overlays, mapsStatus]);
+  }, [filteredResults, overlays, mapsStatus, category]);
+
+  // Un-hiding the mobile map pane resizes its container without a window
+  // resize event ever firing — Maps needs to be told explicitly or it keeps
+  // painting at its old (zero) size.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !compact || !mobileMapOpen) return;
+    const timer = setTimeout(() => google.maps.event.trigger(map, 'resize'), 50);
+    return () => clearTimeout(timer);
+  }, [mobileMapOpen, compact]);
 
   // ---- "you are here" marker ------------------------------------------------
   useEffect(() => {
@@ -460,8 +501,9 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     [origin],
   );
 
-  const sortedResults = useMemo(() => {
-    const arr = [...results];
+  // The list mirrors the map pins exactly: same filteredResults pool, just sorted.
+  const visibleResults = useMemo(() => {
+    const arr = [...filteredResults];
     if (sort === 'rating') {
       arr.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
     } else if (sort === 'distance') {
@@ -474,7 +516,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       );
     }
     return arr;
-  }, [results, sort, distanceOf, overlays]);
+  }, [filteredResults, sort, distanceOf, overlays]);
 
   const formatDistance = (m: number): string =>
     m < 950
@@ -493,7 +535,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     );
   }
 
-  const recommendedCount = results.filter((r) => overlays.get(r.placeId)?.recommended).length;
+  const recommendedCount = filteredResults.filter((r) => overlays.get(r.placeId)?.recommended).length;
 
   return (
     <div className={`mx-auto max-w-6xl px-4 ${compact ? 'py-5 pb-28' : 'py-10'}`}>
@@ -587,47 +629,40 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         ))}
       </div>
 
-      <div className={`mt-5 grid gap-5 ${compact ? '' : 'lg:grid-cols-[1.3fr_1fr]'}`}>
-        {/* map */}
-        <div className="relative">
-          <div
-            ref={mapNodeRef}
-            role="application"
-            aria-label={t('map.title')}
-            className={`w-full rounded-2xl border border-gray-200 overflow-hidden bg-cream ${compact ? 'h-[320px]' : 'h-[560px]'}`}
-          />
-          {/* Our own placeholder, covering the container until a tile paints.
-              Two jobs: it is the loading state, and it is the shield that keeps
-              Google's error card off the screen during the moment when a
-              rejected key is being discovered. Deliberately branded rather than
-              an empty grey rectangle. */}
-          {!tilesReady && (
-            <div
-              aria-hidden
-              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-gray-200 bg-cream"
-            >
-              <span className="flex items-center gap-2 text-sm font-semibold text-navy/40">
-                <AppIcon name="map-pin" className="w-5 h-5 animate-pulse" />
-                {t('common.loading')}
-              </span>
-            </div>
-          )}
-          {/* my-location control, floating over the map */}
-          {mapsStatus === 'ready' && tilesReady && (
-            <button
-              onClick={locateMe}
-              disabled={locating}
-              aria-label={t('map.myLocation')}
-              title={t('map.myLocation')}
-              className="absolute bottom-3 end-3 flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white shadow-cardHover text-navy hover:border-navy/40 disabled:opacity-60"
-            >
-              <AppIcon name="navigation" className={`w-5 h-5 ${locating ? 'animate-pulse' : ''}`} />
-            </button>
-          )}
-        </div>
+      {/* quick filters — real fields Google already returned, nothing invented */}
+      <div className="mt-2.5 flex gap-2">
+        <button
+          onClick={() => setQuickFilters((f) => ({ ...f, openNow: !f.openNow }))}
+          aria-pressed={quickFilters.openNow}
+          className={`flex items-center gap-1.5 rounded-full border px-3 min-h-[34px] text-[12px] font-semibold transition-colors ${
+            quickFilters.openNow
+              ? 'border-green-600 bg-green-50 text-green-800'
+              : 'border-gray-200 bg-white text-navy/70 hover:border-navy/40'
+          }`}
+        >
+          <AppIcon name="clock" className="w-3.5 h-3.5" />
+          {t('map.quickFilters.openNow')}
+        </button>
+        <button
+          onClick={() => setQuickFilters((f) => ({ ...f, topRated: !f.topRated }))}
+          aria-pressed={quickFilters.topRated}
+          className={`flex items-center gap-1.5 rounded-full border px-3 min-h-[34px] text-[12px] font-semibold transition-colors ${
+            quickFilters.topRated
+              ? 'border-gold-dark bg-gold-soft text-gold-dark'
+              : 'border-gray-200 bg-white text-navy/70 hover:border-navy/40'
+          }`}
+        >
+          <AppIcon name="star" className="w-3.5 h-3.5" />
+          {t('map.quickFilters.topRated')}
+        </button>
+      </div>
 
-        {/* results, kept in sync with the markers */}
-        <section aria-live="polite" className={compact ? '' : 'max-h-[560px] overflow-y-auto pe-1'}>
+      <div className={compact ? 'mt-4 flex flex-col gap-4' : 'mt-5 flex items-start gap-5'}>
+        {/* results sidebar — full width stack on phones, fixed-width pane on desktop */}
+        <section
+          aria-live="polite"
+          className={compact ? 'order-2' : 'order-1 w-full lg:w-[400px] shrink-0 max-h-[75vh] min-h-[520px] overflow-y-auto pe-1'}
+        >
           {state === 'idle' && (
             <p className="rounded-2xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
               {t('map.idle')}
@@ -669,75 +704,159 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             <>
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-semibold text-navy/60">
-                  {t('map.directory.count', { count: results.length })}
+                  {t('map.directory.count', { count: visibleResults.length })}
                   {recommendedCount > 0 && ` · ${t('map.recommendedCount', { count: recommendedCount })}`}
                 </p>
-                <label className="flex items-center gap-1.5 text-xs text-navy/70">
-                  <span className="shrink-0">{t('map.sortBy')}</span>
-                  <select
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value as SortKey)}
-                    className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-navy focus:border-navy/40 focus:outline-none"
-                  >
-                    {SORT_KEYS.map((k) => (
-                      <option key={k} value={k} disabled={k === 'distance' && !origin}>
-                        {t(`map.sort.${k}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-xs text-navy/70">
+                    <span className="shrink-0">{t('map.sortBy')}</span>
+                    <select
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value as SortKey)}
+                      className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-navy focus:border-navy/40 focus:outline-none"
+                    >
+                      {SORT_KEYS.map((k) => (
+                        <option key={k} value={k} disabled={k === 'distance' && !origin}>
+                          {t(`map.sort.${k}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {/* Phone only: collapses the map pane back into an accordion so
+                      the list gets the full screen height. */}
+                  {compact && (
+                    <button
+                      id="mobile-map-toggle-btn"
+                      type="button"
+                      onClick={() => setMobileMapOpen((v) => !v)}
+                      aria-pressed={mobileMapOpen}
+                      className="flex items-center gap-1 rounded-full bg-navy px-2.5 min-h-[30px] text-[11px] font-bold text-white active:scale-95"
+                    >
+                      <AppIcon name="map" className="w-3.5 h-3.5" />
+                      {mobileMapOpen ? t('map.hideMap') : t('map.showMap')}
+                    </button>
+                  )}
+                </div>
               </div>
-              <ul className="mt-2.5 flex flex-col gap-2.5">
-                {sortedResults.map((r) => {
-                  const overlay = overlays.get(r.placeId);
-                  const active = selected?.placeId === r.placeId;
-                  const dist = distanceOf(r);
-                  return (
-                    <li key={r.placeId}>
-                      <button
-                        onClick={() => openPlace(r)}
-                        aria-pressed={active}
-                        className={`w-full rounded-xl border p-3 text-start transition-colors ${
-                          active ? 'border-navy bg-brand-blue' : 'border-gray-200 bg-white hover:border-navy/40'
-                        }`}
-                      >
-                        <div className="flex items-start gap-2">
-                          <span className="min-w-0 flex-1 font-bold text-navy break-words">{r.name}</span>
-                          {overlay?.recommended && (
-                            <span className="shrink-0 rounded-full bg-gold-soft text-gold-dark text-[10px] font-bold px-2 py-0.5">
-                              {t('map.recommended')}
-                            </span>
-                          )}
-                        </div>
-                        {r.address && <p className="mt-0.5 text-xs text-gray-500 break-words">{r.address}</p>}
-                        <div className="mt-1.5 flex items-center gap-3 text-xs text-navy/70">
-                          {r.rating !== null && (
-                            <span className="flex items-center gap-1">
-                              <AppIcon name="star" className="w-3.5 h-3.5 text-gold-dark" />
-                              <span dir="ltr">{r.rating.toFixed(1)}</span>
-                            </span>
-                          )}
-                          {dist !== null && (
-                            <span className="flex items-center gap-1">
-                              <AppIcon name="navigation" className="w-3.5 h-3.5 text-navy/50" />
-                              <span dir="ltr">{formatDistance(dist)}</span>
-                            </span>
-                          )}
-                          {favoriteIds.has(r.placeId) && (
-                            <span className="flex items-center gap-1 text-gold-dark">
-                              <AppIcon name="bookmark" className="w-3.5 h-3.5" />
-                              {t('map.saved')}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+
+              {visibleResults.length === 0 ? (
+                <p className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 text-center text-xs text-gray-500">
+                  {t('map.empty.body')}
+                </p>
+              ) : (
+                <ul className="mt-2.5 flex flex-col gap-2.5">
+                  {visibleResults.map((r) => {
+                    const overlay = overlays.get(r.placeId);
+                    const active = selected?.placeId === r.placeId;
+                    const dist = distanceOf(r);
+                    const photo = placeSearch.photoUrl(r.photoRef, 140);
+                    return (
+                      <li key={r.placeId}>
+                        <button
+                          onClick={() => openPlace(r)}
+                          aria-pressed={active}
+                          className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${
+                            active ? 'border-navy bg-brand-blue' : 'border-gray-200 bg-white hover:border-navy/40'
+                          }`}
+                        >
+                          <div className="w-14 h-14 rounded-lg overflow-hidden bg-cream shrink-0 border border-gray-100">
+                            {photo ? (
+                              <img src={photo} alt="" loading="lazy" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="flex h-full w-full items-center justify-center">
+                                <AppIcon
+                                  name={category ? CATEGORY_ICONS[category] : 'map-pin'}
+                                  className="w-5 h-5 text-navy/30"
+                                />
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start gap-2">
+                              <span className="min-w-0 flex-1 font-bold text-navy break-words">{r.name}</span>
+                              {overlay?.recommended && (
+                                <span className="shrink-0 rounded-full bg-gold-soft text-gold-dark text-[10px] font-bold px-2 py-0.5">
+                                  {t('map.recommended')}
+                                </span>
+                              )}
+                            </div>
+                            {r.address && <p className="mt-0.5 text-xs text-gray-500 break-words">{r.address}</p>}
+                            <div className="mt-1.5 flex items-center gap-3 text-xs text-navy/70">
+                              {r.rating !== null && (
+                                <span className="flex items-center gap-1">
+                                  <AppIcon name="star" className="w-3.5 h-3.5 text-gold-dark" />
+                                  <span dir="ltr">{r.rating.toFixed(1)}</span>
+                                </span>
+                              )}
+                              {dist !== null && (
+                                <span className="flex items-center gap-1">
+                                  <AppIcon name="navigation" className="w-3.5 h-3.5 text-navy/50" />
+                                  <span dir="ltr">{formatDistance(dist)}</span>
+                                </span>
+                              )}
+                              {favoriteIds.has(r.placeId) && (
+                                <span className="flex items-center gap-1 text-gold-dark">
+                                  <AppIcon name="bookmark" className="w-3.5 h-3.5" />
+                                  {t('map.saved')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </>
           )}
         </section>
+
+        {/* map pane — a permanent expansive half on desktop, a collapsible
+            accordion above the list on phones (never unmounted: collapsing it
+            keeps Google's Map instance alive, just zero-height). */}
+        <div
+          className={
+            compact
+              ? `order-1 relative transition-[height] duration-200 ${mobileMapOpen ? 'h-[300px]' : 'h-0'} overflow-hidden rounded-2xl`
+              : 'order-2 relative flex-1 h-[75vh] min-h-[520px] sticky top-24'
+          }
+        >
+          <div
+            ref={mapNodeRef}
+            role="application"
+            aria-label={t('map.title')}
+            className="w-full h-full rounded-2xl border border-gray-200 overflow-hidden bg-cream"
+          />
+          {/* Our own placeholder, covering the container until a tile paints.
+              Two jobs: it is the loading state, and it is the shield that keeps
+              Google's error card off the screen during the moment when a
+              rejected key is being discovered. Deliberately branded rather than
+              an empty grey rectangle. */}
+          {!tilesReady && (
+            <div
+              aria-hidden
+              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-gray-200 bg-cream"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold text-navy/40">
+                <AppIcon name="map-pin" className="w-5 h-5 animate-pulse" />
+                {t('common.loading')}
+              </span>
+            </div>
+          )}
+          {/* my-location control, floating over the map */}
+          {mapsStatus === 'ready' && tilesReady && (
+            <button
+              onClick={locateMe}
+              disabled={locating}
+              aria-label={t('map.myLocation')}
+              title={t('map.myLocation')}
+              className="absolute bottom-3 end-3 flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white shadow-cardHover text-navy hover:border-navy/40 disabled:opacity-60"
+            >
+              <AppIcon name="navigation" className={`w-5 h-5 ${locating ? 'animate-pulse' : ''}`} />
+            </button>
+          )}
+        </div>
       </div>
 
       {selected && (

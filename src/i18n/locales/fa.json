@@ -765,7 +765,13 @@
       "recommended": "پیشنهادشده"
     },
     "distanceKm": "{{km}} کیلومتر",
-    "distanceM": "{{m}} متر"
+    "distanceM": "{{m}} متر",
+    "showMap": "نقشه",
+    "hideMap": "پنهان کردن",
+    "quickFilters": {
+      "openNow": "باز است",
+      "topRated": "بالاترین امتیاز"
+    }
   },
   "referrals": {
     "title": "دعوت کنید و درآمد داشته باشید",

@@ -765,7 +765,13 @@
       "recommended": "Рекомендованные"
     },
     "distanceKm": "{{km}} км",
-    "distanceM": "{{m}} м"
+    "distanceM": "{{m}} м",
+    "showMap": "Карта",
+    "hideMap": "Скрыть",
+    "quickFilters": {
+      "openNow": "Открыто сейчас",
+      "topRated": "Высокий рейтинг"
+    }
   },
   "referrals": {
     "title": "Приглашай и зарабатывай",

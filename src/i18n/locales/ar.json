@@ -765,7 +765,13 @@
       "recommended": "موصى به أولًا"
     },
     "distanceKm": "{{km}} كم",
-    "distanceM": "{{m}} م"
+    "distanceM": "{{m}} م",
+    "showMap": "الخريطة",
+    "hideMap": "إخفاء",
+    "quickFilters": {
+      "openNow": "مفتوح الآن",
+      "topRated": "الأعلى تقييمًا"
+    }
   },
   "referrals": {
     "title": "ادعُ واربح",

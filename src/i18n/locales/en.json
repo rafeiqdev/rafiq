@@ -765,7 +765,13 @@
       "recommended": "Recommended first"
     },
     "distanceKm": "{{km}} km",
-    "distanceM": "{{m}} m"
+    "distanceM": "{{m}} m",
+    "showMap": "Map",
+    "hideMap": "Hide",
+    "quickFilters": {
+      "openNow": "Open now",
+      "topRated": "Top rated"
+    }
   },
   "referrals": {
     "title": "Invite & earn",
