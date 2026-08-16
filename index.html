@@ -42,7 +42,61 @@
     <meta name="twitter:title" content="Rafiq Istanbul" />
     <meta name="twitter:description" content="The digital services hub for foreigners in Istanbul — in 4 languages." />
     <meta name="twitter:image" content="%VITE_BASE_URL%/og-cover.png" />
+        <!--
+      Pre-hydration multilingual SEO: Vercel serves one SPA shell for every
+      language route, so the first HTML response otherwise looks Arabic with a
+      root canonical until React mounts. Derive the route's language here so
+      crawlers and social parsers get a truthful URL even before hydration.
+      The React SEO bridge repeats this after route changes.
+    -->
+    <script>
+      (function () {
+        var origin = "%VITE_BASE_URL%";
+        if (origin.endsWith("/")) origin = origin.slice(0, -1);
+        var firstSegment = window.location.pathname.split("/")[1];
+        var supported = { ar: true, en: true, ru: true, fa: true };
+        var lang = supported[firstSegment] ? firstSegment : "ar";
+        var rtl = lang === "ar" || lang === "fa";
+        document.documentElement.lang = lang;
+        document.documentElement.dir = rtl ? "rtl" : "ltr";
+
+        var rest = supported[firstSegment]
+          ? window.location.pathname.slice(firstSegment.length + 1) || "/"
+          : window.location.pathname || "/";
+        var pagePath = rest === "/" ? "" : rest;
+        var pageUrl = origin + "/" + lang + pagePath;
+        var canonical = document.head.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.setAttribute("href", pageUrl);
+
+        var ogUrl = document.head.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.setAttribute("content", pageUrl);
+        var ogLocale = { ar: "ar_SA", en: "en_US", ru: "ru_RU", fa: "fa_IR" }[lang];
+        var locale = document.head.querySelector('meta[property="og:locale"]');
+        if (locale) locale.setAttribute("content", ogLocale);
+
+        ["ar", "en", "ru", "fa"].forEach(function (alternateLang) {
+          var selector = 'link[rel="alternate"][hreflang="' + alternateLang + '"]';
+          var link = document.head.querySelector(selector);
+          if (!link) {
+            link = document.createElement("link");
+            link.setAttribute("rel", "alternate");
+            link.setAttribute("hreflang", alternateLang);
+            document.head.appendChild(link);
+          }
+          link.setAttribute("href", origin + "/" + alternateLang + pagePath);
+        });
+        var xDefault = document.head.querySelector('link[rel="alternate"][hreflang="x-default"]');
+        if (!xDefault) {
+          xDefault = document.createElement("link");
+          xDefault.setAttribute("rel", "alternate");
+          xDefault.setAttribute("hreflang", "x-default");
+          document.head.appendChild(xDefault);
+        }
+        xDefault.setAttribute("href", origin + "/ar" + pagePath);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
