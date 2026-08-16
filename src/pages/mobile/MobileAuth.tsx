@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { useApp } from '../../context/AppContext';
 import { auth as authApi, profileApi } from '../../lib/api';
 import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { stashPostAuthRedirect } from '../../lib/authRedirect';
+import { PasswordStrength, type PasswordRule } from '../../components/ui/password-strength';
 
 const ERROR_KEYS: Record<string, string> = {
   user_not_found: 'auth.errors.userNotFound',
@@ -75,6 +76,30 @@ export function MobileAuth() {
     setNameError(null);
     setNotice(null);
   };
+
+  const passwordRules: PasswordRule[] = useMemo(
+    () => [
+      { id: 'length', label: t('auth.strength.rules.length'), test: (v) => v.length >= 12 },
+      {
+        id: 'case',
+        label: t('auth.strength.rules.case'),
+        test: (v) => /[a-z]/.test(v) && /[A-Z]/.test(v),
+      },
+      { id: 'digit', label: t('auth.strength.rules.digit'), test: (v) => /\d/.test(v) },
+      { id: 'symbol', label: t('auth.strength.rules.symbol'), test: (v) => /[!-/:-@[-`{-~]/.test(v) },
+    ],
+    [t],
+  );
+  const passwordStrengthLabels = useMemo(
+    () => [
+      t('auth.strength.labels.empty'),
+      t('auth.strength.labels.weak'),
+      t('auth.strength.labels.fair'),
+      t('auth.strength.labels.good'),
+      t('auth.strength.labels.strong'),
+    ],
+    [t],
+  );
 
   const changeEmail = () => {
     setStep('email');
@@ -413,6 +438,15 @@ export function MobileAuth() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="input h-[50px] w-full text-base"
                 />
+                {step === 'register' && (
+                  <PasswordStrength
+                    value={password}
+                    rules={passwordRules}
+                    labels={passwordStrengthLabels}
+                    commonlyGuessedLabel={t('auth.strength.commonlyGuessed')}
+                    className="mt-3"
+                  />
+                )}
                 {step === 'signin' && (
                   <button
                     type="button"

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ApiError, auth as authApi } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
+import { PasswordStrength, type PasswordRule } from '../components/ui/password-strength';
 
 const ERROR_KEYS: Record<string, string> = {
   weak_password: 'auth.errors.weakPassword',
@@ -54,6 +55,30 @@ export function ResetPassword() {
       clearTimeout(timer);
     };
   }, []);
+
+  const passwordRules: PasswordRule[] = useMemo(
+    () => [
+      { id: 'length', label: t('auth.strength.rules.length'), test: (v) => v.length >= 12 },
+      {
+        id: 'case',
+        label: t('auth.strength.rules.case'),
+        test: (v) => /[a-z]/.test(v) && /[A-Z]/.test(v),
+      },
+      { id: 'digit', label: t('auth.strength.rules.digit'), test: (v) => /\d/.test(v) },
+      { id: 'symbol', label: t('auth.strength.rules.symbol'), test: (v) => /[!-/:-@[-`{-~]/.test(v) },
+    ],
+    [t],
+  );
+  const passwordStrengthLabels = useMemo(
+    () => [
+      t('auth.strength.labels.empty'),
+      t('auth.strength.labels.weak'),
+      t('auth.strength.labels.fair'),
+      t('auth.strength.labels.good'),
+      t('auth.strength.labels.strong'),
+    ],
+    [t],
+  );
 
   const submit = async () => {
     setError(null);
@@ -120,6 +145,13 @@ export function ResetPassword() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
+                />
+                <PasswordStrength
+                  value={password}
+                  rules={passwordRules}
+                  labels={passwordStrengthLabels}
+                  commonlyGuessedLabel={t('auth.strength.commonlyGuessed')}
+                  className="mt-3"
                 />
               </label>
               <label className="text-xs font-semibold text-navy/70">

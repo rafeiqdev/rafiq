@@ -534,6 +534,22 @@
     "signedInAs": "Signed in as",
     "checkEmail": "Check your email to confirm your account, then sign in.",
     "forgot": "Forgot your password?",
+    "strength": {
+      "labels": {
+        "empty": "Empty",
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong"
+      },
+      "rules": {
+        "length": "12 characters or more",
+        "case": "Upper and lower case",
+        "digit": "A number",
+        "symbol": "A symbol"
+      },
+      "commonlyGuessed": "Commonly guessed"
+    },
     "reset": {
       "title": "Reset your password",
       "subtitle": "Enter your account email and we'll send you a link to choose a new password.",

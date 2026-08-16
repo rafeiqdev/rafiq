@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
@@ -6,6 +6,7 @@ import { ApiError, auth as authApi, profileApi } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
 import { stashPostAuthRedirect } from '../lib/authRedirect';
+import { PasswordStrength, type PasswordRule } from '../components/ui/password-strength';
 
 /**
  * Where a just-signed-in user lands: onboarding until it's completed, then the
@@ -78,6 +79,30 @@ export function Auth() {
     setNotice(null);
     setNameError(null);
   };
+
+  const passwordRules: PasswordRule[] = useMemo(
+    () => [
+      { id: 'length', label: t('auth.strength.rules.length'), test: (v) => v.length >= 12 },
+      {
+        id: 'case',
+        label: t('auth.strength.rules.case'),
+        test: (v) => /[a-z]/.test(v) && /[A-Z]/.test(v),
+      },
+      { id: 'digit', label: t('auth.strength.rules.digit'), test: (v) => /\d/.test(v) },
+      { id: 'symbol', label: t('auth.strength.rules.symbol'), test: (v) => /[!-/:-@[-`{-~]/.test(v) },
+    ],
+    [t],
+  );
+  const passwordStrengthLabels = useMemo(
+    () => [
+      t('auth.strength.labels.empty'),
+      t('auth.strength.labels.weak'),
+      t('auth.strength.labels.fair'),
+      t('auth.strength.labels.good'),
+      t('auth.strength.labels.strong'),
+    ],
+    [t],
+  );
 
   // Google via Supabase OAuth (full-page redirect → back to the app)
   const continueWithGoogle = async () => {
@@ -321,6 +346,15 @@ export function Auth() {
                   autoComplete={step === 'register' ? 'new-password' : 'current-password'}
                   autoFocus={step === 'signin'}
                 />
+                {step === 'register' && (
+                  <PasswordStrength
+                    value={password}
+                    rules={passwordRules}
+                    labels={passwordStrengthLabels}
+                    commonlyGuessedLabel={t('auth.strength.commonlyGuessed')}
+                    className="mt-3"
+                  />
+                )}
               </label>
             )}
             {step === 'signin' && (
