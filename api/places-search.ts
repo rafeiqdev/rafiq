@@ -368,6 +368,26 @@ async function callPlaces(
   return last;
 }
 
+/**
+ * Record an upstream failure where the operator can actually find it.
+ *
+ * Every failure here answers with HTTP 200 and an `error` field on purpose —
+ * the client needs to tell `no_key` from `key_rejected` to decide whether a
+ * retry button would be a lie, and a non-2xx status collapses them all into
+ * one. The cost was that a failing search looked identical to a healthy one in
+ * the platform logs: 200, no warnings, nothing to read. When "place search
+ * isn't available" was reported, there was no record of why. So the status
+ * stays 200 for the client and the reason goes to stderr for the operator.
+ */
+function logFailure(mode: string | undefined, info: { error?: string; status?: number; detail?: string }): void {
+  // Google echoes the request back in some error bodies; never let a key ride along.
+  const detail = (info.detail ?? '').replace(/AIza[0-9A-Za-z_-]{10,}/g, 'AIza***');
+  console.error(
+    `[places-search] mode=${mode ?? 'unknown'} error=${info.error ?? 'unknown'}` +
+      `${info.status ? ` upstreamStatus=${info.status}` : ''}${detail ? ` detail=${detail}` : ''}`,
+  );
+}
+
 function clampRadius(v: unknown): number {
   const n = typeof v === 'number' && Number.isFinite(v) ? v : DEFAULT_RADIUS_M;
   return Math.min(Math.max(n, 100), MAX_RADIUS_M);
@@ -386,7 +406,10 @@ export default async function handler(req: Request): Promise<Response> {
   // is missing or misconfigured. callPlaces() walks this list past auth
   // failures, so a bad first key cannot take search down on its own.
   const keys = candidateKeys();
-  if (keys.length === 0) return json({ error: 'no_key' });
+  if (keys.length === 0) {
+    logFailure(undefined, { error: 'no_key' });
+    return json({ error: 'no_key' });
+  }
 
   let payload: {
     mode?: string;
@@ -418,7 +441,10 @@ export default async function handler(req: Request): Promise<Response> {
         keys,
         DETAIL_MASK,
       );
-      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
+      if (res.error) {
+        logFailure(payload.mode, res);
+        return json({ error: res.error, status: res.status, detail: res.detail });
+      }
       return json({ place: shape(res.data as GooglePlace) });
     }
 
@@ -443,7 +469,10 @@ export default async function handler(req: Request): Promise<Response> {
           circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
         },
       });
-      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
+      if (res.error) {
+        logFailure(payload.mode, res);
+        return json({ error: res.error, status: res.status, detail: res.detail });
+      }
       const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
       // Echo both strings so the UI can show "we searched Turkish: X" honestly.
       return json({ places, query: original, translatedQuery: textQuery });
@@ -465,7 +494,10 @@ export default async function handler(req: Request): Promise<Response> {
             circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
           },
         });
-        if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
+        if (res.error) {
+        logFailure(payload.mode, res);
+        return json({ error: res.error, status: res.status, detail: res.detail });
+      }
         const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
         return json({ places });
       }
@@ -479,13 +511,17 @@ export default async function handler(req: Request): Promise<Response> {
         },
         rankPreference: 'POPULARITY',
       });
-      if (res.error) return json({ error: res.error, status: res.status, detail: res.detail });
+      if (res.error) {
+        logFailure(payload.mode, res);
+        return json({ error: res.error, status: res.status, detail: res.detail });
+      }
       const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
       return json({ places });
     }
 
     return json({ error: 'bad_request' }, 400);
   } catch (e) {
+    logFailure(payload.mode, { error: 'fetch_failed', detail: String(e).slice(0, 200) });
     return json({ error: 'fetch_failed', detail: String(e).slice(0, 200) });
   }
 }
