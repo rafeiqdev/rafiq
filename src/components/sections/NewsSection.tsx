@@ -48,11 +48,12 @@ export function NewsSection({
 
   // Telegram CDN photo; a broken/expired URL degrades to a text card, never
   // to a broken-image glyph.
-  const photo = (p: NewsPost, className: string) =>
-    p.imageUrl && (
+  const photo = (p: NewsPost, className: string) => {
+    const text = localizeNewsPost(p, i18n.language);
+    return p.imageUrl && (
       <img
         src={p.imageUrl}
-        alt=""
+        alt={text.title}
         loading="lazy"
         className={className}
         onError={(e) => {
@@ -60,6 +61,7 @@ export function NewsSection({
         }}
       />
     );
+  };
 
   if (compact) {
     // Horizontal, swipeable rail instead of a stacked list — a vertical list

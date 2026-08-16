@@ -136,7 +136,7 @@ export function RealEstateSection({
         to="/real-estate"
         className="relative flex items-center gap-4 overflow-hidden rounded-card px-5 py-5 sm:px-7 shadow-card hover:shadow-cardHover transition-shadow"
       >
-        <img src={BANNERS.realEstate} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={BANNERS.realEstate} alt={t('realEstate.home.title')} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
         <span className="absolute inset-0 bg-gradient-to-r from-navy-dark via-navy/90 to-navy/40" />
         <span className="relative flex-1 min-w-0 text-white">
           <span className="block text-xl sm:text-2xl font-extrabold">{t('realEstate.home.title')}</span>
