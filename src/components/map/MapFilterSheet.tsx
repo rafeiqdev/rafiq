@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PLACE_CATEGORIES } from '../../lib/types';
 import type { GooglePlaceResult, PlaceCategory } from '../../lib/types';
+import { Modal } from '../Modal';
 import { AppIcon } from '../AppIcon';
 import type { IconName } from '../AppIcon';
 import type { QuickFilters } from './MapExplorer';
@@ -44,31 +45,17 @@ export function MapFilterSheet({
   const [draftCategory, setDraftCategory] = useState<PlaceCategory | null>(category);
   const [draftQuick, setDraftQuick] = useState<QuickFilters>(quickFilters);
 
-  // Escape closes, and the page behind must not scroll while the sheet is open.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const openNowCount = counts.filter((r) => r.openNow === true).length;
   const topRatedCount = counts.filter((r) => (r.rating ?? 0) >= 4.5).length;
 
+  // Rendered through the shared Modal rather than a hand-rolled overlay: it
+  // owns the focus trap, Escape, the body-scroll lock and the portal. Locking
+  // `document.body` in a second place is how a page ends up permanently
+  // unscrollable — two components restoring the same global in the wrong order
+  // leaves `overflow: hidden` behind, and that follows the user off this page.
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="map-filter-title"
-      className="fixed inset-0 z-[3500] flex items-end justify-center p-0 sm:items-center sm:p-4"
-    >
-      <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={onClose} aria-hidden />
-
-      <div className="animate-pop relative z-10 flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border-t border-gray-100 bg-white shadow-2xl sm:rounded-3xl sm:border">
+    <Modal onClose={onClose} labelId="map-filter-title" maxWidth="max-w-md" mobileSheet showClose={false}>
+      <div className="flex max-h-[88vh] w-full flex-col overflow-hidden rounded-t-3xl border-t border-gray-100 bg-white md:rounded-3xl md:border">
         {/* header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 pb-3 pt-4">
           <h2 id="map-filter-title" className="text-base font-extrabold text-navy">
@@ -243,6 +230,6 @@ export function MapFilterSheet({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

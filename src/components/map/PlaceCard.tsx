@@ -117,27 +117,17 @@ export function PlaceCard({
           </button>
 
           <div className="absolute inset-x-4 bottom-3 flex items-center justify-between gap-2 text-white">
-            <div className="flex min-w-0 items-center gap-1.5">
-              {overlay?.recommended && (
-                <span className="shrink-0 rounded-full bg-gold-dark px-2.5 py-0.5 text-[11px] font-bold text-white">
-                  {t('map.recommended')}
-                </span>
-              )}
-              {place.openNow !== null && (
-                <span
-                  className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
-                    place.openNow ? 'bg-emerald-600' : 'bg-brand-red'
-                  }`}
-                >
-                  <AppIcon name="clock" className="h-3 w-3" />
-                  {t(place.openNow ? 'map.openNow' : 'map.closedNow')}
-                </span>
-              )}
-            </div>
-            {place.rating !== null && (
-              <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-amber-300" dir="ltr">
-                <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-300" />
-                {place.rating.toFixed(1)}
+            {/* Only the open/closed state lives on the banner. The rating sits
+                in the meta line and the Rafiq badge in the trust block — saying
+                either of them twice in one card is noise, not emphasis. */}
+            {place.openNow !== null && (
+              <span
+                className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
+                  place.openNow ? 'bg-emerald-600' : 'bg-brand-red'
+                }`}
+              >
+                <AppIcon name="clock" className="h-3 w-3" />
+                {t(place.openNow ? 'map.openNow' : 'map.closedNow')}
               </span>
             )}
           </div>
@@ -149,28 +139,19 @@ export function PlaceCard({
             <h2 id="place-card-title" className="text-lg font-extrabold leading-snug text-navy">
               {place.name}
             </h2>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
-              {place.rating !== null && (
+            {/* The address is NOT repeated here — it has its own row below, with
+                the copy button attached to it. */}
+            {place.rating !== null && (
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
                 <span className="flex items-center gap-1 font-bold text-amber-600">
                   <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                  <span dir="ltr">{place.rating.toFixed(1)}</span>
-                  {place.ratingCount !== null && (
-                    <span className="font-normal text-gray-400" dir="ltr">
-                      ({place.ratingCount})
-                    </span>
-                  )}
-                </span>
-              )}
-              {place.address && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span className="flex min-w-0 items-center gap-1">
-                    <AppIcon name="map-pin" className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                    <span className="truncate">{place.address}</span>
+                  <span dir="ltr">
+                    {place.rating.toFixed(1)}
+                    {place.ratingCount !== null && ` (${place.ratingCount})`}
                   </span>
-                </>
-              )}
-            </div>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* actions — one unmissable primary, then the secondary row */}
@@ -256,6 +237,18 @@ export function PlaceCard({
 
           {/* details */}
           <div className="space-y-2 text-xs text-navy/80">
+            {/* The number is spelled out, not just wired to the Call button:
+                `tel:` links commonly do nothing on a desktop browser, and a
+                visible number can be read, noted down or dialled by hand. */}
+            {place.phone && (
+              <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-gray-50/70 p-2.5">
+                <AppIcon name="phone" className="h-3.5 w-3.5 shrink-0 text-gray-500" />
+                <a href={`tel:${place.phone.replace(/\s/g, '')}`} className="font-medium hover:underline" dir="ltr">
+                  {place.phone}
+                </a>
+              </div>
+            )}
+
             {place.hours && place.hours.length > 0 && (
               <div className="flex items-start gap-2.5 rounded-xl border border-gray-100 bg-gray-50/70 p-2.5">
                 <AppIcon name="clock" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-500" />
