@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { news, localizeNewsPost } from '../../lib/api';
 import type { NewsPost } from '../../lib/api';
+import { postRef } from '../../lib/telegramNews';
 import { AppIcon, DirArrow } from '../AppIcon';
 
 /**
@@ -46,13 +47,25 @@ export function NewsSection({
 
   const date = (p: NewsPost) => new Date(p.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' });
 
-  // Telegram CDN photo; a broken/expired URL degrades to a text card, never
-  // to a broken-image glyph.
+  // Telegram's own CDN URLs expire within days, so the one stored at sync time
+  // is usually dead by the time a visitor sees the card. For a synced post the
+  // photo is therefore fetched through /api/news-photo, which re-resolves it
+  // from the (permanent) permalink on every request. `imageUrl` is still what
+  // says a post HAS a photo — it just isn't trusted as a location any more.
+  // Manually-authored posts keep their admin-supplied URL, which does not expire.
+  const photoSrc = (p: NewsPost): string | null => {
+    if (!p.imageUrl) return null;
+    const ref = p.source === 'telegram' ? postRef(p.url) : null;
+    return ref ? `/api/news-photo?post=${encodeURIComponent(ref)}` : p.imageUrl;
+  };
+
+  // A broken/expired photo degrades to a text card, never to a broken-image glyph.
   const photo = (p: NewsPost, className: string) => {
     const text = localizeNewsPost(p, i18n.language);
-    return p.imageUrl && (
+    const src = photoSrc(p);
+    return src && (
       <img
-        src={p.imageUrl}
+        src={src}
         alt={text.title}
         loading="lazy"
         className={className}

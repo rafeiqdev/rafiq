@@ -76,10 +76,47 @@ describe('NewsSection', () => {
 
     expect(await screen.findByText('New ikamet rules')).toBeInTheDocument();
     expect(screen.getByText('Appointments move online from March.')).toBeInTheDocument();
-    expect(container.querySelector('img')?.getAttribute('src')).toBe('https://cdn4.cdn-telegram.org/file/abc.jpg');
     // Read more stays on-site (/news/:id) — it must NOT point at Telegram.
     expect(screen.getByRole('link', { name: /home.news.readMore/ })).toHaveAttribute('href', '/news/n1');
     expect(screen.queryByRole('link', { name: /home.news.follow/ })).toBeNull();
     expect(screen.queryByText(/telegram/i)).toBeNull();
+  });
+
+  /**
+   * Telegram's CDN URLs expire within days of the sync that stored them, and a
+   * post that has since scrolled out of the channel's latest-N window is never
+   * re-synced — so every older card silently lost its photo. The stored URL is
+   * kept only as the flag that a post HAS a photo; the location is re-resolved
+   * per request from the permalink, which does not expire.
+   */
+  it('loads a synced post photo through the proxy, not the expiring Telegram URL', async () => {
+    latest.mockResolvedValueOnce([post]);
+
+    const { container } = renderIt(<NewsSection />);
+    await screen.findByText('New ikamet rules');
+
+    const src = container.querySelector('img')?.getAttribute('src');
+    expect(src).toBe('/api/news-photo?post=rafiq%2F42');
+    expect(src).not.toContain('telegram.org');
+  });
+
+  it('keeps an admin-authored post on its own image URL, which does not expire', async () => {
+    latest.mockResolvedValueOnce([
+      { ...post, source: 'manual' as const, url: null, imageUrl: 'https://cdn.example/own.jpg' },
+    ]);
+
+    const { container } = renderIt(<NewsSection />);
+    await screen.findByText('New ikamet rules');
+
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('https://cdn.example/own.jpg');
+  });
+
+  it('renders no <img> at all for a text-only post', async () => {
+    latest.mockResolvedValueOnce([{ ...post, imageUrl: null }]);
+
+    const { container } = renderIt(<NewsSection />);
+    await screen.findByText('New ikamet rules');
+
+    expect(container.querySelector('img')).toBeNull();
   });
 });

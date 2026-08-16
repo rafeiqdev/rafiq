@@ -146,6 +146,40 @@ export function parseChannelPage(html: string): TgPost[] {
   return posts.filter((p) => p.text !== '' || p.imageUrl !== null);
 }
 
+/**
+ * "https://t.me/akhbarturkiye/50202" -> "akhbarturkiye/50202".
+ *
+ * The channel/message pair is all /api/news-photo needs to re-resolve a post's
+ * photo, and the strict shape is what stops that endpoint being usable as an
+ * open proxy — see the note there. Anything that is not a public channel
+ * permalink (a private t.me/c/… link, a bare channel URL, a foreign host)
+ * yields null and the caller falls back to the stored URL.
+ */
+export function postRef(permalink: string | null | undefined): string | null {
+  const m = /^(?:https?:\/\/)?(?:t\.me|telegram\.me)\/([A-Za-z]\w{3,31})\/(\d{1,12})\/?$/.exec(
+    (permalink ?? '').trim(),
+  );
+  return m ? `${m[1]}/${m[2]}` : null;
+}
+
+/** Telegram serves post photos only from its own CDN; nothing else is fetched. */
+const TG_CDN_HOST = /^https:\/\/cdn\d+\.telesco\.pe\/file\/[\w-]+\.(?:jpg|jpeg|png|webp)$/i;
+
+/**
+ * Pull the photo URL out of a single post's embed page (t.me/<ref>?embed=1).
+ *
+ * The host check is not belt-and-braces: this HTML is third-party content, and
+ * the URL taken from it is handed straight to fetch(). Without the check, a
+ * change on Telegram's side (or an attacker-authored post) could point our
+ * server at an arbitrary host — an SSRF, using our origin as the client.
+ */
+export function parsePostPhotoUrl(html: string): string | null {
+  const m = /background-image:url\('([^']+)'\)/.exec(html);
+  if (!m) return null;
+  const url = decodeEntities(m[1]);
+  return TG_CDN_HOST.test(url) ? url : null;
+}
+
 /** "https://t.me/rafiq_ist" | "t.me/s/rafiq_ist" | "@rafiq_ist" -> "rafiq_ist" */
 export function channelSlug(channelUrl: string): string | null {
   const m = /^(?:https?:\/\/)?(?:t\.me|telegram\.me)\/(?:s\/)?([A-Za-z]\w{3,31})\/?$/.exec(channelUrl.trim()) ??
