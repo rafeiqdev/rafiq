@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { resolveSiteUrl } from './scripts/siteUrl.mjs';
 
@@ -15,6 +16,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    // `@` → `src`, so shadcn/ui-style imports (`@/lib/utils`,
+    // `@/components/ui/...`) resolve. Mirrored in tsconfig.app.json (for tsc)
+    // and vitest.config.ts (for the test runner, which uses its own config).
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+      },
+    },
     build: {
       rollupOptions: {
         output: {

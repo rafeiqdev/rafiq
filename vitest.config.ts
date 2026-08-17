@@ -1,8 +1,17 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  // This runner uses its own config (kept separate from vite.config.ts to skip
+  // that file's build-time site-URL gate), so the `@` → `src` alias must be
+  // repeated here for shadcn/ui-style `@/...` imports to resolve under vitest.
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

@@ -16,18 +16,18 @@ function hashName(s: string): number {
 }
 
 /**
- * The visual fill for a place: the real Google photo when we have one, and a
- * generated gradient tile when we don't.
+ * The visual fill for a place: the real Google photo when one is provided, and
+ * a generated tile when it is not.
  *
- * The old fallback was a single flat colour with one icon, so every photo-less
- * restaurant looked identical and dull. Instead — technique borrowed from
- * name-seeded avatars — each place hashes its own name into a distinct two-tone
- * gradient, stamps its initial, and keeps the category icon as a small badge.
- * Two places now never look the same unless they share a name, and the tile
- * reads as intentional branding rather than a missing image.
+ * Design intent, after two rejected attempts: NOT a flat single colour (every
+ * place looked identical) and NOT a big bold initial (loud and cheap-looking).
+ * Instead each place hashes its name into a soft pastel tint — barely different
+ * from its neighbour, so a full list reads as calm and intentional rather than
+ * a wall of the same box — and shows only its category icon, quietly. The tile
+ * is meant to recede, not shout.
  *
- * Pure CSS (layered gradients), so a list of dozens of thumbnails costs nothing
- * — no canvas, no WebGL, no animation loop.
+ * Pure CSS, so a list of dozens of thumbnails costs nothing — no canvas, no
+ * WebGL, no animation loop.
  */
 export function PlaceThumb({
   name,
@@ -58,41 +58,36 @@ export function PlaceThumb({
     );
   }
 
-  const h = hashName(name || 'rafiq');
-  const hue1 = h % 360;
-  const hue2 = (hue1 + 35 + ((h >> 9) % 55)) % 360;
-  const initial = (name.trim()[0] || '?').toUpperCase();
-
-  // Two layered backgrounds: a faint dot grid for texture over a diagonal
-  // two-tone gradient. Both are seeded from the same hue pair.
-  const background = `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.16) 1px, transparent 0) 0 0 / ${
-    size === 'lg' ? '16px 16px' : '11px 11px'
-  }, linear-gradient(135deg, hsl(${hue1} 60% 52%), hsl(${hue2} 58% 38%))`;
-
+  const hue = hashName(name || 'rafiq') % 360;
   const isLg = size === 'lg';
 
+  if (isLg) {
+    // Banner: a muted mid-tone wash with a large, soft icon watermark. It sits
+    // under the card's dark top-gradient, so it stays calm and legible there.
+    const background = `linear-gradient(150deg, hsl(${hue} 34% 50%), hsl(${hue} 40% 38%))`;
+    return (
+      <div
+        aria-hidden
+        className={`absolute inset-0 flex items-center justify-center overflow-hidden ${className}`}
+        style={{ background }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-white/10" />
+        <AppIcon name={icon} className="relative h-20 w-20 text-white/25" />
+      </div>
+    );
+  }
+
+  // List thumbnail: a soft pastel tint carrying just the category icon in a
+  // muted tone of the same hue. Quiet, distinct per place, never garish.
+  const background = `linear-gradient(150deg, hsl(${hue} 44% 94%), hsl(${hue} 40% 87%))`;
   return (
     <div
       aria-hidden
       className={`absolute inset-0 flex items-center justify-center overflow-hidden ${className}`}
       style={{ background }}
     >
-      {/* soft top-light so the tile has depth, not a flat wash */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10" />
-      <span
-        className={`relative font-black leading-none text-white/90 drop-shadow-sm ${
-          isLg ? 'text-6xl' : 'text-2xl'
-        }`}
-        style={{ fontFamily: 'system-ui, sans-serif' }}
-      >
-        {initial}
-      </span>
-      <span
-        className={`absolute flex items-center justify-center rounded-full bg-white/25 text-white backdrop-blur-sm ${
-          isLg ? 'bottom-3 end-3 h-9 w-9' : 'bottom-1 end-1 h-5 w-5'
-        }`}
-      >
-        <AppIcon name={icon} className={isLg ? 'h-4 w-4' : 'h-3 w-3'} />
+      <span style={{ color: `hsl(${hue} 42% 42%)` }}>
+        <AppIcon name={icon} className="h-6 w-6" />
       </span>
     </div>
   );

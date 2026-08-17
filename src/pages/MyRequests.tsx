@@ -14,6 +14,7 @@ import { Modal } from '../components/Modal';
 import { AppIcon } from '../components/AppIcon';
 import { RafiqLoader } from '../components/RafiqLoader';
 import { ServiceOfferCard } from '../components/ServiceOfferCard';
+import { OrderTracking } from '@/components/ui/order-tracking';
 import { CASE_FILE_DIVIDER } from '../lib/bookingSummary';
 import { track } from '../lib/analytics';
 
@@ -50,7 +51,7 @@ const TIMELINE_STEPS = ['pending', 'accepted', 'done'] as const;
  * nothing left to be reassured about.
  */
 function ReassuranceBanner({ req }: { req: CustomerRequest }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const key = req.status === 'new' ? 'pending' : req.status;
   const stepIndex = TIMELINE_STEPS.indexOf(key as (typeof TIMELINE_STEPS)[number]);
   // Only pending/accepted are "active" — done and rejected have nothing left
@@ -60,31 +61,21 @@ function ReassuranceBanner({ req }: { req: CustomerRequest }) {
   const waMessage = t('requests.reassurance.waMessage', { id: req.id, service: req.serviceTitle });
   const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
 
+  // Feed the shared OrderTracking timeline with this request's real progress:
+  // reached steps (up to and including the current one) render as completed
+  // checks, the rest as pending. Only the "placed" step has a real timestamp —
+  // the later steps have not happened yet — so it carries the created date.
+  const trackingSteps = TIMELINE_STEPS.map((step, i) => ({
+    name: t(`requests.reassurance.timeline.${step}`),
+    timestamp: i === 0 ? new Date(req.createdAt).toLocaleDateString(i18n.language) : '',
+    isCompleted: i <= stepIndex,
+  }));
+
   return (
     <div className="mt-3 rounded-xl border border-navy/10 bg-brand-blue/30 p-3">
-      <ol className="flex items-center" aria-label={t('requests.title')}>
-        {TIMELINE_STEPS.map((step, i) => (
-          <li key={step} className="flex flex-1 items-center last:flex-none">
-            <span className="flex flex-col items-center gap-1">
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                  i <= stepIndex ? 'bg-navy text-white' : 'border border-cream-dark bg-white text-navy/40'
-                }`}
-              >
-                {i < stepIndex ? <AppIcon name="check" className="w-3 h-3" /> : i + 1}
-              </span>
-              <span className={`text-[10px] font-semibold whitespace-nowrap ${i <= stepIndex ? 'text-navy' : 'text-navy/40'}`}>
-                {t(`requests.reassurance.timeline.${step}`)}
-              </span>
-            </span>
-            {i < TIMELINE_STEPS.length - 1 && (
-              <span className={`mx-1.5 mb-4 h-0.5 flex-1 rounded ${i < stepIndex ? 'bg-navy' : 'bg-cream-dark'}`} />
-            )}
-          </li>
-        ))}
-      </ol>
+      <OrderTracking steps={trackingSteps} aria-label={t('requests.title')} />
 
-      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap border-t border-navy/10 pt-3">
+      <div className="mt-1 flex items-center justify-between gap-2 flex-wrap border-t border-navy/10 pt-3">
         <p className="text-xs font-bold text-navy inline-flex items-center gap-1.5">
           <AppIcon name="clock" className="w-3.5 h-3.5 shrink-0" />
           {t('requests.reassurance.sla')}

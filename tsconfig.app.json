@@ -12,6 +12,15 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+
+    /* Path alias so shadcn/ui-style `@/...` imports resolve to `src/`.
+       Mirrored by resolve.alias in vite.config.ts and vitest.config.ts (tsc
+       only type-checks; the bundler and test runner do the real resolution). */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,

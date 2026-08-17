@@ -35,6 +35,15 @@ export default {
           red: '#c0392b',
           blue: '#e8f0fb',
         },
+        // ── shadcn/ui token aliases ──
+        // shadcn primitives (e.g. src/components/ui/order-tracking.tsx) reference
+        // `primary` / `foreground` / `muted-foreground`. This project uses static
+        // hex tokens rather than shadcn's CSS-variable convention, so map those
+        // three names onto the navy palette — `text-primary/70`, `bg-primary/70`,
+        // `text-muted-foreground`, `text-foreground/80` then all repaint in-brand.
+        primary: '#1a3a6b', // navy — completed/active marks
+        foreground: '#12294d', // navy-dark — primary text
+        'muted-foreground': '#64748b', // muted slate — secondary text + pending marks
       },
       fontFamily: {
         // one Latin family + one Arabic family (plus system fallbacks)

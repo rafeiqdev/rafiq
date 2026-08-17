@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../../context/AppContext';
@@ -9,6 +10,20 @@ import { RafiqLoader } from '../../components/RafiqLoader';
 import { SiteImage } from '../../components/SiteImage';
 import { ISTANBUL } from '../../lib/images';
 import { MobileTabBar } from '../../components/MobileTabBar';
+
+// Refined card entrance ported from the Alert primitive (src/components/ui/alert.tsx):
+// its fade + blur motion, toned down to sit quietly on the cream page — a soft
+// blur→sharp rise, index-staggered, no rotate. Kept deliberately subtle (أكثر حساسية)
+// so it reads as part of the page rather than an attention-grabbing banner.
+const cardMotion: Variants = {
+  hidden: { opacity: 0, filter: 'blur(8px)', y: 12 },
+  show: (i: number) => ({
+    opacity: 1,
+    filter: 'blur(0px)',
+    y: 0,
+    transition: { duration: 0.28, ease: 'easeOut', delay: Math.min(i * 0.055, 0.4) },
+  }),
+};
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string; home: string; chat: string; map: string; services: string; profile: string }> = {
@@ -102,16 +117,20 @@ export function MobileNotifications() {
               <p className="mt-4 text-sm text-gray-500">{t('notifications.empty')}</p>
             </div>
           ) : (
-            <div className="stagger flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               {items.map((n, i) => (
-                <div
+                <motion.div
                   key={n.id}
-                  className={`relative flex animate-fade-up items-start gap-3 overflow-hidden rounded-card bg-white p-4 ${
+                  custom={i}
+                  variants={cardMotion}
+                  initial="hidden"
+                  animate="show"
+                  whileTap={{ scale: 0.985, transition: { duration: 0.15, ease: 'easeInOut' } }}
+                  className={`relative flex items-start gap-3 overflow-hidden rounded-card bg-white p-4 ${
                     n.read
                       ? 'border border-cream-dark opacity-60'
                       : 'border border-navy/25 shadow-md'
                   }`}
-                  style={{ '--i': i } as React.CSSProperties}
                 >
                   {!n.read && <span aria-hidden className="absolute start-0 top-0 h-full w-1 bg-navy" />}
                   <span
@@ -137,7 +156,7 @@ export function MobileNotifications() {
                     <p className="mt-1.5 text-[11px] text-navy/45">{new Date(n.createdAt).toLocaleString(i18n.language)}</p>
                   </div>
                   {!n.read && <span className="mt-1.5 h-[9px] w-[9px] shrink-0 rounded-full bg-brand-red" />}
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

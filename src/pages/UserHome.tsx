@@ -10,9 +10,12 @@ import { pickText } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { pickCity } from '../data/turkeyCities';
 import { JOURNEY_TASK_KEYS } from '../lib/types';
+import { Home, Layers, Building2, HeartPulse, Map } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
+import { NavBar } from '../components/ui/tubelight-navbar';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
@@ -30,16 +33,22 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** The three "what happens now" rows — pure copy, no data behind them. */
 const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 
-// Direct, always-visible links to the main service categories — the guest
-// homepage has this row; UserHome never did, so signed-in users had no way
-// to reach real estate / health tourism except the
-// header's services dropdown. See home.quickLinks.* for copy.
-const QUICK_LINKS: { to: string; icon: IconName; key: string }[] = [
-  { to: '/health-tourism', icon: 'heart-pulse', key: 'health' },
-  { to: '/real-estate', icon: 'building', key: 'realEstate' },
-  // Signed-in users lose /map from the bottom tab bar (that slot becomes
-  // "Requests"), so this is their only way back to it — it must stay here.
-  { to: '/map', icon: 'map', key: 'map' },
+// Direct, always-visible links to the main destinations — the guest homepage
+// has this row; UserHome never did, so signed-in users had no way to reach real
+// estate / health tourism except the header's services dropdown. Rendered as the
+// "tubelight" <NavBar> (see components/ui/tubelight-navbar). Home leads the row
+// per request; Services was added so the one destination the mobile tab bar
+// carries but this row lacked is reachable here too; /map must stay because
+// signed-in users lose it from the bottom tab bar (that slot becomes "Requests").
+// Icons are lucide components (what <NavBar> expects); labels reuse the existing
+// home.quickLinks.* / nav.* copy so all four languages are covered. Order/set is
+// just this array — add or drop an item here.
+const QUICK_NAV: { to: string; icon: LucideIcon; labelKey: string }[] = [
+  { to: '/', icon: Home, labelKey: 'nav.home' },
+  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices' },
+  { to: '/real-estate', icon: Building2, labelKey: 'home.quickLinks.realEstate' },
+  { to: '/health-tourism', icon: HeartPulse, labelKey: 'home.quickLinks.health' },
+  { to: '/map', icon: Map, labelKey: 'home.quickLinks.map' },
 ];
 
 /** Icons for the onboarding-answer chips, by journey task key. */
@@ -399,29 +408,15 @@ export function UserHome() {
         <NotificationBell size={38} className="shrink-0" />
       </header>
 
-      {/* ── quick links: one joined segmented pill, ported 1:1 (shape, colors,
-          the gradient-fill highlight) from a Pinterest reference. That
-          reference showed one segment permanently highlighted as "current" —
-          we have no such state here (none of these is the page we're on), so
-          the gradient fires on hover/press instead of sitting on one item by
-          default, rather than faking a "you are here" that isn't true. ── */}
-      <div className="mt-4 inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-white p-1.5 shadow-soft scrollbar-none">
-        {QUICK_LINKS.map((q) => (
-          <Link
-            key={q.to}
-            to={q.to}
-            className="group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 transition-colors hover:bg-gradient-to-r hover:from-[#2f6fed] hover:to-[#1a4fd6] active:bg-gradient-to-r active:from-[#2f6fed] active:to-[#1a4fd6]"
-          >
-            <AppIcon
-              name={q.icon}
-              className="w-4 h-4 shrink-0 text-[#a9b6c9] transition-colors group-hover:text-white group-active:text-white"
-            />
-            <span className="text-sm font-semibold text-[#9aa5b8] transition-colors group-hover:text-white group-active:text-white">
-              {t(`home.quickLinks.${q.key}`)}
-            </span>
-          </Link>
-        ))}
-      </div>
+      {/* ── quick nav: the "tubelight" pill. On desktop each destination shows
+          its label; on phones it collapses to icons (the bar's own responsive
+          behaviour). The lamp glow tracks the current route, so landing on Home
+          lights the Home item. ── */}
+      <NavBar
+        variant="inline"
+        className="mt-4"
+        items={QUICK_NAV.map((q) => ({ name: t(q.labelKey), url: q.to, icon: q.icon }))}
+      />
 
       {/* ── proof that the onboarding answers produced something ──
           Capped to 3 chips by default (was showing up to 6 — situation, city
