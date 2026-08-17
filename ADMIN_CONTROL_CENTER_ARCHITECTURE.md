@@ -68,20 +68,28 @@ Overview page
 
 ## 6. Section roadmap (structure is in place from day one)
 
-| Section | Phase | Status | Reads from (existing) |
-|---|---|---|---|
-| Overview | A | **Done** | profiles, subscriptions, bookings, leads, payments, admin_audit_log |
-| Analytics & Insights | A/B | Planned | `public.events` (+ GA4), profiles/leads/requests/payments — see `ADMIN_ANALYTICS_EVENTS.md` |
-| Unified Operations | A→B | Planned (read → act) | service_requests, bookings, leads, service_offers, service_payments, medical_requests* |
-| CRM & Leads | B | Planned | leads + new `cc_lead_metadata` (additive) |
-| Notifications | C | Planned | notifications + new `cc_notification_templates` (test-mode only first) |
-| Documents & Privacy | C | Planned | private buckets; per-permission reveal + audit |
-| Finance Control Center | A→C | Planned (read → act) | payments, company_payments, service_payments, medical_payments, subscriptions, referral commissions |
-| Journey & Onboarding | C | Planned | journey items; Draft→Review→Publish versioning |
-| Referrals & Wallet | A/B | Planned | referrals/commissions/wallet + payout requests |
-| Content & Localization | C | Planned | services/news/guides/medical content; Draft→Published |
-| Security & Audit | A | Planned (read-only) | admin_audit_log (+ medical_audit_log) |
-| System Health | A | Planned (read-only) | cron/webhook/fx/telegram run tables, recent errors |
+All twelve sections are **built and reading real data** (Phase A, read-only).
+
+| Section | Status | Reads from |
+|---|---|---|
+| Overview | **Done** | profiles, subscriptions, bookings, leads, payments, admin_audit_log |
+| Analytics & Insights | **Done** (read) | `public.events` — sessions, page views, funnel, top pages/referrers/services, device + locale |
+| Unified Operations | **Done** (read) | service_requests, bookings, leads — merged, with open/overdue |
+| CRM & Leads | **Done** (read) | leads (pipeline metadata still needs `cc_lead_metadata`) |
+| Notifications | **Done** (read) | notifications broadcasts — history only, no sending |
+| Documents & Privacy | **Done** (metadata only) | medical_request_files — name/type/size/date, no reveal or download |
+| Finance Control Center | **Done** (read) | payments, service_payments, medical_payments, company_payments |
+| Journey & Onboarding | **Done** (read) | user_journey_items — completion rate per step |
+| Referrals & Wallet | **Done** (read) | referral_commissions, payout_requests |
+| Content & Localization | **Done** (read) | listings, investment_opportunities, news_posts (+ translation coverage) |
+| Security & Audit | **Done** (read) | admin_audit_log |
+| System Health | **Done** (read) | fx_sync_runs, fx_rates |
+
+**Deliberately still absent (Phase C):** verify / reject / refund, commission
+approval, payout release, document reveal or download, sending notifications,
+publishing content, role and tier changes. Each needs the granular permission
+layer plus confirmation plus an audit entry before it is offered at all; until
+then those actions remain in the classic Admin, which every row deep-links to.
 
 Adding a section = implement its page, flip `implemented: true` in
 `sections.ts`, point the router at it. No shell/route changes.

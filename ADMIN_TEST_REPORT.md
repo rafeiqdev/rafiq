@@ -28,6 +28,13 @@ acceptance step): the signed-in admin view of the live Overview dashboard.
 
 ## The brief's 10 questions
 
+> **Update (2026-08-17, second release):** all 11 remaining sections are now
+> built on real data — the "in progress" placeholders are gone. New render
+> smoke tests mount every section with realistic data shapes (the class of
+> runtime failure typecheck cannot catch). Suite: **77 files / 820 tests green**
+> (was 75/798). Sensitive actions remain deliberately absent — see the
+> architecture doc's Phase-C list.
+
 **1. What was added?**
 An additive, feature-flagged Admin Control Center at `/admin/control-center`: its
 own shell (header, internal sidebar, breadcrumb, back-to-Admin), Arabic/English +
