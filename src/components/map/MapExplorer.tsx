@@ -18,6 +18,9 @@ const ISTANBUL = { lat: 41.0151, lng: 28.9795 };
 const DEFAULT_ZOOM = 12;
 const SEARCH_RADIUS_M = 6000;
 
+/** How far in auto-framing may go. Beyond this a lone result fills the pane. */
+const MAX_FIT_ZOOM = 16;
+
 /**
  * How long to wait for a first tile after the SDK reports success. Google gives
  * no callback for quota/billing degradation, so this timeout is the only way to
@@ -337,7 +340,15 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       const bounds = new google.maps.LatLngBounds();
       withCoords.forEach((r) => bounds.extend({ lat: r.lat as number, lng: r.lng as number }));
       if (userLocationRef.current) bounds.extend(userLocationRef.current);
-      map.fitBounds(bounds, 48);
+      // More breathing room on a phone: fitting a dozen places tightly into a
+      // pane a third of the screen tall stacked every pin on its neighbour.
+      map.fitBounds(bounds, compact ? 72 : 48);
+      // fitBounds on a single place slams the camera down to building level,
+      // where a lone pin floats on grey with no street context. Cap it once the
+      // camera settles — `idle` is the only honest "the move is finished" hook.
+      google.maps.event.addListenerOnce(map, 'idle', () => {
+        if ((map.getZoom() ?? 0) > MAX_FIT_ZOOM) map.setZoom(MAX_FIT_ZOOM);
+      });
     }
     // openPlace is stable enough for this effect; results/overlays drive it.
     // `mapCreated` is here so pins searched before the phone's map pane was
@@ -1013,11 +1024,15 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
                   type="button"
                   onClick={() => openPlace(r)}
                   aria-pressed={active}
-                  className={`group flex w-full items-center gap-3 rounded-2xl border p-3 text-start shadow-sm transition-all duration-200 hover:shadow-md ${
-                    active ? 'border-navy bg-brand-blue' : 'border-gray-200/90 bg-white hover:border-gray-300'
-                  }`}
+                  className={`group flex w-full items-center gap-3 rounded-2xl border text-start shadow-sm transition-all duration-200 hover:shadow-md ${
+                    compact ? 'p-2.5' : 'p-3'
+                  } ${active ? 'border-navy bg-brand-blue' : 'border-gray-200/90 bg-white hover:border-gray-300'}`}
                 >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-100/80 bg-gray-100 shadow-sm sm:h-[72px] sm:w-[72px]">
+                  <div
+                    className={`relative shrink-0 overflow-hidden rounded-xl border border-gray-100/80 bg-gray-100 shadow-sm ${
+                      compact ? 'h-14 w-14' : 'h-16 w-16 sm:h-[72px] sm:w-[72px]'
+                    }`}
+                  >
                     <PlaceThumb
                       name={r.name}
                       photo={photo}

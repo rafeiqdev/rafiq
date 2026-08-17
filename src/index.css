@@ -656,18 +656,29 @@ html[dir='rtl'] li {
   transform: translateY(-14px) scale(1.15);
   z-index: 9999;
 }
+/* Phone size first. Twenty 36px bubbles, each ringed in 2.5px of white and
+   sitting under a heavy shadow, covered central Istanbul completely — the map
+   read as a white sheet rather than a map. Small enough here that the streets
+   stay visible through a full set of results; the desktop bump is below. */
 .rmap-pin-bubble {
-  width: 36px;
-  height: 36px;
-  border-radius: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.15);
-  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.12);
+  border: 2px solid #ffffff;
   position: relative;
   z-index: 2;
   transition: box-shadow 0.2s ease;
+}
+@media (min-width: 768px) {
+  .rmap-pin-bubble {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
 }
 .rmap-pin.rmap-pin-active .rmap-pin-bubble {
   box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.35);
@@ -675,32 +686,38 @@ html[dir='rtl'] li {
 .rmap-pin-needle {
   width: 0;
   height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid;
   margin-top: -2px;
   position: relative;
   z-index: 1;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
 }
 .rmap-pin-icon {
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
+}
+@media (min-width: 768px) {
+  .rmap-pin-icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 .rmap-pin-label {
   position: absolute;
   top: 100%;
-  margin-top: 4px;
-  font-size: 11px;
+  margin-top: 3px;
+  font-size: 10px;
   font-weight: 800;
   color: #0f172a;
   text-align: center;
   background: #ffffff;
-  padding: 3px 10px;
+  padding: 2px 7px;
   border-radius: 20px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
   white-space: nowrap;
-  max-width: 160px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   border: 1px solid rgba(0, 0, 0, 0.08);
