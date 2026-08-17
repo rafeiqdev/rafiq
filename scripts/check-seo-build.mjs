@@ -50,7 +50,10 @@ for (const url of urls) {
 }
 
 if (urls.length !== 396) errors.push(`Unexpected sitemap URL count: ${urls.length}`);
-if (!readFileSync(join(root, 'public/robots.txt'), 'utf8').includes('Sitemap: https://rafiq.ist/sitemap.xml')) {
+const robots = readFileSync(join(root, 'public/robots.txt'), 'utf8');
+const sitemapDirective = robots.match(/^Sitemap:\s*(\S+)$/im)?.[1];
+const expectedSitemap = urls[0] ? `${new URL(urls[0]).origin}/sitemap.xml` : null;
+if (!sitemapDirective || sitemapDirective !== expectedSitemap) {
   errors.push('robots.txt sitemap directive is missing or incorrect');
 }
 
