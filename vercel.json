@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "outputDirectory": "dist",
+  "cleanUrls": true,
   "redirects": [
     { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^en.*" }], "destination": "/en", "permanent": false },
     { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^ru.*" }], "destination": "/ru", "permanent": false },
