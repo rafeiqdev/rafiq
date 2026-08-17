@@ -183,17 +183,31 @@ export interface Place {
   address?: string | null;
 }
 
-/** The seven map categories, in display order. */
+/**
+ * Every category the backend can search and the database may already hold.
+ * The paperwork ones (hotels/hospitals/notary/government) are no longer offered
+ * on the map — see PLACE_CATEGORY_FILTERS — but they stay in the union because
+ * saved favourites and admin overlays created before that change still carry
+ * them, and narrowing the type would make that stored data unrepresentable.
+ */
 export const PLACE_CATEGORIES = [
   'dining',
+  'attractions',
+  'shopping',
+  'arabic',
   'hotels',
   'hospitals',
   'notary',
   'government',
-  'shopping',
-  'arabic',
 ] as const;
 export type PlaceCategory = (typeof PLACE_CATEGORIES)[number];
+
+/**
+ * What the map actually offers, in display order: the leisure side of the city.
+ * Kept short on purpose — the chip row scrolls horizontally on a phone, and a
+ * row of eight meant the visitor never saw the last ones.
+ */
+export const PLACE_CATEGORY_FILTERS = ['dining', 'attractions', 'shopping', 'arabic'] as const;
 
 /** A live Google Places result, flattened by /api/places-search. */
 export interface GooglePlaceResult {

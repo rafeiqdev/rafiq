@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PLACE_CATEGORIES } from '../../lib/types';
+import { PLACE_CATEGORY_FILTERS } from '../../lib/types';
 import type { GooglePlaceResult, PlaceCategory } from '../../lib/types';
 import { Modal } from '../Modal';
 import { AppIcon } from '../AppIcon';
@@ -9,6 +9,7 @@ import type { QuickFilters } from './MapExplorer';
 
 const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
   dining: 'utensils-crossed',
+  attractions: 'camera',
   hotels: 'hotel',
   hospitals: 'hospital',
   notary: 'scroll-text',
@@ -96,7 +97,7 @@ export function MapFilterSheet({
                 {draftCategory === null && <AppIcon name="check" className="h-4 w-4" />}
               </button>
 
-              {PLACE_CATEGORIES.map((c) => {
+              {PLACE_CATEGORY_FILTERS.map((c) => {
                 const selected = draftCategory === c;
                 return (
                   <button

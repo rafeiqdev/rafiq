@@ -741,6 +741,7 @@
     "helpPrefill": "برای این مورد کمک می‌خواهم: {{name}} — {{address}}",
     "categories": {
       "dining": "رستوران‌ها",
+      "attractions": "دیدنی‌ها و تفریح",
       "hotels": "هتل‌ها",
       "hospitals": "بیمارستان‌ها",
       "notary": "دفتر اسناد رسمی",

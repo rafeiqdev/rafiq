@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminPlaces, listings as listingsApi } from '../lib/api';
 import type { ListingInput, PlaceInput } from '../lib/api';
+import { PLACE_CATEGORIES } from '../lib/types';
 import type { Listing, Place } from '../lib/types';
 import { AppIcon } from './AppIcon';
 import { Modal } from './Modal';
@@ -9,7 +10,10 @@ import { SectionState } from './SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { ConfirmActionModal } from './admin/ConfirmActionModal';
 
-const PLACE_CATEGORIES = ['dining', 'hotels', 'notary', 'hospitals', 'government', 'shopping'] as const;
+// Uses the shared list rather than a local copy: this editor had drifted and
+// was missing categories the map could produce, so an admin curating one had
+// no value to file it under. Includes the categories the map no longer filters
+// by — places already saved under them still need to be editable.
 
 const EMPTY_LISTING: ListingInput = { district: '', rooms: '', m2: 0, priceUsd: 0, citizenship: false, image: '', description: '', bathrooms: 0, furnished: false, images: [] };
 const EMPTY_PLACE: PlaceInput = { name: '', category: 'dining', lat: 41.0151, lng: 28.9795, address: '' };

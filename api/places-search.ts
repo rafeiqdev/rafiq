@@ -37,13 +37,18 @@ const MAX_RADIUS_M = 50000;
 const MAX_RESULTS = 20;
 
 /**
- * The seven UI categories. Google's `includedTypes` only covers some of them
- * cleanly — a Turkish noter or an Arabic-speaking business is not a Places
- * type, so those fall back to Text Search with a canned query. This is exactly
- * the "Nearby vs Text by search kind" split.
+ * Every category the API can resolve. Google's `includedTypes` only covers some
+ * of them cleanly — a Turkish noter or an Arabic-speaking business is not a
+ * Places type, so those fall back to Text Search with a canned query. This is
+ * exactly the "Nearby vs Text by search kind" split.
+ *
+ * The map UI only offers the leisure subset (see PLACE_CATEGORY_FILTERS), but
+ * the paperwork ones stay resolvable here: favourites saved under them before
+ * that change must keep working.
  */
 const CATEGORIES: Record<string, { types?: string[]; textQuery?: string }> = {
   dining: { types: ['restaurant', 'cafe'] },
+  attractions: { types: ['tourist_attraction', 'park', 'museum', 'amusement_park'] },
   hotels: { types: ['hotel', 'motel', 'guest_house'] },
   hospitals: { types: ['hospital', 'doctor', 'pharmacy'] },
   shopping: { types: ['shopping_mall', 'supermarket', 'department_store'] },

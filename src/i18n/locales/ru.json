@@ -741,6 +741,7 @@
     "helpPrefill": "Мне нужна помощь с: {{name}} — {{address}}",
     "categories": {
       "dining": "Рестораны",
+      "attractions": "Достопримечательности",
       "hotels": "Отели",
       "hospitals": "Больницы",
       "notary": "Нотариус",

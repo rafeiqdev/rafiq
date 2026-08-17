@@ -42,6 +42,15 @@ const MOBILE_FOOTER_ROUTES = new Set([
   '/notifications',
 ]);
 
+// The emergency-legal and WhatsApp contact bars used to be appended to EVERY
+// route by this layout. Two loud red/green bars under the map, under the chat,
+// under a service detail — repeated often enough that they stopped reading as
+// help and started reading as clutter, and on the fixed-height app-shell
+// screens they added a stray scroll below a layout that owns the viewport.
+// They now appear on the landing and dashboard only: seen once, where someone
+// is deciding whether to get in touch.
+const CONTACT_BAR_ROUTES = new Set(['/', '/home']);
+
 interface NavItem {
   to: string;
   key: string;
@@ -451,11 +460,13 @@ export function Layout() {
       {/* Grouped together at the end of the page rather than a separate
           floating WhatsApp circle elsewhere — one contact area, not two
           disconnected ones. Same ContactBanner card shape, WhatsApp-green
-          instead of legal-red. */}
-      <div className="flex flex-col items-center gap-3 my-4 pb-20 md:pb-0">
-        <EmergencyLegalFAB />
-        <WhatsAppButton />
-      </div>
+          instead of legal-red. Home routes only — see CONTACT_BAR_ROUTES. */}
+      {CONTACT_BAR_ROUTES.has(location.pathname) && (
+        <div className="flex flex-col items-center gap-3 my-4 pb-20 md:pb-0">
+          <EmergencyLegalFAB />
+          <WhatsAppButton />
+        </div>
+      )}
       <ConsentBanner />
     </div>
   );

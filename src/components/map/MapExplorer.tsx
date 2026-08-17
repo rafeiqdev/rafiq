@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { placeFavorites, places as placesApi, placeSearch } from '../../lib/api';
 import type { PlaceSearchError } from '../../lib/api';
-import { PLACE_CATEGORIES } from '../../lib/types';
+import { PLACE_CATEGORY_FILTERS } from '../../lib/types';
 import type { FavoritePlace, GooglePlaceResult, PlaceCategory, PlaceOverlay } from '../../lib/types';
 import { useGoogleMaps, isMapUnavailable, devDiagnose } from '../../hooks/useGoogleMaps';
 import { AppIcon } from '../AppIcon';
@@ -35,6 +35,7 @@ const MAP_ID = (import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) |
 
 const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
   dining: 'utensils-crossed',
+  attractions: 'camera',
   hotels: 'hotel',
   hospitals: 'hospital',
   notary: 'scroll-text',
@@ -46,6 +47,7 @@ const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
 /** Pin + chip colour per category, from the supplied design's vibrant palette. */
 const CATEGORY_COLORS: Record<PlaceCategory, string> = {
   dining: '#E11D48',
+  attractions: '#0EA5E9',
   hotels: '#7C3AED',
   hospitals: '#DB2777',
   notary: '#2563EB',
@@ -57,6 +59,7 @@ const CATEGORY_COLORS: Record<PlaceCategory, string> = {
 /** Soft card-badge classes mirroring the pin colours, per the design. */
 const CATEGORY_BADGE: Record<PlaceCategory, string> = {
   dining: 'bg-rose-50 text-rose-700 border-rose-200/80',
+  attractions: 'bg-sky-50 text-sky-800 border-sky-200/80',
   hotels: 'bg-violet-50 text-violet-800 border-violet-200/80',
   hospitals: 'bg-pink-50 text-pink-800 border-pink-200/80',
   notary: 'bg-blue-50 text-blue-800 border-blue-200/80',
@@ -73,6 +76,8 @@ const CATEGORY_BADGE: Record<PlaceCategory, string> = {
 const PIN_GLYPHS: Record<PlaceCategory, string> = {
   dining:
     '<path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/>',
+  attractions:
+    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
   hotels: '<path d="M3 18V8"/><path d="M3 12h18v6"/><path d="M21 18v-4"/><circle cx="7.5" cy="10.5" r="1.8"/>',
   hospitals:
     '<path d="M12 7v4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M14 9h-4"/><path d="M18 11h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 21V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16"/>',
@@ -178,8 +183,11 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [sort, setSort] = useState<SortKey>('best');
   // What the user typed vs. what we actually sent to Google, for the honesty chip.
   const [translation, setTranslation] = useState<{ original: string; translated: string } | null>(null);
-  // Phone-only: the map is a collapsible pane above the list, per the design.
-  const [mobileMapOpen, setMobileMapOpen] = useState(false);
+  // Phone-only: the map is a collapsible pane above the list. It starts OPEN —
+  // this is the map screen, and arriving on a wall of result cards with the map
+  // folded away made the visitor hunt for a button to see the thing they came
+  // for. Collapsing it is still there for anyone who wants the full list.
+  const [mobileMapOpen, setMobileMapOpen] = useState(true);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [quickFilters, setQuickFilters] = useState<QuickFilters>({ openNow: false, topRated: false });
   const [toast, setToast] = useState<string | null>(null);
@@ -626,8 +634,11 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
 
   const searchBlock = (
     <div className="relative w-full bg-white px-4 pb-2 pt-3">
-      {/* area label + saved count, per the design's compact top row */}
-      <div className="mb-2.5 flex items-center justify-between px-0.5">
+      {/* area label + saved count, per the design's compact top row.
+          On phones this screen has no site header, so Layout pins a floating
+          language switcher into the top corner — `pe-14` keeps these controls
+          out from underneath it instead of letting it sit on the saved count. */}
+      <div className={`mb-2.5 flex items-center justify-between px-0.5 ${compact ? 'pe-14' : ''}`}>
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
           <span className="truncate text-xs font-extrabold tracking-tight text-navy">
@@ -745,7 +756,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         {/* scrollable category chips */}
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto px-1 py-0.5">
-            {PLACE_CATEGORIES.map((c) => {
+            {PLACE_CATEGORY_FILTERS.map((c) => {
               const active = category === c;
               return (
                 <button
@@ -1053,7 +1064,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         ) : (
           <div
             className={`relative w-full shrink-0 overflow-hidden border-b border-gray-200 bg-gray-100 transition-[height] duration-200 ${
-              mobileMapOpen ? 'h-[280px]' : 'h-0 border-b-0'
+              mobileMapOpen ? 'h-[42vh] min-h-[260px]' : 'h-0 border-b-0'
             }`}
           >
             {mapPane}

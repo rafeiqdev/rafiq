@@ -741,6 +741,7 @@
     "helpPrefill": "I need help with: {{name}} — {{address}}",
     "categories": {
       "dining": "Restaurants",
+      "attractions": "Sights & fun",
       "hotels": "Hotels",
       "hospitals": "Hospitals",
       "notary": "Notary",

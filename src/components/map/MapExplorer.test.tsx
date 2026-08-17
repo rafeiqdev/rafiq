@@ -80,6 +80,19 @@ describe('a Google outage takes out the map, not the page', () => {
     expect(screen.getByText('map.filter')).toBeInTheDocument();
   });
 
+  // The map is the leisure side of the city. Hotels, hospitals, the noter and
+  // government offices are handled by the services pages, and carrying them
+  // here made a chip row too long to ever scroll to the end of.
+  it('offers the leisure categories and none of the paperwork ones', () => {
+    mapsStatus = 'ready';
+    show(true);
+
+    expect(screen.getByText('map.categories.attractions')).toBeInTheDocument();
+    for (const gone of ['hotels', 'hospitals', 'notary', 'government']) {
+      expect(screen.queryByText(`map.categories.${gone}`)).not.toBeInTheDocument();
+    }
+  });
+
   it('does not offer a "show map" toggle that leads only to the outage notice', () => {
     mapsStatus = 'error';
     show(true);
@@ -98,8 +111,8 @@ describe('a Google outage takes out the map, not the page', () => {
 });
 
 /**
- * The phone's map pane is `h-0` until the visitor opens it. Building a Map into
- * a zero-height element makes Google skip the tile request altogether, so
+ * The phone's map pane is `h-0` while collapsed. Building a Map into a
+ * zero-height element makes Google skip the tile request altogether, so
  * `tilesloaded` never fires — and the tile timeout then condemned a perfectly
  * healthy map as unavailable, taking the "show map" button away with it. The
  * map is therefore not constructed until the pane actually has height.
@@ -108,16 +121,38 @@ describe('a collapsed phone map pane is not mistaken for an outage', () => {
   afterEach(() => vi.useRealTimers());
 
   it('keeps the toggle after the tile timeout would have elapsed', () => {
-    vi.useFakeTimers();
     mapsStatus = 'ready';
     show(true);
 
-    // Well past TILE_TIMEOUT_MS, with the pane still closed.
+    // The pane opens by default, so collapse it first — this guard is about
+    // what happens to a map the visitor has deliberately folded away.
+    const toggle = document.querySelector('#mobile-map-toggle-btn') as HTMLElement;
+    act(() => {
+      toggle.click();
+    });
+
+    vi.useFakeTimers();
+    // Well past TILE_TIMEOUT_MS, with the pane closed.
     act(() => {
       vi.advanceTimersByTime(20000);
     });
 
     expect(screen.queryByText('map.unavailable.title')).not.toBeInTheDocument();
     expect(document.querySelector('#mobile-map-toggle-btn')).not.toBeNull();
+  });
+});
+
+/**
+ * /map is the map screen. Landing on a list of result cards with the map folded
+ * away made the visitor hunt for a button to reach the thing they came for.
+ */
+describe('the phone map pane starts open', () => {
+  it('renders the map surface without anyone tapping a toggle', () => {
+    mapsStatus = 'ready';
+    show(true);
+
+    expect(screen.getByLabelText('map.title')).toBeInTheDocument();
+    // ...and the toggle now offers to HIDE it, not to show it.
+    expect(screen.getByText('map.hideMap')).toBeInTheDocument();
   });
 });
