@@ -181,7 +181,7 @@ export function Home() {
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-cream text-start"
                     >
                       {s.image ? (
-                        <img src={s.image} alt="" loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                        <img src={s.image} alt={pickText(s.title, i18n.language)} loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
                       ) : (
                         <span className="icon-chip !w-8 !h-8 shrink-0">
                           <AppIcon name={s.icon} className="w-4 h-4" />
