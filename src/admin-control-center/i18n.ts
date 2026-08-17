@@ -69,8 +69,117 @@ const ar: Dict = {
   'overview.viewDetails': 'عرض التفاصيل',
   'overview.notCounted': 'تعذّرت القراءة',
 
-  'analytics.notCollecting.title': 'لا توجد بيانات تحليلات بعد',
-  'analytics.notCollecting.body': 'جدول الأحداث (public.events) قد لا يكون مُنشأً في قاعدة البيانات الحية، أو لم تُجمَع بيانات بعد. لن تُعرض أرقام مُختلَقة. طبّق ترحيل الأحداث وابدأ التجميع لرؤية التقارير هنا.',
+  'analytics.notCollecting.title': 'لا توجد بيانات في هذه الفترة',
+  'analytics.notCollecting.body': 'جدول الأحداث موجود ويعمل، لكن لم تُسجَّل زيارات ضمن الفترة المختارة. تذكّر أن التسجيل لا يبدأ إلا بعد موافقة الزائر على التتبّع. جرّب فترة أطول.',
+
+  // shared table/field labels
+  'f.type': 'النوع',
+  'f.status': 'الحالة',
+  'f.date': 'التاريخ',
+  'f.amount': 'المبلغ',
+  'f.customer': 'العميل',
+  'f.service': 'الخدمة',
+  'f.count': 'العدد',
+  'f.total': 'الإجمالي',
+  'f.commission': 'العمولة',
+  'f.method': 'الطريقة',
+  'f.action': 'الإجراء',
+  'f.actor': 'المنفِّذ',
+  'f.target': 'الهدف',
+  'f.file': 'الملف',
+  'f.size': 'الحجم',
+  'f.task': 'المهمة',
+  'f.page': 'الصفحة',
+  'f.source': 'المصدر',
+
+  // analytics
+  'an.events': 'إجمالي الأحداث',
+  'an.sessions': 'الزيارات (جلسات)',
+  'an.signedIn': 'زيارات لمسجّلين',
+  'an.pageViews': 'مشاهدات الصفحات',
+  'an.funnel': 'مسار التحويل',
+  'an.funnelHint': 'عدد الجلسات التي وصلت لكل مرحلة، والنسبة من المرحلة الأولى.',
+  'an.topPages': 'أكثر الصفحات زيارة',
+  'an.topReferrers': 'مصادر الزيارات',
+  'an.devices': 'الأجهزة',
+  'an.locales': 'اللغات',
+  'an.topServices': 'أكثر الخدمات مشاهدة',
+  'an.byType': 'الأحداث حسب النوع',
+  'an.capped': 'تنبيه: بلغنا الحد الأقصى للصفوف المقروءة، فالأرقام أدناه حدّ أدنى وليست الإجمالي الكامل.',
+
+  // operations
+  'ops.total': 'إجمالي السجلات',
+  'ops.open': 'مفتوحة (تحتاج إجراء)',
+  'ops.overdue': 'متأخرة (أكثر من ٤٨ ساعة)',
+  'ops.requests': 'طلبات خدمة',
+  'ops.bookings': 'حجوزات',
+  'ops.leads': 'عملاء محتملون',
+  'ops.byStatus': 'حسب الحالة',
+  'ops.recent': 'أحدث السجلات',
+  'ops.openInAdmin': 'افتح في لوحة الإدارة',
+  'ops.readOnlyNote': 'قراءة فقط — تغيير الحالة يتم من لوحة الإدارة القديمة عبر الرابط في كل صف، حتى لا تتكرر قواعد الحالات في مكانين.',
+
+  // crm
+  'crm.leadsTotal': 'إجمالي العملاء المحتملين',
+  'crm.byKind': 'حسب النوع',
+  'crm.recent': 'الأحدث',
+  'crm.pipelineNote': 'مراحل المتابعة (مسؤول، ملاحظات، سبب الخسارة) تحتاج جدولاً جديداً في قاعدة البيانات — لم يُنشأ بعد، ولن أعرض حقولاً فارغة توحي بأنها تعمل.',
+
+  // finance
+  'fin.source.subscriptions': 'الاشتراكات',
+  'fin.source.services': 'الخدمات',
+  'fin.source.medical': 'السياحة الطبية',
+  'fin.source.companies': 'الشركات',
+  'fin.settled': 'محصَّل',
+  'fin.waiting': 'معلّق',
+  'fin.records': 'عدد العمليات',
+  'fin.currencyNote': 'لا تُجمع العملات مع بعضها — كل عملة على حدة، لأن جمع الليرة مع الدولار يعطي رقماً غير صحيح.',
+  'fin.actionsNote': 'لا يوجد هنا تأكيد أو رفض أو استرجاع — هذه إجراءات مالية حساسة تبقى في لوحة الإدارة القديمة.',
+
+  // referrals
+  'ref.referrers': 'عدد المُحيلين',
+  'ref.commissions': 'العمولات',
+  'ref.payouts': 'طلبات السحب',
+  'ref.pending': 'معلّقة',
+  'ref.available': 'متاحة',
+  'ref.paid': 'مدفوعة',
+  'ref.approveNote': 'اعتماد العمولات وصرف السحوبات إجراءات مالية — غير متاحة هنا عمداً.',
+
+  // journey
+  'jr.users': 'مستخدمون لديهم خطة',
+  'jr.done': 'خطوات مكتملة',
+  'jr.todo': 'خطوات متبقية',
+  'jr.byTask': 'نسبة الإنجاز لكل خطوة',
+  'jr.taskHint': 'الخطوة ذات النسبة الأدنى هي التي يتعثّر عندها المستخدمون.',
+
+  // content
+  'ct.listings': 'العقارات',
+  'ct.investments': 'الفرص الاستثمارية',
+  'ct.news': 'الأخبار',
+  'ct.published': 'منشور',
+  'ct.translated': 'مُترجَم',
+  'ct.missingTranslations': 'بحاجة إلى ترجمة',
+
+  // system health
+  'sh.lastFxSuccess': 'آخر تحديث ناجح للأسعار',
+  'sh.fxRates': 'أزواج العملات المحفوظة',
+  'sh.failedRuns': 'محاولات فاشلة',
+  'sh.runs': 'سجل مهام تحديث الأسعار',
+  'sh.noSecrets': 'لا تُعرض هنا أي مفاتيح أو أسرار بيئة — حالة التشغيل فقط.',
+  'sh.never': 'لم يحدث بعد',
+
+  // documents
+  'dc.files': 'عدد الملفات',
+  'dc.size': 'المساحة الإجمالية',
+  'dc.metadataOnly': 'بيانات وصفية فقط: الاسم والنوع والحجم والتاريخ. لا يوجد فتح ولا تنزيل ولا معاينة — كشف مستند مريض إجراء حسّاس يحتاج صلاحية صريحة وتسجيلاً في سجل التدقيق قبل إتاحته.',
+
+  // notifications
+  'nt.broadcasts': 'الإشعارات المُرسَلة',
+  'nt.readOnlyNote': 'سجل قراءة فقط. لن يُرسل أي إشعار لمستخدم حقيقي من هنا.',
+
+  // security
+  'sec.recent': 'أحدث أحداث التدقيق',
+  'sec.hint': 'من فعل ماذا ومتى — يشمل كشف بيانات، تغيير رتبة، تأكيد دفع، ونشر محتوى.',
 };
 
 const en: Dict = {
@@ -122,8 +231,117 @@ const en: Dict = {
   'overview.viewDetails': 'View details',
   'overview.notCounted': 'Unreadable',
 
-  'analytics.notCollecting.title': 'No analytics data yet',
-  'analytics.notCollecting.body': 'The events table (public.events) may not exist in the live database, or no data has been collected yet. No fabricated numbers are shown. Apply the events migration and start collecting to see reports here.',
+  'analytics.notCollecting.title': 'No data in this period',
+  'analytics.notCollecting.body': 'The events table exists and is working, but no visits were recorded in the selected period. Remember that nothing is recorded until a visitor accepts tracking. Try a longer period.',
+
+  // shared table/field labels
+  'f.type': 'Type',
+  'f.status': 'Status',
+  'f.date': 'Date',
+  'f.amount': 'Amount',
+  'f.customer': 'Customer',
+  'f.service': 'Service',
+  'f.count': 'Count',
+  'f.total': 'Total',
+  'f.commission': 'Commission',
+  'f.method': 'Method',
+  'f.action': 'Action',
+  'f.actor': 'Actor',
+  'f.target': 'Target',
+  'f.file': 'File',
+  'f.size': 'Size',
+  'f.task': 'Task',
+  'f.page': 'Page',
+  'f.source': 'Source',
+
+  // analytics
+  'an.events': 'Total events',
+  'an.sessions': 'Visits (sessions)',
+  'an.signedIn': 'Signed-in visits',
+  'an.pageViews': 'Page views',
+  'an.funnel': 'Conversion funnel',
+  'an.funnelHint': 'Sessions that reached each step, and the share of the first step.',
+  'an.topPages': 'Most visited pages',
+  'an.topReferrers': 'Traffic sources',
+  'an.devices': 'Devices',
+  'an.locales': 'Languages',
+  'an.topServices': 'Most viewed services',
+  'an.byType': 'Events by type',
+  'an.capped': 'Note: the row cap was reached, so the figures below are a floor, not the complete total.',
+
+  // operations
+  'ops.total': 'Total records',
+  'ops.open': 'Open (needs action)',
+  'ops.overdue': 'Overdue (over 48h)',
+  'ops.requests': 'Service requests',
+  'ops.bookings': 'Bookings',
+  'ops.leads': 'Leads',
+  'ops.byStatus': 'By status',
+  'ops.recent': 'Most recent',
+  'ops.openInAdmin': 'Open in Admin',
+  'ops.readOnlyNote': 'Read-only — status changes happen in the classic Admin via the link on each row, so status rules are never duplicated in two places.',
+
+  // crm
+  'crm.leadsTotal': 'Total leads',
+  'crm.byKind': 'By kind',
+  'crm.recent': 'Most recent',
+  'crm.pipelineNote': 'Pipeline fields (owner, notes, lost reason) need a new database table that has not been created yet — empty fields that pretend to work will not be shown.',
+
+  // finance
+  'fin.source.subscriptions': 'Subscriptions',
+  'fin.source.services': 'Services',
+  'fin.source.medical': 'Medical tourism',
+  'fin.source.companies': 'Companies',
+  'fin.settled': 'Settled',
+  'fin.waiting': 'Pending',
+  'fin.records': 'Transactions',
+  'fin.currencyNote': 'Currencies are never added together — each is reported separately, because summing TRY with USD produces a false number.',
+  'fin.actionsNote': 'No verify, reject or refund here — those are sensitive money actions and stay in the classic Admin.',
+
+  // referrals
+  'ref.referrers': 'Referrers',
+  'ref.commissions': 'Commissions',
+  'ref.payouts': 'Payout requests',
+  'ref.pending': 'Pending',
+  'ref.available': 'Available',
+  'ref.paid': 'Paid',
+  'ref.approveNote': 'Approving commissions and releasing payouts are money actions — deliberately not available here.',
+
+  // journey
+  'jr.users': 'Users with a plan',
+  'jr.done': 'Completed steps',
+  'jr.todo': 'Remaining steps',
+  'jr.byTask': 'Completion rate per step',
+  'jr.taskHint': 'The step with the lowest rate is where users get stuck.',
+
+  // content
+  'ct.listings': 'Listings',
+  'ct.investments': 'Investment opportunities',
+  'ct.news': 'News',
+  'ct.published': 'Published',
+  'ct.translated': 'Translated',
+  'ct.missingTranslations': 'Needs translation',
+
+  // system health
+  'sh.lastFxSuccess': 'Last successful rates update',
+  'sh.fxRates': 'Stored currency pairs',
+  'sh.failedRuns': 'Failed runs',
+  'sh.runs': 'Rates sync run log',
+  'sh.noSecrets': 'No environment keys or secrets are shown here — operational status only.',
+  'sh.never': 'Never',
+
+  // documents
+  'dc.files': 'Files',
+  'dc.size': 'Total size',
+  'dc.metadataOnly': 'Metadata only: name, type, size and date. No open, download or preview — revealing a patient document is a sensitive action that needs an explicit permission and an audit entry before it is offered.',
+
+  // notifications
+  'nt.broadcasts': 'Sent notifications',
+  'nt.readOnlyNote': 'Read-only history. No notification will ever be sent to a real user from here.',
+
+  // security
+  'sec.recent': 'Recent audit events',
+  'sec.hint': 'Who did what and when — includes data reveals, role changes, payment approvals and content publishing.',
 };
 
 const DICTS: Record<Lang, Dict> = { ar, en, ru: en, fa: en };

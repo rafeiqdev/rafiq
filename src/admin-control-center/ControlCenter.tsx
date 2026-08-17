@@ -1,9 +1,37 @@
+import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RequireAdmin } from '../components/Gates';
 import { CCShell } from './components/CCShell';
 import { Overview } from './pages/Overview';
+import { Analytics } from './pages/Analytics';
+import { Operations } from './pages/Operations';
+import { CRM } from './pages/CRM';
+import { Finance } from './pages/Finance';
+import { Referrals } from './pages/Referrals';
+import { Journey } from './pages/Journey';
+import { Content, Documents, Notifications, Security, SystemHealth } from './pages/Platform';
 import { Placeholder } from './pages/Placeholder';
 import { CC_DEFAULT_SECTION, CC_SECTIONS, isCCSection } from './sections';
+
+/**
+ * Section id → page. Every section here reads REAL data; a section absent from
+ * this map falls back to the honest "not built yet" placeholder rather than
+ * rendering invented numbers.
+ */
+const SECTION_PAGES: Record<string, () => ReactNode> = {
+  overview: () => <Overview />,
+  analytics: () => <Analytics />,
+  operations: () => <Operations />,
+  crm: () => <CRM />,
+  finance: () => <Finance />,
+  referrals: () => <Referrals />,
+  journey: () => <Journey />,
+  content: () => <Content />,
+  documents: () => <Documents />,
+  notifications: () => <Notifications />,
+  security: () => <Security />,
+  systemHealth: () => <SystemHealth />,
+};
 
 /**
  * Admin Control Center — additive surface at /admin/control-center.
@@ -34,10 +62,11 @@ function ControlCenterInner() {
     });
 
   const def = CC_SECTIONS.find((s) => s.id === active);
+  const render = SECTION_PAGES[active];
 
   return (
     <CCShell activeSection={active} onSelect={select}>
-      {active === 'overview' ? <Overview /> : <Placeholder sectionId={def?.id ?? active} />}
+      {render ? render() : <Placeholder sectionId={def?.id ?? active} />}
     </CCShell>
   );
 }

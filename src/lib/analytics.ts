@@ -261,16 +261,20 @@ function endpointUrl(): string | null {
  * Set once the sink answers "that table does not exist", after which this
  * module stops collecting entirely for the rest of the page's life.
  *
- * public.events was never created in the live database, so every batch since
- * the collection layer shipped has been POSTed and thrown away — a consenting
- * visitor generating a doomed request roughly every 10 seconds of activity plus
- * one more on page-hide, all silently, because flush() ends in a catch that
- * deliberately never surfaces. That was wasted bandwidth on real phones for
- * zero stored rows.
+ * HISTORY — this comment used to state that public.events did not exist in the
+ * live database and that every batch was therefore being thrown away. That is
+ * NO LONGER TRUE and the stale note caused a real misdiagnosis: the table was
+ * created at some point after this file was written. Verified 2026-08-17
+ * against the live project by requesting /rest/v1/events with the anon key —
+ * it answers 200 (empty array, because SELECT is admin-only under RLS), whereas
+ * a genuinely absent relation answers 404/PGRST205. So the sink is live and
+ * collection is working; what actually gates volume is visitor consent, not
+ * this flag.
  *
- * Deliberately module state and NOT persisted: it resets on the next page load,
- * so the moment the table is created collection resumes on its own with no
- * redeploy and no flag to remember to flip back.
+ * The guard stays as a safety net for the reverse case (a dropped/renamed
+ * table). Deliberately module state and NOT persisted: it resets on the next
+ * page load, so if the relation ever disappears and is restored, collection
+ * resumes on its own with no redeploy and no flag to remember to flip back.
  */
 let sinkMissing = false;
 

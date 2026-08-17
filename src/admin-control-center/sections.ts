@@ -17,17 +17,17 @@ export interface CCSectionDef {
 
 export const CC_SECTIONS: CCSectionDef[] = [
   { id: 'overview', labelKey: 'section.overview', icon: 'layers', implemented: true },
-  { id: 'analytics', labelKey: 'section.analytics', icon: 'bar-chart-2', implemented: false },
-  { id: 'operations', labelKey: 'section.operations', icon: 'inbox', implemented: false },
-  { id: 'crm', labelKey: 'section.crm', icon: 'users', implemented: false },
-  { id: 'notifications', labelKey: 'section.notifications', icon: 'bell', implemented: false },
-  { id: 'documents', labelKey: 'section.documents', icon: 'file-text', implemented: false },
-  { id: 'finance', labelKey: 'section.finance', icon: 'credit-card', implemented: false },
-  { id: 'journey', labelKey: 'section.journey', icon: 'compass', implemented: false },
-  { id: 'referrals', labelKey: 'section.referrals', icon: 'gift', implemented: false },
-  { id: 'content', labelKey: 'section.content', icon: 'newspaper', implemented: false },
-  { id: 'security', labelKey: 'section.security', icon: 'shield-check', implemented: false },
-  { id: 'systemHealth', labelKey: 'section.systemHealth', icon: 'sliders-horizontal', implemented: false },
+  { id: 'analytics', labelKey: 'section.analytics', icon: 'bar-chart-2', implemented: true },
+  { id: 'operations', labelKey: 'section.operations', icon: 'inbox', implemented: true },
+  { id: 'crm', labelKey: 'section.crm', icon: 'users', implemented: true },
+  { id: 'notifications', labelKey: 'section.notifications', icon: 'bell', implemented: true },
+  { id: 'documents', labelKey: 'section.documents', icon: 'file-text', implemented: true },
+  { id: 'finance', labelKey: 'section.finance', icon: 'credit-card', implemented: true },
+  { id: 'journey', labelKey: 'section.journey', icon: 'compass', implemented: true },
+  { id: 'referrals', labelKey: 'section.referrals', icon: 'gift', implemented: true },
+  { id: 'content', labelKey: 'section.content', icon: 'newspaper', implemented: true },
+  { id: 'security', labelKey: 'section.security', icon: 'shield-check', implemented: true },
+  { id: 'systemHealth', labelKey: 'section.systemHealth', icon: 'sliders-horizontal', implemented: true },
 ];
 
 export const CC_SECTION_IDS = CC_SECTIONS.map((s) => s.id);
