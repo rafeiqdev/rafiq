@@ -451,8 +451,11 @@ export function Layout() {
           own a fixed bar at the bottom of the viewport, and a bottom-anchored
           switcher sat directly on top of it. */}
       {/* z-[60]: must stay clickable above the consent banner (z-50) — a
-          first-time visitor in the wrong language has both on screen at once */}
-      {hideChrome && !showMobileFooter && (
+          first-time visitor in the wrong language has both on screen at once.
+          /map is excluded: its header is a dense control strip, and a switcher
+          floating over the corner landed on top of the saved count. That screen
+          renders its own switcher inline in that strip instead. */}
+      {hideChrome && !showMobileFooter && location.pathname !== '/map' && (
         <div className="fixed z-[60] end-4 top-[calc(env(safe-area-inset-top)+0.75rem)] rounded-btn bg-white/95 shadow-card">
           <LangSwitcher />
         </div>

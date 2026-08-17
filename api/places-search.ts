@@ -47,6 +47,11 @@ const MAX_RESULTS = 20;
  * that change must keep working.
  */
 const CATEGORIES: Record<string, { types?: string[]; textQuery?: string }> = {
+  // What the map opens on: a broad mix of what is around you, so arriving on
+  // the map shows the city rather than an empty "pick a category" prompt.
+  all: {
+    types: ['restaurant', 'cafe', 'tourist_attraction', 'park', 'museum', 'shopping_mall', 'supermarket'],
+  },
   dining: { types: ['restaurant', 'cafe'] },
   attractions: { types: ['tourist_attraction', 'park', 'museum', 'amusement_park'] },
   hotels: { types: ['hotel', 'motel', 'guest_house'] },

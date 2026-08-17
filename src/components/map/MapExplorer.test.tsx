@@ -21,6 +21,9 @@ vi.mock('../../hooks/useGoogleMaps', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k, i18n: { language: 'ar' } }),
+  // The compact header renders LangSwitcher, which reaches src/i18n/index.ts —
+  // that module calls i18n.use(initReactI18next) at import time.
+  initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
 vi.mock('@googlemaps/markerclusterer', () => ({
@@ -48,6 +51,10 @@ vi.mock('../../lib/api', () => ({
     Map: class {
       getZoom() {
         return 12;
+      }
+      // The map searches as soon as it opens, and that reads the camera centre.
+      getCenter() {
+        return { lat: () => 41.0151, lng: () => 28.9795 };
       }
     },
     event: { addListenerOnce: () => ({ remove() {} }), trigger: () => {} },
@@ -154,5 +161,24 @@ describe('the phone map pane starts open', () => {
     expect(screen.getByLabelText('map.title')).toBeInTheDocument();
     // ...and the toggle now offers to HIDE it, not to show it.
     expect(screen.getByText('map.hideMap')).toBeInTheDocument();
+  });
+});
+
+/**
+ * Arriving on the map used to show an empty "pick a category or type a name"
+ * prompt — the visitor opened the map and was given no places at all.
+ */
+describe('the map searches on arrival', () => {
+  it('starts on the "all places" chip and never shows the pick-something prompt', async () => {
+    mapsStatus = 'ready';
+    show(true);
+
+    const allChip = screen.getByText('map.filterSheet.all').closest('button');
+    expect(allChip).toHaveAttribute('aria-pressed', 'true');
+
+    // The stubbed search resolves to zero places, so the empty state — not the
+    // idle prompt — is what a finished first search leaves behind.
+    expect(await screen.findByText('map.empty.title')).toBeInTheDocument();
+    expect(screen.queryByText('map.idle')).not.toBeInTheDocument();
   });
 });

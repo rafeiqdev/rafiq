@@ -8,6 +8,7 @@ import type { FavoritePlace, GooglePlaceResult, PlaceCategory, PlaceOverlay } fr
 import { useGoogleMaps, isMapUnavailable, devDiagnose } from '../../hooks/useGoogleMaps';
 import { AppIcon } from '../AppIcon';
 import type { IconName } from '../AppIcon';
+import { LangSwitcher } from '../LangSwitcher';
 import { PlaceCard } from './PlaceCard';
 import { PlaceThumb } from './PlaceThumb';
 import { MapUnavailable } from './MapUnavailable';
@@ -148,6 +149,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   // keystroke, which is the classic way this feature gets expensive.
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
 
+  /**
+   * `null` is not "no filter chosen" — it is the "everything" chip, which is
+   * where the map starts. The API resolves it as a broad mix of place types.
+   */
   const [category, setCategory] = useState<PlaceCategory | null>(null);
   const [query, setQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -425,6 +430,26 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     runSearch('nearby', c);
   };
 
+  /** The "everything" chip: no category, a broad mix of what is around you. */
+  const pickAll = useCallback(() => {
+    setQuery('');
+    setCategory(null);
+    setSort('best');
+    runSearch('nearby', 'all');
+  }, [runSearch]);
+
+  // Arriving on the map used to land on an empty "pick a category or type a
+  // name" prompt — the visitor opened the map screen and was shown no places
+  // at all. It now searches straight away, so the map has pins and the list has
+  // cards before anything is tapped. Once only: re-running on every `pickAll`
+  // identity change would re-search the city on each language switch.
+  const didInitialSearch = useRef(false);
+  useEffect(() => {
+    if (didInitialSearch.current) return;
+    didInitialSearch.current = true;
+    pickAll();
+  }, [pickAll]);
+
   const submitQuery = (text?: string) => {
     const q = (text ?? query).trim();
     if (!q) return;
@@ -633,12 +658,12 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   // ---- shared pieces --------------------------------------------------------
 
   const searchBlock = (
-    <div className="relative w-full bg-white px-4 pb-2 pt-3">
+    <div className={`relative w-full bg-white px-3 sm:px-4 ${compact ? 'pb-1.5 pt-2' : 'pb-2 pt-3'}`}>
       {/* area label + saved count, per the design's compact top row.
-          On phones this screen has no site header, so Layout pins a floating
-          language switcher into the top corner — `pe-14` keeps these controls
-          out from underneath it instead of letting it sit on the saved count. */}
-      <div className={`mb-2.5 flex items-center justify-between px-0.5 ${compact ? 'pe-14' : ''}`}>
+          On phones this screen has no site header, so the language switcher
+          lives HERE, in the row, rather than floating over the page: Layout's
+          pinned one was sitting directly on top of the saved count. */}
+      <div className={`flex items-center justify-between px-0.5 ${compact ? 'mb-1.5' : 'mb-2.5'}`}>
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
           <span className="truncate text-xs font-extrabold tracking-tight text-navy">
@@ -646,6 +671,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
+          {compact && <LangSwitcher />}
           <button
             type="button"
             onClick={locateMe}
@@ -733,7 +759,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   );
 
   const filterPills = (
-    <div className="relative w-full border-b border-gray-100 bg-white py-2">
+    <div className={`relative w-full border-b border-gray-100 bg-white ${compact ? 'py-1.5' : 'py-2'}`}>
       <div className="flex items-center gap-2 px-3">
         {/* the sheet trigger, highlighted whenever anything is narrowing results */}
         <button
@@ -756,6 +782,22 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         {/* scrollable category chips */}
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto px-1 py-0.5">
+            {/* "Everything" leads the row and is where the map starts —
+                without it there was no way back to the whole city once a
+                category had been picked, short of reloading the page. */}
+            <button
+              type="button"
+              onClick={pickAll}
+              aria-pressed={category === null}
+              className={`relative flex min-h-[40px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-xs font-extrabold transition-colors ${
+                category === null
+                  ? 'border-navy bg-navy text-white shadow-sm'
+                  : 'border-gray-200/60 bg-gray-100/80 text-navy/80 hover:text-navy'
+              }`}
+            >
+              <AppIcon name="globe" className="h-3.5 w-3.5" />
+              <span>{t('map.filterSheet.all')}</span>
+            </button>
             {PLACE_CATEGORY_FILTERS.map((c) => {
               const active = category === c;
               return (
@@ -782,7 +824,11 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   );
 
   const summaryBar = (
-    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/90 px-4 py-2.5">
+    <div
+      className={`flex shrink-0 items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/90 px-3 sm:px-4 ${
+        compact ? 'py-1.5' : 'py-2.5'
+      }`}
+    >
       <div aria-live="polite" className="min-w-0 text-xs font-extrabold text-navy">
         {state === 'loading'
           ? t('map.searching')
@@ -886,7 +932,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   );
 
   const resultsFeed = (
-    <div className="flex-1 overflow-y-auto overscroll-contain p-3.5">
+    <div className={`flex-1 overflow-y-auto overscroll-contain ${compact ? 'p-2.5' : 'p-3.5'}`}>
       {translation && (
         <div className="mb-2.5 flex items-center gap-2 rounded-xl border border-brand-blue/50 bg-brand-blue/40 px-3 py-2 text-xs text-navy">
           <AppIcon name="languages" className="h-4 w-4 shrink-0" />
@@ -1047,7 +1093,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         compact ? 'h-full' : 'h-full border-e border-gray-200 md:w-[420px] lg:w-[450px] xl:w-[480px]'
       }`}
     >
-      <header className="z-[500] border-b border-gray-100 bg-white shadow-sm">
+      <header className="z-[500] shrink-0 border-b border-gray-100 bg-white shadow-sm">
         {searchBlock}
         {filterPills}
       </header>
@@ -1064,7 +1110,9 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         ) : (
           <div
             className={`relative w-full shrink-0 overflow-hidden border-b border-gray-200 bg-gray-100 transition-[height] duration-200 ${
-              mobileMapOpen ? 'h-[42vh] min-h-[260px]' : 'h-0 border-b-0'
+              // A THIRD of the screen, capped: the map has to be visible on
+              // arrival without the result cards being squeezed into a sliver.
+              mobileMapOpen ? 'h-[28vh] min-h-[180px] max-h-[280px]' : 'h-0 border-b-0'
             }`}
           >
             {mapPane}
@@ -1077,7 +1125,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   return (
     <div
       className={`flex w-full overflow-hidden bg-white ${
-        compact ? 'h-[calc(100dvh-8.5rem)] flex-col' : 'h-[calc(100vh-7rem)] min-h-[560px] flex-row'
+        // 8.5rem used to be reserved at the bottom for MobileTabBar, which
+        // measures ~57px — the explorer stopped some 80px short of the bar and
+        // left a white strip under the results, with the list squeezed to
+        // match. Measured against the bar itself now, safe area included.
+        compact
+          ? 'h-[calc(100dvh_-_3.6rem_-_env(safe-area-inset-bottom,0px))] flex-col'
+          : 'h-[calc(100vh-7rem)] min-h-[560px] flex-row'
       }`}
     >
       <h1 className="sr-only">{t('map.title')}</h1>
@@ -1116,7 +1170,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             setQuickFilters(nextQuick);
             if (nextCategory !== category) {
               if (nextCategory) pickCategory(nextCategory);
-              else setCategory(null);
+              // "All" is a search of its own, not just a cleared filter —
+              // clearing without re-searching left the old category's results
+              // sitting under an "everything" chip.
+              else pickAll();
             }
             setFilterSheetOpen(false);
           }}
