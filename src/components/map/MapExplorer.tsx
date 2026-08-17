@@ -9,6 +9,7 @@ import { useGoogleMaps, isMapUnavailable, devDiagnose } from '../../hooks/useGoo
 import { AppIcon } from '../AppIcon';
 import type { IconName } from '../AppIcon';
 import { PlaceCard } from './PlaceCard';
+import { PlaceThumb } from './PlaceThumb';
 import { MapUnavailable } from './MapUnavailable';
 import { MapFilterSheet } from './MapFilterSheet';
 
@@ -33,10 +34,10 @@ const TILE_TIMEOUT_MS = 12000;
 const MAP_ID = (import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) || 'DEMO_MAP_ID';
 
 const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
-  dining: 'utensils',
+  dining: 'utensils-crossed',
   hotels: 'hotel',
-  hospitals: 'stethoscope',
-  notary: 'file-text',
+  hospitals: 'hospital',
+  notary: 'scroll-text',
   government: 'landmark',
   shopping: 'shopping-bag',
   arabic: 'languages',
@@ -70,11 +71,13 @@ const CATEGORY_BADGE: Record<PlaceCategory, string> = {
  * injected into an SVG that the AdvancedMarkerElement owns.
  */
 const PIN_GLYPHS: Record<PlaceCategory, string> = {
-  dining: '<path d="M7 3v6a2 2 0 0 0 4 0V3"/><path d="M9 9v12"/><path d="M16 3v18"/><path d="M16 3c2 2 2 6 0 8"/>',
+  dining:
+    '<path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/>',
   hotels: '<path d="M3 18V8"/><path d="M3 12h18v6"/><path d="M21 18v-4"/><circle cx="7.5" cy="10.5" r="1.8"/>',
-  hospitals: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  hospitals:
+    '<path d="M12 7v4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M14 9h-4"/><path d="M18 11h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 21V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16"/>',
   notary:
-    '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>',
+    '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
   government:
     '<path d="M12 3 3 8h18z"/><path d="M6 10v8"/><path d="M12 10v8"/><path d="M18 10v8"/><path d="M3 21h18"/>',
   shopping: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
@@ -958,25 +961,12 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
                   }`}
                 >
                   <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-100/80 bg-gray-100 shadow-sm sm:h-[72px] sm:w-[72px]">
-                    {photo ? (
-                      <img
-                        src={photo}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <span
-                        className="flex h-full w-full flex-col items-center justify-center text-white"
-                        style={{ background: category ? CATEGORY_COLORS[category] : '#1B2A4A' }}
-                      >
-                        <AppIcon
-                          name={category ? CATEGORY_ICONS[category] : 'map-pin'}
-                          className="h-5 w-5"
-                        />
-                      </span>
-                    )}
+                    <PlaceThumb
+                      name={r.name}
+                      photo={photo}
+                      icon={category ? CATEGORY_ICONS[category] : 'map-pin'}
+                      className="transition-transform duration-300 group-hover:scale-105"
+                    />
                   </div>
 
                   <div className="min-w-0 flex-1">

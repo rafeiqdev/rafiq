@@ -8,10 +8,10 @@ import type { IconName } from '../AppIcon';
 import type { QuickFilters } from './MapExplorer';
 
 const CATEGORY_ICONS: Record<PlaceCategory, IconName> = {
-  dining: 'utensils',
+  dining: 'utensils-crossed',
   hotels: 'hotel',
-  hospitals: 'stethoscope',
-  notary: 'file-text',
+  hospitals: 'hospital',
+  notary: 'scroll-text',
   government: 'landmark',
   shopping: 'shopping-bag',
   arabic: 'languages',

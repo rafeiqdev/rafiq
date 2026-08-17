@@ -5,6 +5,7 @@ import { placeSearch } from '../../lib/api';
 import type { GooglePlaceResult, PlaceOverlay } from '../../lib/types';
 import { Modal } from '../Modal';
 import { AppIcon, DirArrow } from '../AppIcon';
+import { PlaceThumb } from './PlaceThumb';
 
 /** Google's own deep link when available; a coordinate query is the fallback. */
 function directionsUrl(p: GooglePlaceResult): string {
@@ -41,7 +42,6 @@ export function PlaceCard({
 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [imgOk, setImgOk] = useState(true);
   const [copied, setCopied] = useState(false);
   const photo = placeSearch.photoUrl(place.photoRef, 900);
   const verified = overlay?.verifiedStatus === 'verified';
@@ -94,18 +94,7 @@ export function PlaceCard({
       <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[90vh] md:rounded-3xl">
         {/* banner */}
         <div className="relative h-40 w-full shrink-0 bg-navy">
-          {photo && imgOk ? (
-            <img
-              src={photo}
-              alt=""
-              loading="eager"
-              decoding="async"
-              className="h-full w-full object-cover"
-              onError={() => setImgOk(false)}
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-navy to-navy-light" aria-hidden />
-          )}
+          <PlaceThumb name={place.name} photo={photo} size="lg" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden />
 
           <button
