@@ -10,6 +10,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
 import { popPostAuthRedirect } from './lib/authRedirect';
+import { isControlCenterEnabled } from './admin-control-center/flag';
 import { DEFAULT_LANG, langFromPath } from './i18n';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
@@ -94,6 +95,9 @@ const Notifications = lazyPage(() => import('./pages/Notifications').then((m) =>
 const MobileNotifications = lazyPage(() => import('./pages/mobile/MobileNotifications').then((m) => ({ default: m.MobileNotifications })));
 const Admin = lazyPage(() => import('./pages/Admin').then((m) => ({ default: m.Admin })));
 const AdminMedical = lazyPage(() => import('./pages/AdminMedical').then((m) => ({ default: m.AdminMedical })));
+// Additive: the new Admin Control Center. Lazy so it adds nothing to the main
+// bundle, and its route is only registered when the feature flag is on.
+const ControlCenter = lazyPage(() => import('./admin-control-center/ControlCenter').then((m) => ({ default: m.ControlCenter })));
 const CompanyRegister = lazyPage(() => import('./pages/company/CompanyRegister').then((m) => ({ default: m.CompanyRegister })));
 const CompanyDashboard = lazyPage(() => import('./pages/company/CompanyDashboard').then((m) => ({ default: m.CompanyDashboard })));
 const CompanyProfileEdit = lazyPage(() => import('./pages/company/CompanyProfileEdit').then((m) => ({ default: m.CompanyProfileEdit })));
@@ -276,6 +280,11 @@ function Shell() {
                 inside /admin — old links/bookmarks still land on it. */}
             <Route path="/admin/bookings" element={<Navigate to="/admin?tab=bookings" replace />} />
             <Route path="/admin/medical" element={<AdminMedical />} />
+            {/* Additive Admin Control Center — registered ONLY when the feature
+                flag is on. With the flag off this route does not exist and the
+                request falls through to the NotFound route below, so the app is
+                byte-for-byte unchanged. */}
+            {isControlCenterEnabled() && <Route path="/admin/control-center" element={<ControlCenter />} />}
             <Route path="/terms" element={<Legal doc="terms" />} />
             <Route path="/privacy" element={<Legal doc="privacy" />} />
             <Route path="/refund" element={<Legal doc="refund" />} />

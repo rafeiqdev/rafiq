@@ -27,6 +27,7 @@ import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
 import { AdminAuditLog } from '../components/admin/AdminAuditLog';
 import { RevealField } from '../components/admin/RevealField';
 import { maskEmail } from '../lib/format';
+import { isControlCenterEnabled } from '../admin-control-center/flag';
 
 /**
  * Every section that used to be its own stacked card (or, worse, its own
@@ -511,6 +512,20 @@ function AdminInner() {
             <AppIcon name="heart-pulse" className="w-4 h-4 shrink-0" />
             {t('medical.admin.navLink')}
           </Link>
+
+          {/* Additive discovery link to the new Control Center. Appended AFTER
+              every existing entry (never reordering them) and shown only when
+              the feature flag is on, so the classic sidebar is unchanged by
+              default. */}
+          {isControlCenterEnabled() && (
+            <Link
+              to="/admin/control-center"
+              className="shrink-0 md:shrink-0 flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors text-start text-brand-red hover:bg-cream md:mt-1"
+            >
+              <AppIcon name="layers" className="w-4 h-4 shrink-0" />
+              Control Center
+            </Link>
+          )}
         </nav>
 
         <div className="flex-1 min-w-0 w-full">
