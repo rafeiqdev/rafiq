@@ -15,11 +15,13 @@ import { MapUnavailable } from './MapUnavailable';
 import { MapFilterSheet } from './MapFilterSheet';
 
 const ISTANBUL = { lat: 41.0151, lng: 28.9795 };
-const DEFAULT_ZOOM = 12;
+const DEFAULT_ZOOM = 11;
 const SEARCH_RADIUS_M = 6000;
 
 /** How far in auto-framing may go. Beyond this a lone result fills the pane. */
-const MAX_FIT_ZOOM = 16;
+const MAX_FIT_ZOOM = 15;
+/** ...and how far out, so a wide spread of results never loses the city. */
+const MIN_FIT_ZOOM = 11;
 
 /**
  * How long to wait for a first tile after the SDK reports success. Google gives
@@ -343,11 +345,19 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
       // More breathing room on a phone: fitting a dozen places tightly into a
       // pane a third of the screen tall stacked every pin on its neighbour.
       map.fitBounds(bounds, compact ? 72 : 48);
-      // fitBounds on a single place slams the camera down to building level,
-      // where a lone pin floats on grey with no street context. Cap it once the
-      // camera settles — `idle` is the only honest "the move is finished" hook.
+      // Then stand back off the fitted camera. Two separate problems:
+      // fitBounds on a SINGLE place slams down to building level, where a lone
+      // pin floats on grey with no streets around it; and even a good fit sits
+      // close enough on a phone that the map reads as zoomed-in rather than as
+      // a view of the area. Applied on `idle` — the only honest "the camera has
+      // settled" hook Maps gives, since fitBounds animates.
       google.maps.event.addListenerOnce(map, 'idle', () => {
-        if ((map.getZoom() ?? 0) > MAX_FIT_ZOOM) map.setZoom(MAX_FIT_ZOOM);
+        const fitted = map.getZoom() ?? DEFAULT_ZOOM;
+        const wanted = Math.max(
+          MIN_FIT_ZOOM,
+          Math.min(fitted, MAX_FIT_ZOOM) - (compact ? 1 : 0),
+        );
+        if (wanted !== fitted) map.setZoom(wanted);
       });
     }
     // openPlace is stable enough for this effect; results/overlays drive it.
@@ -487,7 +497,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
         const map = mapRef.current;
         if (map) {
           map.panTo(loc);
-          if ((map.getZoom() ?? 0) < 14) map.setZoom(14);
+          if ((map.getZoom() ?? 0) < 13) map.setZoom(13);
         }
         setLocating(false);
         // Refresh whatever the user was looking at, now centred on them. With no
@@ -585,7 +595,8 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     const map = mapRef.current;
     if (map && p.lat !== null && p.lng !== null) {
       map.panTo({ lat: p.lat, lng: p.lng });
-      if ((map.getZoom() ?? 0) < 15) map.setZoom(15);
+      // Close enough to see which street it is on, without diving to the roof.
+      if ((map.getZoom() ?? 0) < 14) map.setZoom(14);
     }
   };
 
