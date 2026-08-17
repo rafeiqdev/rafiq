@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { getSiteUrl } from './siteUrl.mjs';
+import { resolveSiteUrlOrExit } from './siteUrl.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const siteUrl = getSiteUrl();
+const siteUrl = resolveSiteUrlOrExit(process.env);
 const key = process.env.INDEXNOW_KEY || '7a823996-c355-4004-990d-da5720d02706';
 const keyLocation = `${siteUrl}/${key}.txt`;
 const isProduction = process.env.VERCEL_ENV === 'production' || process.env.INDEXNOW_FORCE === '1';
