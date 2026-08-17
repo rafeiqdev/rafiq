@@ -248,6 +248,21 @@
       "button": "Explore services",
       "bottom": "View all Rafiq services"
     },
+    "startHere": {
+      "eyebrow": "Start here",
+      "title": "A practical first route through Istanbul",
+      "subtitle": "Choose the chapter that matches your situation. Each step explains what to prepare, what to check, and where to continue.",
+      "open": "Open guide",
+      "note": "Rafiq is an independent digital guidance platform, not a government office. Rules, prices and availability can change; official links and update dates matter.",
+      "steps": {
+        "arrive": { "title": "Plan your arrival", "body": "Start with your language, purpose and first-week priorities before booking a service." },
+        "legal": { "title": "Understand your legal stay", "body": "Review residence-permit categories, documents and the official application path." },
+        "home": { "title": "Find a suitable home", "body": "Compare districts, rental questions and the checks to make before signing." },
+        "districts": { "title": "Learn the districts", "body": "Explore transport, daily life and practical differences across Istanbul." },
+        "daily": { "title": "Set up daily life", "body": "Find help with banking, phone, health, translation and everyday tasks." },
+        "help": { "title": "Ask for the next step", "body": "Tell us what you need; we will explain the available route before you decide." }
+      }
+    },
     "explore": {
       "title": "Explore everything Rafiq offers",
       "subtitle": "Every service and guide, one tap away."

@@ -17,6 +17,8 @@ import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
 import { JourneyProgressBar } from '../components/JourneyProgressBar';
+import { StartHereSection } from '../components/sections/StartHereSection';
+
 import { usePageMeta } from '../lib/seo';
 import { HOME_STATS } from '../data/siteStats';
 
@@ -327,6 +329,10 @@ export function Home() {
       {/* how it works — explains the product before "for you" shows
           personalized cards that only make sense once you know what Rafiq does */}
       <HowItWorks />
+
+      {/* practical roadmap: numbered, chapter-like entry points inspired by
+          high-performing Istanbul guides, with honest next actions */}
+      <StartHereSection />
 
       {/* personalized blocks */}
       <section className="mx-auto max-w-6xl px-4 py-10">
