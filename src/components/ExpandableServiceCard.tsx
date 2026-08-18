@@ -96,7 +96,7 @@ export function ExpandableServiceCard({
     <div className="esc-scope h-full">
       <button type="button" onClick={openCard} className="esc-compact-card" aria-haspopup="dialog">
         <span className="esc-compact-visual">
-          {service.image ? <img src={service.image} alt="" /> : <AppIcon name={service.icon} />}
+          {service.image ? <img src={service.image} alt={title} /> : <AppIcon name={service.icon} />}
           <span className="esc-compact-number">{num}</span>
         </span>
         <span className="esc-compact-content">
@@ -147,7 +147,7 @@ export function ExpandableServiceCard({
                 aria-label={title}
               >
                 <div className="esc-service-image">
-                  {service.image ? <img src={service.image} alt="" /> : <AppIcon name={service.icon} />}
+                  {service.image ? <img src={service.image} alt={title} /> : <AppIcon name={service.icon} />}
                 </div>
                 <div className="esc-image-tint" />
 

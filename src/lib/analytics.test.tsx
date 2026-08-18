@@ -351,6 +351,32 @@ describe('page_view auto-capture on route change', () => {
   });
 });
 
+describe('AI referral attribution', () => {
+  it('sends a fixed ChatGPT source without forwarding the query string', async () => {
+    const { setConsent, track, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    const gtag = vi.fn();
+    window.gtag = gtag;
+    window.history.pushState({}, '', '/ar?utm_source=chatgpt.com&utm_medium=referral&query=private-text');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(gtag).toHaveBeenCalledWith('event', 'ai_referral', {
+      source: 'chatgpt.com',
+      landing_page: '/ar',
+    });
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'page_view',
+      expect.objectContaining({ page_path: '/ar', ai_referral_source: 'chatgpt.com' }),
+    );
+    expect(gtag.mock.calls.flat().join(' ')).not.toContain('private-text');
+    window.history.replaceState({}, '', '/');
+  });
+});
+
 /**
  * public.events was never created in the live database. Every batch since the
  * collection layer shipped was POSTed and discarded by the catch at the end of

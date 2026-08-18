@@ -40,6 +40,7 @@ const today = new Date().toISOString().slice(0, 10);
 const STATIC_ROUTES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/services', changefreq: 'weekly', priority: '0.9' },
+  { path: '/news', changefreq: 'daily', priority: '0.7' },
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8' },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7' },
   { path: '/tricks', changefreq: 'monthly', priority: '0.6' },
@@ -96,7 +97,16 @@ writeFileSync(join(root, 'public/sitemap.xml'), xml, 'utf8');
 
 // robots.txt — same origin, same single source. Kept byte-for-byte in the shape
 // it already had (allow-all + one Sitemap line); only the host is now derived.
-const robots = ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE_URL}/sitemap.xml`, ''].join('\n');
+const robots = [
+  'User-agent: OAI-SearchBot',
+  'Allow: /',
+  '',
+  'User-agent: *',
+  'Allow: /',
+  '',
+  `Sitemap: ${SITE_URL}/sitemap.xml`,
+  '',
+].join('\n');
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
 console.log(

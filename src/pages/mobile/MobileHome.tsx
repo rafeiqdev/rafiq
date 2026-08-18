@@ -189,8 +189,8 @@ export function MobileHome() {
                 floating in the corner (see the same fix in UserHome.tsx). */}
             <div className="absolute -end-3 top-[calc(env(safe-area-inset-top)+64px)] w-28 aspect-[4/5]">
               <SiteImage
-                src={CAROUSEL[0]}
-                alt=""
+src={CAROUSEL[0]}
+                alt={t('home.heroTitle')}
                 priority
                 className="w-full h-full rotate-[7deg] rounded-lg border-[3px] border-white shadow-cardHover"
               />
@@ -249,7 +249,7 @@ export function MobileHome() {
                         className="w-full min-h-[48px] flex items-center gap-3 px-4 py-3 text-start text-[15px] text-navy border-b border-cream-dark last:border-b-0 active:bg-brand-blue"
                       >
                         {s.image ? (
-                          <img src={s.image} alt="" loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          <img src={s.image} alt={pickText(s.title, i18n.language)} loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" />
                         ) : (
                           <AppIcon name="search" className="w-4 h-4 text-navy/40 shrink-0" />
                         )}

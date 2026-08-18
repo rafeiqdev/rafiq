@@ -66,19 +66,17 @@ export function RafiqLoader({
         <div className="rq-rise absolute inset-0">
           <div className="rq-breathe absolute inset-0">
             {LETTERS.map((l, i) => (
-              <img
+              <span
                 key={l.src}
-                src={l.src}
-                alt=""
-                aria-hidden
-                draggable={false}
-                className="rq-letter absolute select-none"
+                aria-hidden="true"
+                className="rq-letter absolute select-none bg-contain bg-center bg-no-repeat"
                 style={
                   {
                     left: l.left,
                     top: l.top,
                     width: l.width,
                     height: l.height,
+                    backgroundImage: `url(${l.src})`,
                     '--rq-delay': `${i * HOP_STAGGER_S}s`,
                   } as CSSProperties
                 }
