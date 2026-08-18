@@ -522,25 +522,31 @@ export function UserHome() {
       {/* ── the whole road, not a 3-item preview — except once every step is
           done, the full list is just a wall of checkmarks nobody needs to
           re-scan. Collapse to a one-line summary behind "show details", styled
-          as a banner with a "N steps" badge and the trip flat-lay photo. ── */}
-      <section className="card relative mt-4 overflow-hidden bg-gradient-to-br from-white to-cream p-5">
+          as a compact banner with a "N steps" badge and the trip flat-lay
+          photo. The section stays flat-colored (no gradient) on purpose: the
+          photo itself carries a baked-in alpha fade on both edges (see the
+          journey-complete-flatlay generation), so it blends into whatever's
+          behind it with no separate color to keep in sync — a gradient
+          section background previously drifted out of step with a flat CSS
+          fade overlay and showed as a visible seam. ── */}
+      <section className="card relative mt-4 overflow-hidden bg-cream p-4">
         <Link
           to="/journey"
-          className="absolute top-4 end-4 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-navy/70 shadow-sm hover:bg-white hover:text-navy"
+          className="absolute top-3 end-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-navy/70 shadow-sm hover:bg-white hover:text-navy"
         >
           {t('dash.stepsCount', { count: progress.total })}
         </Link>
-        <div className={roadComplete && !roadExpanded ? 'max-w-[62%] sm:max-w-[55%]' : 'pe-16'}>
+        <div className={roadComplete && !roadExpanded ? 'max-w-[60%] sm:max-w-[55%]' : 'pe-16'}>
           <h2 className="font-extrabold text-navy">{t('dash.roadTitle')}</h2>
           {roadComplete && !roadExpanded ? (
             <>
-              <p className="mt-2 text-sm font-bold text-emerald-700">
+              <p className="mt-1.5 text-sm font-bold text-emerald-700">
                 {t('dash.roadAllDone', { count: progress.total })}
               </p>
               <button
                 type="button"
                 onClick={() => setRoadExpanded(true)}
-                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
               >
                 {t('dash.roadShowDetails')}
                 <AppIcon name="chevron-down" className="w-3.5 h-3.5" />
@@ -574,12 +580,8 @@ export function UserHome() {
           )}
         </div>
         {roadComplete && !roadExpanded && (
-          <div className="pointer-events-none absolute end-0 top-0 h-full w-[46%] sm:w-[42%]">
+          <div className="pointer-events-none absolute end-0 top-0 h-full w-[42%] sm:w-[38%]">
             <SiteImage src="/img/journey-complete-flatlay.webp" alt="" className="h-full w-full" />
-            <div
-              className="absolute inset-y-0 start-0 w-10 bg-gradient-to-r from-cream to-transparent"
-              aria-hidden
-            />
           </div>
         )}
       </section>
