@@ -20,6 +20,24 @@ function expectedFile({ lang, route }) {
     : join(dist, lang, `${route.slice(1)}.html`);
 }
 
+function readJsonLd(html, id) {
+  const match = html.match(new RegExp(`<script id="${id}"[^>]*>([\\s\\S]*?)</script>`));
+  if (!match) return null;
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+function checkSiteEntity(html, url) {
+  const entity = readJsonLd(html, 'ld-organization');
+  const graph = entity?.['@graph'] ?? [];
+  if (!entity || !graph.some((item) => item['@type'] === 'Organization')) errors.push(`Missing Organization schema: ${url}`);
+  const website = graph.find((item) => item['@type'] === 'WebSite');
+  if (!website || website.potentialAction?.['@type'] !== 'SearchAction') errors.push(`Missing WebSite SearchAction: ${url}`);
+}
+
 for (const url of urls) {
   const info = routeInfo(url);
   if (!info) {
@@ -47,6 +65,19 @@ for (const url of urls) {
   if (!/<title>[^<]+<\/title>/i.test(html)) errors.push(`Missing title: ${url}`);
   if (!/<meta name="description" content="[^"]+"\s*\/?\s*>/i.test(html)) errors.push(`Missing description: ${url}`);
   if (!html.includes('<main id="seo-fallback"')) errors.push(`Missing pre-rendered content: ${url}`);
+  checkSiteEntity(html, url);
+  if (info.route === '/' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 6)) {
+    errors.push(`Home FAQ schema/content is incomplete: ${url}`);
+  }
+  if (/^\/guides\/[^/]+$/.test(info.route) && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
+    errors.push(`Guide FAQ schema/content is incomplete: ${url}`);
+  }
+  if (info.route === '/health-tourism' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
+    errors.push(`Health-tourism FAQ schema/content is incomplete: ${url}`);
+  }
+  if (/^\/services\/[^/]+$/.test(info.route) && !readJsonLd(html, 'ld-service')) {
+    errors.push(`Service schema is missing: ${url}`);
+  }
 }
 
 if (urls.length !== 400) errors.push(`Unexpected sitemap URL count: ${urls.length}`);

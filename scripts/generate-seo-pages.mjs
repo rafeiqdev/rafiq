@@ -67,8 +67,60 @@ function readGuideSeo() {
   return records;
 }
 
+function readGuideFaqs() {
+  const source = readFileSync(join(root, 'src/data/categoryGuides.ts'), 'utf8');
+  const records = {};
+  const blockPattern = /"faqs"\s*:\s*\[([\s\S]*?)\]\s*,/g;
+  const pairPattern = new RegExp(
+    `"question"\\s*:\\s*${quoted}\\s*,\\s*"answer"\\s*:\\s*${quoted}`,
+    'g',
+  );
+  for (const block of source.matchAll(blockPattern)) {
+    const before = source.slice(0, block.index);
+    const categoryOpeners = [...before.matchAll(/^  "([^\"]+)"\s*:\s*\{\s*$/gm)];
+    const languageOpeners = [...before.matchAll(/^    "(ar|en|ru|fa)"\s*:\s*\{\s*$/gm)];
+    const id = categoryOpeners.at(-1)?.[1];
+    const lang = languageOpeners.at(-1)?.[1];
+    if (!id || !lang) continue;
+    const faqs = [...block[1].matchAll(pairPattern)].map((match) => ({
+      question: decodeTsString(match[1]),
+      answer: decodeTsString(match[2]),
+    }));
+    records[id] ??= {};
+    records[id][lang] = faqs;
+  }
+  return records;
+}
+
+function readGuideSections() {
+  const source = readFileSync(join(root, 'src/data/categoryGuides.ts'), 'utf8');
+  const records = {};
+  const blockPattern = /"sections"\s*:\s*\[([\s\S]*?)\]\s*,\s*"faqs"/g;
+  const pairPattern = new RegExp(
+    `"heading"\\s*:\\s*${quoted}\\s*,\\s*"body"\\s*:\\s*${quoted}`,
+    'g',
+  );
+  for (const block of source.matchAll(blockPattern)) {
+    const before = source.slice(0, block.index);
+    const categoryOpeners = [...before.matchAll(/^  "([^\"]+)"\s*:\s*\{\s*$/gm)];
+    const languageOpeners = [...before.matchAll(/^    "(ar|en|ru|fa)"\s*:\s*\{\s*$/gm)];
+    const id = categoryOpeners.at(-1)?.[1];
+    const lang = languageOpeners.at(-1)?.[1];
+    if (!id || !lang) continue;
+    const sections = [...block[1].matchAll(pairPattern)].map((match) => ({
+      heading: decodeTsString(match[1]),
+      body: decodeTsString(match[2]),
+    }));
+    records[id] ??= {};
+    records[id][lang] = sections;
+  }
+  return records;
+}
+
 const serviceSeo = Object.fromEntries(LANGS.map((lang) => [lang, readServiceSeo(lang)]));
 const guideSeo = readGuideSeo();
+const guideFaqs = readGuideFaqs();
+const guideSections = readGuideSections();
 
 const staticMeta = {
   '/': (lang) => ({
@@ -136,6 +188,83 @@ function escapeJsonForHtml(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
+function siteEntityJsonLd(lang) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
+        name: 'Rafiq Istanbul',
+        alternateName: ['Rafiq', 'رفيق إسطنبول', 'Рафик Стамбул', 'رفیق استانبول'],
+        description: text(lang, 'common.tagline'),
+        url: SITE_URL,
+        logo: `${SITE_URL}/icon-512.png`,
+        image: `${SITE_URL}/og-cover.png`,
+        availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: 'Rafiq Istanbul',
+        alternateName: ['Rafiq', 'رفيق إسطنبول'],
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        inLanguage: ['ar', 'en', 'ru', 'fa'],
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}/ar/services?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+}
+
+function faqPageJsonLd(items) {
+  const mainEntity = items
+    .map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    }))
+    .filter((item) => item.name && item.acceptedAnswer.text);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity,
+  };
+}
+
+function homeFaqItems(lang) {
+  return ['q1', 'q2', 'q3', 'q4', 'q5', 'q6']
+    .map((id) => ({
+      question: text(lang, `home.faq.${id}.q`),
+      answer: text(lang, `home.faq.${id}.a`),
+    }))
+    .filter((item) => item.question && item.answer);
+}
+
+function renderFaqHtml(items, lang) {
+  if (!items.length) return '';
+  const heading = { ar: 'أسئلة شائعة', en: 'Common questions', ru: 'Частые вопросы', fa: 'پرسش‌های رایج' }[lang];
+  return `
+      <section aria-labelledby="seo-faq-heading">
+        <h2 id="seo-faq-heading">${escapeHtml(heading)}</h2>
+        ${items.map((item) => `
+        <details>
+          <summary>${escapeHtml(item.question)}</summary>
+          <p>${escapeHtml(item.answer)}</p>
+        </details>`).join('')}
+      </section>`;
+}
+
 function pageUrl(lang, route) {
   return `${SITE_URL}/${lang}${route === '/' ? '' : route}`;
 }
@@ -195,7 +324,53 @@ function buildHtml(template, lang, route, meta) {
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
   const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
-  const staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n    </main>`;
+  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n    </main>`;
+  const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
+  const guideMatch = route.match(/^\/guides\/([^/]+)$/);
+  const serviceMatch = route.match(/^\/services\/([^/]+)$/);
+  const faqItems = route === '/'
+    ? homeFaqItems(lang)
+    : guideMatch
+      ? guideFaqs[guideMatch[1]]?.[lang] ?? []
+      : route === '/health-tourism'
+        ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
+        : [];
+  const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
+  const serviceJsonLd = serviceMatch && serviceSeo[lang][serviceMatch[1]]
+    ? escapeJsonForHtml({
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        '@id': `${url}#service`,
+        name: meta.title,
+        description: meta.description,
+        serviceType: meta.title,
+        provider: { '@id': `${SITE_URL}/#organization` },
+        areaServed: { '@type': 'City', name: 'Istanbul' },
+        inLanguage: lang,
+      })
+    : '';
+
+  if (guideMatch) {
+    const sections = guideSections[guideMatch[1]]?.[lang] ?? [];
+    const guideFaqItems = guideFaqs[guideMatch[1]]?.[lang] ?? [];
+    if (sections.length || guideFaqItems.length) {
+      const sectionHtml = sections.map((section) => `
+        <section>
+          <h2>${escapeHtml(section.heading)}</h2>
+          <p>${escapeHtml(section.body)}</p>
+        </section>`).join('');
+      staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
+        <p>${escapeHtml(meta.content || meta.description)}</p>${sectionHtml}${renderFaqHtml(guideFaqItems, lang)}
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>
+    </main>`;
+    }
+  } else if (faqItems.length) {
+    staticMain = staticMain.replace('</article>', `${renderFaqHtml(faqItems, lang)}\n      </article>`);
+  }
+
   const jsonLd = escapeJsonForHtml({
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -221,7 +396,8 @@ function buildHtml(template, lang, route, meta) {
   html = upsertTag(html, /<meta\s+name="twitter:description"[^>]*>/i, `<meta name="twitter:description" content="${escapeHtml(meta.description)}" />`);
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}" />`);
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
-  html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+  html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
+    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
   html = html.replace(/<div id="root"><\/div>/i, `<div id="root">${staticMain}\n    </div>`);
   return html;
 }

@@ -53,6 +53,14 @@ export function LocalBusinessSchema() {
           alternateName: ['Rafiq', 'رفيق إسطنبول'],
           publisher: { '@id': `${SITE_URL}/#organization` },
           inLanguage: ['ar', 'en', 'ru', 'fa'],
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: {
+              '@type': 'EntryPoint',
+              urlTemplate: `${SITE_URL}/ar/services?q={search_term_string}`,
+            },
+            'query-input': 'required name=search_term_string',
+          },
         },
       ],
     };
