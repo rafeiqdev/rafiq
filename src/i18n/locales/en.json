@@ -1686,6 +1686,17 @@
     "readMore": "See how it works",
     "howTitle": "How to do it",
     "benefitTitle": "What you get",
+    "tipsEyebrow": "Practical guide",
+    "tipsSectionTitle": "Everyday practical tips",
+    "categories": {
+      "paperwork": "Residence & Paperwork",
+      "transport": "Getting Around",
+      "money": "Money & Connectivity",
+      "leisure": "Leisure & Services"
+    },
+    "comingSoonTitle": "This page is closed for now or under development",
+    "comingSoonBody": "We're preparing a better version of this page. Check back soon!",
+    "comingSoonCta": "Back to home",
     "items": {
       "edevlet": {
         "title": "e-Devlet — the master key",
@@ -1891,6 +1902,7 @@
     "helpWhatsapp": "Chat on WhatsApp"
   },
   "tricksApps": {
+    "eyebrow": "Daily tools",
     "title": "Essential Istanbul Apps",
     "search": "Search…",
     "web": "Website",
@@ -1898,6 +1910,11 @@
     "ios": "iPhone",
     "install": "Install as app",
     "empty": "No results."
+  },
+  "cityGuide": {
+    "eyebrow": "Know the city",
+    "title": "Quick Istanbul Guide",
+    "subtitle": "The essential practical facts about life in Istanbul: areas, cost of living, climate, and customs."
   },
   "medTourism": {
     "title": "Types of Medical Tourism in Istanbul",

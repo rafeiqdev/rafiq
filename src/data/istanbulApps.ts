@@ -3,12 +3,14 @@
  * Descriptions/category names are inline per-language (ar/en/ru/fa). No external
  * data source. Pick text with pickAppText().
  */
+import type { IconName } from '../components/AppIcon';
+
 export type AppLang = 'ar' | 'en' | 'ru' | 'fa';
 export type LocalizedText = Record<AppLang, string>;
 
 export interface AppCategory {
   id: string;
-  icon: string; // emoji
+  icon: IconName;
   name: LocalizedText;
 }
 
@@ -32,11 +34,11 @@ export function pickAppText(obj: LocalizedText, lang: string): string {
 }
 
 export const APP_CATEGORIES: AppCategory[] = [
-  { id: 'gov', icon: '🪪', name: { ar: 'الإقامة والخدمات الحكومية', en: 'Residence & Government', ru: 'ВНЖ и госуслуги', fa: 'اقامت و خدمات دولتی' } },
-  { id: 'transit', icon: '🚇', name: { ar: 'بطاقة إسطنبول والنقل العام', en: 'İstanbulkart & Public Transport', ru: 'İstanbulkart и транспорт', fa: 'کارت استانبول و حمل‌ونقل' } },
-  { id: 'taxi', icon: '🚕', name: { ar: 'سيارات الأجرة والسكوتر', en: 'Taxi & Scooter', ru: 'Такси и самокаты', fa: 'تاکسی و اسکوتر' } },
-  { id: 'food', icon: '🍽️', name: { ar: 'توصيل الطعام والبقالة', en: 'Food & Grocery Delivery', ru: 'Доставка еды и продуктов', fa: 'تحویل غذا و خواربار' } },
-  { id: 'shop', icon: '🛍️', name: { ar: 'التسوّق وبيع/شراء الأغراض', en: 'Shopping & Buy/Sell', ru: 'Покупки и продажа', fa: 'خرید و فروش' } },
+  { id: 'gov', icon: 'id-card', name: { ar: 'الإقامة والخدمات الحكومية', en: 'Residence & Government', ru: 'ВНЖ и госуслуги', fa: 'اقامت و خدمات دولتی' } },
+  { id: 'transit', icon: 'bus', name: { ar: 'بطاقة إسطنبول والنقل العام', en: 'İstanbulkart & Public Transport', ru: 'İstanbulkart и транспорт', fa: 'کارت استانبول و حمل‌ونقل' } },
+  { id: 'taxi', icon: 'car', name: { ar: 'سيارات الأجرة والسكوتر', en: 'Taxi & Scooter', ru: 'Такси и самокаты', fa: 'تاکسی و اسکوتر' } },
+  { id: 'food', icon: 'utensils-crossed', name: { ar: 'توصيل الطعام والبقالة', en: 'Food & Grocery Delivery', ru: 'Доставка еды и продуктов', fa: 'تحویل غذا و خواربار' } },
+  { id: 'shop', icon: 'shopping-bag', name: { ar: 'التسوّق وبيع/شراء الأغراض', en: 'Shopping & Buy/Sell', ru: 'Покупки и продажа', fa: 'خرید و فروش' } },
 ];
 
 export const ISTANBUL_APPS: IstanbulApp[] = [

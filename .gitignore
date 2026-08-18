@@ -7,6 +7,7 @@ server/uploads/
 
 .vercel
 .gstack/
+.superpowers/
 
 # TypeScript incremental build artifacts
 *.tsbuildinfo

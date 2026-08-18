@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { AppIcon, BackArrow, DirArrow } from '../../components/AppIcon';
 import { PageHero } from '../../components/PageHero';
 import { IstanbulApps } from '../../components/IstanbulApps';
+import { IstanbulCityGuide } from '../../components/IstanbulCityGuide';
+import { IstanbulHeroFacts } from '../../components/IstanbulHeroFacts';
+import { ComingSoon } from '../../components/ComingSoon';
 import { BANNERS } from '../../lib/images';
 import { useApp } from '../../context/AppContext';
 import { MobileTabBar } from '../../components/MobileTabBar';
-import { TRICK_SLUGS, TRICK_ICONS } from '../Tricks';
+import { TRICK_CATEGORIES, TRICK_ICONS, TRICKS_PAGE_READY } from '../Tricks';
 import type { TrickSlug } from '../Tricks';
 
 // Cycles through three accent tints for visual rhythm across the 12 cards.
@@ -70,6 +73,8 @@ export function MobileTricks() {
   const isRTL = lang === 'ar' || lang === 'fa';
   const mc = mobileCopy[lang] ?? mobileCopy.en;
 
+  if (!TRICKS_PAGE_READY) return <ComingSoon />;
+
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
       <div className="pb-[calc(env(safe-area-inset-bottom)+88px)]">
@@ -88,16 +93,37 @@ export function MobileTricks() {
             title={t('tricks.title')}
             subtitle={t('tricks.subtitle')}
             height="min-h-[14rem] pt-[calc(env(safe-area-inset-top)+3.75rem)]"
-          />
+          >
+            <IstanbulHeroFacts />
+          </PageHero>
         </div>
 
         <div className="flex flex-col gap-6 px-5 pt-5">
-          {/* ── Trick cards (single column, polished) ── */}
-          <div className="stagger flex flex-col gap-3.5">
-            {TRICK_SLUGS.map((id, i) => (
-              <TrickCard key={id} id={id} index={i} />
-            ))}
-          </div>
+          {/* ── City guide: practical info about Istanbul itself ── */}
+          <IstanbulCityGuide />
+
+          {/* ── Practical tips, grouped by theme ── */}
+          <section>
+            <span className="eyebrow">{t('tricks.tipsEyebrow')}</span>
+            <h2 className="section-title mt-2 text-xl">{t('tricks.tipsSectionTitle')}</h2>
+            <div className="mt-4 flex flex-col gap-6">
+              {TRICK_CATEGORIES.map((cat) => (
+                <div key={cat.id}>
+                  <h3 className="text-[15px] font-extrabold text-navy inline-flex items-center gap-2.5">
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${cat.tint}`}>
+                      <AppIcon name={cat.icon} className="w-[18px] h-[18px]" />
+                    </span>
+                    {t(`tricks.categories.${cat.id}`)}
+                  </h3>
+                  <div className="stagger mt-3 flex flex-col gap-3.5">
+                    {cat.slugs.map((id, i) => (
+                      <TrickCard key={id} id={id} index={i} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* ── Essential Istanbul apps directory (reused, unchanged) ── */}
           <IstanbulApps />

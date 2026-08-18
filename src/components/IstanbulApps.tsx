@@ -11,6 +11,15 @@ const LINK_META: { key: keyof AppLinks; icon: IconName; label: string }[] = [
   { key: 'ios', icon: 'smartphone', label: 'tricksApps.ios' },
 ];
 
+/** Tinted chip per category — same colored-chip convention used across the app (e.g. HealthTourism, Referrals). */
+const CAT_TINT: Record<string, string> = {
+  gov: 'bg-sky-100 text-sky-700',
+  transit: 'bg-emerald-100 text-emerald-700',
+  taxi: 'bg-amber-100 text-amber-800',
+  food: 'bg-brand-red/10 text-brand-red',
+  shop: 'bg-purple-100 text-purple-600',
+};
+
 /** "Install as app" button — only shown when the browser allows installation. */
 function useInstallable() {
   const w = window as unknown as { __rafiqInstall?: { prompt: () => void; userChoice: Promise<unknown> } };
@@ -55,7 +64,8 @@ export function IstanbulApps() {
 
   return (
     <section id="istanbul-apps" dir={rtl ? 'rtl' : 'ltr'} className="mt-10 scroll-mt-20">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <span className="eyebrow">{t('tricksApps.eyebrow')}</span>
+      <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
         <h2 className="section-title">{t('tricksApps.title')}</h2>
         {canInstall && (
           <button onClick={install} className="btn-gold h-10 text-sm">
@@ -84,9 +94,11 @@ export function IstanbulApps() {
         <div className="mt-6 flex flex-col gap-7">
           {groups.map(({ cat, apps }) => (
             <div key={cat.id}>
-              <h3 className="font-extrabold text-navy inline-flex items-center gap-2">
-                <span className="text-xl" aria-hidden="true">
-                  {cat.icon}
+              <h3 className="font-extrabold text-navy inline-flex items-center gap-2.5">
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${CAT_TINT[cat.id] ?? 'bg-navy/10 text-navy'}`}
+                >
+                  <AppIcon name={cat.icon} className="w-[18px] h-[18px]" />
                 </span>
                 {pickAppText(cat.name, lang)}
               </h3>

@@ -215,6 +215,20 @@ function RoadRow({
   );
 }
 
+/** One tile in the decorative "trip kit" cluster on the all-done road card —
+    stands in for the phone/checklist/passport/card flat-lay in the reference
+    design, built from existing app icons instead of a stock photo. */
+function IconTile({ icon, rotate, className = '' }: { icon: IconName; rotate: string; className?: string }) {
+  return (
+    <span
+      className={`flex items-center justify-center w-10 h-10 shrink-0 rounded-2xl bg-white text-navy/70 shadow-md ring-1 ring-navy/5 ${rotate} ${className}`}
+      aria-hidden
+    >
+      <AppIcon name={icon} className="w-4 h-4" />
+    </span>
+  );
+}
+
 export function UserHome() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -520,53 +534,68 @@ export function UserHome() {
 
       {/* ── the whole road, not a 3-item preview — except once every step is
           done, the full list is just a wall of checkmarks nobody needs to
-          re-scan. Collapse to a one-line summary behind "show details". ── */}
-      <Panel className="mt-4">
-        <div className="flex items-center justify-between gap-3">
+          re-scan. Collapse to a one-line summary behind "show details", styled
+          as a banner with a "N steps" badge and a decorative trip-kit icon
+          cluster standing in for a flat-lay photo. ── */}
+      <section className="card relative mt-4 overflow-hidden bg-gradient-to-br from-white to-cream p-5">
+        <Link
+          to="/journey"
+          className="absolute top-4 end-4 rounded-full bg-navy/5 px-3 py-1 text-xs font-bold text-navy/70 hover:bg-navy/10 hover:text-navy"
+        >
+          {t('dash.stepsCount', { count: progress.total })}
+        </Link>
+        <div className={roadComplete && !roadExpanded ? 'max-w-[62%] sm:max-w-[55%]' : 'pe-16'}>
           <h2 className="font-extrabold text-navy">{t('dash.roadTitle')}</h2>
-          <Link to="/journey" className="text-sm font-semibold text-navy/60 hover:text-navy">
-            {t('dash.stepsCount', { count: progress.total })}
-          </Link>
-        </div>
-        {roadComplete && !roadExpanded ? (
-          <>
-            <p className="mt-2 text-sm font-semibold text-emerald-700">
-              {t('dash.roadAllDone', { count: progress.total })}
-            </p>
-            <button
-              type="button"
-              onClick={() => setRoadExpanded(true)}
-              className="mt-2 text-xs font-semibold text-navy/60 hover:text-navy"
-            >
-              {t('dash.roadShowDetails')}
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
-            <ul className="mt-3 flex flex-col">
-              {items.map((item, i) => (
-                <RoadRow
-                  key={item.id}
-                  item={item}
-                  index={i}
-                  isNext={next?.id === item.id}
-                  fromAnswers={isFromAnswers(item)}
-                />
-              ))}
-            </ul>
-            {roadComplete && (
+          {roadComplete && !roadExpanded ? (
+            <>
+              <p className="mt-2 text-sm font-bold text-emerald-700">
+                {t('dash.roadAllDone', { count: progress.total })}
+              </p>
               <button
                 type="button"
-                onClick={() => setRoadExpanded(false)}
-                className="mt-3 text-xs font-semibold text-navy/60 hover:text-navy"
+                onClick={() => setRoadExpanded(true)}
+                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
               >
-                {t('dash.roadShowLess')}
+                {t('dash.roadShowDetails')}
+                <AppIcon name="chevron-down" className="w-3.5 h-3.5" />
               </button>
-            )}
-          </>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
+              <ul className="mt-3 flex flex-col">
+                {items.map((item, i) => (
+                  <RoadRow
+                    key={item.id}
+                    item={item}
+                    index={i}
+                    isNext={next?.id === item.id}
+                    fromAnswers={isFromAnswers(item)}
+                  />
+                ))}
+              </ul>
+              {roadComplete && (
+                <button
+                  type="button"
+                  onClick={() => setRoadExpanded(false)}
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
+                >
+                  {t('dash.roadShowLess')}
+                  <AppIcon name="chevron-down" className="w-3.5 h-3.5 rotate-180" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
+        {roadComplete && !roadExpanded && (
+          <div className="pointer-events-none absolute end-3 top-1/2 flex -translate-y-1/2 items-center">
+            <IconTile icon="smartphone" rotate="-rotate-6" className="z-40" />
+            <IconTile icon="file-check" rotate="rotate-3" className="z-30 -ms-4" />
+            <IconTile icon="id-card" rotate="-rotate-3" className="z-20 -ms-4" />
+            <IconTile icon="credit-card" rotate="rotate-6" className="z-10 -ms-4" />
+          </div>
         )}
-      </Panel>
+      </section>
 
       {/* ── what happens now: the new user's real question is "and then?" ── */}
       <Panel className="mt-4">
