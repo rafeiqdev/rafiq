@@ -195,6 +195,25 @@ function safePath(): string {
   }
 }
 
+/**
+ * Keep AI attribution intentionally narrow and non-identifying. We never send
+ * the full URL, query string, or referring page; only a fixed source label.
+ */
+function aiReferralSource(): 'chatgpt.com' | null {
+  try {
+    const utmSource = new URLSearchParams(window.location.search).get('utm_source')?.trim().toLowerCase();
+    if (utmSource === 'chatgpt.com') return 'chatgpt.com';
+
+    const hostname = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
+    if (hostname === 'chatgpt.com' || hostname.endsWith('.chatgpt.com') || hostname === 'chatgpt.site' || hostname.endsWith('.chatgpt.site')) {
+      return 'chatgpt.com';
+    }
+  } catch {
+    /* Attribution is optional and must never affect the page. */
+  }
+  return null;
+}
+
 /** Origin only, computed once per session — never the full referring URL (see migration comment). */
 function referrerOrigin(): string | null {
   if (cachedReferrerOrigin !== undefined) return cachedReferrerOrigin;
@@ -398,12 +417,21 @@ if (typeof window !== 'undefined') {
 function sendGooglePageView(): void {
   try {
     if (typeof window === 'undefined' || getConsent() !== 'granted') return;
+    const landingPage = safePath();
+    const aiSource = aiReferralSource();
     window.gtag?.('event', 'page_view', {
-      page_path: safePath(),
-      page_location: window.location.origin + safePath(),
+      page_path: landingPage,
+      page_location: window.location.origin + landingPage,
       page_title: document.title,
       language: currentLocale(),
+      ...(aiSource ? { ai_referral_source: aiSource } : {}),
     });
+    if (aiSource) {
+      window.gtag?.('event', 'ai_referral', {
+        source: aiSource,
+        landing_page: landingPage,
+      });
+    }
   } catch {
     /* Analytics must remain best-effort. */
   }
