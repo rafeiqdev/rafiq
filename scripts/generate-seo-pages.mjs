@@ -194,15 +194,18 @@ function buildHtml(template, lang, route, meta) {
     .join(' · ');
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
-  const staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <h1>${escapeHtml(meta.title)}</h1>\n      <p>${escapeHtml(meta.content || meta.description)}</p>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n    </main>`;
+  const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
+  const staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n    </main>`;
   const jsonLd = escapeJsonForHtml({
     '@context': 'https://schema.org',
     '@type': 'WebPage',
+    '@id': `${url}#webpage`,
     name: meta.title,
     description: meta.description,
     url,
     inLanguage: lang,
-    isPartOf: { '@type': 'WebSite', name: text(lang, 'common.appName'), url: SITE_URL },
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#organization` },
   });
 
   let html = template;

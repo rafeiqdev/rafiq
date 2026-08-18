@@ -97,7 +97,16 @@ writeFileSync(join(root, 'public/sitemap.xml'), xml, 'utf8');
 
 // robots.txt — same origin, same single source. Kept byte-for-byte in the shape
 // it already had (allow-all + one Sitemap line); only the host is now derived.
-const robots = ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE_URL}/sitemap.xml`, ''].join('\n');
+const robots = [
+  'User-agent: OAI-SearchBot',
+  'Allow: /',
+  '',
+  'User-agent: *',
+  'Allow: /',
+  '',
+  `Sitemap: ${SITE_URL}/sitemap.xml`,
+  '',
+].join('\n');
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
 console.log(
