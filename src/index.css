@@ -342,6 +342,30 @@ html[dir='rtl'] li {
   animation: routeIn 0.35s ease both;
 }
 
+/* ---- deep-link spotlight ----
+   Arriving from a link like /profile#locker: the section that was asked for
+   stays sharp and gets a ring, everything around it blurs back for a few
+   seconds so the eye lands in one place instead of scanning a full page of
+   cards. Applied/removed by ScrollToTop; see the comment there for why the
+   blur only ever lands on siblings, never on an ancestor. */
+.spotlight-dim {
+  filter: blur(5px) saturate(0.65);
+  opacity: 0.4;
+  transition:
+    filter 0.35s ease,
+    opacity 0.35s ease;
+}
+.spotlight-target {
+  /* No border-radius of its own — box-shadow follows whatever radius the card
+     already has, so the ring hugs it instead of squaring it off. */
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 0 3px rgba(11, 31, 58, 0.55),
+    0 18px 40px -12px rgba(11, 31, 58, 0.35);
+  transition: box-shadow 0.35s ease;
+}
+
 /* dropdown / mobile-menu entrance (opacity only, same reason) */
 @keyframes menuIn {
   from {
@@ -779,7 +803,10 @@ html[dir='rtl'] li {
   .hover-spring,
   .motion-card-glow,
   .rmap-pin,
-  .rmap-me-halo {
+  .rmap-me-halo,
+  /* the blur itself stays — it is focus, not motion; only the fade goes */
+  .spotlight-dim,
+  .spotlight-target {
     animation: none !important;
     transform: none !important;
     transition: none !important;

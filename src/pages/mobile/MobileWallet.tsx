@@ -100,78 +100,85 @@ export function MobileWallet() {
       setSummary(sum);
       setTransactions(txs);
       setPayoutRequests(reqs);
+
+      // Default payout currency
       if (sum.primaryCurrency) {
         setPayoutCurrency(sum.primaryCurrency);
+        const currData = sum.currencies[sum.primaryCurrency];
+        setPayoutAmount(currData?.available ? String(currData.available) : String(sum.available));
+      } else {
+        setPayoutAmount(String(sum.available));
       }
     } catch {
-      setError(t('common.error'));
+      setError(t('wallet.emptyStateBody'));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      loadData();
-    }
+    loadData();
   }, [user]);
-
-  const maxAvailableForCurrency =
-    summary.currencies[payoutCurrency]?.available ??
-    (payoutCurrency === summary.primaryCurrency ? summary.available : 0);
 
   const handleOpenPayoutModal = () => {
     setPayoutError(null);
     setPayoutSuccess(false);
-    setPayoutAmount(maxAvailableForCurrency > 0 ? String(maxAvailableForCurrency) : '');
+    const availableForCurr = summary.currencies[payoutCurrency]?.available ?? summary.available;
+    setPayoutAmount(String(availableForCurr));
     setIsPayoutModalOpen(true);
   };
 
   const handleClosePayoutModal = () => {
     setIsPayoutModalOpen(false);
     setPayoutError(null);
+    setPayoutSuccess(false);
   };
 
   const handleSubmitPayout = async (e: React.FormEvent) => {
     e.preventDefault();
     setPayoutError(null);
 
-    const amt = parseFloat(payoutAmount);
-    if (isNaN(amt) || amt <= 0 || amt > maxAvailableForCurrency) {
-      setPayoutError(t('wallet.payout.errorAmount'));
+    const amountNum = parseFloat(payoutAmount);
+    const maxAvailable = summary.currencies[payoutCurrency]?.available ?? summary.available;
+
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setPayoutError(t('wallet.payout.validationAmount'));
       return;
     }
-
+    if (amountNum > maxAvailable) {
+      setPayoutError(t('wallet.payout.validationMax'));
+      return;
+    }
     if (!iban.trim()) {
-      setPayoutError(t('wallet.payout.errorIban'));
+      setPayoutError(t('wallet.payout.validationIban'));
       return;
     }
 
     setIsSubmitting(true);
     try {
       const res = await wallet.requestPayout({
-        amount: amt,
+        amount: amountNum,
         currency: payoutCurrency,
         payoutMethod,
         payoutDetails: {
-          accountHolder,
-          bankName,
-          iban,
-          notes: payoutNotes,
+          accountHolder: accountHolder.trim(),
+          bankName: payoutMethod === 'bank_transfer' ? bankName.trim() : undefined,
+          iban: iban.trim(),
+          notes: payoutNotes.trim() || undefined,
         },
       });
 
       if (res.ok) {
         setPayoutSuccess(true);
-        loadData();
+        await loadData();
         setTimeout(() => {
-          setIsPayoutModalOpen(false);
+          handleClosePayoutModal();
         }, 2000);
       } else {
-        setPayoutError(res.error || t('common.error'));
+        setPayoutError(res.error || t('wallet.payout.validationGeneric'));
       }
     } catch {
-      setPayoutError(t('common.error'));
+      setPayoutError(t('wallet.payout.validationGeneric'));
     } finally {
       setIsSubmitting(false);
     }
@@ -182,8 +189,8 @@ export function MobileWallet() {
       case 'available':
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[11px] font-bold border border-emerald-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9.5px] font-bold text-emerald-700 border border-emerald-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
             {t(`wallet.statuses.${status}`)}
           </span>
         );
@@ -191,91 +198,84 @@ export function MobileWallet() {
       case 'under_review':
       case 'processing':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 px-2 py-0.5 text-[11px] font-bold border border-amber-200">
-            <Clock className="h-3 w-3" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[9.5px] font-bold text-amber-700 border border-amber-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
             {t(`wallet.statuses.${status}`)}
           </span>
         );
       case 'paid':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[11px] font-bold border border-blue-200">
-            <DollarSign className="h-3 w-3" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[9.5px] font-bold text-blue-700 border border-blue-200">
+            <CheckCircle2 className="h-2.5 w-2.5 text-blue-600" />
             {t(`wallet.statuses.${status}`)}
           </span>
         );
       case 'reversed':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 text-rose-700 px-2 py-0.5 text-[11px] font-bold border border-rose-200">
-            <AlertCircle className="h-3 w-3" />
-            {t(`wallet.statuses.${status}`)}
-          </span>
-        );
       case 'failed':
       case 'cancelled':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-[11px] font-medium">
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[9.5px] font-bold text-rose-700 border border-rose-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
             {t(`wallet.statuses.${status}`)}
           </span>
         );
       default:
-        return (
-          <span className="inline-flex items-center rounded-full bg-gray-100 text-gray-800 px-2.5 py-0.5 text-[11px]">
-            {status}
-          </span>
-        );
+        return null;
     }
   };
 
+  const maxAvailableForCurrency = summary.currencies[payoutCurrency]?.available ?? summary.available;
+
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream">
-      <div className="pb-[calc(env(safe-area-inset-bottom)+88px)]">
-        {/* ── Simple, Calm Mobile Header ── */}
-        <header className="relative bg-navy px-4 pb-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-white shadow-md">
+      <div className="pb-[calc(env(safe-area-inset-bottom)+80px)]">
+        {/* ── Compact Mobile Header ── */}
+        <header className="relative bg-navy px-3.5 pb-4 pt-[calc(env(safe-area-inset-top)+0.6rem)] text-white shadow-xs">
           <div className="flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={() => navigate(-1)}
               aria-label={mc.back}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white active:bg-white/20 shrink-0"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white active:bg-white/20 shrink-0"
             >
-              <BackArrow className="h-4 w-4" />
+              <BackArrow className="h-3.5 w-3.5" />
             </button>
 
             {/* Mobile Segmented Switcher */}
-            <div className="inline-flex items-center p-0.5 bg-white/10 backdrop-blur-sm rounded-xl border border-white/15">
+            <div className="inline-flex items-center p-0.5 bg-white/10 backdrop-blur-xs rounded-xl border border-white/15">
               <Link
                 to="/referrals"
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-white/80 hover:text-white hover:bg-white/10 transition-colors"
               >
                 {t('referrals.tabReferrals')}
               </Link>
               <Link
                 to="/wallet"
-                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-navy shadow-xs transition-colors inline-flex items-center gap-1"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-navy shadow-xs transition-colors inline-flex items-center gap-1"
               >
-                <WalletIcon className="h-3 w-3" />
+                <WalletIcon className="h-2.5 w-2.5" />
                 <span>{t('referrals.tabWallet')}</span>
               </Link>
             </div>
           </div>
 
-          <div className="mt-4">
-            <h1 className="text-lg sm:text-xl font-extrabold text-white">{t('wallet.title')}</h1>
-            <p className="text-xs text-white/70 mt-1">{t('wallet.subtitle')}</p>
+          <div className="mt-3">
+            <h1 className="text-base font-extrabold text-white">{t('wallet.title')}</h1>
+            <p className="text-[11px] text-white/70 mt-0.5">{t('wallet.subtitle')}</p>
           </div>
         </header>
 
-        <div className="flex flex-col gap-3.5 px-4 pt-4">
+        <div className="flex flex-col gap-2.5 px-3 pt-3">
           {/* Guest notice */}
           {!user && (
-            <div className="p-3.5 rounded-2xl bg-sand/15 border border-sand/40 flex items-center justify-between gap-3 text-navy">
+            <div className="p-3 rounded-2xl bg-sand/15 border border-sand/40 flex items-center justify-between gap-2.5 text-navy">
               <div>
-                <p className="text-xs font-bold text-navy">{t('wallet.emptyStateTitle')}</p>
-                <p className="text-[11px] text-navy/70 mt-0.5">{t('wallet.emptyStateBody')}</p>
+                <p className="text-[11px] font-bold text-navy">{t('wallet.emptyStateTitle')}</p>
+                <p className="text-[10px] text-navy/70 mt-0.5">{t('wallet.emptyStateBody')}</p>
               </div>
               <Link
                 to="/auth"
-                className="btn btn-primary text-[11px] px-3 py-1.5 rounded-xl font-bold shrink-0 inline-flex items-center gap-1"
+                className="btn btn-primary text-[10.5px] px-2.5 py-1 rounded-xl font-bold shrink-0 inline-flex items-center gap-1"
               >
                 <LogIn className="h-3 w-3" />
                 <span>{t('auth.login')}</span>
@@ -283,12 +283,12 @@ export function MobileWallet() {
             </div>
           )}
 
-          {/* ── Balances Card ── */}
-          <section className="card p-4 border border-cream-dark shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-cream-dark">
+          {/* ── Balances Card (Compact) ── */}
+          <section className="card p-3 rounded-2xl border border-cream-dark shadow-xs bg-white">
+            <div className="flex items-center justify-between pb-2.5 border-b border-cream-dark">
               <div>
-                <span className="text-[10.5px] font-bold text-navy/60 uppercase">{t('wallet.stats.available')}</span>
-                <p className="text-2xl font-extrabold text-emerald-800 font-mono tracking-tight" dir="ltr">
+                <span className="text-[10px] font-bold text-navy/60 uppercase">{t('wallet.stats.available')}</span>
+                <p className="text-xl font-extrabold text-emerald-800 font-mono tracking-tight" dir="ltr">
                   <NumberTicker
                     value={summary.available}
                     prefix={summary.primaryCurrency === 'USD' ? '$' : summary.primaryCurrency === 'EUR' ? '€' : ''}
@@ -302,22 +302,22 @@ export function MobileWallet() {
                 <button
                   onClick={handleOpenPayoutModal}
                   disabled={summary.available <= 0}
-                  className={`flex h-9 items-center gap-1.5 px-3.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex h-8 items-center gap-1 px-3 rounded-xl text-[11px] font-bold transition-all ${
                     summary.available > 0
                       ? 'btn-primary bg-emerald-700 hover:bg-emerald-800 text-white'
                       : 'bg-cream-dark/60 text-navy/40 cursor-not-allowed'
                   }`}
                 >
-                  <ArrowUpRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                  <ArrowUpRight className="h-3 w-3 rtl:rotate-180" />
                   <span>{t('wallet.payout.requestBtn')}</span>
                 </button>
               )}
             </div>
 
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-cream p-2">
-                <span className="text-[10px] text-navy/60 font-medium block">{t('wallet.stats.pending')}</span>
-                <p className="text-xs font-bold text-navy font-mono mt-0.5" dir="ltr">
+            <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+              <div className="rounded-xl bg-cream p-1.5">
+                <span className="text-[9.5px] text-navy/60 font-medium block">{t('wallet.stats.pending')}</span>
+                <p className="text-[11px] font-bold text-navy font-mono mt-0.5" dir="ltr">
                   <NumberTicker
                     value={summary.pending}
                     prefix={summary.primaryCurrency === 'USD' ? '$' : summary.primaryCurrency === 'EUR' ? '€' : ''}
@@ -327,9 +327,9 @@ export function MobileWallet() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-cream p-2">
-                <span className="text-[10px] text-navy/60 font-medium block">{t('wallet.stats.paid')}</span>
-                <p className="text-xs font-bold text-navy font-mono mt-0.5" dir="ltr">
+              <div className="rounded-xl bg-cream p-1.5">
+                <span className="text-[9.5px] text-navy/60 font-medium block">{t('wallet.stats.paid')}</span>
+                <p className="text-[11px] font-bold text-navy font-mono mt-0.5" dir="ltr">
                   <NumberTicker
                     value={summary.paid}
                     prefix={summary.primaryCurrency === 'USD' ? '$' : summary.primaryCurrency === 'EUR' ? '€' : ''}
@@ -339,9 +339,9 @@ export function MobileWallet() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-cream p-2">
-                <span className="text-[10px] text-navy/60 font-medium block">{t('wallet.stats.total')}</span>
-                <p className="text-xs font-bold text-navy font-mono mt-0.5" dir="ltr">
+              <div className="rounded-xl bg-cream p-1.5">
+                <span className="text-[9.5px] text-navy/60 font-medium block">{t('wallet.stats.total')}</span>
+                <p className="text-[11px] font-bold text-navy font-mono mt-0.5" dir="ltr">
                   <NumberTicker
                     value={summary.totalCommissions}
                     prefix={summary.primaryCurrency === 'USD' ? '$' : summary.primaryCurrency === 'EUR' ? '€' : ''}
@@ -353,71 +353,71 @@ export function MobileWallet() {
             </div>
           </section>
 
-          {/* ── Transactions History List ── */}
-          <section className="card p-4 border border-cream-dark shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-bold text-navy flex items-center gap-1.5">
+          {/* ── Transactions History List (Compact) ── */}
+          <section className="card p-3 rounded-2xl border border-cream-dark shadow-xs bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[11.5px] font-bold text-navy flex items-center gap-1.5">
                 <CreditCard className="h-3.5 w-3.5 text-navy/70" />
                 <span>{t('wallet.transactions.title')}</span>
               </h2>
-              <span className="text-[10px] font-bold text-navy/60 bg-cream px-2 py-0.5 rounded-full border border-cream-dark">
+              <span className="text-[9.5px] font-bold text-navy/60 bg-cream px-1.5 py-0.5 rounded-full border border-cream-dark">
                 5%
               </span>
             </div>
 
             {loading ? (
-              <div className="py-10 text-center text-navy/60">
-                <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-navy border-t-transparent mb-1.5" />
-                <p className="text-xs">{t('common.loading')}</p>
+              <div className="py-8 text-center text-navy/60">
+                <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-navy border-t-transparent mb-1" />
+                <p className="text-[11px]">{t('common.loading')}</p>
               </div>
             ) : error ? (
-              <div className="py-6 text-center">
-                <p className="text-xs text-danger font-bold mb-2">{error}</p>
-                <button onClick={loadData} className="btn btn-secondary text-xs px-3 py-1">
+              <div className="py-4 text-center">
+                <p className="text-[11px] text-danger font-bold mb-1.5">{error}</p>
+                <button onClick={loadData} className="btn btn-secondary text-[10px] px-2.5 py-0.5">
                   {t('common.retry')}
                 </button>
               </div>
             ) : transactions.length === 0 ? (
-              <div className="py-8 text-center px-2">
-                <div className="mx-auto w-12 h-12 rounded-xl bg-cream flex items-center justify-center text-navy/50 mb-2 border border-cream-dark">
-                  <WalletIcon className="h-5 w-5" />
+              <div className="py-6 text-center px-2">
+                <div className="mx-auto w-10 h-10 rounded-xl bg-cream flex items-center justify-center text-navy/50 mb-1.5 border border-cream-dark">
+                  <WalletIcon className="h-4 w-4" />
                 </div>
-                <h3 className="text-xs font-bold text-navy mb-1">{t('wallet.emptyStateTitle')}</h3>
-                <p className="text-[11px] text-navy/70 leading-relaxed mb-3">{t('wallet.emptyStateBody')}</p>
+                <h3 className="text-[11.5px] font-bold text-navy mb-0.5">{t('wallet.emptyStateTitle')}</h3>
+                <p className="text-[10px] text-navy/70 leading-relaxed mb-2.5">{t('wallet.emptyStateBody')}</p>
                 <Link
                   to="/referrals"
-                  className="btn btn-primary inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl"
+                  className="btn btn-primary inline-flex items-center gap-1 text-[11px] px-3 py-1.5 rounded-xl"
                 >
-                  <Share2 className="h-3.5 w-3.5" />
+                  <Share2 className="h-3 w-3" />
                   <span>{t('wallet.backToReferrals')}</span>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {transactions.map((tx) => {
                   const isExpanded = expandedId === tx.id;
                   return (
                     <div
                       key={tx.id}
-                      className={`rounded-xl border border-cream-dark p-3 transition-colors ${
+                      className={`rounded-xl border border-cream-dark p-2.5 transition-colors ${
                         tx.status === 'reversed' ? 'bg-rose-500/5' : 'bg-white'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-xs font-bold text-navy">{tx.serviceName}</p>
-                          <p className="text-[10.5px] text-navy/50 font-medium mt-0.5">{formatDate(tx.date)}</p>
+                          <p className="text-[11.5px] font-bold text-navy">{tx.serviceName}</p>
+                          <p className="text-[9.5px] text-navy/50 font-medium mt-0.5">{formatDate(tx.date)}</p>
                         </div>
                         <div className="text-end">
                           <p
-                            className={`text-xs font-extrabold font-mono ${
+                            className={`text-[11.5px] font-extrabold font-mono ${
                               tx.status === 'reversed' ? 'text-rose-700' : 'text-emerald-700'
                             }`}
                             dir="ltr"
                           >
                             {formatCurrency(tx.commissionAmount, tx.currency)}
                           </p>
-                          <div className="mt-1">{getStatusBadge(tx.status)}</div>
+                          <div className="mt-0.5">{getStatusBadge(tx.status)}</div>
                         </div>
                       </div>
 
@@ -425,11 +425,11 @@ export function MobileWallet() {
                         type="button"
                         aria-expanded={isExpanded}
                         onClick={() => setExpandedId(isExpanded ? null : tx.id)}
-                        className="mt-2 pt-2 border-t border-cream-dark/60 w-full flex items-center justify-between text-[11px] font-bold text-navy/60 hover:text-navy focus:outline-hidden"
+                        className="mt-1.5 pt-1.5 border-t border-cream-dark/60 w-full flex items-center justify-between text-[10px] font-bold text-navy/60 hover:text-navy focus:outline-hidden"
                       >
                         <span>{t('wallet.transactions.details')}</span>
                         <ChevronDown
-                          className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                          className={`h-3 w-3 transition-transform duration-200 ${
                             isExpanded ? 'rotate-180' : ''
                           }`}
                         />
@@ -442,7 +442,7 @@ export function MobileWallet() {
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="mt-2 pt-2 border-t border-cream-dark/40 bg-cream/40 -mx-3 -mb-3 p-3 rounded-b-xl text-[11px] space-y-1 text-navy overflow-hidden"
+                            className="mt-1.5 pt-1.5 border-t border-cream-dark/40 bg-cream/40 -mx-2.5 -mb-2.5 p-2 rounded-b-xl text-[10px] space-y-0.5 text-navy overflow-hidden"
                           >
                             <div className="flex justify-between">
                               <span className="text-navy/60">{t('wallet.transactions.txAmount')}:</span>
@@ -457,7 +457,7 @@ export function MobileWallet() {
                             {tx.orderId && (
                               <div className="flex justify-between">
                                 <span className="text-navy/60">{t('wallet.transactions.orderId')}:</span>
-                                <span className="font-mono text-[10px]">#{tx.orderId.slice(0, 8)}</span>
+                                <span className="font-mono text-[9px]">#{tx.orderId.slice(0, 8)}</span>
                               </div>
                             )}
                             {tx.availableAt && (
@@ -478,10 +478,10 @@ export function MobileWallet() {
         </div>
       </div>
 
-      {/* ── Mobile Payout Modal ── */}
+      {/* ── Mobile Payout Modal (Compact) ── */}
       <AnimatePresence>
         {isPayoutModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -495,45 +495,45 @@ export function MobileWallet() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-              className="relative w-full max-w-lg rounded-t-[24px] sm:rounded-3xl bg-white p-5 shadow-2xl border border-cream-dark max-h-[90vh] overflow-y-auto z-10"
+              className="relative w-full max-w-md rounded-t-2xl sm:rounded-2xl bg-white p-4 shadow-xl border border-cream-dark max-h-[88vh] overflow-y-auto z-10"
             >
               <button
                 onClick={handleClosePayoutModal}
-                className="absolute top-4 end-4 p-1.5 rounded-full text-navy/60 hover:bg-cream"
+                className="absolute top-3 end-3 p-1 rounded-full text-navy/60 hover:bg-cream"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
 
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-navy text-white">
-                  <ArrowUpRight className="h-4 w-4" />
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-navy text-white">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-navy">{t('wallet.payout.modalTitle')}</h3>
-                  <p className="text-[10.5px] text-navy/60">{t('wallet.payout.modalSubtitle')}</p>
+                  <h3 className="text-xs font-extrabold text-navy">{t('wallet.payout.modalTitle')}</h3>
+                  <p className="text-[10px] text-navy/60">{t('wallet.payout.modalSubtitle')}</p>
                 </div>
               </div>
 
               {payoutSuccess ? (
-                <div className="py-6 text-center">
-                  <div className="mx-auto w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center mb-2">
-                    <CheckCircle2 className="h-5 w-5" />
+                <div className="py-5 text-center">
+                  <div className="mx-auto w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center mb-1.5">
+                    <CheckCircle2 className="h-4 w-4" />
                   </div>
-                  <h4 className="text-xs font-bold text-navy mb-1">{t('wallet.payout.successTitle')}</h4>
-                  <p className="text-[11px] text-navy/70">{t('wallet.payout.successMessage')}</p>
+                  <h4 className="text-[11.5px] font-bold text-navy mb-0.5">{t('wallet.payout.successTitle')}</h4>
+                  <p className="text-[10px] text-navy/70">{t('wallet.payout.successMessage')}</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmitPayout} className="space-y-3 pt-1">
+                <form onSubmit={handleSubmitPayout} className="space-y-2.5 pt-0.5">
                   {payoutError && (
-                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-800 flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
+                    <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-[11px] font-bold text-rose-800 flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                       <span>{payoutError}</span>
                     </div>
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] font-bold text-navy mb-1">
+                      <label className="block text-[10.5px] font-bold text-navy mb-1">
                         {t('wallet.payout.selectCurrency')}
                       </label>
                       <select
@@ -543,7 +543,7 @@ export function MobileWallet() {
                           const max = summary.currencies[e.target.value]?.available ?? summary.available;
                           setPayoutAmount(String(max));
                         }}
-                        className="input w-full h-10 text-xs font-mono font-bold"
+                        className="input w-full h-8 text-[11px] font-mono font-bold"
                       >
                         {Object.keys(summary.currencies).length > 0 ? (
                           Object.keys(summary.currencies).map((curr) => (
@@ -558,7 +558,7 @@ export function MobileWallet() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-navy mb-1">
+                      <label className="block text-[10.5px] font-bold text-navy mb-1">
                         {t('wallet.payout.amount')}
                       </label>
                       <input
@@ -568,7 +568,7 @@ export function MobileWallet() {
                         max={maxAvailableForCurrency}
                         value={payoutAmount}
                         onChange={(e) => setPayoutAmount(e.target.value)}
-                        className="input w-full h-10 text-xs font-mono font-bold"
+                        className="input w-full h-8 text-[11px] font-mono font-bold"
                         placeholder="0.00"
                         required
                       />
@@ -576,53 +576,53 @@ export function MobileWallet() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-navy mb-1">
+                    <label className="block text-[10.5px] font-bold text-navy mb-1">
                       {t('wallet.payout.method')}
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
                         onClick={() => setPayoutMethod('bank_transfer')}
-                        className={`p-2.5 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all ${
+                        className={`p-2 rounded-xl border text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all ${
                           payoutMethod === 'bank_transfer'
                             ? 'border-navy bg-navy/5 text-navy font-extrabold'
                             : 'border-cream-dark bg-white text-navy/60'
                         }`}
                       >
-                        <Building2 className="h-3.5 w-3.5" />
+                        <Building2 className="h-3 w-3" />
                         <span>{t('wallet.payout.methodBank')}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setPayoutMethod('crypto')}
-                        className={`p-2.5 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all ${
+                        className={`p-2 rounded-xl border text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all ${
                           payoutMethod === 'crypto'
                             ? 'border-navy bg-navy/5 text-navy font-extrabold'
                             : 'border-cream-dark bg-white text-navy/60'
                         }`}
                       >
-                        <DollarSign className="h-3.5 w-3.5" />
+                        <DollarSign className="h-3 w-3" />
                         <span>{t('wallet.payout.methodCrypto')}</span>
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-navy mb-1">
+                    <label className="block text-[10.5px] font-bold text-navy mb-1">
                       {t('wallet.payout.accountHolder')}
                     </label>
                     <input
                       type="text"
                       value={accountHolder}
                       onChange={(e) => setAccountHolder(e.target.value)}
-                      className="input w-full h-10 text-xs"
+                      className="input w-full h-8 text-[11px]"
                       placeholder="Full Legal Name"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-navy mb-1">
+                    <label className="block text-[10.5px] font-bold text-navy mb-1">
                       {t('wallet.payout.iban')}
                     </label>
                     <input
@@ -630,30 +630,30 @@ export function MobileWallet() {
                       dir="ltr"
                       value={iban}
                       onChange={(e) => setIban(e.target.value)}
-                      className="input w-full h-10 text-xs font-mono"
+                      className="input w-full h-8 text-[11px] font-mono"
                       placeholder={payoutMethod === 'crypto' ? 'T...' : 'TR00 0000 0000 0000 0000 0000 00'}
                       required
                     />
                   </div>
 
-                  <div className="pt-2 flex gap-2">
+                  <div className="pt-1.5 flex gap-2">
                     <button
                       type="button"
                       onClick={handleClosePayoutModal}
-                      className="btn btn-secondary flex-1 h-10 rounded-xl font-bold text-xs"
+                      className="btn btn-secondary flex-1 h-8 rounded-xl font-bold text-[11px]"
                     >
                       {t('common.cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="btn btn-primary flex-1 h-10 rounded-xl font-bold text-xs inline-flex items-center justify-center gap-1.5"
+                      className="btn btn-primary flex-1 h-8 rounded-xl font-bold text-[11px] inline-flex items-center justify-center gap-1"
                     >
                       {isSubmitting ? (
                         <span>{t('wallet.payout.submitting')}</span>
                       ) : (
                         <>
-                          <Send className="h-3.5 w-3.5" />
+                          <Send className="h-3 w-3" />
                           <span>{t('wallet.payout.submitBtn')}</span>
                         </>
                       )}

@@ -36,16 +36,24 @@ const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 // Direct, always-visible links to the main destinations — the guest homepage
 // has this row; UserHome never did, so signed-in users had no way to reach real
 // estate / health tourism except the header's services dropdown. Rendered as the
-// "tubelight" <NavBar> (see components/ui/tubelight-navbar). Home leads the row
-// per request; Services was added so the one destination the mobile tab bar
-// carries but this row lacked is reachable here too; /map must stay because
-// signed-in users lose it from the bottom tab bar (that slot becomes "Requests").
-// Icons are lucide components (what <NavBar> expects); labels reuse the existing
-// home.quickLinks.* / nav.* copy so all four languages are covered. Order/set is
-// just this array — add or drop an item here.
-const QUICK_NAV: { to: string; icon: LucideIcon; labelKey: string }[] = [
+// "tubelight" <NavBar> (see components/ui/tubelight-navbar).
+//
+// DESKTOP vs PHONE — the set differs on purpose. Desktop has no bottom tab bar,
+// so it shows the full list. On phones the MobileTabBar already carries
+// "الخدمات"/Services along the bottom, so repeating it up here is pure
+// duplication — items flagged `inMobileTabBar` are dropped on phones. Home is
+// kept on phones by request (it leads the row) even though the bottom bar also
+// has it; only Services is dropped. Net phone set: Home / Real Estate / Medical
+// Tourism / Map. /map MUST stay on phones because signed-in users lose it from
+// the bottom bar (that slot becomes "Requests"). The filter breakpoint is
+// useIsMobile()'s 768px, which is also where <NavBar> switches labels→icons, so
+// the two always agree.
+//
+// Icons are lucide components (what <NavBar> expects); labels reuse existing
+// home.quickLinks.* / nav.* copy so all four languages are covered.
+const QUICK_NAV: { to: string; icon: LucideIcon; labelKey: string; inMobileTabBar?: boolean }[] = [
   { to: '/', icon: Home, labelKey: 'nav.home' },
-  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices' },
+  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices', inMobileTabBar: true },
   { to: '/real-estate', icon: Building2, labelKey: 'home.quickLinks.realEstate' },
   { to: '/health-tourism', icon: HeartPulse, labelKey: 'home.quickLinks.health' },
   { to: '/map', icon: Map, labelKey: 'home.quickLinks.map' },
@@ -408,14 +416,18 @@ export function UserHome() {
         <NotificationBell size={38} className="shrink-0" />
       </header>
 
-      {/* ── quick nav: the "tubelight" pill. On desktop each destination shows
-          its label; on phones it collapses to icons (the bar's own responsive
-          behaviour). The lamp glow tracks the current route, so landing on Home
-          lights the Home item. ── */}
+      {/* ── quick nav: the "tubelight" pill. Desktop shows the full labelled row;
+          phones show icons only and drop Services (already in the bottom tab
+          bar), keeping Home + the sections — see QUICK_NAV. The lamp tracks the
+          current route, so on the dashboard it sits under Home on both. ── */}
       <NavBar
         variant="inline"
         className="mt-4"
-        items={QUICK_NAV.map((q) => ({ name: t(q.labelKey), url: q.to, icon: q.icon }))}
+        items={QUICK_NAV.filter((q) => !(isMobile && q.inMobileTabBar)).map((q) => ({
+          name: t(q.labelKey),
+          url: q.to,
+          icon: q.icon,
+        }))}
       />
 
       {/* ── proof that the onboarding answers produced something ──

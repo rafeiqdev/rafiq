@@ -294,7 +294,7 @@ function MobileProfileInner() {
               site's own navy/gold-black brand tokens. ── */}
           <section
             id="renewals"
-            className="animate-fade-up relative overflow-hidden rounded-3xl p-5 shadow-cardHover bg-gradient-to-br from-navy-dark via-navy to-navy-light"
+            className="animate-fade-up relative scroll-mt-6 overflow-hidden rounded-3xl p-5 shadow-cardHover bg-gradient-to-br from-navy-dark via-navy to-navy-light"
           >
             <div className="pointer-events-none absolute -top-10 -start-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-14 -end-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
@@ -407,8 +407,10 @@ function MobileProfileInner() {
             </div>
           </section>
 
-          {/* ── 6. Document locker ── */}
-          <section className="card animate-fade-up p-5">
+          {/* ── 6. Document locker — id target for /profile#locker deep links
+              (the dashboard's "your locker is empty" invite). Without the id the
+              link scrolled nowhere and looked broken. ── */}
+          <section id="locker" className="card animate-fade-up scroll-mt-6 p-5">
             <h2 className="text-[15px] font-extrabold text-navy">{t('profile.locker.title')}</h2>
             <SectionState
               section={docsSec}

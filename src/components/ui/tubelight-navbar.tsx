@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
@@ -46,16 +45,12 @@ const isRouteActive = (pathname: string, url: string) =>
 export function NavBar({ items, className, variant = 'fixed' }: NavBarProps) {
   const { pathname } = useLocation();
 
-  // Follow the real route, with an optimistic update on click so the lamp
-  // slides the instant you tap rather than only after the route resolves.
-  const [activeTab, setActiveTab] = useState(
-    () => (items.find((i) => isRouteActive(pathname, i.url)) ?? items[0])?.name,
-  );
-
-  useEffect(() => {
-    const match = items.find((i) => isRouteActive(pathname, i.url));
-    if (match) setActiveTab(match.name);
-  }, [pathname, items]);
+  // The lamp follows the ACTUAL route — it lights the item you're on, and
+  // NOTHING when the current page isn't in the list. That last part matters:
+  // on phones this bar drops the destinations the bottom tab bar already carries
+  // (Home, Services), so none of the items left is "here" — and lighting one
+  // anyway would fake a "you are here" on a page you're not on.
+  const activeName = items.find((i) => isRouteActive(pathname, i.url))?.name;
 
   return (
     <div
@@ -69,13 +64,12 @@ export function NavBar({ items, className, variant = 'fixed' }: NavBarProps) {
       <div className="flex items-center gap-1 sm:gap-2 bg-white/90 border border-cream-dark backdrop-blur-lg py-1 px-1 rounded-full shadow-card overflow-x-auto scrollbar-none">
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.name;
+          const isActive = item.name === activeName;
 
           return (
             <Link
               key={item.name}
               to={item.url}
-              onClick={() => setActiveTab(item.name)}
               className={cn(
                 'relative cursor-pointer text-sm font-semibold px-4 sm:px-6 py-2 rounded-full transition-colors whitespace-nowrap',
                 'text-navy/70 hover:text-navy',

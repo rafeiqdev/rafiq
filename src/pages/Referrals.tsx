@@ -23,7 +23,6 @@ import { useApp } from '../context/AppContext';
 import { referrals } from '../lib/api';
 import type { ReferralStats } from '../lib/api';
 import { NumberTicker } from '../components/ui/NumberTicker';
-import { InteractiveCommissionCalculator } from '../components/ui/InteractiveCommissionCalculator';
 
 function formatCurrency(amount: number, currency: string = 'USD'): string {
   const formatted = amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -319,13 +318,6 @@ export function Referrals() {
             </p>
           </div>
         </div>
-      </motion.div>
-
-      {/* ── Interactive Commission Calculator ── */}
-      <motion.div variants={itemVariants} className="mt-6">
-        <InteractiveCommissionCalculator
-          currency={stats.primaryCurrency === 'USD' ? '$' : stats.primaryCurrency === 'EUR' ? '€' : stats.primaryCurrency === 'TRY' ? 'TL ' : '$'}
-        />
       </motion.div>
 
       {/* ── 5-Step Workflow ── */}
