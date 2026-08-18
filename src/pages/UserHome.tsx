@@ -14,6 +14,7 @@ import { Home, Layers, Building2, HeartPulse, Map } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
+import { SiteImage } from '../components/SiteImage';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { NavBar } from '../components/ui/tubelight-navbar';
 import { MobileTabBar } from '../components/MobileTabBar';
@@ -212,20 +213,6 @@ function RoadRow({
         </span>
       )}
     </li>
-  );
-}
-
-/** One tile in the decorative "trip kit" cluster on the all-done road card —
-    stands in for the phone/checklist/passport/card flat-lay in the reference
-    design, built from existing app icons instead of a stock photo. */
-function IconTile({ icon, rotate, className = '' }: { icon: IconName; rotate: string; className?: string }) {
-  return (
-    <span
-      className={`flex items-center justify-center w-10 h-10 shrink-0 rounded-2xl bg-white text-navy/70 shadow-md ring-1 ring-navy/5 ${rotate} ${className}`}
-      aria-hidden
-    >
-      <AppIcon name={icon} className="w-4 h-4" />
-    </span>
   );
 }
 
@@ -535,12 +522,11 @@ export function UserHome() {
       {/* ── the whole road, not a 3-item preview — except once every step is
           done, the full list is just a wall of checkmarks nobody needs to
           re-scan. Collapse to a one-line summary behind "show details", styled
-          as a banner with a "N steps" badge and a decorative trip-kit icon
-          cluster standing in for a flat-lay photo. ── */}
+          as a banner with a "N steps" badge and the trip flat-lay photo. ── */}
       <section className="card relative mt-4 overflow-hidden bg-gradient-to-br from-white to-cream p-5">
         <Link
           to="/journey"
-          className="absolute top-4 end-4 rounded-full bg-navy/5 px-3 py-1 text-xs font-bold text-navy/70 hover:bg-navy/10 hover:text-navy"
+          className="absolute top-4 end-4 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-navy/70 shadow-sm hover:bg-white hover:text-navy"
         >
           {t('dash.stepsCount', { count: progress.total })}
         </Link>
@@ -588,11 +574,12 @@ export function UserHome() {
           )}
         </div>
         {roadComplete && !roadExpanded && (
-          <div className="pointer-events-none absolute end-3 top-1/2 flex -translate-y-1/2 items-center">
-            <IconTile icon="smartphone" rotate="-rotate-6" className="z-40" />
-            <IconTile icon="file-check" rotate="rotate-3" className="z-30 -ms-4" />
-            <IconTile icon="id-card" rotate="-rotate-3" className="z-20 -ms-4" />
-            <IconTile icon="credit-card" rotate="rotate-6" className="z-10 -ms-4" />
+          <div className="pointer-events-none absolute end-0 top-0 h-full w-[46%] sm:w-[42%]">
+            <SiteImage src="/img/journey-complete-flatlay.webp" alt="" className="h-full w-full" />
+            <div
+              className="absolute inset-y-0 start-0 w-10 bg-gradient-to-r from-cream to-transparent"
+              aria-hidden
+            />
           </div>
         )}
       </section>
