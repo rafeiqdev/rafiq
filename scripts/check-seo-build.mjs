@@ -49,7 +49,7 @@ for (const url of urls) {
   if (!html.includes('<main id="seo-fallback"')) errors.push(`Missing pre-rendered content: ${url}`);
 }
 
-if (urls.length !== 396) errors.push(`Unexpected sitemap URL count: ${urls.length}`);
+if (urls.length !== 400) errors.push(`Unexpected sitemap URL count: ${urls.length}`);
 const robots = readFileSync(join(root, 'public/robots.txt'), 'utf8');
 const sitemapDirective = robots.match(/^Sitemap:\s*(\S+)$/im)?.[1];
 const expectedSitemap = urls[0] ? `${new URL(urls[0]).origin}/sitemap.xml` : null;

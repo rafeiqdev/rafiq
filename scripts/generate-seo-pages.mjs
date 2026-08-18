@@ -81,6 +81,11 @@ const staticMeta = {
     description: text(lang, 'services.subtitle'),
     content: text(lang, 'services.subtitle'),
   }),
+  '/news': (lang) => ({
+    title: `${text(lang, 'home.news.title')} — ${text(lang, 'common.appName')}`,
+    description: text(lang, 'home.news.eyebrow'),
+    content: `${text(lang, 'home.news.title')} — ${text(lang, 'home.news.eyebrow')}`,
+  }),
   '/real-estate': (lang) => ({
     title: `${text(lang, 'realEstate.title')} — ${text(lang, 'common.appName')}`,
     description: text(lang, 'realEstate.subtitle'),
