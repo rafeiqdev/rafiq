@@ -661,22 +661,13 @@ export function UserHome() {
       {docs !== null &&
         (docs.length > 0 ? (
           <Panel className="mt-4">
-            <div className="flex items-start justify-between gap-3">
-              <span className="text-sm font-semibold text-gray-500 tabular-nums">{docs.length}</span>
-              <div className="flex flex-col items-end gap-2">
-                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-brand-blue text-navy">
-                  <AppIcon name="folder" className="w-[18px] h-[18px]" fill="currentColor" />
-                </span>
-                <h2 className="font-extrabold text-navy">{t('dash.lockerTitle')}</h2>
-              </div>
-            </div>
             <InteractiveFolderGallery
               documents={docs}
               folderName={t('dash.lockerTitle')}
               dragHintText={t('dash.lockerDragHint')}
               rtl={isRTL}
             />
-            <Link to="/profile#locker" className="btn-ghost w-full mt-2 min-h-[44px]">
+            <Link to="/profile#locker" className="btn-ghost w-full mt-1 min-h-[44px]">
               {t('dash.lockerManage')}
             </Link>
           </Panel>
