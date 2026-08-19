@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SITE_URL, DEFAULT_OG_IMAGE } from '../lib/seo';
+import { SITE_URL, DEFAULT_OG_IMAGE, SEO_LANGS } from '../lib/seo';
+import type { Lang } from '../lib/types';
 
 const SCRIPT_ID = 'ld-organization';
 
@@ -17,7 +18,12 @@ const WA_CONFIGURED = !!WA && WA !== '905000000000';
  * hours, ratings, and any other information the site cannot substantiate.
  */
 export function LocalBusinessSchema() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // This component only ever mounts on Home, which is reachable under all
+  // four language segments — the search target must follow suit instead of
+  // always pointing at /ar/services, or every non-Arabic page would tell
+  // search engines its site search is Arabic-only.
+  const lang = (SEO_LANGS as string[]).includes(i18n.language) ? (i18n.language as Lang) : 'ar';
 
   useEffect(() => {
     const organization: Record<string, unknown> = {
@@ -57,7 +63,7 @@ export function LocalBusinessSchema() {
             '@type': 'SearchAction',
             target: {
               '@type': 'EntryPoint',
-              urlTemplate: `${SITE_URL}/ar/services?q={search_term_string}`,
+              urlTemplate: `${SITE_URL}/${lang}/services?q={search_term_string}`,
             },
             'query-input': 'required name=search_term_string',
           },
@@ -77,7 +83,7 @@ export function LocalBusinessSchema() {
     return () => {
       document.getElementById(SCRIPT_ID)?.remove();
     };
-  }, [t]);
+  }, [t, lang]);
 
   return null;
 }

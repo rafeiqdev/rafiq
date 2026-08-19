@@ -154,7 +154,9 @@ export function ServiceDetail() {
       <nav aria-label={copy.breadcrumbLabel} className="mb-6 text-sm text-navy/65">
         <Link to="/services" className="hover:text-navy hover:underline">{copy.breadcrumb}</Link>
         <span className="mx-2">/</span>
-        <span>{categoryTitle}</span>
+        {/* Links back to the category guide so every service page also feeds
+            link equity to its guide, not just the other way around. */}
+        <Link to={`/guides/${service.category}`} className="hover:text-navy hover:underline">{categoryTitle}</Link>
       </nav>
 
       <header className="rounded-card bg-navy px-6 py-8 text-white shadow-card sm:px-9 sm:py-10">

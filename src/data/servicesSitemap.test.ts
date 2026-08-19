@@ -25,10 +25,16 @@ import { SERVICES } from './services';
  *   - the committed sitemap must never contain duplicate service URLs
  *   - the sitemap can only be a subset of the registry, never a superset
  *     (a superset would mean the generator invented ids it didn't parse)
+ *
+ * public/sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); actual
+ * service URLs live in its two member sitemaps, priority and guides.
  */
 
 const root = process.cwd();
-const sitemapXml = () => readFileSync(join(root, 'public/sitemap.xml'), 'utf8');
+const sitemapXml = () =>
+  ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
+    .map((file) => readFileSync(join(root, file), 'utf8'))
+    .join('\n');
 const servicesSource = () => readFileSync(join(root, 'src/data/services.ts'), 'utf8');
 
 function serviceIdsFromSource(): string[] {

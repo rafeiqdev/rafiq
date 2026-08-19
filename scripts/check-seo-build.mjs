@@ -1,9 +1,17 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+// Not `new URL('..', import.meta.url).pathname` — on Windows that keeps the
+// leading slash (`/C:/Users/...`), which join() then doubles into a bogus
+// `C:\C:\Users\...` path. fileURLToPath matches the sibling scripts.
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
-const sitemap = readFileSync(join(root, 'public/sitemap.xml'), 'utf8');
+// sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
+// URLs live in its two member sitemaps.
+const sitemap = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
+  .map((file) => readFileSync(join(root, file), 'utf8'))
+  .join('\n');
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 const errors = [];
 const langs = ['ar', 'en', 'ru', 'fa'];
