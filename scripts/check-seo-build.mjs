@@ -1,7 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+// Not `new URL('..', import.meta.url).pathname` — on Windows that keeps the
+// leading slash (`/C:/Users/...`), which join() then doubles into a bogus
+// `C:\C:\Users\...` path.
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const sitemap = readFileSync(join(root, 'public/sitemap.xml'), 'utf8');
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
@@ -16,8 +20,8 @@ function routeInfo(url) {
 
 function expectedFile({ lang, route }) {
   return route === '/'
-    ? join(dist, `${lang}.html`)
-    : join(dist, lang, `${route.slice(1)}.html`);
+    ? join(dist, lang, 'index.html')
+    : join(dist, lang, route.slice(1), 'index.html');
 }
 
 function readJsonLd(html, id) {

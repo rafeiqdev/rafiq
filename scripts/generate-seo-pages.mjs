@@ -448,9 +448,17 @@ for (const url of urls) {
   const routeInfo = splitSitemapPath(url);
   if (!routeInfo) continue;
   const meta = metaFor(routeInfo.lang, routeInfo.route);
+  // Directory + index.html (dist/<lang>/<route>/index.html), not a flat
+  // dist/<lang>/<route>.html file — this is plain static-file serving Vercel
+  // handles natively, so it needs no cleanUrls flag. cleanUrls' own clean-URL
+  // resolution was found to swallow the catch-all SPA-fallback rewrite for
+  // every route that ISN'T one of these pre-rendered files (every dynamic
+  // page — news articles, trick pages, real-estate listings — and several
+  // core client routes like /journey and /wallet), turning them into hard
+  // 404s in production. See the incident writeup for the full diagnosis.
   const output = routeInfo.route === '/'
-    ? join(dist, `${routeInfo.lang}.html`)
-    : join(dist, routeInfo.lang, `${routeInfo.route.slice(1)}.html`);
+    ? join(dist, routeInfo.lang, 'index.html')
+    : join(dist, routeInfo.lang, routeInfo.route.slice(1), 'index.html');
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, buildHtml(template, routeInfo.lang, routeInfo.route, meta), 'utf8');
   generated += 1;
