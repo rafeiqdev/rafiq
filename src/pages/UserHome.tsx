@@ -16,7 +16,6 @@ import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { NavBar } from '../components/ui/tubelight-navbar';
-import { InteractiveFolderGallery } from '../components/ui/interactive-folder-gallery';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
@@ -660,7 +659,14 @@ export function UserHome() {
       {docs !== null &&
         (docs.length > 0 ? (
           <Panel className="mt-4">
-            <InteractiveFolderGallery folderName={t('dash.lockerTitle')} />
+            <div className="flex items-center justify-center py-4">
+              <span
+                className="text-2xl font-extrabold text-navy sm:text-3xl"
+                style={{ textShadow: '0 6px 18px rgba(26, 58, 107, 0.35)' }}
+              >
+                {t('dash.lockerTitle')}
+              </span>
+            </div>
             <Link to="/profile#locker" className="btn-ghost w-full mt-1 min-h-[44px]">
               {t('dash.lockerManage')}
             </Link>
