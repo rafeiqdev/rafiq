@@ -219,7 +219,6 @@ function RoadRow({
 export function UserHome() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const isRTL = lang === 'ar' || lang === 'fa';
   const isMobile = useIsMobile();
   const { user, authLoading, profile } = useApp();
   const { items, state, errorCategory, progress, next, reload } = useJourney();
@@ -661,12 +660,7 @@ export function UserHome() {
       {docs !== null &&
         (docs.length > 0 ? (
           <Panel className="mt-4">
-            <InteractiveFolderGallery
-              documents={docs}
-              folderName={t('dash.lockerTitle')}
-              dragHintText={t('dash.lockerDragHint')}
-              rtl={isRTL}
-            />
+            <InteractiveFolderGallery folderName={t('dash.lockerTitle')} />
             <Link to="/profile#locker" className="btn-ghost w-full mt-1 min-h-[44px]">
               {t('dash.lockerManage')}
             </Link>
