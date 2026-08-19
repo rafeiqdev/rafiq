@@ -78,6 +78,10 @@ function Panel({ children, className = '' }: { children: React.ReactNode; classN
  * it has no rows: an empty locker used to render nothing at all, which left the
  * first-session dashboard looking broken rather than new. Same slot, different
  * content, one action.
+ *
+ * `decoration` is an optional purely-visual overlay (see DateReminderGlyph)
+ * rendered `absolute` so it never affects the card's height; when present the
+ * text column reserves end-side padding so long translations don't run under it.
  */
 function InvitePanel({
   icon,
@@ -87,6 +91,7 @@ function InvitePanel({
   ctaLabel,
   ctaTo,
   className = '',
+  decoration,
 }: {
   icon: IconName;
   iconFilled?: boolean;
@@ -95,22 +100,75 @@ function InvitePanel({
   ctaLabel: string;
   ctaTo: string;
   className?: string;
+  decoration?: React.ReactNode;
 }) {
   return (
-    <section className={`card border-dashed border-navy/25 bg-white/50 p-5 ${className}`}>
-      <span
-        className={`flex items-center justify-center w-10 h-10 rounded-xl ${
-          iconFilled ? 'bg-brand-blue text-navy' : 'bg-cream-dark text-navy/70'
-        }`}
-      >
-        <AppIcon name={icon} className="w-5 h-5" fill={iconFilled ? 'currentColor' : undefined} />
-      </span>
-      <h2 className="mt-3 font-extrabold text-navy">{title}</h2>
-      <p className="mt-1 text-sm text-gray-500 leading-relaxed">{body}</p>
+    <section className={`card border-dashed border-navy/25 bg-white/50 p-5 relative overflow-hidden ${className}`}>
+      {decoration}
+      <div className={decoration ? 'pe-24 sm:pe-44' : ''}>
+        <span
+          className={`flex items-center justify-center w-10 h-10 rounded-xl ${
+            iconFilled ? 'bg-brand-blue text-navy' : 'bg-cream-dark text-navy/70'
+          }`}
+        >
+          <AppIcon name={icon} className="w-5 h-5" fill={iconFilled ? 'currentColor' : undefined} />
+        </span>
+        <h2 className="mt-3 font-extrabold text-navy">{title}</h2>
+        <p className="mt-1 text-sm text-gray-500 leading-relaxed">{body}</p>
+      </div>
       <Link to={ctaTo} className="btn-ghost w-full mt-4 min-h-[44px]">
         {ctaLabel}
       </Link>
     </section>
+  );
+}
+
+/**
+ * Decorative "reminds you 60 and 30 days ahead" illustration for the dates
+ * invite card only — two overlapping calendar cards with a checkmark badge,
+ * connected to a dot by a dashed line. Purely visual (aria-hidden), absolute
+ * positioned at the inline-end corner so it sits top-right in LTR and
+ * top-left in RTL automatically, and never adds to the card's height.
+ */
+function DateReminderGlyph() {
+  return (
+    <svg
+      viewBox="0 0 170 112"
+      aria-hidden
+      className="pointer-events-none absolute top-3 end-3 w-24 sm:top-4 sm:end-4 sm:w-40"
+    >
+      <circle cx="8" cy="66" r="3" fill="#efeadb" stroke="#1a3a6b" strokeOpacity="0.25" />
+      <path d="M14 66 L66 33" stroke="#1a3a6b" strokeOpacity="0.25" strokeWidth="1.5" strokeDasharray="4 4" fill="none" />
+
+      {/* back calendar: 60 */}
+      <rect x="70" y="6" width="60" height="68" rx="10" fill="#faf8f0" stroke="#1a3a6b" strokeOpacity="0.3" />
+      <path d="M70 24 H130" stroke="#1a3a6b" strokeOpacity="0.2" />
+      <rect x="82" y="0" width="5" height="14" rx="2.5" fill="#1a3a6b" fillOpacity="0.45" />
+      <rect x="113" y="0" width="5" height="14" rx="2.5" fill="#1a3a6b" fillOpacity="0.45" />
+      <text x="100" y="56" textAnchor="middle" fontSize="24" fontWeight="800" fill="#1a3a6b">
+        60
+      </text>
+
+      {/* front calendar: 30 */}
+      <rect x="98" y="34" width="60" height="68" rx="10" fill="#ffffff" stroke="#1a3a6b" strokeOpacity="0.35" />
+      <path d="M98 52 H158" stroke="#1a3a6b" strokeOpacity="0.2" />
+      <rect x="110" y="28" width="5" height="14" rx="2.5" fill="#1a3a6b" fillOpacity="0.45" />
+      <rect x="141" y="28" width="5" height="14" rx="2.5" fill="#1a3a6b" fillOpacity="0.45" />
+      <text x="128" y="84" textAnchor="middle" fontSize="24" fontWeight="800" fill="#1a3a6b">
+        30
+      </text>
+
+      {/* check badge */}
+      <circle cx="150" cy="96" r="10" fill="#faf8f0" stroke="#1a3a6b" strokeOpacity="0.25" />
+      <path
+        d="M145.5 96 L148.5 99 L154.5 92.5"
+        stroke="#1a3a6b"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
   );
 }
 
@@ -652,6 +710,7 @@ export function UserHome() {
           body={t('dash.noDatesBody')}
           ctaLabel={t('dash.noDatesCta')}
           ctaTo="/profile#renewals"
+          decoration={<DateReminderGlyph />}
         />
       )}
 
