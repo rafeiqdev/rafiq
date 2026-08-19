@@ -14,7 +14,6 @@ import { Home, Layers, Building2, HeartPulse, Map } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
-import { SiteImage } from '../components/SiteImage';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { NavBar } from '../components/ui/tubelight-navbar';
 import { InteractiveFolderGallery } from '../components/ui/interactive-folder-gallery';
@@ -582,8 +581,19 @@ export function UserHome() {
           )}
         </div>
         {roadComplete && !roadExpanded && (
-          <div className="pointer-events-none absolute end-0 top-0 h-full w-[42%] sm:w-[38%]">
-            <SiteImage src="/img/journey-complete-flatlay.webp" alt="" className="h-full w-full" />
+          // Plain <img>, not <SiteImage>: that component's wrapper always
+          // paints a bg-navy/5 loading placeholder behind the photo, which
+          // bled through this photo's baked-in alpha fade and reintroduced
+          // the color-mismatch seam we were trying to remove. The photo's
+          // own fade degrades fine without SiteImage's fallback machinery.
+          <div className="pointer-events-none absolute end-0 top-0 h-full w-[42%] sm:w-[38%] overflow-hidden">
+            <img
+              src="/img/journey-complete-flatlay.webp"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           </div>
         )}
       </section>
