@@ -10,8 +10,8 @@ export interface EnglishServiceSeo {
 
 export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
   "res-tourist": {
-    "seoTitle": "Tourist residence permit — first e-Ikamet application",
-    "metaDescription": "We prepare documents and submit the first-time e-Ikamet application with a partner. Guidance on documents, appointments and application tracking.",
+    "seoTitle": "Tourist Residence in Istanbul | Rafiq",
+    "metaDescription": "Rafiq helps you prepare and submit a first-time tourist residence application through e-İkamet, with guidance on documents, appointments and tracking.",
     "searchPhrases": [
       "How to apply for tourist residence permit",
       "First-time e-Ikamet application guidance",

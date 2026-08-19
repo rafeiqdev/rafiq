@@ -1101,6 +1101,15 @@
     "title": "All Rafiq services",
     "subtitle": "Everything you need in Istanbul — handled by our own team or vetted partners.",
     "trustNote": "Direct service + vetted partners",
+    "residenceSpotlight": {
+      "title": "Start with our key residence services",
+      "subtitle": "Choose the page closest to your need, then review the details and steps before sending a request.",
+      "tourist": "Tourist residence in Istanbul",
+      "property": "Property-based residence in Istanbul",
+      "renew": "Residence renewal in Turkey",
+      "guide": "Istanbul residence guide",
+      "open": "Explore"
+    },
     "searchPlaceholder": "Search services…",
     "allCategories": "All",
     "noResults": "No services match your search.",

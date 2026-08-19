@@ -66,6 +66,9 @@ for (const url of urls) {
   if (!/<meta name="description" content="[^"]+"\s*\/?\s*>/i.test(html)) errors.push(`Missing description: ${url}`);
   if (!html.includes('<main id="seo-fallback"')) errors.push(`Missing pre-rendered content: ${url}`);
   checkSiteEntity(html, url);
+  if ((info.route === '/' || info.route === '/services') && !html.includes(`/${info.lang}/services/res-tourist`)) {
+    errors.push(`Priority residence link is missing from pre-rendered HTML: ${url}`);
+  }
   if (info.route === '/' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 6)) {
     errors.push(`Home FAQ schema/content is incomplete: ${url}`);
   }

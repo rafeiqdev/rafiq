@@ -11,8 +11,8 @@ export interface ArabicServiceSeo {
 
 export const SERVICE_SEO_AR: Record<string, ArabicServiceSeo> = {
   "res-tourist": {
-    "seoTitle": "تقديم إقامة سياحية في إسطنبول (e-İkamet)",
-    "metaDescription": "مساعدة في تجهيز ملف وتقديم طلب الإقامة السياحية عبر نظام e-İkamet وإرشاد المستندات المطلوبة وخطوات المتابعة.",
+    "seoTitle": "إقامة سياحية في إسطنبول | رفيق",
+    "metaDescription": "رفيق يساعدك في تجهيز ملف وتقديم طلب الإقامة السياحية عبر نظام e-İkamet، مع إرشاد المستندات المطلوبة وخطوات المتابعة.",
     "searchPhrases": [
       "خطوات التقديم على إقامة سياحية في إسطنبول",
       "الأوراق المطلوبة لإقامة سياحية لأول مرة",

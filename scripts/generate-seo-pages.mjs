@@ -265,6 +265,42 @@ function renderFaqHtml(items, lang) {
       </section>`;
 }
 
+function priorityLinkItems(lang) {
+  const items = [
+    ['/services/res-tourist', serviceSeo[lang]?.['res-tourist']?.title],
+    ['/services/res-property', serviceSeo[lang]?.['res-property']?.title],
+    ['/services/res-renew', serviceSeo[lang]?.['res-renew']?.title],
+    ['/guides/residency', guideSeo.residency?.[lang]?.title],
+  ];
+  return items.filter(([, label]) => label);
+}
+
+function renderPriorityLinks(lang) {
+  const items = priorityLinkItems(lang);
+  if (!items.length) return '';
+  const heading = {
+    ar: 'خدمات الإقامة والأدلة المرتبطة',
+    en: 'Residence services and related guides',
+    ru: 'Услуги по ВНЖ и связанные гиды',
+    fa: 'خدمات اقامت و راهنماهای مرتبط',
+  }[lang];
+  const intro = {
+    ar: 'ابدأ من الصفحة الأقرب إلى حاجتك، ثم راجع التفاصيل والخطوات قبل إرسال الطلب.',
+    en: 'Start with the page closest to your need, then review the details and steps before sending a request.',
+    ru: 'Начните со страницы, которая ближе всего к вашей задаче, затем проверьте детали и шаги перед отправкой запроса.',
+    fa: 'از صفحه‌ای که به نیاز شما نزدیک‌تر است شروع کنید و پیش از ارسال درخواست، جزئیات و مراحل را بررسی کنید.',
+  }[lang];
+  const links = items.map(([path, label]) =>
+    `<li><a href="${escapeHtml(`/${lang}${path}`)}">${escapeHtml(label)}</a></li>`,
+  ).join('');
+  return `
+      <section aria-labelledby="seo-priority-heading">
+        <h2 id="seo-priority-heading">${escapeHtml(heading)}</h2>
+        <p>${escapeHtml(intro)}</p>
+        <ul>${links}</ul>
+      </section>`;
+}
+
 function pageUrl(lang, route) {
   return `${SITE_URL}/${lang}${route === '/' ? '' : route}`;
 }
@@ -321,10 +357,11 @@ function buildHtml(template, lang, route, meta) {
   ]
     .map(([path, label]) => `<a href="${escapeHtml(`/${lang}${path === '/' ? '' : path}`)}">${escapeHtml(label)}</a>`)
     .join(' · ');
+  const priorityLinksHtml = route === '/' || route === '/services' ? renderPriorityLinks(lang) : '';
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
   const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
-  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n    </main>`;
+  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
   const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
@@ -365,6 +402,7 @@ function buildHtml(template, lang, route, meta) {
         <p>${escapeHtml(meta.content || meta.description)}</p>${sectionHtml}${renderFaqHtml(guideFaqItems, lang)}
       </article>
       <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
     </main>`;
     }
   } else if (faqItems.length) {

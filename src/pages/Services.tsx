@@ -18,6 +18,12 @@ import { track, normalizeSearchQuery } from '../lib/analytics';
 // newcomer) plus a "كل الفئات" toggle for the rest. A search query or an
 // explicit category click always shows full results regardless.
 const POPULAR_CATEGORY_IDS = ['residency', 'realestate', 'health', 'banking', 'translation', 'tourism'];
+const RESIDENCE_SPOTLIGHT = [
+  { key: 'tourist', to: '/services/res-tourist' },
+  { key: 'property', to: '/services/res-property' },
+  { key: 'renew', to: '/services/res-renew' },
+  { key: 'guide', to: '/guides/residency' },
+] as const;
 
 export function Services() {
   const { t, i18n } = useTranslation();
@@ -100,10 +106,32 @@ export function Services() {
             {t('services.trustNote')}
           </div>
         </div>
-      </div>
+            </div>
+
+      <section aria-labelledby="residence-spotlight-title" className="mt-8 border-y border-cream-dark bg-cream/45 px-5 py-6 sm:px-6">
+        <h2 id="residence-spotlight-title" className="text-xl font-extrabold text-navy">
+          {t('services.residenceSpotlight.title')}
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-navy/70">
+          {t('services.residenceSpotlight.subtitle')}
+        </p>
+        <nav aria-label={t('services.residenceSpotlight.title')} className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {RESIDENCE_SPOTLIGHT.map((item) => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className="inline-flex min-h-11 items-center justify-between gap-3 border border-cream-dark bg-white px-4 py-3 text-sm font-bold text-navy hover:border-navy/40 hover:underline"
+            >
+              <span>{t(`services.residenceSpotlight.${item.key}`)}</span>
+              <span aria-hidden="true">{t('services.residenceSpotlight.open')} →</span>
+            </Link>
+          ))}
+        </nav>
+      </section>
 
       {/* search */}
       <div className="mt-6 flex gap-2 max-w-xl mx-auto">
+
         <div className="relative flex-1">
           <span className="absolute inset-y-0 start-3 flex items-center text-navy/40">
             <AppIcon name="search" className="w-4 h-4" />
