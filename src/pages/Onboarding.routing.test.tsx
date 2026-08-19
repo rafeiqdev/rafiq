@@ -132,15 +132,24 @@ describe('entry points lead to the new page', () => {
   // /account is not in this list any more: it is a bare redirect to /profile
   // and holds no guard of its own. The gate assertion that used to cover it now
   // rides on /profile, which is where an /account visitor actually lands — see
-  // LegacyRedirects.test.tsx for the hop itself.
+  // LegacyRedirects.test.tsx for the hop itself. `/journey` is intentionally
+  // excluded: it owns its guest preview and only sends signed-in users who have
+  // not completed onboarding to /onboarding.
   it('guards every authenticated product route in App.tsx', () => {
     const app = src('../App.tsx');
-    for (const route of ['/home', '/journey', '/profile']) {
+    for (const route of ['/home', '/profile']) {
       const line = app.split('\n').find((l) => l.includes(`path="${route}"`));
       expect(line, route).toBeDefined();
       // /profile spans several lines — check the element block instead.
       const block = route === '/profile' ? app.slice(app.indexOf('path="/profile"'), app.indexOf('path="/onboarding"')) : line!;
       expect(block, route).toMatch(/RequireOnboarded/);
     }
+  });
+
+  it('keeps /journey available as the guest preview route', () => {
+    const app = src('../App.tsx');
+    const line = app.split('\n').find((l) => l.includes('path="/journey"'));
+    expect(line).toContain('element={<Journey />}');
+    expect(line).not.toContain('RequireOnboarded');
   });
 });
