@@ -6,6 +6,8 @@ import type { IconName } from './AppIcon';
 import { setLanguage } from '../i18n';
 import { LANGS } from '../lib/types';
 import type { Lang } from '../lib/types';
+import { useCatalog } from '../data/catalogStore';
+import { pickText } from '../data/services';
 
 // Same guard the floating WhatsApp button uses: hide the channel entirely
 // unless a real number is configured, so we never hand a customer off to an
@@ -172,8 +174,24 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
  * links visible in the bottom strip regardless, and reserves space for the
  * fixed bottom tab bar.
  */
+/**
+ * Every /guides/:id page, linked from every page on the site via the footer.
+ * Without this, half the category guides (and everything under them, since
+ * guides are the only page that links onward to every service in their
+ * category) are reachable only through a client-side "show all categories"
+ * toggle on /services that never appears in a crawler's rendered DOM — see
+ * the SEO audit that added this. Guides are few enough (12) to list in full
+ * instead of trimming to a "popular" subset the way /services does.
+ */
+function useGuideLinks() {
+  const { i18n } = useTranslation();
+  const { categories } = useCatalog();
+  return categories.map((c) => ({ to: `/guides/${c.id}`, label: pickText(c.title, i18n.language) }));
+}
+
 export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
   const { t } = useTranslation();
+  const guideLinks = useGuideLinks();
 
   if (variant === 'mobile') {
     return (
@@ -207,6 +225,24 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
                 </ul>
               </details>
             ))}
+            <details className="group">
+              <summary className="flex items-center justify-between gap-3 min-h-[52px] cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                <GroupHeading icon="file-text" label={t('footer.guidesTitle')} />
+                <span className="text-white/40 text-xl leading-none transition-transform group-open:rotate-45" aria-hidden>+</span>
+              </summary>
+              <ul className="pb-3">
+                {guideLinks.map((l) => (
+                  <li key={l.to}>
+                    <Link
+                      to={l.to}
+                      className="flex items-center min-h-[44px] text-[14px] text-white/75 active:text-white"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </div>
 
           <div className="mt-6">
@@ -223,7 +259,7 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
     <footer className="bg-navy text-white/80 mt-16">
       <div className="mx-auto max-w-6xl px-4 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-12">
         {/* brand + help */}
-        <div className="sm:col-span-2 lg:col-span-4">
+        <div className="sm:col-span-2 lg:col-span-3">
           <Logo size={34} variant="white" />
           <p className="mt-4 text-sm leading-relaxed text-white/70">{t('footer.brandBody')}</p>
           <div className="mt-5">
@@ -247,7 +283,20 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
           </nav>
         ))}
 
-        <div className="sm:col-span-2 lg:col-span-2">
+        <nav className="lg:col-span-2">
+          <GroupHeading icon="file-text" label={t('footer.guidesTitle')} />
+          <ul className="mt-3 flex flex-col gap-2.5 text-sm">
+            {guideLinks.map((l) => (
+              <li key={l.to}>
+                <Link to={l.to} className="text-white/70 hover:text-white transition-colors">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="sm:col-span-2 lg:col-span-1">
           <LangRow />
         </div>
       </div>

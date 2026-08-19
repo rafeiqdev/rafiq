@@ -41,7 +41,12 @@ const SCAN_GLOBS = ['src/**/*', 'api/**/*', 'scripts/**/*', 'public/**/*', 'inde
  * they are OUTPUT of the single source of truth, not a second copy of it, so
  * they legitimately contain the host and must not be scanned.
  */
-const GENERATED = new Set(['public/sitemap.xml', 'public/robots.txt']);
+const GENERATED = new Set([
+  'public/sitemap.xml',
+  'public/sitemap-priority.xml',
+  'public/sitemap-guides.xml',
+  'public/robots.txt',
+]);
 
 /** This file necessarily contains the very patterns it bans. */
 const SELF = 'src/lib/hostnameHygiene.test.ts';

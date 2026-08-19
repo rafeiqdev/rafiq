@@ -215,7 +215,7 @@ function siteEntityJsonLd(lang) {
           '@type': 'SearchAction',
           target: {
             '@type': 'EntryPoint',
-            urlTemplate: `${SITE_URL}/ar/services?q={search_term_string}`,
+            urlTemplate: `${SITE_URL}/${lang}/services?q={search_term_string}`,
           },
           'query-input': 'required name=search_term_string',
         },
@@ -349,11 +349,11 @@ function buildHtml(template, lang, route, meta) {
     `    <link rel="alternate" hreflang="${alternate}" href="${escapeHtml(pageUrl(alternate, route))}" />`,
   ).join('\n') + `\n    <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl('ar', route))}" />`;
   const nav = [
-    ['/', text(lang, 'common.home')],
-    ['/services', text(lang, 'common.allServices')],
-    ['/real-estate', text(lang, 'common.realEstate')],
-    ['/health-tourism', text(lang, 'common.health')],
-    ['/tricks', text(lang, 'common.tricks')],
+    ['/', text(lang, 'nav.home')],
+    ['/services', text(lang, 'nav.allServices')],
+    ['/real-estate', text(lang, 'nav.realEstate')],
+    ['/health-tourism', text(lang, 'nav.health')],
+    ['/tricks', text(lang, 'nav.tricks')],
   ]
     .map(([path, label]) => `<a href="${escapeHtml(`/${lang}${path === '/' ? '' : path}`)}">${escapeHtml(label)}</a>`)
     .join(' · ');
@@ -361,7 +361,7 @@ function buildHtml(template, lang, route, meta) {
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
   const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
-  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
+  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
   const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
@@ -401,7 +401,7 @@ function buildHtml(template, lang, route, meta) {
         <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
         <p>${escapeHtml(meta.content || meta.description)}</p>${sectionHtml}${renderFaqHtml(guideFaqItems, lang)}
       </article>
-      <nav aria-label="${escapeHtml(text(lang, 'common.home'))}">${nav}</nav>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
       ${priorityLinksHtml}
     </main>`;
     }
@@ -441,8 +441,12 @@ function buildHtml(template, lang, route, meta) {
 }
 
 const template = readFileSync(join(dist, 'index.html'), 'utf8');
-const sitemap = readFileSync(join(root, 'public/sitemap.xml'), 'utf8');
-const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+// sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
+// URLs live in its two member sitemaps.
+const sitemaps = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
+  .map((file) => readFileSync(join(root, file), 'utf8'))
+  .join('\n');
+const urls = [...sitemaps.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 let generated = 0;
 for (const url of urls) {
   const routeInfo = splitSitemapPath(url);

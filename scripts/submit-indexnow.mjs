@@ -12,8 +12,12 @@ const keyLocation = `${siteUrl}/${key}.txt`;
 const isProduction = process.env.VERCEL_ENV === 'production' || process.env.INDEXNOW_FORCE === '1';
 const dryRun = process.env.INDEXNOW_DRY_RUN === '1';
 
+// sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
+// URLs live in its two member sitemaps.
+const SITEMAP_FILES = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml'];
+
 function sitemapUrls() {
-  const xml = readFileSync(join(root, 'public/sitemap.xml'), 'utf8');
+  const xml = SITEMAP_FILES.map((file) => readFileSync(join(root, file), 'utf8')).join('\n');
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 }
 
@@ -30,7 +34,9 @@ function changedFiles() {
 
 function previousSitemapUrls() {
   try {
-    const xml = execFileSync('git', ['show', 'HEAD^:public/sitemap.xml'], { cwd: root, encoding: 'utf8' });
+    const xml = SITEMAP_FILES.map((file) =>
+      execFileSync('git', ['show', `HEAD^:${file}`], { cwd: root, encoding: 'utf8' }),
+    ).join('\n');
     return new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]));
   } catch {
     return new Set();
