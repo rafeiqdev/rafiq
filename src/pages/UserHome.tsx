@@ -17,6 +17,7 @@ import type { IconName } from '../components/AppIcon';
 import { SiteImage } from '../components/SiteImage';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
 import { NavBar } from '../components/ui/tubelight-navbar';
+import { InteractiveFolderGallery } from '../components/ui/interactive-folder-gallery';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
@@ -219,6 +220,7 @@ function RoadRow({
 export function UserHome() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const isRTL = lang === 'ar' || lang === 'fa';
   const isMobile = useIsMobile();
   const { user, authLoading, profile } = useApp();
   const { items, state, errorCategory, progress, next, reload } = useJourney();
@@ -658,15 +660,13 @@ export function UserHome() {
                 <h2 className="font-extrabold text-navy">{t('dash.lockerTitle')}</h2>
               </div>
             </div>
-            <ul className="mt-3 flex flex-col gap-2">
-              {docs.slice(0, 3).map((d) => (
-                <li key={d.id} className="flex items-center gap-3 rounded-xl border border-cream-dark bg-white px-3 py-2.5">
-                  <AppIcon name="file-text" className="w-4 h-4 shrink-0 text-navy/60" />
-                  <span className="flex-1 min-w-0 text-sm font-semibold text-navy truncate">{d.name}</span>
-                </li>
-              ))}
-            </ul>
-            <Link to="/profile#locker" className="btn-ghost w-full mt-4 min-h-[44px]">
+            <InteractiveFolderGallery
+              documents={docs}
+              folderName={t('dash.lockerTitle')}
+              dragHintText={t('dash.lockerDragHint')}
+              rtl={isRTL}
+            />
+            <Link to="/profile#locker" className="btn-ghost w-full mt-2 min-h-[44px]">
               {t('dash.lockerManage')}
             </Link>
           </Panel>

@@ -2243,6 +2243,7 @@
     "noDatesCta": "Add a date",
     "lockerTitle": "Document locker",
     "lockerManage": "Manage locker",
+    "lockerDragHint": "Drag a document down to close",
     "noDocsTitle": "Your locker is empty",
     "noDocsBody": "Upload your passport once — we reuse it on every form instead of asking you to retype your details.",
     "noDocsCta": "Upload your passport",
