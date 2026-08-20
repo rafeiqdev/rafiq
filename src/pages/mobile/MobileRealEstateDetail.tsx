@@ -51,7 +51,7 @@ export function MobileRealEstateDetail() {
   const listing = useMemo(() => all.find((l) => l.id === id) ?? null, [all, id]);
   const index = listing ? all.indexOf(listing) : 0;
   const photos = listing ? photosOf(listing, index) : [];
-  const { sent, busy, request } = useListingService(listing);
+  const { sent, busy, failed, request } = useListingService(listing);
 
   usePageMeta({
     title: listing ? `${listing.district} — ${t('realEstate.title')}` : t('realEstate.title'),
@@ -197,7 +197,9 @@ export function MobileRealEstateDetail() {
           className="btn-primary flex-1 disabled:opacity-60"
         >
           {sent.details && <AppIcon name="check" className="h-4 w-4" />}
-          {sent.details ? t('realEstate.requested') : t('realEstate.cta')}
+          {/* The tick appears only once the enquiry is in the database — and a
+              refused save says so rather than reverting to a silent idle CTA. */}
+          {failed.details && !sent.details ? t('realEstate.requestFailed') : sent.details ? t('realEstate.requested') : t('realEstate.cta')}
         </button>
       </div>
 

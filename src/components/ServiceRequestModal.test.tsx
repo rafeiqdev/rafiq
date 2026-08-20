@@ -320,3 +320,45 @@ describe('client cooldown (S5)', () => {
     expect(screen.queryByText('services.modal.error')).toBeNull();
   });
 });
+
+/**
+ * A SUCCESS SCREEN IS A CLAIM ABOUT THE DATABASE.
+ *
+ * "تم إرسال طلبك" means one specific thing: the server accepted the row. While
+ * the insert is still in flight nobody knows that yet, and if it is refused it
+ * is false. A customer who reads it and then finds nothing on /requests has
+ * been told, by us, that we have a request we do not have.
+ */
+describe('the confirmation never runs ahead of the server', () => {
+  it('shows nothing but a pending button while the insert is in flight', async () => {
+    let settle: (v: { ok: true; id: string }) => void = () => {};
+    createMock.mockImplementation(() => new Promise((res) => { settle = res; }));
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    // The request is on the wire and unanswered. No success title, no tracker.
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText('services.modal.successTitle')).toBeNull();
+    expect(screen.queryByText('best-offer')).toBeNull();
+
+    settle({ ok: true, id: 'r-1' });
+
+    // Only now — with the row confirmed and its id in hand.
+    expect(await screen.findByText('best-offer')).toBeInTheDocument();
+  }, 5000);
+
+  it('shows an error, not a confirmation, when the server refuses the row', async () => {
+    createMock.mockRejectedValue(new Error('network'));
+
+    await renderModal();
+    fillValidForm();
+    submit();
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole('alert')).toHaveTextContent('services.modal.error');
+    expect(screen.queryByText('services.modal.successTitle')).toBeNull();
+    expect(screen.queryByText('best-offer')).toBeNull();
+  }, 5000);
+});

@@ -39,7 +39,7 @@ export function InvestmentDetail() {
 
   // The lead goes through the same pipeline as a listing request, so an
   // opportunity enquiry lands in the admin inbox next to everything else.
-  const { sent, busy, request } = useListingService(
+  const { sent, busy, failed, request } = useListingService(
     opp ? { id: opp.slug, district: L(opp.name), rooms: opp.developer, m2: 0, priceUsd: opp.minUsd, citizenship: false } : null,
   );
 
@@ -254,6 +254,7 @@ export function InvestmentDetail() {
                     icon={s.icon}
                     sent={!!sent[s.key]}
                     busy={busy === s.key}
+                    failed={!!failed[s.key]}
                     onClick={() => request(s.key)}
                   />
                 ))}

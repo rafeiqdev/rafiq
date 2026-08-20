@@ -44,7 +44,7 @@ export function MobileListingServices() {
   const cover = listing
     ? listing.images?.[0] || listing.image || LISTING_PHOTOS[all.indexOf(listing) % LISTING_PHOTOS.length]
     : null;
-  const { sent, busy, request } = useListingService(listing);
+  const { sent, busy, failed, request } = useListingService(listing);
 
   usePageMeta({
     title: `${t('realEstate.services.title')} — ${t('common.appName')}`,
@@ -99,6 +99,7 @@ export function MobileListingServices() {
                     icon={s.icon}
                     sent={!!sent[s.key]}
                     busy={busy === s.key}
+                    failed={!!failed[s.key]}
                     onClick={() => request(s.key)}
                   />
                 ))}

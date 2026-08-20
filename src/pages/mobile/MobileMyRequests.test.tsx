@@ -15,6 +15,10 @@ import type { CustomerRequest } from '../../lib/types';
 
 const allMineMock = vi.fn();
 const responsesMock = vi.fn();
+// The list now merges three sources; the other two stay inert here so these
+// tests keep asking only about the service-request source.
+const bookingsMineMock = vi.fn();
+const leadsMineMock = vi.fn();
 
 vi.mock('../../lib/api', () => ({
   customerRequests: {
@@ -22,6 +26,8 @@ vi.mock('../../lib/api', () => ({
     responses: (id: string) => responsesMock(id),
     choose: vi.fn(),
   },
+  bookings: { mine: () => bookingsMineMock() },
+  leads: { mine: () => leadsMineMock() },
   reviews: { create: vi.fn() },
   // MedicalRequestsPanel mounts alongside the generic requests list; these
   // stubs keep it inert (empty list) for tests that aren't about it.
@@ -67,6 +73,8 @@ beforeEach(() => {
   vi.resetModules();
   allMineMock.mockReset();
   responsesMock.mockReset().mockResolvedValue([]);
+  bookingsMineMock.mockReset().mockResolvedValue([]);
+  leadsMineMock.mockReset().mockResolvedValue([]);
 });
 
 describe('mobile: a failed fetch is never an empty state', () => {

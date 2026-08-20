@@ -52,7 +52,7 @@ export function RealEstateDetail() {
   const listing = useMemo(() => all.find((l) => l.id === id) ?? null, [all, id]);
   const index = listing ? all.indexOf(listing) : 0;
   const photos = listing ? photosOf(listing, index) : [];
-  const { sent, busy, request } = useListingService(listing);
+  const { sent, busy, failed, request } = useListingService(listing);
 
   // Similar = same district first, then anything else in the same price band.
   const similar = useMemo(() => {
@@ -236,6 +236,7 @@ export function RealEstateDetail() {
                   icon={s.icon}
                   sent={!!sent[s.key]}
                   busy={busy === s.key}
+                  failed={!!failed[s.key]}
                   onClick={() => request(s.key)}
                 />
               ))}

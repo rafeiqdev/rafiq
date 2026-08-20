@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { notifications } from '../lib/api';
@@ -77,7 +77,15 @@ export function Notifications() {
   const { t, i18n } = useTranslation();
   const { user, authLoading, refresh } = useApp();
   const [items, setItems] = useState<AppNotification[]>([]);
-  const [tab, setTab] = useState<Tab | null>(null);
+  // `?tab=updates` — the deep link every request row on /requests points at.
+  // Without it "see the updates on this request" landed on whichever tab
+  // happened to have content, which for a customer with an urgent deadline was
+  // never the one they were promised.
+  const [params] = useSearchParams();
+  const requested = params.get('tab');
+  const initialTab: Tab | null =
+    requested === 'urgent' || requested === 'updates' || requested === 'news' ? requested : null;
+  const [tab, setTab] = useState<Tab | null>(initialTab);
 
   const load = () => notifications.list().then(setItems).catch(() => setItems([]));
 

@@ -956,6 +956,7 @@
     "yieldBadge": "{{pct}}% yield",
     "cta": "Request details",
     "requested": "Request sent — we’ll be in touch",
+    "requestFailed": "We could not send your request. Please try again.",
     "note": "Every listing is documented: title deed, debts and zoning checked by our legal team.",
     "bathrooms": "{{count}} bathroom",
     "furnished": "Furnished",
@@ -2084,7 +2085,23 @@
       }
     },
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "kind": {
+      "service": "Service request",
+      "ai": "Assistant request",
+      "realestate": "Real estate",
+      "health": "Health tourism"
+    },
+    "notificationsLink": "See updates in notifications",
+    "details": {
+      "summary": "Summary",
+      "appointment": "Appointment",
+      "language": "Preferred language",
+      "attachments": "Attachments",
+      "service": "Service",
+      "item": "Details",
+      "none": "—"
+    }
   },
   "reviews": {
     "leaveTitle": "Rate this company",

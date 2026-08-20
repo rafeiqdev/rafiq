@@ -2159,10 +2159,29 @@ interface ServiceRequestRow {
 export const serviceRequests = {
   /**
    * Anyone (even logged-out visitors) can submit — RLS allows anonymous insert.
-   * No `.select()` read-back: reads are admin-only (keeps names/phones private),
-   * and a read-back would fail RLS for the anonymous/non-admin submitter.
+   *
+   * TWO THINGS THIS FUNCTION MUST GUARANTEE, because a caller shows a success
+   * screen the moment it resolves:
+   *
+   * 1. THE ROW IS OWNED. `customer_id` used to be left entirely to the column
+   *    DEFAULT auth.uid(). That default only exists on a database that ran the
+   *    20260719 migration, and a request with a null customer_id is invisible
+   *    to the person who made it forever — RLS "sr customer read own" matches
+   *    on that column. It is now stamped explicitly from the session as well,
+   *    so ownership does not depend on a schema detail nobody can see.
+   *
+   * 2. THE SERVER CONFIRMED IT. For a signed-in customer the insert now reads
+   *    the row back (`.select('id').single()`, permitted by that same policy),
+   *    so the returned id is THIS request — not "the newest row that happens to
+   *    be mine", which is what the follow-up query used to return and which
+   *    picks the wrong request whenever two are submitted in the same session.
+   *    An anonymous submit still cannot read anything back, so it keeps the
+   *    bare insert and returns a null id.
    */
   async create(input: ServiceRequestInput): Promise<{ ok: true; id: string | null }> {
+    // Stamped explicitly rather than relying on the column DEFAULT — see above.
+    const uid = (await sessionUser())?.id ?? null;
+
     const payload = {
       name: input.name,
       phone: input.phone,
@@ -2175,7 +2194,7 @@ export const serviceRequests = {
       lang: input.lang,
       area: input.area ?? null,
       broadcast: input.broadcast ?? false,
-      // customer_id is stamped server-side via the column DEFAULT auth.uid()
+      customer_id: uid,
     };
 
     // Columns that exist even before the 20260719 migration.
@@ -2190,32 +2209,33 @@ export const serviceRequests = {
       lang: payload.lang,
     };
 
-    const insert = (body: Record<string, unknown>) => sb().from('service_requests').insert(body);
+    const table = () => sb().from('service_requests');
 
-    // Insert WITHOUT a read-back first, so a blocked select can never cause a
-    // duplicate row. If the new columns aren't in the database yet, retry with
-    // the legacy shape — the form keeps working, it just can't be tracked live.
-    const first = await insert(payload);
-    if (first.error) {
-      if (!isSchemaUnavailable(first.error)) fail(first.error);
-      logDiagnostic('serviceRequests.create', first.error, 'schema_unavailable');
-      const retry = await insert(legacy);
+    // Signed in → insert AND read the id back in one statement. A single
+    // round-trip cannot leave a duplicate behind, and the id is unambiguous.
+    if (uid) {
+      const owned = await table().insert(payload).select('id').single();
+      if (!owned.error) return { ok: true, id: (owned.data?.id as string | undefined) ?? null };
+      if (!isSchemaUnavailable(owned.error)) fail(owned.error);
+      logDiagnostic('serviceRequests.create', owned.error, 'schema_unavailable');
+      // The new columns (or the owner-read policy) aren't in this database yet.
+      // Saving the request matters more than tracking it, so fall back to the
+      // legacy shape — it just cannot be followed live.
+      const retry = await table().insert(legacy);
       if (retry.error) fail(retry.error);
       return { ok: true, id: null };
     }
 
-    // Best-effort: a signed-in customer owns the row (RLS "sr customer read
-    // own"), so fetch its id to drive the live status screen. Null is fine.
-    const uid = (await sessionUser())?.id ?? null;
-    if (!uid) return { ok: true, id: null };
-    const { data } = await sb()
-      .from('service_requests')
-      .select('id')
-      .eq('customer_id', uid)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    return { ok: true, id: (data?.id as string | undefined) ?? null };
+    // Anonymous: nothing here is readable back under RLS, so insert only. The
+    // request is still recorded and still reaches the admin queue.
+    const anon = await table().insert(payload);
+    if (anon.error) {
+      if (!isSchemaUnavailable(anon.error)) fail(anon.error);
+      logDiagnostic('serviceRequests.create', anon.error, 'schema_unavailable');
+      const retry = await table().insert(legacy);
+      if (retry.error) fail(retry.error);
+    }
+    return { ok: true, id: null };
   },
 
   /** Live status of the caller's own request (null when not readable). */
