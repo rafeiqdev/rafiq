@@ -114,6 +114,21 @@
           document.head.appendChild(xDefault);
         }
         xDefault.setAttribute("href", origin + "/ar" + pagePath);
+
+        // Belt-and-braces for the server-side X-Robots-Tag in vercel.json: any
+        // host other than the real domain (a *.vercel.app alias, a stray
+        // preview, etc.) must never be indexed, even if a crawler ignores the
+        // HTTP header and only reads the DOM.
+        var host = window.location.hostname;
+        if (host !== "rafiq.ist" && host !== "www.rafiq.ist") {
+          var robotsMeta = document.head.querySelector('meta[name="robots"]');
+          if (!robotsMeta) {
+            robotsMeta = document.createElement("meta");
+            robotsMeta.setAttribute("name", "robots");
+            document.head.appendChild(robotsMeta);
+          }
+          robotsMeta.setAttribute("content", "noindex, nofollow");
+        }
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
