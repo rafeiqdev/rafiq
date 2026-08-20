@@ -83,6 +83,14 @@ for (const url of urls) {
   if (missingGuideLinks.length) {
     errors.push(`Footer guide links missing from pre-rendered HTML (${missingGuideLinks.join(', ')}): ${url}`);
   }
+  // Everything pre-rendered into #root must sit inside <main id="seo-fallback">,
+  // because only that id carries index.html's visually-hidden rule. Content
+  // after </main> paints as raw visible text until React hydrates.
+  const footerHeadingIndex = html.indexOf('id="seo-footer-guides-heading"');
+  const mainCloseIndex = html.indexOf('</main>');
+  if (footerHeadingIndex !== -1 && (mainCloseIndex === -1 || footerHeadingIndex > mainCloseIndex)) {
+    errors.push(`Footer guide links sit outside the hidden #seo-fallback main (they flash as visible text): ${url}`);
+  }
   if (info.route === '/' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 6)) {
     errors.push(`Home FAQ schema/content is incomplete: ${url}`);
   }

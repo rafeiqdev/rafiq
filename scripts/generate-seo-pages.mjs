@@ -467,8 +467,14 @@ function buildHtml(template, lang, route, meta) {
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
     ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+  // The footer must live INSIDE <main id="seo-fallback">: that id carries the
+  // visually-hidden rule in index.html, and a sibling footer outside it paints
+  // as raw visible text at the top of every page until React hydrates.
   const footerHtml = renderFooterGuideLinks(lang);
-  html = html.replace(/<div id="root"><\/div>/i, `<div id="root">${staticMain}\n    ${footerHtml}\n    </div>`);
+  const staticMainWithFooter = footerHtml
+    ? staticMain.replace('</main>', `  ${footerHtml}\n    </main>`)
+    : staticMain;
+  html = html.replace(/<div id="root"><\/div>/i, `<div id="root">${staticMainWithFooter}\n    </div>`);
   return html;
 }
 
