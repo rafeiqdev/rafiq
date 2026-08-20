@@ -122,6 +122,12 @@ const guideSeo = readGuideSeo();
 const guideFaqs = readGuideFaqs();
 const guideSections = readGuideSections();
 
+// Same category order as the live SiteFooter (src/components/SiteFooter.tsx's
+// useGuideLinks, sourced from SERVICE_CATEGORIES) and the same extraction
+// regex generate-sitemap.mjs already uses on this file.
+const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
+const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].map((match) => match[1]);
+
 const staticMeta = {
   '/': (lang) => ({
     title: `${text(lang, 'common.appName')} — ${text(lang, 'home.heroTitle')}`,
@@ -301,6 +307,31 @@ function renderPriorityLinks(lang) {
       </section>`;
 }
 
+// Mirrors SiteFooter's useGuideLinks, but baked into the static shell instead
+// of depending on client-side hydration: a crawler that doesn't run (or
+// budgets) JS otherwise only ever sees the single /guides/residency link from
+// renderPriorityLinks above, which is the same orphan-link gap the footer
+// change was meant to close. See the indexing audit this responds to.
+function footerGuideLinkItems(lang) {
+  return categoryIds
+    .map((id) => [`/guides/${id}`, guideSeo[id]?.[lang]?.title])
+    .filter(([, label]) => label);
+}
+
+function renderFooterGuideLinks(lang) {
+  const items = footerGuideLinkItems(lang);
+  if (!items.length) return '';
+  const heading = { ar: 'كل الأدلة', en: 'All guides', ru: 'Все гиды', fa: 'همه راهنماها' }[lang];
+  const links = items.map(([path, label]) =>
+    `<li><a href="${escapeHtml(`/${lang}${path}`)}">${escapeHtml(label)}</a></li>`,
+  ).join('');
+  return `
+    <footer aria-labelledby="seo-footer-guides-heading">
+      <h2 id="seo-footer-guides-heading">${escapeHtml(heading)}</h2>
+      <ul>${links}</ul>
+    </footer>`;
+}
+
 function pageUrl(lang, route) {
   return `${SITE_URL}/${lang}${route === '/' ? '' : route}`;
 }
@@ -436,7 +467,8 @@ function buildHtml(template, lang, route, meta) {
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
     ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
-  html = html.replace(/<div id="root"><\/div>/i, `<div id="root">${staticMain}\n    </div>`);
+  const footerHtml = renderFooterGuideLinks(lang);
+  html = html.replace(/<div id="root"><\/div>/i, `<div id="root">${staticMain}\n    ${footerHtml}\n    </div>`);
   return html;
 }
 

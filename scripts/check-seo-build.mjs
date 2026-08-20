@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 // `C:\C:\Users\...` path. fileURLToPath matches the sibling scripts.
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
+const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
+const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].map((match) => match[1]);
 // sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
 // URLs live in its two member sitemaps.
 const sitemap = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
@@ -76,6 +78,10 @@ for (const url of urls) {
   checkSiteEntity(html, url);
   if ((info.route === '/' || info.route === '/services') && !html.includes(`/${info.lang}/services/res-tourist`)) {
     errors.push(`Priority residence link is missing from pre-rendered HTML: ${url}`);
+  }
+  const missingGuideLinks = categoryIds.filter((id) => !html.includes(`href="/${info.lang}/guides/${id}"`));
+  if (missingGuideLinks.length) {
+    errors.push(`Footer guide links missing from pre-rendered HTML (${missingGuideLinks.join(', ')}): ${url}`);
   }
   if (info.route === '/' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 6)) {
     errors.push(`Home FAQ schema/content is incomplete: ${url}`);
