@@ -28,15 +28,20 @@ const quoted = '"((?:\\\\.|[^"\\\\])*)"';
 function readServiceSeo(lang) {
   const source = readFileSync(join(root, `src/data/serviceSeo${lang[0].toUpperCase()}${lang.slice(1)}.ts`), 'utf8');
   const records = {};
+  // "body" is an optional field some services (e.g. res-rejected) carry
+  // between metaDescription and searchPhrases — it must stay optional here or
+  // any record that has it silently fails to match and falls through to the
+  // generic "services · <id>" fallback title/meta at render time.
   const recordPattern = new RegExp(
-    `"([^\"]+)"\\s*:\\s*\\{\\s*"seoTitle"\\s*:\\s*${quoted}\\s*,\\s*"metaDescription"\\s*:\\s*${quoted}\\s*,\\s*"searchPhrases"\\s*:\\s*\\[([\\s\\S]*?)\\]`,
+    `"([^\"]+)"\\s*:\\s*\\{\\s*"seoTitle"\\s*:\\s*${quoted}\\s*,\\s*"metaDescription"\\s*:\\s*${quoted}\\s*,\\s*(?:"body"\\s*:\\s*${quoted}\\s*,\\s*)?"searchPhrases"\\s*:\\s*\\[([\\s\\S]*?)\\]`,
     'g',
   );
   for (const match of source.matchAll(recordPattern)) {
-    const phrases = [...match[4].matchAll(new RegExp(quoted, 'g'))].map((item) => decodeTsString(item[1]));
+    const phrases = [...match[5].matchAll(new RegExp(quoted, 'g'))].map((item) => decodeTsString(item[1]));
     records[match[1]] = {
       title: decodeTsString(match[2]),
       description: decodeTsString(match[3]),
+      body: match[4] ? decodeTsString(match[4]) : undefined,
       phrases,
     };
   }
@@ -192,6 +197,23 @@ function escapeHtml(value) {
 
 function escapeJsonForHtml(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
+// Mirrors ServiceDetail.tsx's renderServiceBody: paragraphs separated by a
+// blank line, except a block where every line starts with "- " renders as a
+// bullet list, so the static shell matches what crawlers/no-JS visitors see.
+function renderServiceBody(body) {
+  return body
+    .split('\n\n')
+    .map((block) => {
+      const lines = block.split('\n').filter(Boolean);
+      const isList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
+      if (isList) {
+        return `<ul>${lines.map((line) => `<li>${escapeHtml(line.slice(2))}</li>`).join('')}</ul>`;
+      }
+      return `<p>${escapeHtml(block)}</p>`;
+    })
+    .join('');
 }
 
 function siteEntityJsonLd(lang) {
@@ -392,10 +414,11 @@ function buildHtml(template, lang, route, meta) {
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
   const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
-  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
-  const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
+  const serviceBodyHtml = serviceMatch && meta.body ? renderServiceBody(meta.body) : '';
+  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n        ${serviceBodyHtml}\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
+  const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
   const faqItems = route === '/'
     ? homeFaqItems(lang)
     : guideMatch
