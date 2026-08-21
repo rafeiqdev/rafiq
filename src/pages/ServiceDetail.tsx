@@ -89,6 +89,31 @@ function copyFor(language: string) {
   };
 }
 
+/**
+ * Splits a service body on blank lines; a block where every line starts with
+ * "- " renders as a bulleted list, otherwise as a paragraph.
+ */
+function renderServiceBody(body: string) {
+  return body.split('\n\n').map((block, index) => {
+    const lines = block.split('\n').filter(Boolean);
+    const isList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
+    if (isList) {
+      return (
+        <ul key={index} className="list-disc space-y-1.5 ps-5 text-sm leading-7 text-gray-650">
+          {lines.map((line) => (
+            <li key={line}>{line.slice(2)}</li>
+          ))}
+        </ul>
+      );
+    }
+    return (
+      <p key={index} className="text-sm leading-7 text-gray-650">
+        {block}
+      </p>
+    );
+  });
+}
+
 function ServiceNotFound() {
   const { i18n } = useTranslation();
   const copy = copyFor(i18n.language);
@@ -174,6 +199,12 @@ export function ServiceDetail() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
+          {serviceSeo?.body && (
+            <section className="card space-y-3 p-5 sm:p-6" dir={isRtl ? 'rtl' : 'ltr'}>
+              {renderServiceBody(serviceSeo.body)}
+            </section>
+          )}
+
           <section className="card p-5 sm:p-6">
             <h2 className="text-lg font-extrabold text-navy">{copy.howHeading}</h2>
             <p className="mt-3 text-sm leading-7 text-gray-650">{description}</p>

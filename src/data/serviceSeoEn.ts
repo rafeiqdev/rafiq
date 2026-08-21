@@ -5,6 +5,7 @@
 export interface EnglishServiceSeo {
   seoTitle: string;
   metaDescription: string;
+  body?: string;
   searchPhrases: readonly string[];
 }
 
@@ -167,7 +168,8 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
   },
   "res-rejected": {
     "seoTitle": "Rejected residence applications & appeals support",
-    "metaDescription": "We review rejections and prepare appeal files with a partner. Guidance on evidence, translations, filing and case follow-up.",
+    "metaDescription": "We review your residence rejection, including Article 32 cases, and follow up your appeal directly with a licensed partner lawyer within 24 hours.",
+    "body": "When a residence permit application is rejected, the applicant receives an official notice stating the reason. This isn't necessarily the end of the road — in many cases there is a legal path to object or reapply, but the window to act is limited, so reaching out quickly matters. Our team works directly with a licensed partner lawyer specializing in residency cases.\n\n- We take your full case details in your language (Arabic / English / Russian / Farsi)\n- We forward them immediately to our partner lawyer and follow up\n- We bring you a real answer within 24 hours, not an automated reply\n\nWhy Rafiq instead of contacting a lawyer directly: no need to search for a lawyer you can trust from scratch, you speak your own language with no need to explain your situation in Turkish, and you get ongoing follow-up on your case rather than a one-time consultation.",
     "searchPhrases": [
       "Why was my residence application rejected?",
       "How to file an appeal for rejected ikamet",
