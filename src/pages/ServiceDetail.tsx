@@ -21,8 +21,8 @@ function copyFor(language: string) {
       breadcrumb: 'Services',
       breadcrumbLabel: 'Breadcrumb',
       howHeading: 'How can Rafiq help with this service?',
-      directSupport: 'Rafiq coordinates this service directly. Send your needs and we will discuss an appropriate next step with you.',
-      partnerSupport: 'Rafiq coordinates this service through a partner. Send your needs for guidance on an appropriate next step.',
+      directSupport: 'Rafiq coordinates {service} directly. Send your needs and we will discuss an appropriate next step with you.',
+      partnerSupport: 'Rafiq coordinates {service} through a partner. Send your needs for guidance on an appropriate next step.',
       topicsHeading: 'Common questions and related topics',
       topicsIntro: 'These are common topics customers research before starting. Requirements and final decisions depend on your situation and the relevant authorities or providers.',
       relatedHeading: 'Related services',
@@ -40,8 +40,8 @@ function copyFor(language: string) {
       breadcrumb: 'Услуги',
       breadcrumbLabel: 'Навигационная цепочка',
       howHeading: 'Как Rafiq может помочь с этой услугой?',
-      directSupport: 'Rafiq координирует эту услугу напрямую. Отправьте свой запрос, и мы обсудим подходящий следующий шаг.',
-      partnerSupport: 'Rafiq координирует эту услугу через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
+      directSupport: 'Rafiq координирует услугу «{service}» напрямую. Отправьте свой запрос, и мы обсудим подходящий следующий шаг.',
+      partnerSupport: 'Rafiq координирует услугу «{service}» через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
       topicsHeading: 'Частые вопросы и связанные темы',
       topicsIntro: 'Это распространённые темы, которые клиенты изучают до начала процесса. Требования и окончательные решения зависят от вашей ситуации и компетентных органов или поставщиков.',
       relatedHeading: 'Связанные услуги',
@@ -59,8 +59,8 @@ function copyFor(language: string) {
       breadcrumb: 'خدمات',
       breadcrumbLabel: 'مسیر راهنما',
       howHeading: 'Rafiq چگونه می‌تواند در این خدمت کمک کند؟',
-      directSupport: 'Rafiq این خدمت را مستقیماً هماهنگ می‌کند. نیاز خود را بفرستید تا درباره گام بعدی مناسب صحبت کنیم.',
-      partnerSupport: 'Rafiq این خدمت را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
+      directSupport: 'Rafiq خدمت «{service}» را مستقیماً هماهنگ می‌کند. نیاز خود را بفرستید تا درباره گام بعدی مناسب صحبت کنیم.',
+      partnerSupport: 'Rafiq خدمت «{service}» را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
       topicsHeading: 'پرسش‌های رایج و موضوعات مرتبط',
       topicsIntro: 'این‌ها موضوعات رایجی هستند که مشتریان پیش از شروع بررسی می‌کنند. شرایط و تصمیم‌های نهایی به وضعیت شما و مراجع یا ارائه‌کنندگان مربوط بستگی دارد.',
       relatedHeading: 'خدمات مرتبط',
@@ -77,8 +77,8 @@ function copyFor(language: string) {
     breadcrumb: 'الخدمات',
     breadcrumbLabel: 'مسار التنقل',
     howHeading: 'كيف يساعدك رفيق في هذه الخدمة؟',
-    directSupport: 'يقدّم رفيق تنسيق هذه الخدمة مباشرة، ويمكنك إرسال احتياجك ليتم ترتيب الخطوة التالية معك.',
-    partnerSupport: 'ينسّق رفيق هذه الخدمة عبر شريك مختص، ويمكنك إرسال احتياجك ليتم توجيهك إلى الخطوة المناسبة.',
+    directSupport: 'يقدّم رفيق تنسيق خدمة «{service}» مباشرة، ويمكنك إرسال احتياجك ليتم ترتيب الخطوة التالية معك.',
+    partnerSupport: 'ينسّق رفيق خدمة «{service}» عبر شريك مختص، ويمكنك إرسال احتياجك ليتم توجيهك إلى الخطوة المناسبة.',
     topicsHeading: 'أسئلة ومواضيع مرتبطة بالخدمة',
     topicsIntro: 'هذه أبرز الموضوعات التي يبحث عنها العملاء قبل بدء الإجراءات. المتطلبات والقرارات النهائية تعتمد على حالتك والجهات المختصة.',
     relatedHeading: 'خدمات ذات صلة',
@@ -209,7 +209,7 @@ export function ServiceDetail() {
             <h2 className="text-lg font-extrabold text-navy">{copy.howHeading}</h2>
             <p className="mt-3 text-sm leading-7 text-gray-650">{description}</p>
             <p className="mt-3 text-sm leading-7 text-gray-650">
-              {serviceMode === 'direct' ? copy.directSupport : copy.partnerSupport}
+              {(serviceMode === 'direct' ? copy.directSupport : copy.partnerSupport).replace('{service}', title)}
             </p>
           </section>
 
