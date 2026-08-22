@@ -72,6 +72,30 @@ describe('adminList attaches the owning account', () => {
     expect(String(calls.find((c) => c.op === 'select')?.args[0])).toContain('customer_id');
   });
 
+  it('selects service_id', async () => {
+    await serviceRequests.adminList();
+
+    expect(String(calls.find((c) => c.op === 'select')?.args[0])).toContain('service_id');
+  });
+
+  it('carries serviceId through to the row', async () => {
+    requestRows = [{ ...OWNED_A, service_id: 'res-tax' }];
+    profileRows = [{ id: 'cac6dcb8', name: 'محمد', email: 'm@example.com' }];
+
+    const out = await serviceRequests.adminList();
+
+    expect(out[0].serviceId).toBe('res-tax');
+  });
+
+  it('leaves serviceId null when the column is absent (pre-migration rows)', async () => {
+    requestRows = [{ ...OWNED_A, service_id: null }];
+    profileRows = [{ id: 'cac6dcb8', name: 'محمد', email: 'm@example.com' }];
+
+    const out = await serviceRequests.adminList();
+
+    expect(out[0].serviceId).toBeNull();
+  });
+
   it('resolves two requests from one account to the SAME owner', async () => {
     requestRows = [OWNED_A, OWNED_B];
     profileRows = [{ id: 'cac6dcb8', name: 'محمد', email: 'm@example.com' }];

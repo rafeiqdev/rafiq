@@ -2134,6 +2134,8 @@ export interface ServiceRequest {
   name: string;
   phone: string;
   message?: string;
+  /** Catalog id (src/data/services.ts), null on rows predating this column. */
+  serviceId: string | null;
   serviceTitle: string;
   category: string;
   serviceType: string;
@@ -2152,7 +2154,7 @@ export interface ServiceRequest {
 
 interface ServiceRequestRow {
   id: string; name: string; phone: string; message: string | null;
-  service_title: string | null; category: string | null; service_type: string | null;
+  service_id: string | null; service_title: string | null; category: string | null; service_type: string | null;
   status: string; created_at: string;
 }
 
@@ -2274,7 +2276,7 @@ export const serviceRequests = {
     const c = sb();
     const { data, error } = await c
       .from('service_requests')
-      .select('id,name,phone,message,service_title,category,service_type,status,customer_id,created_at')
+      .select('id,name,phone,message,service_id,service_title,category,service_type,status,customer_id,created_at')
       .order('created_at', { ascending: false });
     if (error) fail(error);
 
@@ -2295,6 +2297,7 @@ export const serviceRequests = {
       const owner = r.customer_id ? owners.get(r.customer_id) : undefined;
       return {
         id: r.id, name: r.name, phone: r.phone, message: r.message ?? undefined,
+        serviceId: r.service_id ?? null,
         serviceTitle: r.service_title ?? '', category: r.category ?? '', serviceType: r.service_type ?? '',
         status: r.status, createdAt: r.created_at,
         customerId: r.customer_id ?? null,
