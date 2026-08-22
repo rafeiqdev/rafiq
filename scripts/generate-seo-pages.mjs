@@ -293,6 +293,63 @@ function renderFaqHtml(items, lang) {
       </section>`;
 }
 
+// The medical.landing.desktop.* keys already power the live health-tourism
+// page (specialties grid, 4-step process, logistics cards). They're static
+// per-language strings, not live API data, so they're safe to bake into the
+// crawler-visible shell the same way FAQ items already are — without this,
+// a non-JS crawler only ever sees the one-line meta description instead of
+// the actual treatment list that ranks for "hair transplant Istanbul" etc.
+function renderHealthTourismSections(lang) {
+  const specialties = text(lang, 'medical.landing.desktop.specialties.items') ?? [];
+  const steps = text(lang, 'medical.landing.desktop.how.steps') ?? [];
+  const cards = text(lang, 'medical.landing.desktop.logistics.cards') ?? [];
+
+  const specialtiesHtml = specialties.length ? `
+      <section aria-labelledby="seo-specialties-heading">
+        <h2 id="seo-specialties-heading">${escapeHtml(text(lang, 'medical.landing.desktop.specialties.title'))}</h2>
+        <ul>${specialties.map((item) =>
+          `<li><strong>${escapeHtml(item.title)}</strong> — ${escapeHtml(item.description)}</li>`,
+        ).join('')}</ul>
+      </section>` : '';
+
+  const howHtml = steps.length ? `
+      <section aria-labelledby="seo-how-heading">
+        <h2 id="seo-how-heading">${escapeHtml(text(lang, 'medical.landing.desktop.how.title'))}</h2>
+        <ol>${steps.map((step) =>
+          `<li><strong>${escapeHtml(step.title)}</strong> — ${escapeHtml(step.body)}</li>`,
+        ).join('')}</ol>
+      </section>` : '';
+
+  const logisticsHtml = cards.length ? `
+      <section aria-labelledby="seo-logistics-heading">
+        <h2 id="seo-logistics-heading">${escapeHtml(text(lang, 'medical.landing.desktop.logistics.title'))}</h2>
+        <ul>${cards.map((card) =>
+          `<li><strong>${escapeHtml(card.title)}</strong> — ${escapeHtml(card.description)}</li>`,
+        ).join('')}</ul>
+      </section>` : '';
+
+  return specialtiesHtml + howHtml + logisticsHtml;
+}
+
+// realEstate.citizenshipNotice and .invest.* are static per-language strings
+// (unlike the live listings grid, which is fetched at runtime and correctly
+// stays out of the static shell to avoid going stale between deploys).
+function renderRealEstateSections(lang) {
+  const notice = text(lang, 'realEstate.citizenshipNotice');
+  const investTitle = text(lang, 'realEstate.invest.title');
+  const investBody = text(lang, 'realEstate.invest.body');
+  const parts = [];
+  if (notice) parts.push(`<p>${escapeHtml(notice)}</p>`);
+  if (investTitle && investBody) {
+    parts.push(`
+      <section aria-labelledby="seo-invest-heading">
+        <h2 id="seo-invest-heading">${escapeHtml(investTitle)}</h2>
+        <p>${escapeHtml(investBody)}</p>
+      </section>`);
+  }
+  return parts.join('');
+}
+
 function priorityLinkItems(lang) {
   const items = [
     ['/services/res-tourist', serviceSeo[lang]?.['res-tourist']?.title],
@@ -459,8 +516,18 @@ function buildHtml(template, lang, route, meta) {
       ${priorityLinksHtml}
     </main>`;
     }
-  } else if (faqItems.length) {
-    staticMain = staticMain.replace('</article>', `${renderFaqHtml(faqItems, lang)}\n      </article>`);
+  } else {
+    const extraSectionsHtml = route === '/health-tourism'
+      ? renderHealthTourismSections(lang)
+      : route === '/real-estate'
+        ? renderRealEstateSections(lang)
+        : '';
+    if (faqItems.length || extraSectionsHtml) {
+      staticMain = staticMain.replace(
+        '</article>',
+        `${extraSectionsHtml}${renderFaqHtml(faqItems, lang)}\n      </article>`,
+      );
+    }
   }
 
   const jsonLd = escapeJsonForHtml({
