@@ -64,7 +64,12 @@ function urlsForChanges(urls, files) {
   if (includes(/^src\/pages\/Services\.tsx$/)) {
     urls.filter((url) => /\/(ar|en|ru|fa)\/services$/.test(url)).forEach((url) => selected.add(url));
   }
-  if (includes(/^src\/i18n\//) || includes(/^src\/lib\/seo\.ts$/)) {
+  if (includes(/^src\/i18n\//) || includes(/^src\/lib\/seo\.ts$/) || includes(/^scripts\/generate-seo-pages\.mjs$/)) {
+    // generate-seo-pages.mjs is the shared template for every route's static
+    // shell (title/meta/JSON-LD/pre-rendered content) — a change there can
+    // alter what every one of the 400 sitemap URLs ships, the same blast
+    // radius as an i18n or seo.ts change, even though it touches no page's
+    // own source file.
     urls.forEach((url) => selected.add(url));
   }
 
