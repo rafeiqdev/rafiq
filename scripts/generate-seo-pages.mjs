@@ -406,6 +406,29 @@ function faqPageJsonLd(items) {
   };
 }
 
+// No standalone Guides index page exists (only /guides/:id), so that
+// breadcrumb level omits `item` rather than link to a route that 404s.
+const GUIDES_LABEL = { ar: 'الأدلة', en: 'Guides', ru: 'Гиды', fa: 'راهنماها' };
+
+function breadcrumbJsonLd(lang, route, meta) {
+  if (route === '/') return null;
+  const items = [{ '@type': 'ListItem', position: 1, name: text(lang, 'nav.home'), item: pageUrl(lang, '/') }];
+  const guideMatch = route.match(/^\/guides\/([^/]+)$/);
+  const serviceMatch = route.match(/^\/services\/([^/]+)$/);
+
+  if (serviceMatch) {
+    items.push({ '@type': 'ListItem', position: 2, name: text(lang, 'nav.allServices'), item: pageUrl(lang, '/services') });
+    items.push({ '@type': 'ListItem', position: 3, name: meta.title });
+  } else if (guideMatch) {
+    items.push({ '@type': 'ListItem', position: 2, name: GUIDES_LABEL[lang] });
+    items.push({ '@type': 'ListItem', position: 3, name: meta.title });
+  } else {
+    items.push({ '@type': 'ListItem', position: 2, name: meta.title });
+  }
+
+  return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items };
+}
+
 function homeFaqItems(lang) {
   return ['q1', 'q2', 'q3', 'q4', 'q5', 'q6']
     .map((id) => ({
@@ -620,6 +643,8 @@ function buildHtml(template, lang, route, meta) {
         ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
         : [];
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
+  const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
+  const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
   const serviceJsonLd = serviceMatch && serviceSeo[lang][serviceMatch[1]]
     ? escapeJsonForHtml({
         '@context': 'https://schema.org',
@@ -694,7 +719,7 @@ function buildHtml(template, lang, route, meta) {
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}" />`);
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
-    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
   // The footer must live INSIDE <main id="seo-fallback">: that id carries the
   // visually-hidden rule in index.html, and a sibling footer outside it paints
   // as raw visible text at the top of every page until React hydrates.
