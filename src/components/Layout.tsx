@@ -30,9 +30,8 @@ const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/
 // footer can be appended to them; the app-shell screens (/auth, /premium,
 // /chat, /map, /help) are fixed-height flex layouts that own
 // the whole viewport and must stay footer-free.
-// "/" is NOT here: the guest homepage (src/pages/Home.tsx) ships its own
-// RafiqCinematicFooter now, on every breakpoint — see hideChrome below.
 const MOBILE_FOOTER_ROUTES = new Set([
+  '/',
   '/services',
   '/tricks',
   '/real-estate',
@@ -178,10 +177,15 @@ export function Layout() {
   const location = useLocation();
   const isMobile = useIsMobile();
   // The guest homepage (src/pages/Home.tsx) is a full-page port that ships its
-  // own header and footer on every breakpoint, desktop included — Layout's
-  // chrome would otherwise stack a second header/footer above/below it. Gated
-  // on `!user` so the signed-in dashboard at the same "/" URL (UserHome) keeps
-  // the normal site chrome, same as every other authenticated route.
+  // own header on every breakpoint, desktop included — Layout's top ticker +
+  // nav bar would otherwise stack a second header above it. Gated on `!user`
+  // so the signed-in dashboard at the same "/" URL (UserHome) keeps the
+  // normal site chrome, same as every other authenticated route.
+  //
+  // The FOOTER is a different story (see the SiteFooter render below): the
+  // ported page's own cinematic footer has no terms/privacy/refund links, no
+  // guide links, and no language picker, so the informational SiteFooter
+  // still renders underneath it rather than being suppressed by hideChrome.
   const isGuestHome = location.pathname === '/' && !user;
   const hideChrome =
     isGuestHome ||
@@ -190,7 +194,7 @@ export function Layout() {
         location.pathname.startsWith('/services/')));
   const showMobileFooter =
     hideChrome &&
-    !isGuestHome &&
+    isMobile &&
     (MOBILE_FOOTER_ROUTES.has(location.pathname) ||
       location.pathname.startsWith('/services/'));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -450,7 +454,10 @@ export function Layout() {
       </main>
 
 
-      {!hideChrome && <SiteFooter />}
+      {/* Guest home hides the top ticker/nav (its own header replaces them) but
+          still gets the normal desktop SiteFooter underneath its own cinematic
+          footer — see the comment on `isGuestHome` above. */}
+      {(!hideChrome || (isGuestHome && !isMobile)) && <SiteFooter />}
       {showMobileFooter && <SiteFooter variant="mobile" />}
       {/* The app-shell routes (/auth /premium /chat /map /help) have neither
           header nor footer on phones — without this a visitor landing on
