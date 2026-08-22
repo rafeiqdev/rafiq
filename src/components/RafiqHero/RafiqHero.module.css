@@ -709,7 +709,7 @@
   .navItemsContainer {
     display: flex;
     align-items: center;
-    gap: 0.15rem;
+    gap: 0.1rem;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -721,15 +721,15 @@
   }
 
   .navButton {
-    padding: 0.3rem 0.45rem;
-    font-size: 0.72rem;
-    gap: 0.2rem;
+    padding: 0.25rem 0.3rem;
+    font-size: 0.68rem;
+    gap: 0.15rem;
     flex-shrink: 0;
   }
 
   .navIconWrapper svg {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
   }
 
   .navCtaSlot {
