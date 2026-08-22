@@ -42,6 +42,7 @@
  * Run via `npm run build` (prebuild step) or directly: node scripts/generate-sitemap.mjs
  */
 import 'dotenv/config';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,6 +58,61 @@ const LANGS = ['ar', 'en', 'ru', 'fa'];
 // Detail pages are indexable only after their language-specific SEO copy is reviewed.
 const SERVICE_LANGS = ['ar', 'en', 'ru', 'fa'];
 const today = new Date().toISOString().slice(0, 10);
+
+// Every <lastmod> used to be `today` unconditionally — a build-timestamp, not
+// a content-change date, on all 400 URLs including pages like /terms that
+// hadn't changed in weeks. Google explicitly discounts a <lastmod> it judges
+// untrustworthy (identical, ever-advancing date on every URL is exactly that
+// pattern), which forfeits the crawl-prioritization the tag exists for. Real
+// signal instead: the most recent git commit date touching the source
+// file(s) that actually feed each route's content. Falls back to `today`
+// only if git has no history for a path (e.g. a brand-new file not yet
+// committed) — never silently wrong, just as informative as before in that
+// edge case.
+const lastmodCache = new Map();
+function gitLastModified(paths) {
+  const key = paths.join('|');
+  if (lastmodCache.has(key)) return lastmodCache.get(key);
+  let result = today;
+  try {
+    const out = execFileSync(
+      'git',
+      ['log', '-1', '--format=%cd', '--date=short', '--', ...paths],
+      { cwd: root, encoding: 'utf8' },
+    ).trim();
+    if (out) result = out;
+  } catch {
+    // Not a git checkout, or git unavailable in this build environment —
+    // fall back to the build date rather than failing the whole sitemap.
+  }
+  lastmodCache.set(key, result);
+  return result;
+}
+
+const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
+
+/**
+ * Real content-change date for one route, scoped as tightly as the source
+ * layout allows. Deliberately tracks only the CONTENT source files, not
+ * scripts/generate-seo-pages.mjs (the shared rendering/template logic) — a
+ * templating change reformats how content displays, it doesn't change the
+ * facts on the page, and including it here would recreate the exact
+ * every-URL-bumps-together pattern this fix exists to avoid, just on a
+ * longer cycle (whenever the shared generator is next touched instead of
+ * every build).
+ */
+function lastmodFor(path, lang) {
+  if (path.startsWith('/guides/')) {
+    return gitLastModified(['src/data/categoryGuides.ts']);
+  }
+  const serviceMatch = path.match(/^\/services\/([^/]+)$/);
+  if (serviceMatch) {
+    return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
+  }
+  // Every other route (home, hubs, legal pages) is driven by the locale
+  // strings — no more precise per-route source file to point at.
+  return gitLastModified([`src/i18n/locales/${lang}.json`]);
+}
 
 // Priority pages: the homepage, the three hub/listing pages, the flagship
 // guides and the residency-spotlight + health-tourism services — the ~15-20
@@ -114,7 +170,7 @@ function urlEntry(lang, { path, changefreq, priority }, alternateLanguages) {
   return [
     '  <url>',
     `    <loc>${escapeXml(langUrl(lang, path))}</loc>`,
-    `    <lastmod>${today}</lastmod>`,
+    `    <lastmod>${lastmodFor(path, lang)}</lastmod>`,
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority}</priority>`,
     alternates,
