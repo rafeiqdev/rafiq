@@ -4,11 +4,26 @@ import { adminPlaces, listings as listingsApi } from '../lib/api';
 import type { ListingInput, PlaceInput } from '../lib/api';
 import { PLACE_CATEGORIES } from '../lib/types';
 import type { Listing, Place } from '../lib/types';
+import { SITE_URL } from '../lib/seo';
 import { AppIcon } from './AppIcon';
 import { Modal } from './Modal';
 import { SectionState } from './SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { ConfirmActionModal } from './admin/ConfirmActionModal';
+
+/**
+ * Google only accepts a page for its (unofficial, quota-limited) manual
+ * indexing request through a signed-in human clicking "Request indexing" in
+ * Search Console itself — there is no API for arbitrary pages (the Indexing
+ * API is restricted to job postings / livestreams). This deep-links straight
+ * into the URL Inspection tool for the new listing so that click is the only
+ * step left. resource_id assumes a URL-prefix property verified on SITE_URL.
+ */
+function gscInspectUrl(id: string, lang: string): string {
+  const pageUrl = `${SITE_URL}/${lang}/real-estate/${id}`;
+  const resourceId = `${SITE_URL}/`;
+  return `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(resourceId)}&id=${encodeURIComponent(pageUrl)}`;
+}
 
 // Uses the shared list rather than a local copy: this editor had drifted and
 // was missing categories the map could produce, so an admin curating one had
@@ -30,7 +45,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // ---------------------------------------------------------------- listings
 
 function ListingEditor({ initial, onClose, onSaved }: { initial: Listing | null; onClose: () => void; onSaved: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [createdId, setCreatedId] = useState<string | null>(null);
   const [form, setForm] = useState<ListingInput>(
     initial
       ? {
@@ -71,16 +87,52 @@ function ListingEditor({ initial, onClose, onSaved }: { initial: Listing | null;
     // the first uploaded photo becomes the card cover (back-compat with `image`)
     const payload: ListingInput = { ...form, image: form.images?.[0] || form.image || '' };
     try {
-      if (initial) await listingsApi.update(initial.id, payload);
-      else await listingsApi.create(payload);
-      onSaved();
-      onClose();
+      if (initial) {
+        await listingsApi.update(initial.id, payload);
+        onSaved();
+        onClose();
+      } else {
+        // A brand-new listing pauses on a success step instead of closing
+        // straight away, so the "submit to Google" button has an id to link to.
+        const { id } = await listingsApi.create(payload);
+        onSaved();
+        setCreatedId(id);
+      }
     } catch {
       setError(true);
     } finally {
       setBusy(false);
     }
   };
+
+  if (createdId) {
+    return (
+      <Modal onClose={onClose} labelId="listing-published" maxWidth="max-w-lg">
+        <div className="card p-6 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+            <AppIcon name="check" className="w-6 h-6" />
+          </span>
+          <h3 id="listing-published" className="mt-4 font-extrabold text-navy text-lg">
+            {t('admin.listings.published')}
+          </h3>
+          <p className="mt-2 text-sm text-gray-500">{t('admin.listings.requestIndexingHint')}</p>
+          <a
+            href={gscInspectUrl(createdId, i18n.language)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary w-full mt-5"
+          >
+            <AppIcon name="search" className="w-4 h-4" />
+            {t('admin.listings.requestIndexing')}
+            <AppIcon name="external-link" className="w-3.5 h-3.5" />
+          </a>
+          <button onClick={onClose} className="btn-secondary w-full mt-2.5">
+            {t('common.close')}
+          </button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal onClose={onClose} labelId="listing-editor" maxWidth="max-w-lg">

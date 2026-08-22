@@ -1431,7 +1431,10 @@
       "furnished": "مفروش",
       "citizenship": "مؤهل للجنسية",
       "invalid": "يرجى إدخال الحي والغرف والمساحة والسعر.",
-      "confirmDelete": "حذف هذا العقار؟"
+      "confirmDelete": "حذف هذا العقار؟",
+      "published": "تم نشر العقار بنجاح.",
+      "requestIndexingHint": "غوغل ما بيسمح بإرسال آلي — بتفتح لكم صفحة فحص الرابط في Google Search Console وتضغطوا \"طلب الفهرسة\" فيها بنفسكن.",
+      "requestIndexing": "أرسل الرابط لفهرسة Google"
     },
     "places": {
       "title": "خدمات الخريطة",

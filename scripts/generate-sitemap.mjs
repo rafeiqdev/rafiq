@@ -136,13 +136,20 @@ writeFileSync(join(root, 'public/sitemap-priority.xml'), urlset(priorityBody), '
 writeFileSync(join(root, 'public/sitemap-guides.xml'), urlset(guidesBody), 'utf8');
 
 // sitemap.xml is now a sitemap INDEX — the only file robots.txt references —
-// pointing at the two sitemaps above. <lastmod> uses the same build date
-// since both member sitemaps were just (re)written together.
+// pointing at the two sitemaps above plus the live listings sitemap. <lastmod>
+// uses the same build date since both static member sitemaps were just
+// (re)written together; the listings entry's own content is dated per-row by
+// api/sitemap-listings.xml.ts itself; this line ony affects how the index
+// announces that member sitemap's freshness, not its content.
 const sitemapIndex =
   `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   [
     { loc: `${SITE_URL}/sitemap-priority.xml` },
     { loc: `${SITE_URL}/sitemap-guides.xml` },
+    // Generated per-request straight from Supabase (api/sitemap-listings.xml.ts),
+    // not at build time — a listing published from the admin panel is
+    // discoverable immediately instead of waiting for the next deploy.
+    { loc: `${SITE_URL}/api/sitemap-listings.xml` },
   ]
     .map(({ loc }) => `  <sitemap>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`)
     .join('\n') +

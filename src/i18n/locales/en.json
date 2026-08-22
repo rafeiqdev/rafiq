@@ -1431,7 +1431,10 @@
       "furnished": "Furnished",
       "citizenship": "Citizenship eligible",
       "invalid": "Please fill in district, rooms, area and price.",
-      "confirmDelete": "Delete this listing?"
+      "confirmDelete": "Delete this listing?",
+      "published": "Listing published successfully.",
+      "requestIndexingHint": "Google doesn't accept automatic submissions — this opens the URL Inspection tool in Google Search Console; click \"Request indexing\" there yourself.",
+      "requestIndexing": "Submit URL to Google indexing"
     },
     "places": {
       "title": "Map services",
