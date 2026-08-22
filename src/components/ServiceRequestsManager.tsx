@@ -252,6 +252,15 @@ export function ServiceRequestsManager() {
                 <RevealField masked={maskPhone(r.phone)} full={r.phone} onReveal={() => logPiiReveal('service_request', r.id)} />
               </span>
               {r.message && <span className="text-xs text-gray-500 basis-full">“{r.message}”</span>}
+              {r.serviceId && (
+                <a
+                  href={`/admin?tab=competitors&service=${r.serviceId}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-navy underline-offset-2 hover:underline"
+                >
+                  <AppIcon name="search" className="w-3.5 h-3.5" />
+                  {t('admin.serviceRequests.competitors')}
+                </a>
+              )}
               <span className="ms-auto text-xs text-gray-500">{new Date(r.createdAt).toLocaleString(i18n.language)}</span>
 
               {/* workflow — flips the customer's live screen to "افتح الآن" */}

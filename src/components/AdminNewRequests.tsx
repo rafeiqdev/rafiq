@@ -110,6 +110,16 @@ export function AdminNewRequests() {
                 {r.phone}
               </a>
 
+              {r.serviceId && (
+                <a
+                  href={`/admin?tab=competitors&service=${r.serviceId}`}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-semibold text-navy underline-offset-2 hover:underline"
+                >
+                  <AppIcon name="search" className="h-4 w-4 shrink-0" />
+                  {t('admin.newRequests.competitors')}
+                </a>
+              )}
+
               <button
                 onClick={() => act(r.id, 'accepted')}
                 disabled={busyId === r.id}

@@ -36,6 +36,7 @@ const row = (over: Partial<Record<string, unknown>> = {}) => ({
   name: 'Ahmet',
   phone: '+90 555 123 45 67',
   message: undefined,
+  serviceId: 'res-tourist',
   serviceTitle: 'İkamet',
   category: 'residency',
   serviceType: 'direct',
@@ -158,6 +159,24 @@ describe('the queue itself', () => {
     fireEvent.click(await screen.findByRole('button', { name: /markReady/ }));
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+
+  it('links to that service\'s competitor view when serviceId is known', async () => {
+    adminListMock.mockResolvedValue([row({ id: 'r9', serviceId: 'res-tourist' })]);
+
+    render(<AdminNewRequests />);
+
+    const link = await screen.findByRole('link', { name: 'admin.newRequests.competitors' });
+    expect(link).toHaveAttribute('href', '/admin?tab=competitors&service=res-tourist');
+  });
+
+  it('omits the competitor link when serviceId is unknown (pre-migration rows)', async () => {
+    adminListMock.mockResolvedValue([row({ id: 'r9', serviceId: null })]);
+
+    render(<AdminNewRequests />);
+
+    await screen.findByText('Ahmet');
+    expect(screen.queryByRole('link', { name: 'admin.newRequests.competitors' })).toBeNull();
   });
 
   it('gives every control a >=44px tap target', async () => {
