@@ -139,6 +139,20 @@ const serviceType = Object.fromEntries(
   [...servicesSource.matchAll(/\{ id: '([^']+)',\s+category: '[^']+',\s+type: '(direct|partner)'/g)]
     .map((match) => [match[1], match[2]]),
 );
+// service id -> category, and id -> {ar,en} title, for the "related services"
+// cross-links below. Mirrors ServiceDetail.tsx's pickText() fallback: ru/fa
+// fall back to the English title because services.ts itself has no ru/fa
+// titles (only ar/en/tr).
+const serviceCategory = {};
+const serviceTitleByLang = { ar: {}, en: {} };
+for (const match of servicesSource.matchAll(
+  /\{ id: '([^']+)',\s+category: '([^']+)',\s+type: '(?:direct|partner)',\s+icon: '[^']+',\s+title: \{ ar: '([^']*)', en: '([^']*)'/g,
+)) {
+  const [, id, category, ar, en] = match;
+  serviceCategory[id] = category;
+  serviceTitleByLang.ar[id] = ar;
+  serviceTitleByLang.en[id] = en;
+}
 
 // Mirrors ServiceDetail.tsx's copyFor(): static per-language strings already
 // shown on the live page. Reusing them verbatim (not writing new copy) keeps
@@ -150,6 +164,7 @@ const SERVICE_DETAIL_COPY = {
     partnerSupport: 'ينسّق رفيق هذه الخدمة عبر شريك مختص، ويمكنك إرسال احتياجك ليتم توجيهك إلى الخطوة المناسبة.',
     topicsHeading: 'أسئلة ومواضيع مرتبطة بالخدمة',
     topicsIntro: 'هذه أبرز الموضوعات التي يبحث عنها العملاء قبل بدء الإجراءات. المتطلبات والقرارات النهائية تعتمد على حالتك والجهات المختصة.',
+    relatedHeading: 'خدمات ذات صلة',
   },
   en: {
     howHeading: 'How can Rafiq help with this service?',
@@ -157,6 +172,7 @@ const SERVICE_DETAIL_COPY = {
     partnerSupport: 'Rafiq coordinates this service through a partner. Send your needs for guidance on an appropriate next step.',
     topicsHeading: 'Common questions and related topics',
     topicsIntro: 'These are common topics customers research before starting. Requirements and final decisions depend on your situation and the relevant authorities or providers.',
+    relatedHeading: 'Related services',
   },
   ru: {
     howHeading: 'Как Rafiq может помочь с этой услугой?',
@@ -164,6 +180,7 @@ const SERVICE_DETAIL_COPY = {
     partnerSupport: 'Rafiq координирует эту услугу через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
     topicsHeading: 'Частые вопросы и связанные темы',
     topicsIntro: 'Это распространённые темы, которые клиенты изучают до начала процесса. Требования и окончательные решения зависят от вашей ситуации и компетентных органов или поставщиков.',
+    relatedHeading: 'Связанные услуги',
   },
   fa: {
     howHeading: 'Rafiq چگونه می‌تواند در این خدمت کمک کند؟',
@@ -171,8 +188,38 @@ const SERVICE_DETAIL_COPY = {
     partnerSupport: 'Rafiq این خدمت را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
     topicsHeading: 'پرسش‌های رایج و موضوعات مرتبط',
     topicsIntro: 'این‌ها موضوعات رایجی هستند که مشتریان پیش از شروع بررسی می‌کنند. شرایط و تصمیم‌های نهایی به وضعیت شما و مراجع یا ارائه‌کنندگان مربوط بستگی دارد.',
+    relatedHeading: 'خدمات مرتبط',
   },
 };
+
+// Same 4-item related-services list ServiceDetail.tsx shows live (same
+// category, excluding itself, catalog declaration order). ru/fa use the
+// English title, matching pickText()'s fallback since services.ts has no
+// ru/fa titles.
+function relatedServiceItems(lang, id) {
+  const category = serviceCategory[id];
+  if (!category) return [];
+  const titles = lang === 'ar' ? serviceTitleByLang.ar : serviceTitleByLang.en;
+  return Object.keys(serviceCategory)
+    .filter((otherId) => serviceCategory[otherId] === category && otherId !== id)
+    .slice(0, 4)
+    .map((otherId) => [otherId, titles[otherId]])
+    .filter(([, label]) => label);
+}
+
+function renderRelatedServices(lang, id) {
+  const items = relatedServiceItems(lang, id);
+  if (!items.length) return '';
+  const copy = SERVICE_DETAIL_COPY[lang];
+  const links = items.map(([otherId, label]) =>
+    `<li><a href="${escapeHtml(`/${lang}/services/${otherId}`)}">${escapeHtml(label)}</a></li>`,
+  ).join('');
+  return `
+      <section aria-labelledby="seo-related-heading">
+        <h2 id="seo-related-heading">${escapeHtml(copy.relatedHeading)}</h2>
+        <ul>${links}</ul>
+      </section>`;
+}
 
 // Renders the same "how we help" + "related topics" sections ServiceDetail.tsx
 // shows after hydration, using data that already exists for all 78 services
@@ -203,7 +250,9 @@ function renderServiceTopicsSections(lang, id) {
         <ul>${phrases.map((phrase) => `<li>${escapeHtml(phrase)}</li>`).join('')}</ul>
       </section>` : '';
 
-  return howHtml + topicsHtml;
+  const relatedHtml = renderRelatedServices(lang, id);
+
+  return howHtml + topicsHtml + relatedHtml;
 }
 
 const staticMeta = {
