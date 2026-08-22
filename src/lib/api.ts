@@ -1622,7 +1622,7 @@ export const adminUsers = {
       c.from('bookings').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       c.from('leads').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       c.from('service_requests')
-        .select('id,name,phone,message,service_title,category,service_type,status,customer_id,created_at')
+        .select('id,name,phone,message,service_id,service_title,category,service_type,status,customer_id,created_at')
         .eq('customer_id', userId).order('created_at', { ascending: false }),
     ]);
     return {
@@ -1631,6 +1631,7 @@ export const adminUsers = {
       leads: ((ld as LeadRow[]) ?? []).map(toLead),
       requests: ((sr ?? []) as (ServiceRequestRow & { customer_id: string | null })[]).map((r) => ({
         id: r.id, name: r.name, phone: r.phone, message: r.message ?? undefined,
+        serviceId: r.service_id ?? null,
         serviceTitle: r.service_title ?? '', category: r.category ?? '', serviceType: r.service_type ?? '',
         status: r.status, createdAt: r.created_at, customerId: r.customer_id ?? null,
       })),

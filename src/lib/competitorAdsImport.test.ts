@@ -15,7 +15,7 @@ const HEADER = [
   'النص الكامل للإعلان', 'رابط الإعلان المباشر', 'المبلغ المصروف',
 ];
 
-const REAL_ROW = [
+const REAL_ROW: (string | number)[] = [
   'إقامة سياحية', 'العربية', 'إقامة سياحية في تركيا', '202993668427755',
   'عبدالله الحمصي', 'Inactive', '27 Jul 2021 - 27 Jul 2021', 'غير متاح', 'نص فقط',
   "This content was removed because it didn't follow our\n.",
