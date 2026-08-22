@@ -181,7 +181,16 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     [isRtl, nextSlide, prevSlide]
   );
 
-  // Pointer Drag Handlers adapted to direction
+  // Pointer Drag Handlers adapted to direction.
+  //
+  // Pointer capture is deliberately NOT taken here on pointerdown. Capturing
+  // immediately (the original behavior) makes Chromium retarget the click
+  // that follows pointerup to the CAPTURING element (this container div)
+  // instead of whatever was actually under the cursor — so a plain click on
+  // "Request Service" never reached the <a> at all, it silently landed on
+  // this wrapper div instead. Capture is taken only once real dragging is
+  // confirmed (handlePointerMove, past the 6px threshold), so a simple click
+  // never captures the pointer and the native click reaches the real link.
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsPointerDown(true);
     setIsPaused(true);
@@ -190,10 +199,6 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     isDraggingRef.current = false;
     dragDistanceRef.current = 0;
     setDragOffset(0);
-
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -203,6 +208,9 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     dragDistanceRef.current = Math.abs(deltaX);
 
     if (dragDistanceRef.current > 6) {
+      if (!isDraggingRef.current && containerRef.current && !containerRef.current.hasPointerCapture(e.pointerId)) {
+        containerRef.current.setPointerCapture(e.pointerId);
+      }
       isDraggingRef.current = true;
     }
 
@@ -368,11 +376,6 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
               }
 
               const isCenter = diff === 0;
-              const isVisibleSlot = Math.abs(diff) <= 2;
-
-              if (!isVisibleSlot && !reducedMotion) {
-                return null;
-              }
 
               // Dynamic Spatial 3D Calculations based on direction
               const baseSpacing = typeof window !== "undefined" && window.innerWidth < 640 ? 150 : 230;
@@ -424,29 +427,33 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                     pointerEvents: isCenter || Math.abs(diff) <= 1 ? "auto" : "none",
                   }}
                 >
-                  {/* Official Rafiq Service Card */}
-                  <a
-                    href={slide.href}
-                    onClick={(e) => {
-                      if (isDraggingRef.current || dragDistanceRef.current > 6) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return;
-                      }
-                      if (!isCenter) {
-                        e.preventDefault();
-                        goToSlide(index);
-                      }
-                    }}
+                  {/* Official Rafiq Service Card.
+                      A plain div, not an <a>: the "Request Service" pill below is
+                      its own real, independent link so it always navigates,
+                      centered or not — see its onPointerUp below for why
+                      navigation happens there instead of via a plain href click.
+                      Interaction here uses onPointerUp, not onClick, for the same
+                      reason: this card sits inside a `perspective` + `transform-
+                      style: preserve-3d` stack (for the coverflow 3D effect), and
+                      in that setup the browser's synthesized `click` event can
+                      resolve its target to the wrong element in the 3D stack
+                      (verified: it was landing on the outer scroll container,
+                      several ancestors up, so neither this card's nor the link's
+                      onClick ever ran). pointerup hit-tests correctly regardless. */}
+                  <div
+                    role="group"
                     aria-label={`Service ${slide.title}: ${slide.description}`}
+                    onPointerUp={() => {
+                      if (isDraggingRef.current || dragDistanceRef.current > 6) return;
+                      if (!isCenter) goToSlide(index);
+                    }}
                     className={cn(
-                      "group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl transition-all duration-300",
+                      "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl transition-all duration-300",
                       isRtl ? "text-right" : "text-left",
                       "w-[290px] sm:w-[330px] md:w-[360px] p-5 sm:p-6",
                       isCenter
                         ? "border-[#1A3A6B]/50 shadow-2xl shadow-[#12294D]/25 ring-2 ring-[#1A3A6B]/30"
-                        : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30",
-                      "focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-4 focus-visible:ring-offset-[#FAF8F0]"
+                        : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30"
                     )}
                   >
                     <div>
@@ -501,18 +508,36 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                       </p>
                     </div>
 
-                    {/* Action Button inside card */}
+                    {/* Action Button inside card — a real, independent link so it
+                        always navigates, whether or not this card is centered.
+                        Navigates on pointerup (not the native href click — see
+                        the card comment above for why) so it's reliable inside
+                        the 3D coverflow stack; href/onClick stay as the fallback
+                        for keyboard activation (Enter/Space), where no pointer
+                        event fires and the browser's click targets this link
+                        correctly on its own. */}
                     <div className="mt-5 border-t border-[#EFEADB] pt-3.5">
-                      <div className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-all duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg">
+                      <a
+                        href={slide.href}
+                        onPointerUp={(e) => {
+                          e.stopPropagation();
+                          if (isDraggingRef.current || dragDistanceRef.current > 6) return;
+                          e.preventDefault();
+                          window.location.href = slide.href;
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`${t.common.requestService}: ${slide.title}`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-all duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-2"
+                      >
                         <span>{t.common.requestService}</span>
                         {isRtl ? (
                           <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" aria-hidden="true" />
                         ) : (
                           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
                         )}
-                      </div>
+                      </a>
                     </div>
-                  </a>
+                  </div>
                 </div>
               );
             })}

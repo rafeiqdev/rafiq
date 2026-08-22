@@ -178,7 +178,10 @@
    -------------------------------------------------------------------------- */
 .topNavHeader {
   position: fixed;
-  top: 0;
+  /* Defaults to flush with the viewport top; the homepage sets
+     --rafiq-topnav-offset to the currency ticker's height so the fixed nav
+     sits right below it instead of underneath it. */
+  top: var(--rafiq-topnav-offset, 0px);
   right: 0;
   left: 0;
   z-index: 100;
