@@ -1,0 +1,797 @@
+/* ==========================================================================
+   Rafiq Istanbul — Standalone Hero Component Styles
+   Brand Palette:
+     --rafiq-cream: #FAF8F0
+     --rafiq-cream-dark: #EFEADB
+     --rafiq-navy-primary: #1A3A6B
+     --rafiq-navy-dark: #12294D
+     --rafiq-navy-light: #2C4F8A
+   ========================================================================== */
+
+.heroRoot {
+  --rafiq-cream: #FAF8F0;
+  --rafiq-cream-dark: #EFEADB;
+  --rafiq-navy-primary: #1A3A6B;
+  --rafiq-navy-dark: #12294D;
+  --rafiq-navy-light: #2C4F8A;
+
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--rafiq-navy-dark);
+  color: var(--rafiq-cream);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.heroRoot[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+.heroRoot[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+.heroRoot[dir="rtl"] .textSection,
+.heroRoot[dir="rtl"] .headline,
+.heroRoot[dir="rtl"] .supportingText {
+  text-align: right;
+}
+
+.heroRoot[dir="ltr"] .textSection,
+.heroRoot[dir="ltr"] .headline,
+.heroRoot[dir="ltr"] .supportingText {
+  text-align: left;
+}
+
+.heroRoot *,
+.heroRoot *::before,
+.heroRoot *::after {
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Background Video & Media Layer
+   -------------------------------------------------------------------------- */
+.mediaContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+  background-color: var(--rafiq-navy-dark);
+}
+
+.bgVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  display: block;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bgPoster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  display: block;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Atmospheric Contrast Overlays (Adaptive for RTL and LTR)
+   -------------------------------------------------------------------------- */
+.overlayDirectional {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(18, 41, 77, 0.88) 0%,
+    rgba(18, 41, 77, 0.72) 40%,
+    rgba(18, 41, 77, 0.38) 72%,
+    rgba(18, 41, 77, 0.15) 100%
+  );
+}
+
+:global([dir="rtl"]) .overlayDirectional,
+.heroRoot[dir="rtl"] .overlayDirectional {
+  background: linear-gradient(
+    to left,
+    rgba(18, 41, 77, 0.88) 0%,
+    rgba(18, 41, 77, 0.72) 40%,
+    rgba(18, 41, 77, 0.38) 72%,
+    rgba(18, 41, 77, 0.15) 100%
+  );
+}
+
+.overlayVignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 41, 77, 0.55) 0%,
+    transparent 22%,
+    transparent 70%,
+    rgba(18, 41, 77, 0.65) 100%
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Smooth Atmospheric Bottom Transition (Hero -> Next Section)
+   -------------------------------------------------------------------------- */
+.bottomTransitionGradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(18, 41, 77, 0.35) 30%,
+    rgba(250, 248, 240, 0.45) 70%,
+    #FAF8F0 100%
+  );
+}
+
+.bottomWaveTransition {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 48px;
+  z-index: 5;
+  pointer-events: none;
+  color: #FAF8F0;
+}
+
+/* --------------------------------------------------------------------------
+   Top Fixed Solid White Navigation Header
+   -------------------------------------------------------------------------- */
+.topNavHeader {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: 72px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #EFEADB;
+  box-shadow: 0 2px 14px rgba(18, 41, 77, 0.06);
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+  transition: all 0.25s ease;
+}
+
+.topNavContainer {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.navBrandSlot {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.logoLink:hover {
+  opacity: 0.88;
+  transform: scale(1.02);
+}
+
+.logoLink:focus-visible {
+  outline: 2px solid #1A3A6B;
+  outline-offset: 3px;
+}
+
+.brandLogo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.brandLogo:hover {
+  transform: scale(1.03);
+}
+
+.navItemsContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+}
+
+.navItemWrapper {
+  position: relative;
+}
+
+.navButton {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  color: #1A3A6B;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.navButton:hover {
+  background: #FAF8F0;
+  color: #12294D;
+  border-color: #EFEADB;
+  transform: translateY(-1px);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid #1A3A6B;
+  outline-offset: 2px;
+}
+
+.navButtonActive {
+  background: #E8F0FB;
+  border-color: #C2D9F5;
+  color: #1A3A6B !important;
+  font-weight: 700;
+}
+
+.navIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1A3A6B;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.navButtonActive .navIconWrapper {
+  color: #1A3A6B !important;
+}
+
+.chevronIcon {
+  display: flex;
+  align-items: center;
+  color: #1A3A6B;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chevronIconOpen {
+  transform: rotate(180deg);
+}
+
+/* Service Dropdown Horizontal Grid Menu (White Card Theme for LTR) */
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
+  z-index: 150;
+  width: 560px;
+  max-width: calc(100vw - 2rem);
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: #FFFFFF;
+  border: 1px solid #EFEADB;
+  box-shadow: 0 20px 45px rgba(18, 41, 77, 0.14), 0 4px 12px rgba(18, 41, 77, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: dropdownFade 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+  box-sizing: border-box;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.1rem 0.4rem 0.4rem 0.4rem;
+  border-bottom: 1px solid #EFEADB;
+}
+
+.dropdownHeaderTitle {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #1A3A6B;
+}
+
+.dropdownGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.dropdownCard {
+  font-family: inherit;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.85rem;
+  background: #FAF8F0;
+  border: 1px solid #EFEADB;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.dropdownCard:hover {
+  background: #E8F0FB;
+  border-color: #C2D9F5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 58, 107, 0.08);
+}
+
+.dropdownCard:focus-visible {
+  outline: 2px solid #1A3A6B;
+  outline-offset: 2px;
+}
+
+.dropdownCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 0.65rem;
+  background: #FFFFFF;
+  border: 1px solid #EFEADB;
+  color: #1A3A6B;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.dropdownCard:hover .dropdownCardIcon {
+  background: #1A3A6B;
+  border-color: #1A3A6B;
+  color: #FFFFFF;
+  transform: scale(1.05);
+}
+
+.dropdownCardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.dropdownCardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.dropdownCardTitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #12294D;
+  transition: color 0.2s ease;
+}
+
+.dropdownCard:hover .dropdownCardTitle {
+  color: #1A3A6B;
+}
+
+.dropdownCardArrow {
+  opacity: 0;
+  transform: translateX(4px);
+  transition: all 0.2s ease;
+  color: #1A3A6B;
+}
+
+.dropdownCard:hover .dropdownCardArrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.dropdownCardDesc {
+  font-size: 0.76rem;
+  color: #4A5F7D;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.navCtaSlot {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.navCtaButton {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.35rem;
+  border-radius: 9999px;
+  background: #1A3A6B;
+  color: #FFFFFF;
+  border: 1px solid #1A3A6B;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(26, 58, 107, 0.18);
+  transition: all 0.2s ease;
+}
+
+.navCtaButton:hover {
+  background: #12294D;
+  border-color: #12294D;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(26, 58, 107, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   Hero Content Container
+   -------------------------------------------------------------------------- */
+.contentWrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 7rem 2.5rem 5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.textSection {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Main Headline & Supporting Text
+   -------------------------------------------------------------------------- */
+.headline {
+  margin: 0;
+  font-size: clamp(1.85rem, 3.2vw, 2.85rem);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: #FFFFFF;
+  text-shadow: 0 4px 24px rgba(18, 41, 77, 0.85), 0 1px 2px rgba(0, 0, 0, 0.35);
+  word-break: break-word;
+  display: block;
+}
+
+.typingCursor {
+  display: inline-block;
+  color: #EFEADB;
+  margin-inline-start: 0.2rem;
+  font-weight: 300;
+  opacity: 0.9;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+.supportingText {
+  margin: 0;
+  font-size: clamp(1.12rem, 1.45vw, 1.35rem);
+  line-height: 1.75;
+  font-weight: 500;
+  color: var(--rafiq-cream);
+  opacity: 0.95;
+  text-shadow: 0 3px 18px rgba(18, 41, 77, 0.8), 0 1px 2px rgba(0, 0, 0, 0.3);
+  max-width: 620px;
+}
+
+/* --------------------------------------------------------------------------
+   Enlarged Transparent Glass Buttons
+   -------------------------------------------------------------------------- */
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
+.buttonBase {
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.05rem 2.4rem;
+  border-radius: 0.85rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+  min-height: 58px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.buttonBase:focus-visible {
+  outline: 2px solid var(--rafiq-cream);
+  outline-offset: 3px;
+}
+
+/* Primary Glass Button */
+.primaryButton {
+  background: rgba(250, 248, 240, 0.2);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(250, 248, 240, 0.5);
+  color: #FFFFFF;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.primaryButton:hover {
+  background: rgba(250, 248, 240, 0.32);
+  border-color: rgba(250, 248, 240, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.primaryButton:active {
+  transform: translateY(0);
+  background: rgba(250, 248, 240, 0.25);
+}
+
+/* Secondary Glass Button */
+.secondaryButton {
+  background: rgba(18, 41, 77, 0.5);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(239, 234, 219, 0.32);
+  color: var(--rafiq-cream);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.secondaryButton:hover {
+  background: rgba(26, 58, 107, 0.78);
+  border-color: rgba(239, 234, 219, 0.6);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+
+.secondaryButton:active {
+  transform: translateY(0);
+  background: rgba(18, 41, 77, 0.65);
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility: Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .bgVideo {
+    display: none !important;
+  }
+  .bgPoster {
+    display: block !important;
+  }
+  .buttonBase,
+  .navButton,
+  .dropdownItem,
+  .logoLink {
+    transition: opacity 150ms ease !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints: Tablet & Mobile
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .topNavHeader {
+    height: 66px;
+  }
+
+  .topNavContainer {
+    padding: 0 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .navButton {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.88rem;
+    gap: 0.35rem;
+  }
+  
+  .contentWrapper {
+    padding: 7rem 1.75rem 4rem 1.75rem;
+  }
+
+  .headline {
+    font-size: clamp(1.65rem, 4vw, 2.25rem);
+  }
+}
+
+@media (max-width: 680px) {
+  .heroRoot {
+    min-height: 100dvh;
+    justify-content: center;
+    padding-bottom: 2rem;
+  }
+
+  .topNavHeader {
+    height: 56px;
+    padding: 0;
+  }
+
+  .topNavContainer {
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+    justify-content: space-between;
+  }
+
+  .brandLogo {
+    height: 25px;
+  }
+
+  .navItemsContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    max-width: calc(100vw - 80px);
+  }
+
+  .navItemsContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navButton {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.72rem;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .navIconWrapper svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .navCtaSlot {
+    display: none;
+  }
+
+  .dropdownMenu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: -20px;
+    right: auto;
+    width: 290px;
+    max-width: calc(100vw - 1rem);
+    padding: 0.65rem;
+    transform: none;
+    transform-origin: top left;
+  }
+
+  .dropdownGrid {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .dropdownCard {
+    padding: 0.55rem 0.65rem;
+    gap: 0.6rem;
+  }
+
+  .dropdownCardIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dropdownCardTitle {
+    font-size: 0.85rem;
+  }
+
+  .dropdownCardDesc {
+    font-size: 0.72rem;
+  }
+
+  .contentWrapper {
+    padding: 5.5rem 1rem 2.5rem 1rem;
+  }
+
+  .headline {
+    font-size: 1.55rem;
+    line-height: 1.35;
+  }
+
+  .supportingText {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .buttonBase {
+    width: 100%;
+    min-height: 50px;
+    padding: 0.85rem 1.25rem;
+    font-size: 1rem;
+  }
+}

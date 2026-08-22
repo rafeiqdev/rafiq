@@ -807,3 +807,68 @@ html[dir='rtl'] li {
     transition: none !important;
   }
 }
+
+/* ── Homepage v2 (Antigravity port, ported into src/pages/Home.tsx) ──
+   Fonts are scoped under #rafiq-home-v2 (not html[lang=...]) on purpose: the
+   ported mockup's own CSS applied fonts globally by `html[lang]`, which would
+   have repainted every OTHER page's typography sitewide. Scoping to the
+   homepage's own root id keeps the redesign contained to "/" the way the rest
+   of the site's typography (Inter / IBM Plex Sans Arabic, set above) is
+   untouched everywhere else. */
+@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200;300;400;500;600;700&family=Rubik:wght@300;400;500;600;700;800;900&family=Cairo:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+
+#rafiq-home-v2[lang='ar'],
+#rafiq-home-v2[lang='ar'] * {
+  font-family: 'Readex Pro', 'Rubik', 'Cairo', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#rafiq-home-v2[lang='fa'],
+#rafiq-home-v2[lang='fa'] * {
+  font-family: 'Vazirmatn', 'Readex Pro', 'Rubik', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+#rafiq-home-v2[lang='en'],
+#rafiq-home-v2[lang='en'] *,
+#rafiq-home-v2[lang='ru'],
+#rafiq-home-v2[lang='ru'] * {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@keyframes rafiqHomeScrollLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes rafiqHomeScrollRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-scroll-left {
+  animation: rafiqHomeScrollLeft var(--scroll-duration, 60s) linear infinite;
+  will-change: transform;
+}
+.animate-scroll-right {
+  animation: rafiqHomeScrollRight var(--scroll-duration, 60s) linear infinite;
+  will-change: transform;
+}
+.pause-on-hover:hover,
+.pause-on-hover:focus-within {
+  animation-play-state: paused;
+}
+
+@keyframes rafiqHomeMarqueeContinuous {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.animate-marquee-continuous {
+  animation: rafiqHomeMarqueeContinuous 42s linear infinite;
+  will-change: transform;
+}
+.animate-marquee-continuous:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-left,
+  .animate-scroll-right,
+  .animate-marquee-continuous {
+    animation: none !important;
+  }
+}

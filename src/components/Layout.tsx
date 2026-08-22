@@ -30,8 +30,9 @@ const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/
 // footer can be appended to them; the app-shell screens (/auth, /premium,
 // /chat, /map, /help) are fixed-height flex layouts that own
 // the whole viewport and must stay footer-free.
+// "/" is NOT here: the guest homepage (src/pages/Home.tsx) ships its own
+// RafiqCinematicFooter now, on every breakpoint — see hideChrome below.
 const MOBILE_FOOTER_ROUTES = new Set([
-  '/',
   '/services',
   '/tricks',
   '/real-estate',
@@ -176,12 +177,20 @@ export function Layout() {
   const { user, tier } = useApp();
   const location = useLocation();
   const isMobile = useIsMobile();
+  // The guest homepage (src/pages/Home.tsx) is a full-page port that ships its
+  // own header and footer on every breakpoint, desktop included — Layout's
+  // chrome would otherwise stack a second header/footer above/below it. Gated
+  // on `!user` so the signed-in dashboard at the same "/" URL (UserHome) keeps
+  // the normal site chrome, same as every other authenticated route.
+  const isGuestHome = location.pathname === '/' && !user;
   const hideChrome =
-    isMobile &&
-    (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
-      location.pathname.startsWith('/services/'));
+    isGuestHome ||
+    (isMobile &&
+      (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
+        location.pathname.startsWith('/services/')));
   const showMobileFooter =
     hideChrome &&
+    !isGuestHome &&
     (MOBILE_FOOTER_ROUTES.has(location.pathname) ||
       location.pathname.startsWith('/services/'));
   const [menuOpen, setMenuOpen] = useState(false);
@@ -455,7 +464,7 @@ export function Layout() {
           /map is excluded: its header is a dense control strip, and a switcher
           floating over the corner landed on top of the saved count. That screen
           renders its own switcher inline in that strip instead. */}
-      {hideChrome && !showMobileFooter && location.pathname !== '/map' && (
+      {hideChrome && !showMobileFooter && !isGuestHome && location.pathname !== '/map' && (
         <div className="fixed z-[60] end-4 top-[calc(env(safe-area-inset-top)+0.75rem)] rounded-btn bg-white/95 shadow-card">
           <LangSwitcher />
         </div>

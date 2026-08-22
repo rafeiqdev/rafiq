@@ -56,7 +56,6 @@ const Auth = lazyPage(() => import('./pages/Auth').then((m) => ({ default: m.Aut
 // See mobile-prompts/ for the design prompts used to generate these.
 const MobileAuth = lazyPage(() => import('./pages/mobile/MobileAuth').then((m) => ({ default: m.MobileAuth })));
 const ResetPassword = lazyPage(() => import('./pages/ResetPassword').then((m) => ({ default: m.ResetPassword })));
-const MobileHome = lazyPage(() => import('./pages/mobile/MobileHome').then((m) => ({ default: m.MobileHome })));
 const Premium = lazyPage(() => import('./pages/Premium').then((m) => ({ default: m.Premium })));
 const MobilePremium = lazyPage(() => import('./pages/mobile/MobilePremium').then((m) => ({ default: m.MobilePremium })));
 const HelpRequest = lazyPage(() => import('./pages/HelpRequest').then((m) => ({ default: m.HelpRequest })));
@@ -161,7 +160,7 @@ function ReferralQueryCapture() {
  * user who hasn't finished onboarding is replaced into /onboarding before the
  * dashboard mounts — it must never render behind the questionnaire.
  */
-function HomeGate({ isMobile }: { isMobile: boolean }) {
+function HomeGate() {
   const { user, authLoading, onboardingCompleted } = useApp();
   const navigate = useNavigate();
 
@@ -177,7 +176,7 @@ function HomeGate({ isMobile }: { isMobile: boolean }) {
 
   if (authLoading) return <Spinner chromeless={false} />;
   if (user) return onboardingCompleted ? <UserHome /> : <Navigate to="/onboarding" replace />;
-  return isMobile ? <MobileHome /> : <Home />;
+  return <Home />;
 }
 
 /**
@@ -223,7 +222,7 @@ function Shell() {
         <Routes location={location} key={location.pathname}>
           <Route path="/r/:code" element={<ReferralLanding />} />
           <Route element={<Layout />}>
-            <Route path="/" element={<HomeGate isMobile={isMobile} />} />
+            <Route path="/" element={<HomeGate />} />
             <Route path="/auth" element={isMobile ? <MobileAuth /> : <Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/premium" element={isMobile ? <MobilePremium /> : <Premium />} />

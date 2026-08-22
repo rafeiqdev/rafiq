@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 90" fill="none">
+  <text x="5" y="60" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#12294D" letter-spacing="-0.5">Istanbul Airport</text>
+  <path d="M5 24 Q 180 10 340 22" stroke="#12294D" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <g transform="translate(365, 12)">
+    <rect x="0" y="0" width="65" height="65" rx="8" fill="#00B5B8"/>
+    <text x="32.5" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" text-anchor="middle">iGA</text>
+  </g>
+</svg>
