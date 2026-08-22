@@ -1336,7 +1336,8 @@
       "title": "نیازمند اقدام — {{count}} در انتظار",
       "more": "و {{count}} مورد دیگر در پایین",
       "error": "بارگذاری صف درخواست‌ها ممکن نشد. این صف خالی نیست — دوباره تلاش کنید.",
-      "callAria": "تماس با {{name}} روی {{phone}}"
+      "callAria": "تماس با {{name}} روی {{phone}}",
+      "competitors": "مشاهده رقبای این خدمت"
     },
     "paymentSettings": {
       "title": "تنظیمات پرداخت",
@@ -1386,12 +1387,16 @@
       "markReady": "آماده — به مشتری اطلاع بده",
       "markDone": "انجام شد",
       "reject": "بستن درخواست",
+      "competitors": "مشاهده رقبای این خدمت",
       "status": {
         "pending": "در انتظار",
         "accepted": "آماده",
         "done": "انجام‌شده",
         "rejected": "بسته"
       }
+    },
+    "competitors": {
+      "title": "رقبا"
     },
     "title": "پنل مدیریت",
     "overview": "نمای کلی",
@@ -3146,6 +3151,28 @@
           "cta": "تمام"
         }
       }
+    }
+  },
+  "competitorAds": {
+    "card": {
+      "totalCount": "{{count}} آگهی",
+      "activeCount": "{{count}} فعال",
+      "seenBefore": "🔁 در بارگذاری قبلی هم دیده شد",
+      "openInLibrary": "باز کردن در کتابخانه آگهی‌ها",
+      "showMore": "نمایش بیشتر",
+      "showLess": "نمایش کمتر"
+    },
+    "manager": {
+      "selectPlaceholder": "یک خدمت را انتخاب کنید",
+      "pickService": "برای مشاهده رقبا یک خدمت را انتخاب کنید",
+      "noDataYet": "هنوز داده‌ای از رقبا برای این خدمت وجود ندارد",
+      "importNew": "بارگذاری فایل جدید",
+      "chooseFile": "یک فایل اکسل انتخاب کنید (.xlsx)",
+      "previewCount": "{{count}} آگهی آماده بارگذاری",
+      "previewSkipped": "{{count}} ردیف ناقص نادیده گرفته شد",
+      "confirmImport": "تأیید بارگذاری",
+      "previousVersions": "نسخه‌های قبلی",
+      "rowCount": "{{count}} آگهی"
     }
   },
   "serviceOffer": {

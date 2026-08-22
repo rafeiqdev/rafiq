@@ -1336,7 +1336,8 @@
       "title": "Needs action — {{count}} waiting",
       "more": "and {{count}} more below",
       "error": "Couldn't load the request queue. This is not an empty queue — try again.",
-      "callAria": "Call {{name}} on {{phone}}"
+      "callAria": "Call {{name}} on {{phone}}",
+      "competitors": "See this service's competitors"
     },
     "paymentSettings": {
       "title": "Payment settings",
@@ -1386,12 +1387,16 @@
       "markReady": "Ready — notify customer",
       "markDone": "Mark done",
       "reject": "Close request",
+      "competitors": "See this service's competitors",
       "status": {
         "pending": "Pending",
         "accepted": "Ready",
         "done": "Done",
         "rejected": "Closed"
       }
+    },
+    "competitors": {
+      "title": "Competitors"
     },
     "title": "Admin dashboard",
     "overview": "Overview",
@@ -3146,6 +3151,28 @@
           "cta": "Done"
         }
       }
+    }
+  },
+  "competitorAds": {
+    "card": {
+      "totalCount": "{{count}} ads",
+      "activeCount": "{{count}} active",
+      "seenBefore": "🔁 Seen in a previous import",
+      "openInLibrary": "Open in Ads Library",
+      "showMore": "Show more",
+      "showLess": "Show less"
+    },
+    "manager": {
+      "selectPlaceholder": "Select a service",
+      "pickService": "Pick a service to see its competitors",
+      "noDataYet": "No competitor data for this service yet",
+      "importNew": "Import new file",
+      "chooseFile": "Choose an Excel file (.xlsx)",
+      "previewCount": "{{count}} ads ready to import",
+      "previewSkipped": "{{count}} incomplete row(s) skipped",
+      "confirmImport": "Confirm import",
+      "previousVersions": "Previous versions",
+      "rowCount": "{{count}} ads"
     }
   },
   "serviceOffer": {

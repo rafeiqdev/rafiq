@@ -1336,7 +1336,8 @@
       "title": "بحاجة إلى إجراء — {{count}} بالانتظار",
       "more": "و{{count}} أخرى بالأسفل",
       "error": "تعذّر تحميل قائمة الطلبات. هذه ليست قائمة فارغة — أعد المحاولة.",
-      "callAria": "اتصل بـ {{name}} على {{phone}}"
+      "callAria": "اتصل بـ {{name}} على {{phone}}",
+      "competitors": "شوف منافسين هاي الخدمة"
     },
     "paymentSettings": {
       "title": "إعدادات الدفع",
@@ -1386,12 +1387,16 @@
       "markReady": "جاهز — أبلغ العميل",
       "markDone": "تم الإنجاز",
       "reject": "إغلاق الطلب",
+      "competitors": "شوف منافسين هاي الخدمة",
       "status": {
         "pending": "قيد الانتظار",
         "accepted": "جاهز",
         "done": "منجز",
         "rejected": "مغلق"
       }
+    },
+    "competitors": {
+      "title": "المنافسون"
     },
     "title": "لوحة الإدارة",
     "overview": "نظرة عامة",
@@ -3146,6 +3151,28 @@
           "cta": "تم"
         }
       }
+    }
+  },
+  "competitorAds": {
+    "card": {
+      "totalCount": "{{count}} إعلان",
+      "activeCount": "{{count}} نشط",
+      "seenBefore": "🔁 شفنا هاد الإعلان بنسخة سابقة",
+      "openInLibrary": "افتح بمكتبة الإعلانات",
+      "showMore": "عرض المزيد",
+      "showLess": "عرض أقل"
+    },
+    "manager": {
+      "selectPlaceholder": "اختر خدمة",
+      "pickService": "اختر خدمة لعرض منافسيها",
+      "noDataYet": "لا يوجد بيانات منافسين لهاي الخدمة بعد",
+      "importNew": "استيراد ملف جديد",
+      "chooseFile": "اختر ملف Excel (.xlsx)",
+      "previewCount": "{{count}} إعلان جاهز للاستيراد",
+      "previewSkipped": "تم تجاهل {{count}} صف غير مكتمل",
+      "confirmImport": "تأكيد الاستيراد",
+      "previousVersions": "النسخ السابقة",
+      "rowCount": "{{count}} إعلان"
     }
   },
   "serviceOffer": {
