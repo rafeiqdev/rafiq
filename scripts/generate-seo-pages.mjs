@@ -132,6 +132,79 @@ const guideSections = readGuideSections();
 // regex generate-sitemap.mjs already uses on this file.
 const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
 const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].map((match) => match[1]);
+// service id -> 'direct' | 'partner', used to pick the same directSupport /
+// partnerSupport line ServiceDetail.tsx shows live, so the static shell never
+// says something the hydrated page contradicts.
+const serviceType = Object.fromEntries(
+  [...servicesSource.matchAll(/\{ id: '([^']+)',\s+category: '[^']+',\s+type: '(direct|partner)'/g)]
+    .map((match) => [match[1], match[2]]),
+);
+
+// Mirrors ServiceDetail.tsx's copyFor(): static per-language strings already
+// shown on the live page. Reusing them verbatim (not writing new copy) keeps
+// the pre-hydration shell and the hydrated page saying the same thing.
+const SERVICE_DETAIL_COPY = {
+  ar: {
+    howHeading: 'كيف يساعدك رفيق في هذه الخدمة؟',
+    directSupport: 'يقدّم رفيق تنسيق هذه الخدمة مباشرة، ويمكنك إرسال احتياجك ليتم ترتيب الخطوة التالية معك.',
+    partnerSupport: 'ينسّق رفيق هذه الخدمة عبر شريك مختص، ويمكنك إرسال احتياجك ليتم توجيهك إلى الخطوة المناسبة.',
+    topicsHeading: 'أسئلة ومواضيع مرتبطة بالخدمة',
+    topicsIntro: 'هذه أبرز الموضوعات التي يبحث عنها العملاء قبل بدء الإجراءات. المتطلبات والقرارات النهائية تعتمد على حالتك والجهات المختصة.',
+  },
+  en: {
+    howHeading: 'How can Rafiq help with this service?',
+    directSupport: 'Rafiq coordinates this service directly. Send your needs and we will discuss an appropriate next step with you.',
+    partnerSupport: 'Rafiq coordinates this service through a partner. Send your needs for guidance on an appropriate next step.',
+    topicsHeading: 'Common questions and related topics',
+    topicsIntro: 'These are common topics customers research before starting. Requirements and final decisions depend on your situation and the relevant authorities or providers.',
+  },
+  ru: {
+    howHeading: 'Как Rafiq может помочь с этой услугой?',
+    directSupport: 'Rafiq координирует эту услугу напрямую. Отправьте свой запрос, и мы обсудим подходящий следующий шаг.',
+    partnerSupport: 'Rafiq координирует эту услугу через партнёра. Отправьте свой запрос, чтобы получить ориентир по следующему шагу.',
+    topicsHeading: 'Частые вопросы и связанные темы',
+    topicsIntro: 'Это распространённые темы, которые клиенты изучают до начала процесса. Требования и окончательные решения зависят от вашей ситуации и компетентных органов или поставщиков.',
+  },
+  fa: {
+    howHeading: 'Rafiq چگونه می‌تواند در این خدمت کمک کند؟',
+    directSupport: 'Rafiq این خدمت را مستقیماً هماهنگ می‌کند. نیاز خود را بفرستید تا درباره گام بعدی مناسب صحبت کنیم.',
+    partnerSupport: 'Rafiq این خدمت را از طریق همکار هماهنگ می‌کند. نیاز خود را بفرستید تا برای گام بعدی مناسب راهنمایی شوید.',
+    topicsHeading: 'پرسش‌های رایج و موضوعات مرتبط',
+    topicsIntro: 'این‌ها موضوعات رایجی هستند که مشتریان پیش از شروع بررسی می‌کنند. شرایط و تصمیم‌های نهایی به وضعیت شما و مراجع یا ارائه‌کنندگان مربوط بستگی دارد.',
+  },
+};
+
+// Renders the same "how we help" + "related topics" sections ServiceDetail.tsx
+// shows after hydration, using data that already exists for all 78 services
+// (not just the one with a `body`): the catalog description, the direct/
+// partner line, and the searchPhrases array already written per service.
+// Without this, ~300 of the site's 400 pages (77 services x 4 languages)
+// shipped as a title plus one sentence — the likely reason GSC reported 394
+// of 400 sitemap URLs as "Discovered - currently not indexed" days after
+// submission.
+function renderServiceTopicsSections(lang, id) {
+  const copy = SERVICE_DETAIL_COPY[lang];
+  const phrases = serviceSeo[lang][id]?.phrases ?? [];
+  const supportLine = serviceType[id] === 'direct' ? copy.directSupport : copy.partnerSupport;
+
+  // The "quick answer" section right above this one already shows
+  // meta.description, so this only adds the direct/partner line — repeating
+  // the same sentence twice in one page reads as low-effort filler.
+  const howHtml = `
+      <section aria-labelledby="seo-how-heading">
+        <h2 id="seo-how-heading">${escapeHtml(copy.howHeading)}</h2>
+        <p>${escapeHtml(supportLine)}</p>
+      </section>`;
+
+  const topicsHtml = phrases.length ? `
+      <section aria-labelledby="seo-topics-heading">
+        <h2 id="seo-topics-heading">${escapeHtml(copy.topicsHeading)}</h2>
+        <p>${escapeHtml(copy.topicsIntro)}</p>
+        <ul>${phrases.map((phrase) => `<li>${escapeHtml(phrase)}</li>`).join('')}</ul>
+      </section>` : '';
+
+  return howHtml + topicsHtml;
+}
 
 const staticMeta = {
   '/': (lang) => ({
@@ -521,7 +594,9 @@ function buildHtml(template, lang, route, meta) {
       ? renderHealthTourismSections(lang)
       : route === '/real-estate'
         ? renderRealEstateSections(lang)
-        : '';
+        : serviceMatch && serviceSeo[lang][serviceMatch[1]]
+          ? renderServiceTopicsSections(lang, serviceMatch[1])
+          : '';
     if (faqItems.length || extraSectionsHtml) {
       staticMain = staticMain.replace(
         '</article>',
