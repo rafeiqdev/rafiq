@@ -2939,6 +2939,157 @@ export const reviews = {
   },
 };
 
+// ---------- competitor ads (Meta Ads Library imports, per catalog service) --
+
+interface CompetitorAdImportRow {
+  id: string; service_id: string; file_name: string | null; row_count: number;
+  imported_by: string | null; imported_at: string;
+}
+interface CompetitorAdRowDb {
+  id: string; import_id: string; service_id: string; ad_library_id: string; advertiser_name: string;
+  status: string | null; started_on: string | null; platforms: string | null; content_type: string | null;
+  ad_text: string | null; ad_url: string | null; amount_spent: string | null;
+  search_language: string | null; search_keyword: string | null;
+  seen_in_previous_import: boolean; created_at: string;
+}
+
+export interface CompetitorAdImport {
+  id: string;
+  serviceId: string;
+  fileName: string | null;
+  rowCount: number;
+  importedBy: string | null;
+  importedAt: string;
+}
+
+export interface CompetitorAd {
+  id: string;
+  importId: string;
+  serviceId: string;
+  adLibraryId: string;
+  advertiserName: string;
+  status: string | null;
+  startedOn: string | null;
+  platforms: string | null;
+  contentType: string | null;
+  adText: string | null;
+  adUrl: string | null;
+  amountSpent: string | null;
+  searchLanguage: string | null;
+  searchKeyword: string | null;
+  seenInPreviousImport: boolean;
+  createdAt: string;
+}
+
+/** One row parsed from an uploaded .xlsx, before it's tied to an import batch. */
+export interface CompetitorAdRow {
+  adLibraryId: string;
+  advertiserName: string;
+  status: string | null;
+  startedOn: string | null;
+  platforms: string | null;
+  contentType: string | null;
+  adText: string | null;
+  adUrl: string | null;
+  amountSpent: string | null;
+  searchLanguage: string | null;
+  searchKeyword: string | null;
+}
+
+function toCompetitorAdImport(r: CompetitorAdImportRow): CompetitorAdImport {
+  return {
+    id: r.id, serviceId: r.service_id, fileName: r.file_name, rowCount: r.row_count,
+    importedBy: r.imported_by, importedAt: r.imported_at,
+  };
+}
+
+function toCompetitorAd(r: CompetitorAdRowDb): CompetitorAd {
+  return {
+    id: r.id, importId: r.import_id, serviceId: r.service_id, adLibraryId: r.ad_library_id,
+    advertiserName: r.advertiser_name, status: r.status, startedOn: r.started_on, platforms: r.platforms,
+    contentType: r.content_type, adText: r.ad_text, adUrl: r.ad_url, amountSpent: r.amount_spent,
+    searchLanguage: r.search_language, searchKeyword: r.search_keyword,
+    seenInPreviousImport: r.seen_in_previous_import, createdAt: r.created_at,
+  };
+}
+
+export const adminCompetitorAds = {
+  /** All imports for a service, newest first — drives the "previous versions" list. */
+  async listImports(serviceId: string): Promise<CompetitorAdImport[]> {
+    const { data, error } = await sb()
+      .from('competitor_ad_imports')
+      .select('id,service_id,file_name,row_count,imported_by,imported_at')
+      .eq('service_id', serviceId)
+      .order('imported_at', { ascending: false });
+    if (error) fail(error);
+    return ((data ?? []) as CompetitorAdImportRow[]).map(toCompetitorAdImport);
+  },
+
+  /** The import the manager tab shows by default — null when nothing's been imported yet. */
+  async latestImport(serviceId: string): Promise<CompetitorAdImport | null> {
+    const rows = await adminCompetitorAds.listImports(serviceId);
+    return rows.length ? rows[0] : null;
+  },
+
+  /** Every ad belonging to one import batch (current or a past "previous version"). */
+  async listAds(importId: string): Promise<CompetitorAd[]> {
+    const { data, error } = await sb()
+      .from('competitor_ads')
+      .select(
+        'id,import_id,service_id,ad_library_id,advertiser_name,status,started_on,platforms,content_type,ad_text,ad_url,amount_spent,search_language,search_keyword,seen_in_previous_import,created_at',
+      )
+      .eq('import_id', importId)
+      .order('advertiser_name', { ascending: true });
+    if (error) fail(error);
+    return ((data ?? []) as CompetitorAdRowDb[]).map(toCompetitorAd);
+  },
+
+  /**
+   * Records a new import batch and its ads. Never touches earlier imports —
+   * they stay exactly as they were, browsable via listImports(). Each row is
+   * flagged seenInPreviousImport when its ad_library_id already exists among
+   * this service's PRIOR ads, so staff can tell a persistent competitor ad
+   * from a brand-new one at a glance.
+   */
+  async importRows(serviceId: string, fileName: string, rows: CompetitorAdRow[]): Promise<CompetitorAdImport> {
+    if (rows.length === 0) throw new ApiError('empty_import', 400);
+
+    const existing = await sb().from('competitor_ads').select('ad_library_id').eq('service_id', serviceId);
+    if (existing.error) fail(existing.error);
+    const seenIds = new Set(((existing.data ?? []) as { ad_library_id: string }[]).map((r) => r.ad_library_id));
+
+    const importedBy = (await sessionUser())?.id ?? null;
+    const importInsert = await sb()
+      .from('competitor_ad_imports')
+      .insert([{ service_id: serviceId, file_name: fileName, row_count: rows.length, imported_by: importedBy }])
+      .select()
+      .single();
+    if (importInsert.error) fail(importInsert.error);
+    const importRow = importInsert.data as CompetitorAdImportRow;
+
+    const adsPayload = rows.map((r) => ({
+      import_id: importRow.id,
+      service_id: serviceId,
+      ad_library_id: r.adLibraryId,
+      advertiser_name: r.advertiserName,
+      status: r.status,
+      started_on: r.startedOn,
+      platforms: r.platforms,
+      content_type: r.contentType,
+      ad_text: r.adText,
+      ad_url: r.adUrl,
+      amount_spent: r.amountSpent,
+      search_language: r.searchLanguage,
+      search_keyword: r.searchKeyword,
+      seen_in_previous_import: seenIds.has(r.adLibraryId),
+    }));
+    const adsInsert = await sb().from('competitor_ads').insert(adsPayload);
+    if (adsInsert.error) fail(adsInsert.error);
+
+    return toCompetitorAdImport(importRow);
+  },
+};
+
 interface BroadcastRespRow {
   id: string; quote: number | null; message: string | null; chosen: boolean; created_at: string;
   companies?: { name: string } | { name: string }[] | null;
