@@ -11,6 +11,7 @@ import type { IconName } from '../components/AppIcon';
 import { ListingsManager, PlacesManager } from '../components/AdminManagers';
 import { InvestmentsManager } from '../components/admin/InvestmentsManager';
 import { ServiceRequestsManager } from '../components/ServiceRequestsManager';
+import { CompetitorAdsManager } from '../components/admin/CompetitorAdsManager';
 import { AdminNewRequests } from '../components/AdminNewRequests';
 import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
@@ -36,7 +37,7 @@ import { isControlCenterEnabled } from '../admin-control-center/flag';
  * everything mixed together in a single long scroll.
  */
 const TABS = [
-  'overview', 'users', 'bookings', 'serviceRequests', 'payments',
+  'overview', 'users', 'bookings', 'serviceRequests', 'competitors', 'payments',
   'paymentSettings', 'rates', 'cancellations', 'leads', 'companies', 'companyPayments',
   'broadcast', 'newsFeed', 'catalog', 'listings', 'investments', 'places', 'news', 'auditLog',
 ] as const;
@@ -271,7 +272,7 @@ function UserRow({
  * every group/flat list below — unused for now, hidden rather than deleted.
  */
 const NAV_GROUPS: { id: string; icon: IconName; labelKey: string; tabs: AdminTab[] }[] = [
-  { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'bookings', 'catalog', 'leads'] },
+  { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'competitors', 'bookings', 'catalog', 'leads'] },
   { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'cancellations'] },
   { id: 'content', icon: 'newspaper', labelKey: 'admin.groups.content', tabs: ['broadcast', 'newsFeed', 'news'] },
   { id: 'realEstate', icon: 'home', labelKey: 'admin.groups.realEstate', tabs: ['listings', 'investments', 'places'] },
@@ -287,6 +288,7 @@ const TAB_ICON: Record<AdminTab, IconName> = {
   users: 'users',
   bookings: 'calendar',
   serviceRequests: 'inbox',
+  competitors: 'search',
   payments: 'credit-card',
   paymentSettings: 'shield-check',
   rates: 'trending-up',
@@ -334,6 +336,10 @@ function AdminInner() {
   const [params, setParams] = useSearchParams();
   const rawTab = params.get('tab');
   const activeTab: AdminTab = isAdminTab(rawTab) ? rawTab : DEFAULT_TAB;
+  // Set by the "شوف منافسين هاي الخدمة" link on a service-request row
+  // (ServiceRequestsManager / AdminNewRequests) — pre-selects the service
+  // in CompetitorAdsManager instead of landing on its own empty picker.
+  const initialCompetitorServiceId = params.get('service') ?? undefined;
   const setActiveTab = (tab: AdminTab) => {
     setParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -359,6 +365,7 @@ function AdminInner() {
     users: t('admin.users.title'),
     bookings: t('adminBookings.title'),
     serviceRequests: t('admin.serviceRequests.title'),
+    competitors: t('admin.competitors.title'),
     payments: t('admin.payments.title'),
     paymentSettings: t('admin.paymentSettings.title'),
     rates: t('admin.rates.title'),
@@ -563,6 +570,9 @@ function AdminInner() {
 
           {/* incoming service-catalog requests */}
           {activeTab === 'serviceRequests' && <ServiceRequestsManager />}
+
+          {/* competitor ads per service (Meta Ads Library imports) */}
+          {activeTab === 'competitors' && <CompetitorAdsManager initialServiceId={initialCompetitorServiceId} />}
 
           {/* payment verification + history */}
           {activeTab === 'payments' && (
