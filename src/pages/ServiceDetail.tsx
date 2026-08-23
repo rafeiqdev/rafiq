@@ -89,26 +89,101 @@ function copyFor(language: string) {
   };
 }
 
+/** Renders "**bold**" spans within a line; everything else passes through as-is. */
+function renderInline(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
+    part.startsWith('**') && part.endsWith('**') ? (
+      <strong key={index} className="font-bold text-navy">{part.slice(2, -2)}</strong>
+    ) : (
+      part
+    )
+  );
+}
+
 /**
- * Splits a service body on blank lines; a block where every line starts with
- * "- " renders as a bulleted list, otherwise as a paragraph.
+ * Splits a service body on blank lines and renders each block by shape:
+ * a single "## "/"### " line becomes a heading, a block of "| ... |" lines
+ * becomes a table, a block where every line starts with "- " or "1. " becomes
+ * a list, otherwise it's a paragraph. "**bold**" works inside any block.
  */
 function renderServiceBody(body: string) {
   return body.split('\n\n').map((block, index) => {
     const lines = block.split('\n').filter(Boolean);
-    const isList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
-    if (isList) {
+
+    if (lines.length === 1 && lines[0].startsWith('### ')) {
+      return (
+        <h3 key={index} className="pt-1 text-base font-extrabold text-navy">
+          {renderInline(lines[0].slice(4))}
+        </h3>
+      );
+    }
+    if (lines.length === 1 && lines[0].startsWith('## ')) {
+      return (
+        <h2 key={index} className="pt-1 text-lg font-extrabold text-navy">
+          {renderInline(lines[0].slice(3))}
+        </h2>
+      );
+    }
+
+    const isTable = lines.length >= 2 && lines.every((line) => line.trim().startsWith('|'));
+    if (isTable) {
+      const rows = lines
+        .map((line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim()))
+        .filter((cells) => !cells.every((cell) => /^:?-+:?$/.test(cell)));
+      const [head, ...bodyRows] = rows;
+      return (
+        <div key={index} className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                {head.map((cell, i) => (
+                  <th key={i} className="border-b border-gray-200 py-2 ps-3 text-start font-bold text-navy">
+                    {renderInline(cell)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bodyRows.map((cells, r) => (
+                <tr key={r}>
+                  {cells.map((cell, c) => (
+                    <td key={c} className="border-b border-gray-100 py-2 ps-3 text-gray-650">
+                      {renderInline(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    const isBulletList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
+    if (isBulletList) {
       return (
         <ul key={index} className="list-disc space-y-1.5 ps-5 text-sm leading-7 text-gray-650">
           {lines.map((line) => (
-            <li key={line}>{line.slice(2)}</li>
+            <li key={line}>{renderInline(line.slice(2))}</li>
           ))}
         </ul>
       );
     }
+
+    const isNumberedList = lines.length > 0 && lines.every((line) => /^\d+\.\s/.test(line));
+    if (isNumberedList) {
+      return (
+        <ol key={index} className="list-decimal space-y-1.5 ps-5 text-sm leading-7 text-gray-650">
+          {lines.map((line) => (
+            <li key={line}>{renderInline(line.replace(/^\d+\.\s/, ''))}</li>
+          ))}
+        </ol>
+      );
+    }
+
     return (
       <p key={index} className="text-sm leading-7 text-gray-650">
-        {block}
+        {renderInline(block)}
       </p>
     );
   });
