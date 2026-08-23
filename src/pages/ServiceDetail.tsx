@@ -30,6 +30,8 @@ function copyFor(language: string) {
       requestText: 'Send details about your needs and we will coordinate an appropriate next step for the requested service.',
       requestButton: 'Request help for this service',
       returnButton: 'Return to all services',
+      readMore: 'Read more',
+      readLess: 'Show less',
     };
   }
   if (language === 'ru') {
@@ -49,6 +51,8 @@ function copyFor(language: string) {
       requestText: 'Отправьте сведения о своей потребности, и мы скоординируем подходящий следующий шаг для запрошенной услуги.',
       requestButton: 'Запросить помощь по услуге',
       returnButton: 'Вернуться ко всем услугам',
+      readMore: 'Читать далее',
+      readLess: 'Свернуть',
     };
   }
   if (language === 'fa') {
@@ -68,6 +72,8 @@ function copyFor(language: string) {
       requestText: 'جزئیات نیاز خود را بفرستید تا گام بعدی مناسب برای خدمت درخواستی را هماهنگ کنیم.',
       requestButton: 'درخواست کمک برای این خدمت',
       returnButton: 'بازگشت به همه خدمات',
+      readMore: 'ادامه مطلب',
+      readLess: 'نمایش کمتر',
     };
   }
   return {
@@ -86,6 +92,8 @@ function copyFor(language: string) {
     requestText: 'أرسل تفاصيل احتياجك وسننسق معك الخطوة التالية للخدمة المطلوبة.',
     requestButton: 'طلب مساعدة لهذه الخدمة',
     returnButton: 'العودة إلى كل الخدمات',
+    readMore: 'قراءة المزيد',
+    readLess: 'عرض أقل',
   };
 }
 
@@ -212,6 +220,7 @@ export function ServiceDetail() {
   const { services, categories } = useCatalog();
   const { i18n } = useTranslation();
   const [showRequest, setShowRequest] = useState(false);
+  const [bodyExpanded, setBodyExpanded] = useState(false);
   const service = services.find((item) => item.id === id);
 
   const language = i18n.language;
@@ -275,8 +284,23 @@ export function ServiceDetail() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
           {serviceSeo?.body && (
-            <section className="card space-y-3 p-5 sm:p-6" dir={isRtl ? 'rtl' : 'ltr'}>
-              {renderServiceBody(serviceSeo.body)}
+            <section key={service.id} className="card p-5 sm:p-6" dir={isRtl ? 'rtl' : 'ltr'}>
+              {/* The full body always renders in the DOM — collapsing is purely
+                  visual (max-height + fade), so search engines still see the
+                  whole thing even though most readers only see a preview. */}
+              <div className={`relative space-y-3 overflow-hidden ${bodyExpanded ? '' : 'max-h-[26rem]'}`}>
+                {renderServiceBody(serviceSeo.body)}
+                {!bodyExpanded && (
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setBodyExpanded((value) => !value)}
+                className="mt-3 text-sm font-bold text-gold-dark hover:underline"
+              >
+                {bodyExpanded ? copy.readLess : copy.readMore}
+              </button>
             </section>
           )}
 
