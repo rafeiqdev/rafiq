@@ -65,7 +65,10 @@ const CHIP = 'inline-flex items-center rounded-full bg-cream-dark text-navy/80 t
 export function ListingCard({ listing, index, to }: { listing: Listing; index: number; to: string }) {
   const { t } = useTranslation();
   return (
-    <Link to={to} className="card card-hover flex flex-col overflow-hidden">
+    <Link
+      to={to}
+      className="card card-hover flex flex-col overflow-hidden transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/40 active:scale-[0.99]"
+    >
       <div className="img-zoom relative">
         <ListingPhoto listing={listing} index={index} />
         <span className="absolute top-2.5 end-2.5">

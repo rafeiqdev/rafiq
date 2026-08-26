@@ -26,14 +26,14 @@ export function InvestmentStrip() {
   return (
     <Link
       to="/real-estate/investments"
-      className="mt-5 flex items-center gap-4 rounded-card bg-gradient-to-r from-gold-dark via-gold to-navy text-white px-5 py-4 shadow-card hover:shadow-cardHover transition-shadow"
+      className="mt-4 flex items-center gap-3 rounded-card bg-gradient-to-r from-gold-dark via-gold to-navy px-4 py-3 text-white shadow-card transition-shadow hover:shadow-cardHover sm:mt-5 sm:gap-4 sm:px-5 sm:py-4"
     >
       <span className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 border border-white/25 shrink-0">
         <AppIcon name="trending-up" className="w-5 h-5" />
       </span>
       <div className="flex-1 min-w-0">
-        <h2 className="font-extrabold leading-snug">{t('realEstate.invest.title')}</h2>
-        <p className="text-sm text-white/75 line-clamp-2">{t('realEstate.invest.body')}</p>
+        <h2 className="text-sm font-extrabold leading-snug sm:text-base">{t('realEstate.invest.title')}</h2>
+        <p className="text-xs text-white/75 line-clamp-2 sm:text-sm">{t('realEstate.invest.body')}</p>
       </div>
       <span className="hidden sm:inline-flex items-center gap-1 rounded-btn bg-white text-navy font-bold px-4 h-10 shrink-0">
         {t('realEstate.invest.cta')}
@@ -79,9 +79,14 @@ export function RealEstate() {
   const reset = () => update({ ...EMPTY_FILTERS, type: filters.type, sort: filters.sort });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8 lg:py-10">
       <div className="animate-fade-in">
-        <PageHero image={BANNERS.realEstate} title={t('realEstate.title')} subtitle={t('realEstate.subtitle')} />
+        <PageHero
+          image={BANNERS.realEstate}
+          title={t('realEstate.title')}
+          subtitle={t('realEstate.subtitle')}
+          height="min-h-[10.5rem] sm:min-h-[11.5rem]"
+        />
       </div>
 
       <div className="mt-5 rounded-xl bg-brand-blue px-4 py-3 text-sm text-navy flex gap-2 items-start animate-fade-up">
@@ -90,13 +95,14 @@ export function RealEstate() {
       </div>
 
       {/* sale / rent / commercial */}
-      <div className="mt-5 inline-flex gap-1.5 rounded-card bg-white p-1.5 shadow-card">
+      <div className="mt-4 inline-flex gap-1.5 rounded-card bg-white p-1.5 shadow-card sm:mt-5">
         {TABS.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => update({ ...filters, type: tab })}
-            className={`rounded-btn px-5 py-2 text-sm font-bold transition-colors ${
+            aria-pressed={filters.type === tab}
+            className={`min-h-[44px] rounded-btn px-5 py-2 text-sm font-bold transition-colors ${
               filters.type === tab ? 'bg-navy text-white' : 'text-gray-500 hover:text-navy'
             }`}
           >
@@ -105,21 +111,19 @@ export function RealEstate() {
         ))}
       </div>
 
-      <InvestmentStrip />
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_272px] items-start">
+      <div className="mt-6 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_288px]">
         {/* Results come first in the DOM on purpose: in an RTL grid the first
             column lands on the right, which puts the filter column on the
             left exactly as the design calls for — without absolute hacks. */}
-        <div>
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm text-gray-500">
               <b className="text-navy text-base">{t('realEstate.results.count', { count: results.length })}</b>
             </p>
             <div className="flex-1" />
             <select
               aria-label={t('realEstate.sort.label')}
-              className="rounded-btn border-2 border-cream-dark bg-white px-3 py-2 text-sm text-navy"
+              className="min-h-[44px] rounded-btn border-2 border-cream-dark bg-white px-3 py-2 text-sm text-navy"
               value={filters.sort}
               onChange={(e) => update({ ...filters, sort: e.target.value as ListingFilters['sort'] })}
             >
@@ -133,7 +137,7 @@ export function RealEstate() {
             <button
               type="button"
               onClick={reset}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-navy-50 border border-navy-100 px-3 py-1.5 text-xs font-bold text-navy"
+              className="mt-3 inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-navy-100 bg-navy-50 px-3 py-1.5 text-xs font-bold text-navy"
             >
               {t('realEstate.filters.clearCount', { count: activeCount })}
               <AppIcon name="x" className="w-3 h-3" />
@@ -154,11 +158,12 @@ export function RealEstate() {
             </div>
           ) : (
             <>
-              <div className="mt-5 grid gap-5 sm:grid-cols-2 items-stretch stagger">
+              <div className="mt-5 grid items-stretch gap-5 sm:grid-cols-2 stagger">
                 {shown.map((listing, index) => (
                   <ListingCard key={listing.id} listing={listing} index={index} to={`/real-estate/${listing.id}`} />
                 ))}
               </div>
+              <InvestmentStrip />
               {results.length > shown.length && (
                 <button onClick={() => setLimit((n) => n + PAGE_SIZE)} className="btn-secondary w-full mt-5">
                   {t('realEstate.results.loadMore')}
@@ -169,10 +174,10 @@ export function RealEstate() {
         </div>
 
         {/* vertical filter column — sits on the left in RTL */}
-        <aside className="card p-4 lg:sticky lg:top-4">
+        <aside className="card p-4 lg:sticky lg:top-20">
           <div className="flex items-center justify-between pb-3 mb-4 border-b border-cream-dark">
             <h2 className="font-bold text-navy">{t('realEstate.filters.title')}</h2>
-            <button type="button" onClick={reset} className="text-xs font-bold text-gray-500 hover:text-navy">
+            <button type="button" onClick={reset} className="min-h-[40px] rounded-full px-2 text-xs font-bold text-gray-500 hover:bg-cream hover:text-navy">
               {t('realEstate.filters.clear')}
             </button>
           </div>

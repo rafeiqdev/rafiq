@@ -82,7 +82,7 @@ export function MobileRealEstate() {
             image={BANNERS.realEstate}
             title={t('realEstate.title')}
             subtitle={t('realEstate.subtitle')}
-            height="min-h-[13rem] pt-[calc(env(safe-area-inset-top)+3.75rem)]"
+            height="min-h-[10.5rem] pt-[calc(env(safe-area-inset-top)+3.25rem)]"
           />
         </div>
 
@@ -99,7 +99,8 @@ export function MobileRealEstate() {
                 key={tab}
                 type="button"
                 onClick={() => update({ ...filters, type: tab })}
-                className={`rounded-btn py-2 text-xs font-bold transition-colors ${
+                aria-pressed={filters.type === tab}
+                className={`min-h-[44px] rounded-btn py-2 text-xs font-bold transition-colors ${
                   filters.type === tab ? 'bg-navy text-white' : 'text-gray-500'
                 }`}
               >
@@ -125,7 +126,7 @@ export function MobileRealEstate() {
             </button>
             <select
               aria-label={t('realEstate.sort.label')}
-              className="flex-1 rounded-full border-2 border-navy-100 bg-white px-3 py-2 text-xs font-bold text-navy"
+              className="min-h-[44px] min-w-0 flex-1 rounded-full border-2 border-navy-100 bg-white px-3 py-2 text-xs font-bold text-navy"
               value={filters.sort}
               onChange={(e) => update({ ...filters, sort: e.target.value as ListingFilters['sort'] })}
             >
@@ -135,22 +136,7 @@ export function MobileRealEstate() {
             </select>
           </div>
 
-          {/* investment opportunities — wide, short */}
-          <Link
-            to="/real-estate/investments"
-            className="flex items-center gap-3 rounded-card bg-gradient-to-r from-gold-dark via-gold to-navy px-4 py-3 text-white shadow-card"
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 border border-white/25">
-              <AppIcon name="trending-up" className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <b className="block text-sm leading-snug">{t('realEstate.invest.title')}</b>
-              <small className="block truncate text-xs text-white/75">{t('realEstate.invest.body')}</small>
-            </span>
-            <AppIcon name="arrow-right" className="h-4 w-4 shrink-0 dir-arrow" />
-          </Link>
-
-          <p className="text-sm text-gray-500">
+          <p aria-live="polite" className="text-sm text-gray-500">
             <b className="text-navy text-base">{t('realEstate.results.count', { count: results.length })}</b>
           </p>
 
@@ -173,6 +159,19 @@ export function MobileRealEstate() {
                   <ListingCard key={listing.id} listing={listing} index={index} to={`/real-estate/${listing.id}`} />
                 ))}
               </div>
+              <Link
+                to="/real-estate/investments"
+                className="mt-4 flex items-center gap-3 rounded-card bg-gradient-to-r from-gold-dark via-gold to-navy px-4 py-3 text-white shadow-card"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/15">
+                  <AppIcon name="trending-up" className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <b className="block text-sm leading-snug">{t('realEstate.invest.title')}</b>
+                  <small className="block truncate text-xs text-white/75">{t('realEstate.invest.body')}</small>
+                </span>
+                <AppIcon name="arrow-right" className="h-4 w-4 shrink-0 dir-arrow" />
+              </Link>
               {results.length > shown.length && (
                 <button onClick={() => setLimit((n) => n + PAGE_SIZE)} className="btn-secondary w-full">
                   {t('realEstate.results.loadMore')}
@@ -184,8 +183,8 @@ export function MobileRealEstate() {
       </div>
 
       {sheet && (
-        <Modal onClose={() => setSheet(false)} labelId="re-filters" maxWidth="max-w-lg">
-          <div className="card flex max-h-[86vh] flex-col overflow-hidden">
+        <Modal onClose={() => setSheet(false)} labelId="re-filters" maxWidth="max-w-lg" mobileSheet>
+          <div className="card flex max-h-[86vh] flex-col overflow-hidden rounded-t-3xl md:rounded-card">
             <div className="flex items-center justify-between border-b border-cream-dark px-5 py-4">
               <h2 id="re-filters" className="font-bold text-navy">{t('realEstate.filters.title')}</h2>
               <button
