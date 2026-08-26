@@ -6,7 +6,7 @@ import { CCState } from '../components/CCState';
 import { Card, Kpi, StatusChip, TableWrap, Td, Th, num } from '../components/CCKit';
 import { fetchBroadcasts, fetchContent, fetchDocuments, fetchHealth } from '../api/platform';
 
-/** Content & Localization — publication and translation coverage. */
+/** Content — news publication and translation coverage. Listings/Investments live on the Properties & Map page. */
 export function Content() {
   const { cc, lang } = useCC();
   const sec = useAsyncSection(() => fetchContent(), []);
@@ -15,14 +15,7 @@ export function Content() {
     <CCState section={sec} title={cc('section.content')} isEmpty={() => false}>
       {(d) => (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Kpi icon="home" label={cc('ct.listings')} value={num(d.listings.total, lang)} />
-            <Kpi
-              icon="landmark"
-              label={cc('ct.investments')}
-              value={num(d.investments.total, lang)}
-              hint={`${cc('ct.published')}: ${num(d.investments.published, lang)}`}
-            />
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <Kpi
               icon="newspaper"
               label={cc('ct.news')}
@@ -37,23 +30,12 @@ export function Content() {
             />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Card title={cc('ct.listings')} icon="home" to="/admin?tab=listings">
-              <p className="mt-2 text-3xl font-extrabold text-navy" dir="ltr">{num(d.listings.total, lang)}</p>
-            </Card>
-            <Card title={cc('ct.investments')} icon="landmark" to="/admin?tab=investments">
-              <p className="mt-2 text-3xl font-extrabold text-navy" dir="ltr">
-                {num(d.investments.published, lang)} / {num(d.investments.total, lang)}
-              </p>
-              <p className="text-xs text-navy/50">{cc('ct.published')}</p>
-            </Card>
-            <Card title={cc('ct.news')} icon="newspaper" to="/admin?tab=newsFeed">
-              <p className="mt-2 text-3xl font-extrabold text-navy" dir="ltr">
-                {num(d.news.translated, lang)} / {num(d.news.total, lang)}
-              </p>
-              <p className="text-xs text-navy/50">{cc('ct.translated')}</p>
-            </Card>
-          </div>
+          <Card title={cc('ct.news')} icon="newspaper" to="/admin?tab=newsFeed">
+            <p className="mt-2 text-3xl font-extrabold text-navy" dir="ltr">
+              {num(d.news.translated, lang)} / {num(d.news.total, lang)}
+            </p>
+            <p className="text-xs text-navy/50">{cc('ct.translated')}</p>
+          </Card>
         </div>
       )}
     </CCState>

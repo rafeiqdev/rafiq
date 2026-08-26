@@ -6,7 +6,7 @@
  * sends, reveals or downloads: those are Phase-C actions requiring the granular
  * permission layer plus an audit entry.
  */
-import { fx, investments, listings, news, notifications } from '../../lib/api';
+import { adminPlaces, fx, investments, listings, news, notifications } from '../../lib/api';
 import { ccSb, orThrow } from './client';
 
 // ── Content & localization ─────────────────────────────────────────────────
@@ -42,6 +42,22 @@ export async function fetchContent(): Promise<ContentSnapshot> {
       published: newsRows.filter((n) => n.published !== false).length,
       translated: newsRows.filter((n) => n.translations && Object.keys(n.translations as object).length > 0).length,
     },
+  };
+}
+
+// ── Places (map points) ────────────────────────────────────────────────────
+
+export interface PlacesSnapshot {
+  total: number;
+  recent: { id: string; name: string; category: string }[];
+}
+
+/** Read-only summary for the Properties & Map page — adding/editing a place stays in the classic Admin. */
+export async function fetchPlaces(): Promise<PlacesSnapshot> {
+  const rows = await adminPlaces.list();
+  return {
+    total: rows.length,
+    recent: rows.slice(0, 8).map((p) => ({ id: p.id, name: p.name, category: p.category })),
   };
 }
 

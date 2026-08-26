@@ -27,6 +27,16 @@ const ar: Dict = {
   'breadcrumb.admin': 'الإدارة',
   'breadcrumb.controlCenter': 'مركز التحكم',
 
+  'section.today': 'اليوم',
+  'section.orders': 'الطلبات (Requests)',
+  'section.customers': 'العملاء',
+  'section.content': 'المحتوى',
+  'section.money': 'المال (Finance)',
+  'section.properties': 'العقارات والخريطة (Properties & Map)',
+  'section.settings': 'الإعدادات والأمان (Settings & Security)',
+
+  // legacy section labels — kept so the sections.render.test.tsx smoke tests
+  // and any code still importing the underlying components keep working
   'section.overview': 'نظرة عامة',
   'section.analytics': 'التحليلات والرؤى',
   'section.operations': 'العمليات الموحدة',
@@ -36,9 +46,24 @@ const ar: Dict = {
   'section.finance': 'مركز المالية',
   'section.journey': 'الرحلة والإعداد',
   'section.referrals': 'الإحالات والمحفظة',
-  'section.content': 'المحتوى واللغات',
   'section.security': 'الأمان والتدقيق',
   'section.systemHealth': 'صحة النظام',
+
+  'today.needsAction': 'يحتاج إجراء الآن',
+  'today.recentActivity': 'أحدث النشاط',
+  'today.greeting': 'أهلاً بك',
+  'today.allClear': 'لا يوجد ما يحتاج إجراءً فورياً — عمل جيد.',
+  'accordion.analytics': 'لمحة الزيارات (Analytics)',
+  'accordion.journey': 'رحلة العميل (Onboarding)',
+  'accordion.referrals': 'الإحالات والعمولات (Referrals)',
+  'accordion.systemHealth': 'صحة النظام (System Health)',
+  'accordion.documents': 'المستندات (Documents)',
+  'accordion.notifications': 'الإشعارات (Notifications)',
+  'properties.listings': 'العقارات',
+  'properties.investments': 'الفرص الاستثمارية',
+  'properties.places': 'أماكن على الخريطة (Map places)',
+  'properties.placesHint': 'الأماكن التي تظهر للزوار على خريطة الموقع — الإضافة والتعديل من لوحة الإدارة القديمة.',
+  'properties.openPlaces': 'افتح إدارة الأماكن',
 
   'state.loading': 'جارٍ التحميل…',
   'state.error': 'تعذّر تحميل هذا القسم',
@@ -153,8 +178,6 @@ const ar: Dict = {
   'jr.taskHint': 'الخطوة ذات النسبة الأدنى هي التي يتعثّر عندها المستخدمون.',
 
   // content
-  'ct.listings': 'العقارات',
-  'ct.investments': 'الفرص الاستثمارية',
   'ct.news': 'الأخبار',
   'ct.published': 'منشور',
   'ct.translated': 'مُترجَم',
@@ -189,6 +212,16 @@ const en: Dict = {
   'breadcrumb.admin': 'Admin',
   'breadcrumb.controlCenter': 'Control Center',
 
+  'section.today': 'Today',
+  'section.orders': 'Requests',
+  'section.customers': 'Customers',
+  'section.content': 'Content',
+  'section.money': 'Finance',
+  'section.properties': 'Properties & Map',
+  'section.settings': 'Settings & Security',
+
+  // legacy section labels — kept so the sections.render.test.tsx smoke tests
+  // and any code still importing the underlying components keep working
   'section.overview': 'Overview',
   'section.analytics': 'Analytics & Insights',
   'section.operations': 'Unified Operations',
@@ -198,9 +231,24 @@ const en: Dict = {
   'section.finance': 'Finance Control Center',
   'section.journey': 'Journey & Onboarding',
   'section.referrals': 'Referrals & Wallet',
-  'section.content': 'Content & Localization',
   'section.security': 'Security & Audit',
   'section.systemHealth': 'System Health',
+
+  'today.needsAction': 'Needs action now',
+  'today.recentActivity': 'Recent activity',
+  'today.greeting': 'Welcome',
+  'today.allClear': 'Nothing needs immediate action — nice work.',
+  'accordion.analytics': 'Analytics',
+  'accordion.journey': 'Customer journey (Onboarding)',
+  'accordion.referrals': 'Referrals & commissions',
+  'accordion.systemHealth': 'System health',
+  'accordion.documents': 'Documents',
+  'accordion.notifications': 'Notifications',
+  'properties.listings': 'Listings',
+  'properties.investments': 'Investment opportunities',
+  'properties.places': 'Map places',
+  'properties.placesHint': 'Places shown to visitors on the site map — add/edit from the classic Admin.',
+  'properties.openPlaces': 'Open place management',
 
   'state.loading': 'Loading…',
   'state.error': 'This section could not load',
@@ -315,8 +363,6 @@ const en: Dict = {
   'jr.taskHint': 'The step with the lowest rate is where users get stuck.',
 
   // content
-  'ct.listings': 'Listings',
-  'ct.investments': 'Investment opportunities',
   'ct.news': 'News',
   'ct.published': 'Published',
   'ct.translated': 'Translated',

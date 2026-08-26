@@ -100,6 +100,10 @@ vi.mock('../api/platform', () => ({
     investments: { total: 5, published: 3 },
     news: { total: 20, published: 18, translated: 9 },
   }),
+  fetchPlaces: vi.fn().mockResolvedValue({
+    total: 3,
+    recent: [{ id: 'p1', name: 'Taksim Square', category: 'landmark' }],
+  }),
   fetchHealth: vi.fn().mockResolvedValue({
     fxRuns: [
       { id: 'f1', startedAt: new Date().toISOString(), finishedAt: null, status: 'success', providerName: 'er-api', pairsUpdated: 6, pairsRejected: 0, error: null, localTime: '09:05' },
@@ -123,6 +127,22 @@ vi.mock('../../lib/api', () => ({
       { id: 'a1', actorName: 'Admin', action: 'pii_reveal', targetType: 'profile', targetId: 'x', meta: {}, createdAt: new Date().toISOString() },
     ]),
   },
+  adminPayments: {
+    list: vi.fn().mockResolvedValue({
+      payments: [{ id: 'pay1', email: 'a@b.co', amount: 500, createdAt: new Date().toISOString() }],
+    }),
+  },
+  adminUsers: {
+    list: vi.fn().mockResolvedValue([
+      { id: 'u1', email: 'a@b.co', name: 'Ahmad', provider: 'email', isAdmin: false, role: 'user', isCompany: false, tier: 'pro', bookings: 2, leads: 1, createdAt: new Date().toISOString() },
+    ]),
+    cancellations: vi.fn().mockResolvedValue([]),
+  },
+  adminPlaces: {
+    list: vi.fn().mockResolvedValue([
+      { id: 'p1', name: 'Taksim Square', category: 'landmark', lat: 41, lng: 28 },
+    ]),
+  },
 }));
 
 // The sections translate through the module-local dictionary, not react-i18next,
@@ -138,6 +158,12 @@ import { Finance } from './Finance';
 import { Referrals } from './Referrals';
 import { Journey } from './Journey';
 import { Content, Documents, Notifications, Security, SystemHealth } from './Platform';
+import { Today } from './Today';
+import { Orders } from './Orders';
+import { Customers } from './Customers';
+import { Money } from './Money';
+import { Properties } from './Properties';
+import { Settings } from './Settings';
 
 const cases: [string, () => JSX.Element, string][] = [
   ['Analytics', () => <Analytics />, 'an.events'],
@@ -146,11 +172,18 @@ const cases: [string, () => JSX.Element, string][] = [
   ['Finance', () => <Finance />, 'fin.source.subscriptions'],
   ['Referrals', () => <Referrals />, 'ref.referrers'],
   ['Journey', () => <Journey />, 'jr.users'],
-  ['Content', () => <Content />, 'ct.listings'],
+  ['Content', () => <Content />, 'ct.news'],
   ['SystemHealth', () => <SystemHealth />, 'sh.fxRates'],
   ['Documents', () => <Documents />, 'dc.files'],
   ['Notifications', () => <Notifications />, 'nt.broadcasts'],
   ['Security', () => <Security />, 'sec.recent'],
+  // the 7 owner-facing group pages
+  ['Today', () => <Today />, 'today.needsAction'],
+  ['Orders', () => <Orders />, 'ops.total'],
+  ['Customers', () => <Customers />, 'overview.kpi.totalUsers'],
+  ['Money', () => <Money />, 'fin.source.subscriptions'],
+  ['Properties', () => <Properties />, 'properties.listings'],
+  ['Settings', () => <Settings />, 'sec.recent'],
 ];
 
 describe('Control Center sections render with real data shapes', () => {
