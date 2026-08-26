@@ -5,8 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { RafiqBrandLogo } from "@/components/ui/rafiq-brand-logo";
-import { ArrowLeft, ArrowRight, ExternalLink, ArrowUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 
 // Register ScrollTrigger safely in React / browser environment
 if (typeof window !== "undefined") {
@@ -277,12 +276,6 @@ export function RafiqCinematicFooter({
     return () => ctx.revert();
   }, []);
 
-  const scrollToTop = () => {
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: RAFIQ_FOOTER_STYLES }} />
@@ -420,33 +413,6 @@ export function RafiqCinematicFooter({
                 </MagneticButton>
               </div>
             </div>
-          </div>
-
-          {/* 5. Bottom Bar: Brand Logo, Copyright & Back to Top */}
-          <div className="relative z-20 w-full pb-8 sm:pb-10 px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/15 bg-[#060F22]/75 backdrop-blur-lg pt-5">
-            
-            {/* Logo and Brand */}
-            <div className="flex items-center gap-3 order-1">
-              <a href={`/${language}`} className="inline-block transition-transform hover:scale-105" aria-label={t.common.brandName}>
-                <RafiqBrandLogo size="sm" variant="light" className="h-7 w-auto opacity-100 drop-shadow-sm" />
-              </a>
-            </div>
-
-            {/* Copyright */}
-            <div className="text-white/70 text-[11px] sm:text-xs font-medium tracking-wide order-2">
-              © {new Date().getFullYear()} {t.common.brandName || "رفيق إسطنبول"} — {t.common.allRightsReserved || "جميع الحقوق محفوظة."}
-            </div>
-
-            {/* Back to top Button */}
-            <MagneticButton
-              as="button"
-              onClick={scrollToTop}
-              aria-label="Scroll to top"
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full rafiq-glass-pill flex items-center justify-center text-white hover:text-white group order-3 shadow-md"
-            >
-              <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-y-1 transition-transform duration-300" />
-            </MagneticButton>
-
           </div>
         </footer>
       </div>
