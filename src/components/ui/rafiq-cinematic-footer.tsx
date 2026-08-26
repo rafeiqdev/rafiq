@@ -430,9 +430,6 @@ export function RafiqCinematicFooter({
               <a href={`/${language}`} className="inline-block transition-transform hover:scale-105" aria-label={t.common.brandName}>
                 <RafiqBrandLogo size="sm" variant="light" className="h-7 w-auto opacity-100 drop-shadow-sm" />
               </a>
-              <span className="text-white/90 text-xs sm:text-sm font-semibold tracking-wide">
-                — {t.common.tagline || "دليلك وخدماتك الموثوقة في إسطنبول"}
-              </span>
             </div>
 
             {/* Copyright */}

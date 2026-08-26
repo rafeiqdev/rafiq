@@ -7,6 +7,7 @@ import { CoverflowCarousel } from '../components/ui/coverflow-carousel';
 import { RafiqMarqueeDivider } from '../components/ui/rafiq-marquee-divider';
 import { RafiqConnectionAnimationSection } from '../components/ui/rafiq-connection-animation-section';
 import { HabitFaqScroller } from '../components/ui/habit-faq-scroller';
+import { RafiqCinematicFooter } from '../components/ui/rafiq-cinematic-footer';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
 import { usePageMeta } from '../lib/seo';
 
@@ -15,14 +16,13 @@ import { usePageMeta } from '../lib/seo';
  * ("جاهز للانتقال إلى Cloud.md" / the "rafiq hero" project). A full replacement
  * of the previous marketing layout, not an addition next to it.
  *
- * The mockup was built as a self-contained page with its own header
- * (RafiqHero's top nav) — Layout's own ticker + nav bar are suppressed for
- * this route in components/Layout.tsx (hideChrome) so the two headers don't
- * stack. The mockup's own cinematic footer was dropped in favor of a plain
- * text sign-off, so the informational SiteFooter (see the SiteFooter comment
- * in Layout.tsx) is the only real footer on this page. The currency ticker
- * (TopRatesBar) is re-added here, pinned above RafiqHero's own fixed nav via
- * --rafiq-topnav-offset. See
+ * The mockup was built as a self-contained page with its own header and
+ * footer (RafiqHero's top nav, RafiqCinematicFooter) — Layout's own ticker +
+ * nav bar are suppressed for this route in components/Layout.tsx (hideChrome)
+ * so the two headers don't stack, but the informational SiteFooter still
+ * renders underneath the new cinematic footer (see the SiteFooter comment in
+ * Layout.tsx), and the currency ticker (TopRatesBar) is re-added here,
+ * pinned above RafiqHero's own fixed nav via --rafiq-topnav-offset. See
  * HomeGate in App.tsx: this component now serves both desktop and mobile
  * guests.
  *
@@ -60,10 +60,7 @@ function HomeContent() {
         <RafiqConnectionAnimationSection />
         <HabitFaqScroller />
       </main>
-      <div className="relative z-10 w-full py-10 px-4 text-center border-t border-[#12294D]/10">
-        <p className="text-base font-bold text-[#12294D]">{t.common.brandName}</p>
-        <p className="mt-1 text-sm text-[#12294D]/70">{t.common.tagline}</p>
-      </div>
+      <RafiqCinematicFooter />
     </div>
   );
 }
