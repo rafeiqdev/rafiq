@@ -35,6 +35,7 @@ export function FilterPanel({
         <label className={label} htmlFor="re-q">{t('realEstate.filters.search')}</label>
         <input
           id="re-q"
+          inputMode="search"
           className={field}
           value={filters.q}
           onChange={(e) => set({ q: e.target.value })}
@@ -59,6 +60,7 @@ export function FilterPanel({
             className={field}
             inputMode="numeric"
             placeholder={t('realEstate.filters.from')}
+            aria-label={`${t('realEstate.filters.price')} — ${t('realEstate.filters.from')}`}
             value={filters.minPrice ?? ''}
             onChange={(e) => set({ minPrice: num(e.target.value) })}
           />
@@ -66,6 +68,7 @@ export function FilterPanel({
             className={field}
             inputMode="numeric"
             placeholder={t('realEstate.filters.to')}
+            aria-label={`${t('realEstate.filters.price')} — ${t('realEstate.filters.to')}`}
             value={filters.maxPrice ?? ''}
             onChange={(e) => set({ maxPrice: num(e.target.value) })}
           />
@@ -83,6 +86,7 @@ export function FilterPanel({
                 type="button"
                 dir="ltr"
                 onClick={() => set({ rooms: toggle(filters.rooms, r) })}
+                aria-pressed={on}
                 className={`rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-colors ${
                   on ? 'bg-navy text-white border-navy' : 'bg-white text-navy border-navy-100'
                 }`}
@@ -101,6 +105,7 @@ export function FilterPanel({
             className={field}
             inputMode="numeric"
             placeholder={t('realEstate.filters.from')}
+            aria-label={`${t('realEstate.filters.area')} — ${t('realEstate.filters.from')}`}
             value={filters.minM2 ?? ''}
             onChange={(e) => set({ minM2: num(e.target.value) })}
           />
@@ -108,6 +113,7 @@ export function FilterPanel({
             className={field}
             inputMode="numeric"
             placeholder={t('realEstate.filters.to')}
+            aria-label={`${t('realEstate.filters.area')} — ${t('realEstate.filters.to')}`}
             value={filters.maxM2 ?? ''}
             onChange={(e) => set({ maxM2: num(e.target.value) })}
           />
