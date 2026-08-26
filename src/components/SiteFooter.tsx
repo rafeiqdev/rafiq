@@ -195,7 +195,7 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
 
   if (variant === 'mobile') {
     return (
-      <footer className="bg-navy text-white/80 rounded-t-[28px]">
+      <footer className="bg-navy text-white/80">
         <div className="px-5 pt-8 pb-6">
           <Logo size={30} variant="white" />
           <p className="mt-3 text-[14px] leading-relaxed text-white/70">{t('footer.brandBody')}</p>
