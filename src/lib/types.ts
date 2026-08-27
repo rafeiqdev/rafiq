@@ -65,6 +65,9 @@ export interface Profile {
   /** Newcomer-only follow-up answers (jsonb only, no migration; null otherwise). */
   arrivedReason?: ArrivedReason | null;
   arrivedHousing?: ArrivedHousing | null;
+  /** Visitor-only follow-up answers (jsonb only, no migration; null otherwise). */
+  visitorTrip?: VisitorTrip | null;
+  visitorService?: VisitorService | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -92,6 +95,17 @@ export const ARRIVED_REASONS: ArrivedReason[] = ['work', 'living', 'family', 'bu
 export type ArrivedHousing = 'temporary' | 'rented' | 'withRelative' | 'owned' | 'none';
 export const ARRIVED_HOUSING: ArrivedHousing[] = ['temporary', 'rented', 'withRelative', 'owned', 'none'];
 
+/**
+ * What a visitor/tourist wants to DO — the biggest driver of which tourism
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type VisitorTrip = 'sights' | 'shopping' | 'nature' | 'multicity' | 'medical' | 'family' | 'mix';
+export const VISITOR_TRIPS: VisitorTrip[] = ['sights', 'shopping', 'nature', 'multicity', 'medical', 'family', 'mix'];
+
+/** The service level a visitor prefers — VIP promotes the private/premium services. */
+export type VisitorService = 'standard' | 'comfort' | 'vip' | 'unsure';
+export const VISITOR_SERVICES: VisitorService[] = ['standard', 'comfort', 'vip', 'unsure'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -106,6 +120,8 @@ export const EMPTY_PROFILE: Profile = {
   studentHousing: null,
   arrivedReason: null,
   arrivedHousing: null,
+  visitorTrip: null,
+  visitorService: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------

@@ -18,7 +18,7 @@
  *  - Every id returned MUST exist in SERVICES; a test asserts that, so a typo
  *    or a removed service can never surface a dead card.
  */
-import type { Profile, Situation, StudentStage, ArrivedReason, JourneyTaskKey } from '../lib/types';
+import type { Profile, Situation, StudentStage, ArrivedReason, VisitorTrip, JourneyTaskKey } from '../lib/types';
 
 /**
  * Services made redundant by an onboarding "has" answer. When the user ticked
@@ -52,15 +52,8 @@ const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
       'res-tourist', 'ins-residence', 'bank-account', 'tel-sim', 'edu-tomer', 'edu-denklik',
     ],
   },
-  // NOTE: `arrived` is handled by recommendForArrived() — its top three branch
-  // on the reason the newcomer came, which a static bundle can't express.
-  visiting: {
-    top: ['tour-airport', 'tour-daytrips', 'tour-hotels'],
-    base: [
-      'tour-airport', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
-      'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'tr-companion', 'health-tourism',
-    ],
-  },
+  // NOTE: `arrived` → recommendForArrived (branches on reason for coming);
+  //       `visiting` → recommendForVisitor (branches on trip type + VIP level).
   resident: {
     top: ['res-renew', 'ins-residence', 'daily-license'],
     base: [
@@ -196,6 +189,40 @@ function recommendForArrived(profile: Profile): string[] {
   return orderedUnique([...top, ...base, ...familyExtras]);
 }
 
+/**
+ * A visitor's top three, chosen by WHAT they want to do. The service-level
+ * answer (VIP / comfort) then promotes the private/premium services ahead of
+ * the trip picks.
+ */
+const VISITOR_TRIP_TOP: Partial<Record<VisitorTrip, string[]>> = {
+  sights: ['tour-daytrips', 'tour-tickets', 'tour-airport'],
+  shopping: ['daily-shopping', 'tour-driver', 'tour-airport'],
+  nature: ['tour-bosphorus', 'tour-daytrips', 'tour-airport'],
+  multicity: ['tour-multicity', 'tour-packages', 'tour-airport'],
+  medical: ['health-tourism', 'tr-medical', 'tour-airport'],
+  family: ['tour-packages', 'tour-daytrips', 'tour-airport'],
+};
+const VISITOR_DEFAULT_TOP = ['tour-airport', 'tour-daytrips', 'tour-hotels'];
+
+/** Every service a visitor might want, across all trip types. */
+const VISITOR_BASE: string[] = [
+  'tour-airport', 'tour-vip', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
+  'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'daily-shopping', 'tr-companion',
+  'health-tourism', 'tr-medical', 'health-hospitals',
+];
+
+/** The visitor basket: trip type leads, VIP/comfort promote the premium services. */
+function recommendForVisitor(profile: Profile): string[] {
+  const tripTop = (profile.visitorTrip && VISITOR_TRIP_TOP[profile.visitorTrip]) || VISITOR_DEFAULT_TOP;
+  const serviceLead =
+    profile.visitorService === 'vip'
+      ? ['tour-vip', 'tour-driver']
+      : profile.visitorService === 'comfort'
+        ? ['tour-driver']
+        : [];
+  return orderedUnique([...serviceLead, ...tripTop, ...VISITOR_BASE]);
+}
+
 /** A non-student persona bundle, with family extras where they make sense. */
 function recommendForPersona(situation: Situation, profile: Profile): string[] {
   const bundle = PERSONA_BUNDLES[situation];
@@ -221,6 +248,8 @@ export function recommendedServiceIds(profile: Profile): string[] {
       ? recommendForStudent(profile)
       : situation === 'arrived'
         ? recommendForArrived(profile)
-        : recommendForPersona(situation, profile);
+        : situation === 'visiting'
+          ? recommendForVisitor(profile)
+          : recommendForPersona(situation, profile);
   return without(ranked, ownedServices(profile));
 }

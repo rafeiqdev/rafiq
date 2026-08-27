@@ -30,7 +30,7 @@ describe('recommendedServiceIds', () => {
     const top3 = (p: Partial<Profile>) => recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).slice(0, 3);
     expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
     expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
-    expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']);
+    expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // trip unset → default
     expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']);
     expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
   });
@@ -58,6 +58,24 @@ describe('recommendedServiceIds', () => {
     const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'arrived', arrivedReason: 'work', arrivedHousing: 'none' });
     expect(ids).toContain('re-rent');
     expect(ids.indexOf('re-rent')).toBeLessThan(ids.indexOf('daily-reminders'));
+  });
+
+  // ── visitor: trip type + service level branch the top three ──
+  it('branches the visitor top-3 by the kind of trip they want', () => {
+    const top3 = (trip: Profile['visitorTrip']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: trip }).slice(0, 3);
+    expect(top3('sights')).toEqual(['tour-daytrips', 'tour-tickets', 'tour-airport']);
+    expect(top3('shopping')).toEqual(['daily-shopping', 'tour-driver', 'tour-airport']);
+    expect(top3('nature')).toEqual(['tour-bosphorus', 'tour-daytrips', 'tour-airport']);
+    expect(top3('multicity')).toEqual(['tour-multicity', 'tour-packages', 'tour-airport']);
+    expect(top3('medical')).toEqual(['health-tourism', 'tr-medical', 'tour-airport']);
+    expect(top3('family')).toEqual(['tour-packages', 'tour-daytrips', 'tour-airport']);
+    expect(top3('mix')).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // no override → default
+  });
+
+  it('a VIP visitor leads with the premium airport reception and private driver', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: 'sights', visitorService: 'vip' });
+    expect(ids.slice(0, 2)).toEqual(['tour-vip', 'tour-driver']);
   });
 
   // ── the "give him what he doesn't have" rule ──

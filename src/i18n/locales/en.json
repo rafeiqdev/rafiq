@@ -2230,6 +2230,28 @@
         "none": "No stable housing yet"
       }
     },
+    "visitor": {
+      "title": "About your trip",
+      "subtitle": "A few quick questions so we can suggest the right plan and services.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "trip": {
+        "title": "What kind of trip do you want in Istanbul?",
+        "sights": "Sights, history and culture",
+        "shopping": "Shopping and dining",
+        "nature": "Nature, Bosphorus and islands",
+        "multicity": "Istanbul plus a trip to another city",
+        "medical": "Treatment or medical tourism",
+        "family": "A family trip with children",
+        "mix": "A mix of more than one"
+      },
+      "service": {
+        "title": "What service level do you prefer?",
+        "standard": "Standard",
+        "comfort": "Comfort",
+        "vip": "Premium / VIP",
+        "unsure": "Not sure — suggest for me"
+      }
+    },
     "done": {
       "title": "Your journey is ready",
       "body": "We built your first steps based on your answers.",
