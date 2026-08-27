@@ -28,11 +28,23 @@ describe('recommendedServiceIds', () => {
 
   it('leads each persona with its intended top three', () => {
     const top3 = (p: Partial<Profile>) => recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).slice(0, 3);
-    expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
+    expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']); // reason unset → default
     expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
     expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // trip unset → default
     expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']); // type unset → default
     expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
+  });
+
+  // ── planner: reason for relocating branches the top three ──
+  it('branches the planner top-3 by the reason they are moving', () => {
+    const top3 = (reason: Profile['planningReason']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'planning', planningReason: reason }).slice(0, 3);
+    expect(top3('work')).toEqual(['res-work', 'tr-sworn', 'ins-residence']);
+    expect(top3('study')).toEqual(['edu-university', 'tr-sworn', 'edu-denklik']);
+    expect(top3('family')).toEqual(['res-family', 'tr-sworn', 'edu-schools']);
+    expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 're-buy']);
+    expect(top3('retirement')).toEqual(['re-rent', 'ins-residence', 'health-doctors']);
+    expect(top3('other')).toEqual(['re-rent', 'tr-sworn', 'tour-airport']); // unknown → default
   });
 
   // ── newcomer: reason branches the top three ──

@@ -19,6 +19,7 @@ import {
   VISITOR_SERVICES,
   RESIDENT_TYPES,
   RESIDENT_PLANS,
+  PLANNING_REASONS,
 } from '../lib/types';
 import type {
   JourneyTaskKey,
@@ -33,6 +34,7 @@ import type {
   VisitorService,
   ResidentType,
   ResidentPlan,
+  PlanningReason,
 } from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
@@ -92,6 +94,15 @@ const RESIDENT_TYPE_ICONS: Record<ResidentType, IconName> = {
   unsure: 'compass',
 };
 
+const PLANNING_REASON_ICONS: Record<PlanningReason, IconName> = {
+  work: 'briefcase',
+  study: 'graduation-cap',
+  family: 'users',
+  business: 'trending-up',
+  retirement: 'home',
+  other: 'compass',
+};
+
 /**
  * The questionnaire is a dynamic list of step keys, not a fixed count: a
  * persona-specific follow-up step is inserted only for the situations that have
@@ -99,6 +110,7 @@ const RESIDENT_TYPE_ICONS: Record<ResidentType, IconName> = {
  */
 type StepKey =
   | 'situation'
+  | 'planningDetails'
   | 'studentDetails'
   | 'arrivedDetails'
   | 'visitorDetails'
@@ -110,6 +122,7 @@ type StepKey =
 function stepsFor(situation: Situation | null): StepKey[] {
   const base: StepKey[] = ['situation', 'city', 'has', 'family'];
   // Right after they tell us who they are, ask that persona's follow-ups.
+  if (situation === 'planning') return ['situation', 'planningDetails', 'city', 'has', 'family'];
   if (situation === 'student') return ['situation', 'studentDetails', 'city', 'has', 'family'];
   if (situation === 'arrived') return ['situation', 'arrivedDetails', 'city', 'has', 'family'];
   if (situation === 'visiting') return ['situation', 'visitorDetails', 'city', 'has', 'family'];
@@ -183,6 +196,7 @@ function OnboardingInner() {
   const [visitorService, setVisitorService] = useState<VisitorService | null>(profile.visitorService ?? null);
   const [residentType, setResidentType] = useState<ResidentType | null>(profile.residentType ?? null);
   const [residentPlan, setResidentPlan] = useState<ResidentPlan | null>(profile.residentPlan ?? null);
+  const [planningReason, setPlanningReason] = useState<PlanningReason | null>(profile.planningReason ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -201,6 +215,7 @@ function OnboardingInner() {
 
   const canNext =
     (stepKey === 'situation' && situation !== null) ||
+    (stepKey === 'planningDetails' && planningReason !== null) ||
     (stepKey === 'studentDetails' && studentStage !== null) ||
     (stepKey === 'arrivedDetails' && arrivedReason !== null) ||
     (stepKey === 'visitorDetails' && visitorTrip !== null) ||
@@ -213,6 +228,7 @@ function OnboardingInner() {
     if (!situation || !family) return;
     setSaving(true);
     setError(false);
+    const isPlanning = situation === 'planning';
     const isStudent = situation === 'student';
     const isArrived = situation === 'arrived';
     const isVisiting = situation === 'visiting';
@@ -238,6 +254,7 @@ function OnboardingInner() {
       visitorService: isVisiting ? visitorService : null,
       residentType: isResident ? residentType : null,
       residentPlan: isResident ? residentPlan : null,
+      planningReason: isPlanning ? planningReason : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -278,6 +295,7 @@ function OnboardingInner() {
 
       <h1 className="mt-6 text-2xl font-extrabold text-navy leading-snug">
         {stepKey === 'situation' && t('onboard.situation.title')}
+        {stepKey === 'planningDetails' && t('onboard.planning.title')}
         {stepKey === 'studentDetails' && t('onboard.student.title')}
         {stepKey === 'arrivedDetails' && t('onboard.arrived.title')}
         {stepKey === 'visitorDetails' && t('onboard.visitor.title')}
@@ -288,6 +306,7 @@ function OnboardingInner() {
       </h1>
       {stepKey === 'has' && <p className="mt-2 text-sm text-gray-500">{t('onboard.has.subtitle')}</p>}
       {stepKey === 'situation' && <p className="mt-2 text-sm text-gray-500">{t('onboard.subtitle')}</p>}
+      {stepKey === 'planningDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.planning.subtitle')}</p>}
       {stepKey === 'studentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.student.subtitle')}</p>}
       {stepKey === 'arrivedDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.arrived.subtitle')}</p>}
       {stepKey === 'visitorDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.visitor.subtitle')}</p>}
@@ -305,6 +324,24 @@ function OnboardingInner() {
               onClick={() => setSituation(s)}
             />
           ))}
+
+        {stepKey === 'planningDetails' && (
+          <fieldset>
+            <legend className="text-sm font-semibold text-navy/70">{t('onboard.planning.reason.title')}</legend>
+            <div className="mt-2 flex flex-col gap-2.5">
+              {PLANNING_REASONS.map((r) => (
+                <Choice
+                  key={r}
+                  icon={PLANNING_REASON_ICONS[r]}
+                  label={t(`onboard.planning.reason.${r}`)}
+                  ariaLabel={t(`onboard.planning.reason.${r}`)}
+                  selected={planningReason === r}
+                  onClick={() => setPlanningReason(r)}
+                />
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         {stepKey === 'studentDetails' && (
           <>

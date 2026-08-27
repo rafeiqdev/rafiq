@@ -2181,6 +2181,19 @@
       "alone": "On my own",
       "family": "With my family"
     },
+    "planning": {
+      "title": "About your move",
+      "subtitle": "A few quick questions so we can show the services that fit your plan.",
+      "reason": {
+        "title": "What is your main reason for moving to Istanbul?",
+        "work": "Working for a company or employer",
+        "study": "Study or training",
+        "family": "Family or reunification",
+        "business": "Starting a business or investing",
+        "retirement": "Retirement and living",
+        "other": "Another reason, or not decided yet"
+      }
+    },
     "student": {
       "title": "About your studies",
       "subtitle": "A few quick questions so we can show the services that fit you as a student.",

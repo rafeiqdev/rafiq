@@ -26,6 +26,7 @@ import type {
   VisitorTrip,
   ResidentType,
   ResidentPlan,
+  PlanningReason,
   JourneyTaskKey,
 } from '../lib/types';
 
@@ -54,14 +55,8 @@ interface Bundle {
  * dashboard. Student is handled separately (it has follow-up questions).
  */
 const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
-  planning: {
-    top: ['re-rent', 'tr-sworn', 'tour-airport'],
-    base: [
-      're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs', 'tour-airport',
-      'res-tourist', 'ins-residence', 'bank-account', 'tel-sim', 'edu-tomer', 'edu-denklik',
-    ],
-  },
-  // NOTE: `arrived` → recommendForArrived (branches on reason for coming);
+  // NOTE: `planning` → recommendForPlanning (branches on reason for relocating);
+  //       `arrived` → recommendForArrived (branches on reason for coming);
   //       `visiting` → recommendForVisitor (branches on trip type + VIP level);
   //       `resident` → recommendForResident (branches on nature of residence + plan).
   long_resident: {
@@ -227,6 +222,34 @@ function recommendForVisitor(profile: Profile): string[] {
 }
 
 /**
+ * A relocation planner's top three, chosen by WHY they are moving. Falls back
+ * to generic pre-arrival essentials when the reason hasn't been answered.
+ */
+const PLANNING_REASON_TOP: Partial<Record<PlanningReason, string[]>> = {
+  work: ['res-work', 'tr-sworn', 'ins-residence'],
+  study: ['edu-university', 'tr-sworn', 'edu-denklik'],
+  family: ['res-family', 'tr-sworn', 'edu-schools'],
+  business: ['legal-ltd', 'acc-monthly', 're-buy'],
+  retirement: ['re-rent', 'ins-residence', 'health-doctors'],
+};
+const PLANNING_DEFAULT_TOP = ['re-rent', 'tr-sworn', 'tour-airport'];
+
+/** Every service a pre-arrival planner might need, across every reason. */
+const PLANNING_BASE: string[] = [
+  're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs', 'tour-airport', 'res-tourist',
+  'res-work', 'res-student', 'res-family', 'ins-residence', 'ins-family', 'bank-account', 'tel-sim',
+  'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools', 'legal-ltd', 'acc-monthly',
+  'legal-consult', 're-buy', 'health-doctors',
+];
+
+/** The planner basket: reason picks the lead, family adds schooling/insurance. */
+function recommendForPlanning(profile: Profile): string[] {
+  const top = (profile.planningReason && PLANNING_REASON_TOP[profile.planningReason]) || PLANNING_DEFAULT_TOP;
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...top, ...PLANNING_BASE, ...familyExtras]);
+}
+
+/**
  * A resident's top three, chosen by the NATURE of their residence. The plan for
  * the coming period then promotes the matching "development" services (a
  * property plan leads with buying/managing property; a citizenship plan with
@@ -290,7 +313,9 @@ export function recommendedServiceIds(profile: Profile): string[] {
   const situation = profile.situation;
   if (!situation) return [];
   const ranked =
-    situation === 'student'
+    situation === 'planning'
+      ? recommendForPlanning(profile)
+      : situation === 'student'
       ? recommendForStudent(profile)
       : situation === 'arrived'
         ? recommendForArrived(profile)

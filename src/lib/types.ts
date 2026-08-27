@@ -71,6 +71,8 @@ export interface Profile {
   /** Resident-only follow-up answers (jsonb only, no migration; null otherwise). */
   residentType?: ResidentType | null;
   residentPlan?: ResidentPlan | null;
+  /** Planning-to-relocate follow-up answer (jsonb only, no migration; null otherwise). */
+  planningReason?: PlanningReason | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -120,6 +122,13 @@ export const RESIDENT_TYPES: ResidentType[] = ['employee', 'business', 'family',
 export type ResidentPlan = 'maintain' | 'job' | 'business' | 'property' | 'citizenship' | 'family' | 'explore';
 export const RESIDENT_PLANS: ResidentPlan[] = ['maintain', 'job', 'business', 'property', 'citizenship', 'family', 'explore'];
 
+/**
+ * Why someone still abroad is planning to relocate — the biggest driver of
+ * which pre-arrival services fit them, so it branches the dashboard's top three.
+ */
+export type PlanningReason = 'work' | 'study' | 'family' | 'business' | 'retirement' | 'other';
+export const PLANNING_REASONS: PlanningReason[] = ['work', 'study', 'family', 'business', 'retirement', 'other'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -138,6 +147,7 @@ export const EMPTY_PROFILE: Profile = {
   visitorService: null,
   residentType: null,
   residentPlan: null,
+  planningReason: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------
