@@ -10,6 +10,7 @@ import { supabase as sbClient } from './supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ServiceItem } from '../data/services';
 import { fallbackRespond } from './ai-fallback';
+import { readMetric } from './metrics/service';
 import type {
   AdminUser,
   AppConfig,
@@ -828,10 +829,10 @@ export const bookings = {
     if (error) fail(error);
     return (data as BookingRow[]).map(toBooking);
   },
+  /** Admin badge. Delegates to the shared metrics service (METRICS.bookingsNew); 0 on any failure. */
   async newCount(): Promise<number> {
-    const { count, error } = await sb().from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'new');
-    if (error) return 0;
-    return count ?? 0;
+    const { value } = await readMetric('bookingsNew');
+    return value ?? 0;
   },
   async setStatus(id: string, status: BookingStatus): Promise<{ ok: true }> {
     const { error } = await sb().from('bookings').update({ status }).eq('id', id);
@@ -979,12 +980,14 @@ export const leads = {
     if (error) fail(error);
     return (data as LeadRow[]).map(toLead);
   },
-  /** Admin badge: leads nobody has picked up yet. 0 on any failure — a broken
-   *  count must never break the chrome it is rendered in. */
+  /**
+   * Admin badge: leads nobody has picked up yet. Delegates to the shared
+   * metrics service (METRICS.leadsNew); 0 on any failure — a broken count
+   * must never break the chrome it is rendered in.
+   */
   async newCount(): Promise<number> {
-    const { count, error } = await sb().from('leads').select('id', { count: 'exact', head: true }).eq('status', 'new');
-    if (error) return 0;
-    return count ?? 0;
+    const { value } = await readMetric('leadsNew');
+    return value ?? 0;
   },
 };
 
@@ -2247,16 +2250,14 @@ export const serviceRequests = {
    *
    * Both 'new' and 'pending' count as unhandled — 'new' is what rows created
    * before the 20260719 status workflow use, and the two are interchangeable
-   * until an admin accepts or rejects. 0 on any failure, so a count that cannot
-   * load never breaks the chrome it is rendered in.
+   * until an admin accepts or rejects. Delegates to the shared metrics service
+   * (METRICS.serviceRequestsUnhandled — also what AdminNewRequests mirrors).
+   * 0 on any failure, so a count that cannot load never breaks the chrome it
+   * is rendered in.
    */
   async newCount(): Promise<number> {
-    const { count, error } = await sb()
-      .from('service_requests')
-      .select('id', { count: 'exact', head: true })
-      .in('status', ['new', 'pending']);
-    if (error) return 0;
-    return count ?? 0;
+    const { value } = await readMetric('serviceRequestsUnhandled');
+    return value ?? 0;
   },
   /**
    * Admin queue, with the owning account attached.
@@ -3460,10 +3461,10 @@ export const medicalContent = {
 };
 
 export const adminMedical = {
+  /** Medical Tourism queue badge. Delegates to the shared metrics service (METRICS.medicalPendingReview); 0 on any failure. */
   async newCount(): Promise<number> {
-    const { count, error } = await sb().from('medical_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending_review');
-    if (error) return 0;
-    return count ?? 0;
+    const { value } = await readMetric('medicalPendingReview');
+    return value ?? 0;
   },
 
   async list(filter: { status?: string; specialty?: string; from?: string; to?: string; search?: string } = {}): Promise<AdminMedicalRequest[]> {

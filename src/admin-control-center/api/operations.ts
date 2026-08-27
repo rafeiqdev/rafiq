@@ -8,6 +8,7 @@
  * row), so no status transition is duplicated or bypassed here.
  */
 import { bookings, leads, serviceRequests } from '../../lib/api';
+import { METRICS } from '../../lib/metrics/definitions';
 import type { Range } from '../period';
 
 export type OpsKind = 'request' | 'booking' | 'lead';
@@ -76,8 +77,14 @@ export async function fetchOperations(range: Range): Promise<OpsRow[]> {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-/** Statuses that mean "no one has dealt with this yet". */
-const OPEN_STATUSES = new Set(['new', 'pending', 'open', 'in_progress', 'contacted']);
+/**
+ * Statuses that mean "no one has dealt with this yet" — sourced from the
+ * shared metrics dictionary (METRICS.operationsOpen) so this vocabulary has
+ * one definition. It is intentionally BROADER than serviceRequestsUnhandled
+ * (the header badge / AdminNewRequests definition): see that entry's notes
+ * in lib/metrics/definitions.ts for why the two numbers legitimately differ.
+ */
+const OPEN_STATUSES = new Set<string>(METRICS.operationsOpen.statusFilter);
 
 export interface OpsSummary {
   total: number;

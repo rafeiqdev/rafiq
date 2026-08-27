@@ -10,6 +10,7 @@ import { Kpi, StatusChip, num } from '../components/CCKit';
 import { overviewApi } from '../api/overview';
 import { fetchOperations, summarizeOperations } from '../api/operations';
 import { rangeFor } from '../period';
+import { readMetric } from '../../lib/metrics/service';
 import { Analytics } from './Analytics';
 
 /** A card with a heading, an optional "view details" link, and body content — same shell as the old Overview page. */
@@ -44,17 +45,24 @@ export function Today() {
   const paymentsSec = useAsyncSection(() => overviewApi.pendingPayments(), []);
   const auditSec = useAsyncSection(() => overviewApi.recentAudit(8), []);
   const opsSec = useAsyncSection(() => fetchOperations(rangeFor('30d')), []);
+  // Medical Tourism has its own admin queue (/admin/medical) with no Control
+  // Center counterpart until now — this reads the SAME definition as that
+  // queue's badge (METRICS.medicalPendingReview), not a re-derived one.
+  const medicalSec = useAsyncSection(() => readMetric('medicalPendingReview'), []);
 
   const opsSummary = opsSec.status === 'ready' && opsSec.data ? summarizeOperations(opsSec.data) : null;
   const pendingCount = paymentsSec.status === 'ready' && paymentsSec.data ? paymentsSec.data.payments.length : null;
   const overdueCount = opsSummary?.overdue.length ?? null;
-  const hasNoAction = pendingCount === 0 && overdueCount === 0;
+  const medicalCount = medicalSec.status === 'ready' ? medicalSec.data?.value ?? null : null;
+  // Same honesty rule as pendingCount/overdueCount above: an unreadable count
+  // (null) must never be treated as "confirmed clear".
+  const hasNoAction = pendingCount === 0 && overdueCount === 0 && medicalCount === 0;
 
   return (
     <div className="flex flex-col gap-6">
       <p className="text-xs text-navy/50">{cc('overview.hint')}</p>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Kpi
           icon="alert-triangle"
           label={cc('ops.overdue')}
@@ -67,6 +75,11 @@ export function Today() {
         />
         <Kpi icon="hourglass" label={cc('ops.open')} value={num(opsSummary?.open ?? null, lang)} />
         <Kpi icon="layers" label={cc('ops.total')} value={num(opsSummary?.total ?? null, lang)} />
+        <Kpi
+          icon="heart-pulse"
+          label={cc('overview.kpi.medicalPending')}
+          value={medicalSec.status === 'ready' ? num(medicalCount, lang) : '…'}
+        />
       </div>
 
       {hasNoAction && (
@@ -101,6 +114,19 @@ export function Today() {
               );
             }}
           </CCState>
+
+          {medicalCount != null && medicalCount > 0 && (
+            <a
+              href="/admin/medical"
+              className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-cream px-3 py-2 text-sm font-semibold text-navy underline-offset-2 hover:underline"
+            >
+              <span className="flex items-center gap-1.5">
+                <AppIcon name="heart-pulse" className="h-3.5 w-3.5 shrink-0 text-gold-dark" />
+                {cc('overview.card.medicalQueue')}
+              </span>
+              <span dir="ltr">{medicalCount}</span>
+            </a>
+          )}
         </Card>
 
         {/* Pending payments — needs action */}

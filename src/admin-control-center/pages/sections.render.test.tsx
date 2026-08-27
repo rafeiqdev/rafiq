@@ -145,6 +145,19 @@ vi.mock('../../lib/api', () => ({
   },
 }));
 
+vi.mock('../../lib/metrics/service', () => ({
+  readMetric: vi.fn().mockResolvedValue({
+    key: 'medicalPendingReview',
+    definition: {
+      key: 'medicalPendingReview', label: 'Medical requests pending review', tables: ['medical_requests'],
+      statusFilter: ['pending_review'], scope: 'all-time', timezone: 'n/a', notes: '',
+    },
+    value: 3,
+    computedAt: new Date().toISOString(),
+  }),
+  readAllTimeMetrics: vi.fn().mockResolvedValue([]),
+}));
+
 // The sections translate through the module-local dictionary, not react-i18next,
 // so assertions resolve the same key the component will render ('ar' is what the
 // mocked i18n.language reports).
@@ -159,6 +172,7 @@ import { Referrals } from './Referrals';
 import { Journey } from './Journey';
 import { Content, Documents, Notifications, Security, SystemHealth } from './Platform';
 import { Today } from './Today';
+import { Diagnostics } from './Diagnostics';
 import { Orders } from './Orders';
 import { Customers } from './Customers';
 import { Money } from './Money';
@@ -213,6 +227,28 @@ describe('the honesty rules survive rendering', () => {
     await waitFor(() => expect(screen.getAllByText(T('ops.requests')).length).toBeGreaterThan(0));
     expect(screen.getAllByText(T('ops.bookings')).length).toBeGreaterThan(0);
     expect(screen.getAllByText(T('ops.leads')).length).toBeGreaterThan(0);
+  });
+
+  it('Today surfaces the medical tourism queue as "needs action" when pending > 0', async () => {
+    render(
+      <MemoryRouter>
+        <Today />
+      </MemoryRouter>,
+    );
+    // The medical KPI count (mocked to 3) is read via the SAME shared metrics
+    // service the /admin/medical badge uses — Today, which previously had no
+    // medical tourism counterpart at all, now surfaces it as a deep link.
+    const link = await screen.findByRole('link', { name: new RegExp(T('overview.card.medicalQueue')) });
+    expect(link).toHaveAttribute('href', '/admin/medical');
+  });
+
+  it('Diagnostics renders the metrics dictionary table (mounted inside Settings\' accordion)', async () => {
+    render(
+      <MemoryRouter>
+        <Diagnostics />
+      </MemoryRouter>,
+    );
+    expect(await screen.findAllByText(T('diag.metric'))).not.toHaveLength(0);
   });
 
   it('Documents never renders a link or download control for a file', async () => {

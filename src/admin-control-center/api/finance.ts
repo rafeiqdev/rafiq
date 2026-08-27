@@ -15,6 +15,7 @@
  * false.
  */
 import { ccSb, orThrow } from './client';
+import { METRICS } from '../../lib/metrics/definitions';
 import { iso, type Range } from '../period';
 
 export interface PayRow {
@@ -36,9 +37,15 @@ export interface SourceTotals {
   byCurrency: Record<string, { verified: number; pending: number }>;
 }
 
-/** Status values that mean "money actually landed", per table. */
-const SETTLED = new Set(['verified', 'confirmed', 'paid']);
-const WAITING = new Set(['pending', 'under_review', 'processing']);
+/**
+ * Status values that mean "money actually landed" / "still waiting", per
+ * table — sourced from the shared metrics dictionary (METRICS.financeSettled
+ * / METRICS.financeWaiting) so this vocabulary has one definition. NOT the
+ * same as METRICS.paymentsPending (one table, exact "pending", all-time) —
+ * see that entry's notes for why the two numbers legitimately differ.
+ */
+const SETTLED = new Set<string>(METRICS.financeSettled.statusFilter);
+const WAITING = new Set<string>(METRICS.financeWaiting.statusFilter);
 
 function summarize(source: string, href: string, rows: PayRow[]): SourceTotals {
   const statuses = new Map<string, number>();

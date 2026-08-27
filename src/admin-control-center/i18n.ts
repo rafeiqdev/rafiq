@@ -59,6 +59,7 @@ const ar: Dict = {
   'accordion.systemHealth': 'صحة النظام (System Health)',
   'accordion.documents': 'المستندات (Documents)',
   'accordion.notifications': 'الإشعارات (Notifications)',
+  'accordion.diagnostics': 'تشخيص الأرقام (Diagnostics)',
   'properties.listings': 'العقارات',
   'properties.investments': 'الفرص الاستثمارية',
   'properties.places': 'أماكن على الخريطة (Map places)',
@@ -89,8 +90,10 @@ const ar: Dict = {
   'overview.kpi.totalLeads': 'إجمالي الطلبات المحتملة',
   'overview.kpi.pendingPayments': 'المدفوعات المعلقة',
   'overview.kpi.cancellations': 'الاشتراكات الملغاة',
+  'overview.kpi.medicalPending': 'طلبات سياحة علاجية معلّقة',
   'overview.card.needsAction': 'يحتاج إلى إجراء',
   'overview.card.recentAudit': 'أحدث أحداث التدقيق',
+  'overview.card.medicalQueue': 'طابور السياحة الطبية',
   'overview.viewDetails': 'عرض التفاصيل',
   'overview.notCounted': 'تعذّرت القراءة',
 
@@ -203,6 +206,23 @@ const ar: Dict = {
   // security
   'sec.recent': 'أحدث أحداث التدقيق',
   'sec.hint': 'من فعل ماذا ومتى — يشمل كشف بيانات، تغيير رتبة، تأكيد دفع، ونشر محتوى.',
+
+  // diagnostics
+  'overview.asOf': 'آخر تحديث',
+  'diag.hint': 'قراءة فقط — كل رقم هنا يُحسب مباشرة من نفس قاموس المقاييس المشترك الذي تعتمد عليه الشارات ولوحة "اليوم"، حتى لا يختلف رقمان يفترض أنهما متطابقان دون تفسير واضح.',
+  'diag.allTime.title': 'المقاييس الفورية (كل الأوقات)',
+  'diag.periodScoped.title': 'المقاييس المرتبطة بفترة',
+  'diag.periodScoped.hint': 'هذه المقاييس تُحسب ضمن الفترة المختارة في كل قسم (٣٠ يومًا افتراضيًا) بتوقيت إسطنبول — وليست مقارنة مباشرة بالمقاييس الفورية أعلاه.',
+  'diag.metric': 'المقياس',
+  'diag.tables': 'الجداول',
+  'diag.statusFilter': 'الحالات المحتسبة',
+  'diag.scope': 'النطاق',
+  'diag.scope.allTime': 'كل الأوقات',
+  'diag.scope.selectedPeriod': 'الفترة المختارة',
+  'diag.timezone': 'المنطقة الزمنية',
+  'diag.value': 'القيمة',
+  'diag.asOf': 'وقت الحساب',
+  'diag.note': 'ملاحظة',
 };
 
 const en: Dict = {
@@ -244,6 +264,7 @@ const en: Dict = {
   'accordion.systemHealth': 'System health',
   'accordion.documents': 'Documents',
   'accordion.notifications': 'Notifications',
+  'accordion.diagnostics': 'Metrics diagnostics',
   'properties.listings': 'Listings',
   'properties.investments': 'Investment opportunities',
   'properties.places': 'Map places',
@@ -274,8 +295,10 @@ const en: Dict = {
   'overview.kpi.totalLeads': 'Total leads',
   'overview.kpi.pendingPayments': 'Pending payments',
   'overview.kpi.cancellations': 'Cancelled subscriptions',
+  'overview.kpi.medicalPending': 'Pending medical requests',
   'overview.card.needsAction': 'Needs action',
   'overview.card.recentAudit': 'Recent audit events',
+  'overview.card.medicalQueue': 'Medical tourism queue',
   'overview.viewDetails': 'View details',
   'overview.notCounted': 'Unreadable',
 
@@ -388,6 +411,23 @@ const en: Dict = {
   // security
   'sec.recent': 'Recent audit events',
   'sec.hint': 'Who did what and when — includes data reveals, role changes, payment approvals and content publishing.',
+
+  // diagnostics
+  'overview.asOf': 'Last updated',
+  'diag.hint': 'Read-only — every number here is computed directly from the same shared metrics dictionary that backs the badges and the Today page, so two numbers that are supposed to match never disagree without an explanation.',
+  'diag.allTime.title': 'Live metrics (all-time)',
+  'diag.periodScoped.title': 'Period-scoped metrics',
+  'diag.periodScoped.hint': 'These are computed within each section\'s selected period (default 30 days) in Istanbul time — they are not a direct comparison against the all-time metrics above.',
+  'diag.metric': 'Metric',
+  'diag.tables': 'Tables',
+  'diag.statusFilter': 'Counted statuses',
+  'diag.scope': 'Scope',
+  'diag.scope.allTime': 'All-time',
+  'diag.scope.selectedPeriod': 'Selected period',
+  'diag.timezone': 'Timezone',
+  'diag.value': 'Value',
+  'diag.asOf': 'Computed at',
+  'diag.note': 'Note',
 };
 
 const DICTS: Record<Lang, Dict> = { ar, en, ru: en, fa: en };

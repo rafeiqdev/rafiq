@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { serviceRequests } from '../lib/api';
 import type { ServiceRequest } from '../lib/api';
+import { METRICS } from '../lib/metrics/definitions';
 import { relativeTime } from '../lib/relativeTime';
 import { AppIcon } from './AppIcon';
 
@@ -16,8 +17,12 @@ import { AppIcon } from './AppIcon';
  * scroll.
  */
 
-/** Unhandled = awaiting a first response. Mirrors serviceRequests.newCount(). */
-const UNHANDLED = new Set(['new', 'pending']);
+/**
+ * Unhandled = awaiting a first response. Sourced from the shared metrics
+ * dictionary (METRICS.serviceRequestsUnhandled) — the same definition backs
+ * serviceRequests.newCount(), the header badge this block sits under.
+ */
+const UNHANDLED = new Set<string>(METRICS.serviceRequestsUnhandled.statusFilter);
 
 /** How many to show before deferring to the full manager below. */
 const LIMIT = 5;
