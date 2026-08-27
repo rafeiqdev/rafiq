@@ -33,21 +33,20 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** The three "what happens now" rows — pure copy, no data behind them. */
 const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 
-// Direct, always-visible links to the main destinations — the guest homepage
-// has this row; UserHome never did, so signed-in users had no way to reach real
-// estate / health tourism except the header's services dropdown. Rendered as the
-// "tubelight" <NavBar> (see components/ui/tubelight-navbar).
+// Direct links to the main destinations, rendered as the "tubelight" <NavBar>
+// (see components/ui/tubelight-navbar). PHONES ONLY — see the isMobile gate at
+// the render site. On desktop these same destinations all live in Layout's top
+// header (Home / Services / Real Estate / Medical Tourism / Map), so drawing the
+// row again there was a duplicate second bar; phones hide that header for '/',
+// so this row is their only in-page path to the sections.
 //
-// DESKTOP vs PHONE — the set differs on purpose. Desktop has no bottom tab bar,
-// so it shows the full list. On phones the MobileTabBar already carries
-// "الخدمات"/Services along the bottom, so repeating it up here is pure
-// duplication — items flagged `inMobileTabBar` are dropped on phones. Home is
-// kept on phones by request (it leads the row) even though the bottom bar also
-// has it; only Services is dropped. Net phone set: Home / Real Estate / Medical
-// Tourism / Map. /map MUST stay on phones because signed-in users lose it from
-// the bottom bar (that slot becomes "Requests"). The filter breakpoint is
-// useIsMobile()'s 768px, which is also where <NavBar> switches labels→icons, so
-// the two always agree.
+// On phones the MobileTabBar already carries "الخدمات"/Services along the
+// bottom, so repeating it up here is pure duplication — items flagged
+// `inMobileTabBar` are dropped. Home is kept (it leads the row) even though the
+// bottom bar also has it; only Services is dropped. Net phone set: Home / Real
+// Estate / Medical Tourism / Map. /map MUST stay because signed-in users lose it
+// from the bottom bar (that slot becomes "Requests"). The breakpoint is
+// useIsMobile()'s 768px, which is also where <NavBar> switches labels→icons.
 //
 // Icons are lucide components (what <NavBar> expects); labels reuse existing
 // home.quickLinks.* / nav.* copy so all four languages are covered.
@@ -471,22 +470,30 @@ export function UserHome() {
             </span>
           </div>
         </div>
-        <NotificationBell size={38} className="shrink-0" />
+        {/* Bell is desktop-chrome on the signed-in dashboard: the top site
+            header (Layout) already carries a NotificationBell there, so a second
+            one here was a visible duplicate. On phones the Layout header is
+            hidden for '/', so this stays the ONLY bell — hence isMobile-gated. */}
+        {isMobile && <NotificationBell size={38} className="shrink-0" />}
       </header>
 
-      {/* ── quick nav: the "tubelight" pill. Desktop shows the full labelled row;
-          phones show icons only and drop Services (already in the bottom tab
-          bar), keeping Home + the sections — see QUICK_NAV. The lamp tracks the
-          current route, so on the dashboard it sits under Home on both. ── */}
-      <NavBar
-        variant="inline"
-        className="mt-4"
-        items={QUICK_NAV.filter((q) => !(isMobile && q.inMobileTabBar)).map((q) => ({
-          name: t(q.labelKey),
-          url: q.to,
-          icon: q.icon,
-        }))}
-      />
+      {/* ── quick nav: the "tubelight" pill. Phones only. On desktop this row
+          duplicated the top site nav (Home / Services / Real Estate / Medical
+          Tourism / Map all live in Layout's header there), so it's dropped;
+          phones hide that header for '/', so the row is their only in-page way
+          to reach the sections. Services is dropped on phones too (it's already
+          in the bottom MobileTabBar) — see QUICK_NAV. ── */}
+      {isMobile && (
+        <NavBar
+          variant="inline"
+          className="mt-4"
+          items={QUICK_NAV.filter((q) => !q.inMobileTabBar).map((q) => ({
+            name: t(q.labelKey),
+            url: q.to,
+            icon: q.icon,
+          }))}
+        />
+      )}
 
       {/* ── proof that the onboarding answers produced something ──
           Capped to 3 chips by default (was showing up to 6 — situation, city
