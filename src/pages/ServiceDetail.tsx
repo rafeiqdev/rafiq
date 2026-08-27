@@ -98,12 +98,11 @@ function copyFor(language: string) {
 }
 
 /**
- * Category → hero background photo. Only categories with a reviewed official
- * photo appear here; every other category falls back to the plain blue
- * gradient, so the header always looks intentional. We intentionally use these
- * curated category photos rather than the admin-set card image
- * (`service.image`), which is an arbitrary thumbnail unsuited to a full-bleed
- * hero.
+ * Fallback hero photo per category, used only when a service has no admin-set
+ * image of its own. Each service normally shows its OWN photo (`service.image`,
+ * set per service in the admin panel); this map just keeps the header looking
+ * intentional for the few services/categories that don't have one yet. A
+ * category absent here simply falls back to the plain blue gradient.
  */
 const CATEGORY_HERO_IMAGE: Record<string, string> = {
   residency: '/images/services/official/residence.png',
@@ -264,7 +263,9 @@ export function ServiceDetail() {
     ? services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4)
     : [];
   const serviceMode = service?.type as ServiceType;
-  const heroImage = service ? CATEGORY_HERO_IMAGE[service.category] : undefined;
+  // Each service shows its own admin-set photo; the curated category photo is
+  // only a fallback when a service has none.
+  const heroImage = service ? (service.image ?? CATEGORY_HERO_IMAGE[service.category]) : undefined;
 
   // usePageMeta is a hook and must run unconditionally on every render — the
   // catalog loads admin overrides asynchronously, so `service` can flip from
@@ -300,6 +301,11 @@ export function ServiceDetail() {
               alt=""
               aria-hidden="true"
               loading="lazy"
+              onError={(e) => {
+                // If a service's photo URL fails, hide the image so only the
+                // blue gradient shows — never a broken-image icon.
+                e.currentTarget.style.display = 'none';
+              }}
               className={`pointer-events-none absolute inset-y-0 h-full w-3/5 object-cover object-center ${
                 isRtl ? 'left-0' : 'right-0'
               }`}
