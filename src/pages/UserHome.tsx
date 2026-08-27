@@ -544,7 +544,7 @@ export function UserHome() {
               {t('journeyPage.openService')}
               <DirArrow />
             </Link>
-            <Link to="/premium" className="btn border border-white/30 text-white hover:bg-white/10 min-h-[44px]">
+            <Link to={`/premium?step=${encodeURIComponent(next.taskKey)}`} className="btn border border-white/30 text-white hover:bg-white/10 min-h-[44px]">
               <AppIcon name="message-circle" className="w-4 h-4" />
               {t('dash.askAboutStep')}
             </Link>

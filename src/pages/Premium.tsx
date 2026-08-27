@@ -88,6 +88,7 @@ function ChatUI() {
   const [sp] = useSearchParams();
   const topic = sp.get('topic');
   const newsId = sp.get('news');
+  const step = sp.get('step');
 
   // Covers every way of reaching the chat (service action modal, guide page
   // link, nav bar, direct URL) with one call, rather than tracking each entry
@@ -287,6 +288,34 @@ function ChatUI() {
     ask(t('chat.topicSeed', { service: pickText(svc.title, i18n.language) }), false, []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic]);
+
+  // Step prefill: ?step=<taskKey> (the dashboard's "ask Rafiq about this step"
+  // button) seeds the chat with the journey step's own title + description, so
+  // the assistant opens straight into that step instead of a blank composer.
+  useEffect(() => {
+    const seedKey = step ? `step:${step}` : null;
+    if (!seedKey || seededRef.current === seedKey) return;
+    const title = t(`journeyTasks.${step}.title`, { defaultValue: '' });
+    if (!title) return;
+    const desc = t(`journeyTasks.${step}.desc`, { defaultValue: '' });
+    const subject = detectSubject(`${title} ${desc}`, null);
+    setCurrentSubject(subject);
+    saveSubject(userId, subject);
+    seededRef.current = seedKey;
+
+    if (messages.length > 0) archiveCurrent(closedByBooking);
+    persistMedia([]);
+    setError(null);
+    setBooking(null);
+    setReadyToBook(false);
+    setAttachDismissed(false);
+    setClosedState(false);
+    setClosedByBooking(false);
+    persistClosed(userId, false);
+
+    ask(t('chat.stepSeed', { title, desc }).trim(), false, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   // News prefill: ?news=<postId> (the article page's "ask Rafiq" button) seeds
   // the chat with the post itself, so the assistant can actually discuss it.

@@ -669,6 +669,7 @@
     "retry": "Retry",
     "topicSeed": "I need help with: {{service}}",
     "newsSeed": "I'd like to ask about this news from Rafiq:\n«{{title}}»\n\n{{body}}",
+    "stepSeed": "I need details about this step: {{title}}\n\n{{desc}}",
     "voice": "Voice input",
     "newTopic": "New topic",
     "attach": "Attach a file",
