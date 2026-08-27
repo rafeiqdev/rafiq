@@ -18,7 +18,16 @@
  *  - Every id returned MUST exist in SERVICES; a test asserts that, so a typo
  *    or a removed service can never surface a dead card.
  */
-import type { Profile, Situation, StudentStage, ArrivedReason, VisitorTrip, JourneyTaskKey } from '../lib/types';
+import type {
+  Profile,
+  Situation,
+  StudentStage,
+  ArrivedReason,
+  VisitorTrip,
+  ResidentType,
+  ResidentPlan,
+  JourneyTaskKey,
+} from '../lib/types';
 
 /**
  * Services made redundant by an onboarding "has" answer. When the user ticked
@@ -53,14 +62,8 @@ const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
     ],
   },
   // NOTE: `arrived` → recommendForArrived (branches on reason for coming);
-  //       `visiting` → recommendForVisitor (branches on trip type + VIP level).
-  resident: {
-    top: ['res-renew', 'ins-residence', 'daily-license'],
-    base: [
-      'res-renew', 'ins-residence', 'daily-license', 're-rent', 're-buy', 'tel-utilities',
-      'tr-companion', 'health-doctors', 'ins-carhome', 'res-work', 'daily-reminders', 'bank-account',
-    ],
-  },
+  //       `visiting` → recommendForVisitor (branches on trip type + VIP level);
+  //       `resident` → recommendForResident (branches on nature of residence + plan).
   long_resident: {
     top: ['res-citizenship', 're-buy', 'legal-ltd'],
     base: [
@@ -223,6 +226,49 @@ function recommendForVisitor(profile: Profile): string[] {
   return orderedUnique([...serviceLead, ...tripTop, ...VISITOR_BASE]);
 }
 
+/**
+ * A resident's top three, chosen by the NATURE of their residence. The plan for
+ * the coming period then promotes the matching "development" services (a
+ * property plan leads with buying/managing property; a citizenship plan with
+ * the citizenship file) ahead of the type picks.
+ */
+const RESIDENT_TYPE_TOP: Record<ResidentType, string[]> = {
+  employee: ['res-renew', 'res-work', 'ins-residence'],
+  business: ['acc-monthly', 'legal-ltd', 'res-renew'],
+  family: ['res-renew', 'ins-family', 'edu-schools'],
+  retired: ['res-renew', 'ins-residence', 'health-doctors'],
+  investor: ['re-buy', 're-management', 'res-citizenship'],
+  student: ['res-renew', 'ins-residence', 'edu-tomer'],
+  unsure: ['res-renew', 'ins-residence', 'daily-license'],
+};
+const RESIDENT_DEFAULT_TOP = ['res-renew', 'ins-residence', 'daily-license'];
+
+const RESIDENT_PLAN_LEAD: Record<ResidentPlan, string[]> = {
+  job: ['res-work'],
+  business: ['legal-ltd', 'acc-monthly'],
+  property: ['re-buy', 're-management'],
+  citizenship: ['res-citizenship', 're-citizenship'],
+  family: ['edu-schools', 'ins-family'],
+  maintain: [],
+  explore: [],
+};
+
+/** Every service a settled resident might need, across every nature/plan. */
+const RESIDENT_BASE: string[] = [
+  'res-renew', 'ins-residence', 'ins-family', 'daily-license', 're-rent', 're-contracts', 're-buy',
+  're-management', 're-valuation', 'res-work', 'res-citizenship', 're-citizenship', 'tel-utilities',
+  'tel-address', 'acc-monthly', 'acc-consult', 'legal-ltd', 'legal-consult', 'health-doctors',
+  'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
+];
+
+/** The resident basket: nature leads, an explicit plan promotes its services. */
+function recommendForResident(profile: Profile): string[] {
+  const typeTop = (profile.residentType && RESIDENT_TYPE_TOP[profile.residentType]) || RESIDENT_DEFAULT_TOP;
+  const planLead = (profile.residentPlan && RESIDENT_PLAN_LEAD[profile.residentPlan]) || [];
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...planLead, ...typeTop, ...RESIDENT_BASE, ...familyExtras]);
+}
+
 /** A non-student persona bundle, with family extras where they make sense. */
 function recommendForPersona(situation: Situation, profile: Profile): string[] {
   const bundle = PERSONA_BUNDLES[situation];
@@ -250,6 +296,8 @@ export function recommendedServiceIds(profile: Profile): string[] {
         ? recommendForArrived(profile)
         : situation === 'visiting'
           ? recommendForVisitor(profile)
-          : recommendForPersona(situation, profile);
+          : situation === 'resident'
+            ? recommendForResident(profile)
+            : recommendForPersona(situation, profile);
   return without(ranked, ownedServices(profile));
 }

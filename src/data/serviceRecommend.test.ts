@@ -31,7 +31,7 @@ describe('recommendedServiceIds', () => {
     expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
     expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
     expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // trip unset → default
-    expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']);
+    expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']); // type unset → default
     expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
   });
 
@@ -76,6 +76,24 @@ describe('recommendedServiceIds', () => {
   it('a VIP visitor leads with the premium airport reception and private driver', () => {
     const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: 'sights', visitorService: 'vip' });
     expect(ids.slice(0, 2)).toEqual(['tour-vip', 'tour-driver']);
+  });
+
+  // ── resident: nature of residence + plan branch the top three ──
+  it('branches the resident top-3 by the nature of their residence', () => {
+    const top3 = (type: Profile['residentType']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: type }).slice(0, 3);
+    expect(top3('employee')).toEqual(['res-renew', 'res-work', 'ins-residence']);
+    expect(top3('business')).toEqual(['acc-monthly', 'legal-ltd', 'res-renew']);
+    expect(top3('family')).toEqual(['res-renew', 'ins-family', 'edu-schools']);
+    expect(top3('retired')).toEqual(['res-renew', 'ins-residence', 'health-doctors']);
+    expect(top3('investor')).toEqual(['re-buy', 're-management', 'res-citizenship']);
+  });
+
+  it('a resident plan promotes the matching development service to the front', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: 'employee', residentPlan: 'property' });
+    expect(ids.slice(0, 2)).toEqual(['re-buy', 're-management']);
+    const cit = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: 'family', residentPlan: 'citizenship' });
+    expect(cit[0]).toBe('res-citizenship');
   });
 
   // ── the "give him what he doesn't have" rule ──

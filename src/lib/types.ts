@@ -68,6 +68,9 @@ export interface Profile {
   /** Visitor-only follow-up answers (jsonb only, no migration; null otherwise). */
   visitorTrip?: VisitorTrip | null;
   visitorService?: VisitorService | null;
+  /** Resident-only follow-up answers (jsonb only, no migration; null otherwise). */
+  residentType?: ResidentType | null;
+  residentPlan?: ResidentPlan | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -106,6 +109,17 @@ export const VISITOR_TRIPS: VisitorTrip[] = ['sights', 'shopping', 'nature', 'mu
 export type VisitorService = 'standard' | 'comfort' | 'vip' | 'unsure';
 export const VISITOR_SERVICES: VisitorService[] = ['standard', 'comfort', 'vip', 'unsure'];
 
+/**
+ * The nature of someone's residence — the biggest driver of which ongoing
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type ResidentType = 'employee' | 'business' | 'family' | 'retired' | 'investor' | 'student' | 'unsure';
+export const RESIDENT_TYPES: ResidentType[] = ['employee', 'business', 'family', 'retired', 'investor', 'student', 'unsure'];
+
+/** A resident's plan for the coming period — promotes the matching "development" services. */
+export type ResidentPlan = 'maintain' | 'job' | 'business' | 'property' | 'citizenship' | 'family' | 'explore';
+export const RESIDENT_PLANS: ResidentPlan[] = ['maintain', 'job', 'business', 'property', 'citizenship', 'family', 'explore'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -122,6 +136,8 @@ export const EMPTY_PROFILE: Profile = {
   arrivedHousing: null,
   visitorTrip: null,
   visitorService: null,
+  residentType: null,
+  residentPlan: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------

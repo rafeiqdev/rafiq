@@ -17,6 +17,8 @@ import {
   ARRIVED_HOUSING,
   VISITOR_TRIPS,
   VISITOR_SERVICES,
+  RESIDENT_TYPES,
+  RESIDENT_PLANS,
 } from '../lib/types';
 import type {
   JourneyTaskKey,
@@ -29,6 +31,8 @@ import type {
   ArrivedHousing,
   VisitorTrip,
   VisitorService,
+  ResidentType,
+  ResidentPlan,
 } from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
@@ -78,12 +82,30 @@ const VISITOR_TRIP_ICONS: Record<VisitorTrip, IconName> = {
   mix: 'star',
 };
 
+const RESIDENT_TYPE_ICONS: Record<ResidentType, IconName> = {
+  employee: 'briefcase',
+  business: 'trending-up',
+  family: 'users',
+  retired: 'home',
+  investor: 'building',
+  student: 'graduation-cap',
+  unsure: 'compass',
+};
+
 /**
  * The questionnaire is a dynamic list of step keys, not a fixed count: a
  * persona-specific follow-up step is inserted only for the situations that have
  * one (student, arrived), so everyone else keeps the original four-question flow.
  */
-type StepKey = 'situation' | 'studentDetails' | 'arrivedDetails' | 'visitorDetails' | 'city' | 'has' | 'family';
+type StepKey =
+  | 'situation'
+  | 'studentDetails'
+  | 'arrivedDetails'
+  | 'visitorDetails'
+  | 'residentDetails'
+  | 'city'
+  | 'has'
+  | 'family';
 
 function stepsFor(situation: Situation | null): StepKey[] {
   const base: StepKey[] = ['situation', 'city', 'has', 'family'];
@@ -91,6 +113,7 @@ function stepsFor(situation: Situation | null): StepKey[] {
   if (situation === 'student') return ['situation', 'studentDetails', 'city', 'has', 'family'];
   if (situation === 'arrived') return ['situation', 'arrivedDetails', 'city', 'has', 'family'];
   if (situation === 'visiting') return ['situation', 'visitorDetails', 'city', 'has', 'family'];
+  if (situation === 'resident') return ['situation', 'residentDetails', 'city', 'has', 'family'];
   return base;
 }
 
@@ -158,6 +181,8 @@ function OnboardingInner() {
   const [arrivedHousing, setArrivedHousing] = useState<ArrivedHousing | null>(profile.arrivedHousing ?? null);
   const [visitorTrip, setVisitorTrip] = useState<VisitorTrip | null>(profile.visitorTrip ?? null);
   const [visitorService, setVisitorService] = useState<VisitorService | null>(profile.visitorService ?? null);
+  const [residentType, setResidentType] = useState<ResidentType | null>(profile.residentType ?? null);
+  const [residentPlan, setResidentPlan] = useState<ResidentPlan | null>(profile.residentPlan ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -179,6 +204,7 @@ function OnboardingInner() {
     (stepKey === 'studentDetails' && studentStage !== null) ||
     (stepKey === 'arrivedDetails' && arrivedReason !== null) ||
     (stepKey === 'visitorDetails' && visitorTrip !== null) ||
+    (stepKey === 'residentDetails' && residentType !== null) ||
     (stepKey === 'city' && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
     stepKey === 'has' ||
     (stepKey === 'family' && family !== null);
@@ -190,6 +216,7 @@ function OnboardingInner() {
     const isStudent = situation === 'student';
     const isArrived = situation === 'arrived';
     const isVisiting = situation === 'visiting';
+    const isResident = situation === 'resident';
     const next: Profile = {
       ...EMPTY_PROFILE,
       ...profile,
@@ -209,6 +236,8 @@ function OnboardingInner() {
       arrivedHousing: isArrived ? arrivedHousing : null,
       visitorTrip: isVisiting ? visitorTrip : null,
       visitorService: isVisiting ? visitorService : null,
+      residentType: isResident ? residentType : null,
+      residentPlan: isResident ? residentPlan : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -252,6 +281,7 @@ function OnboardingInner() {
         {stepKey === 'studentDetails' && t('onboard.student.title')}
         {stepKey === 'arrivedDetails' && t('onboard.arrived.title')}
         {stepKey === 'visitorDetails' && t('onboard.visitor.title')}
+        {stepKey === 'residentDetails' && t('onboard.resident.title')}
         {stepKey === 'city' && t('onboard.city.title')}
         {stepKey === 'has' && t('onboard.has.title')}
         {stepKey === 'family' && t('onboard.family.title')}
@@ -261,6 +291,7 @@ function OnboardingInner() {
       {stepKey === 'studentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.student.subtitle')}</p>}
       {stepKey === 'arrivedDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.arrived.subtitle')}</p>}
       {stepKey === 'visitorDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.visitor.subtitle')}</p>}
+      {stepKey === 'residentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.resident.subtitle')}</p>}
 
       <div className="mt-6 flex flex-col gap-2.5">
         {stepKey === 'situation' &&
@@ -404,6 +435,45 @@ function OnboardingInner() {
               {VISITOR_SERVICES.map((s) => (
                 <option key={s} value={s}>
                   {t(`onboard.visitor.service.${s}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'residentDetails' && (
+          <>
+            {/* Q1 — nature of residence (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.resident.type.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {RESIDENT_TYPES.map((rt) => (
+                  <Choice
+                    key={rt}
+                    icon={RESIDENT_TYPE_ICONS[rt]}
+                    label={t(`onboard.resident.type.${rt}`)}
+                    ariaLabel={t(`onboard.resident.type.${rt}`)}
+                    selected={residentType === rt}
+                    onClick={() => setResidentType(rt)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — plan for the coming period (optional; promotes development services) */}
+            <label htmlFor="onboarding-resident-plan" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.resident.plan.title')}
+            </label>
+            <select
+              id="onboarding-resident-plan"
+              className="input"
+              value={residentPlan ?? ''}
+              onChange={(e) => setResidentPlan((e.target.value || null) as ResidentPlan | null)}
+            >
+              <option value="">{t('onboard.resident.optionalPlaceholder')}</option>
+              {RESIDENT_PLANS.map((p) => (
+                <option key={p} value={p}>
+                  {t(`onboard.resident.plan.${p}`)}
                 </option>
               ))}
             </select>

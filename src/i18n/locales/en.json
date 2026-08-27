@@ -2252,6 +2252,31 @@
         "unsure": "Not sure — suggest for me"
       }
     },
+    "resident": {
+      "title": "About your residence",
+      "subtitle": "A few quick questions so we can show the services that fit your situation.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "type": {
+        "title": "What is the main nature of your residence now?",
+        "employee": "Employed by a company or organization",
+        "business": "Business owner, trader or self-employed",
+        "family": "Resident for family, or head of household",
+        "retired": "Retired",
+        "investor": "Property investor",
+        "student": "Student or another status",
+        "unsure": "Not sure — I need help classifying my situation"
+      },
+      "plan": {
+        "title": "What is your plan for the coming period?",
+        "maintain": "Just keep my current status",
+        "job": "A job, work permit or career move",
+        "business": "Start a company or grow a business",
+        "property": "Buy or manage property",
+        "citizenship": "Citizenship or longer residence",
+        "family": "Arrange the family's future and children's education",
+        "explore": "No set plan — I want to weigh my options"
+      }
+    },
     "done": {
       "title": "Your journey is ready",
       "body": "We built your first steps based on your answers.",
