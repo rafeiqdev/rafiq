@@ -7,6 +7,7 @@ import { errorMessageKey } from '../lib/errors';
 import { shortSummary } from '../lib/bookingSummary';
 import { bookings as bookingsApi, notifications as notificationsApi, documents as documentsApi } from '../lib/api';
 import { pickText } from '../data/services';
+import { recommendedServiceIds } from '../data/serviceRecommend';
 import { useCatalog } from '../data/catalogStore';
 import { pickCity } from '../data/turkeyCities';
 import { JOURNEY_TASK_KEYS } from '../lib/types';
@@ -425,10 +426,19 @@ export function UserHome() {
     ? `/services?q=${encodeURIComponent(pickText(rentalContractService.title, lang))}`
     : '/services';
 
-  const relatedServices = items
+  // Which services to feature. The answer-driven matcher (serviceRecommend.ts)
+  // is preferred whenever it has an opinion — a student, today — because it maps
+  // the onboarding answers to the catalog directly. It falls back to the
+  // journey-derived services (an item's relatedServiceId) for everyone else, so
+  // no persona loses its rail. Both go through the live catalog, so a hidden or
+  // renamed card behaves the same here as on /services.
+  const recommendedServices = recommendedServiceIds(profile)
+    .map((id) => catalogServices.find((s) => s.id === id))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const journeyServices = items
     .map((i) => catalogServices.find((s) => s.id === i.relatedServiceId))
-    .filter((s): s is NonNullable<typeof s> => Boolean(s))
-    .slice(0, 3);
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+  const relatedServices = (recommendedServices.length > 0 ? recommendedServices : journeyServices).slice(0, 3);
 
   const renewals = RENEWAL_KEYS
     .map((key) => ({ key, date: profile.renewals[key] }))

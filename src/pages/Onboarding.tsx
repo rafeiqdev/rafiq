@@ -4,8 +4,24 @@ import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { journey as journeyApi, profileApi } from '../lib/api';
 import { classifyError, logDiagnostic } from '../lib/errors';
-import { EMPTY_PROFILE, JOURNEY_TASK_KEYS, SITUATIONS, SITUATION_TO_PATH, SITUATION_TO_REASON } from '../lib/types';
-import type { JourneyTaskKey, Profile, Situation } from '../lib/types';
+import {
+  EMPTY_PROFILE,
+  JOURNEY_TASK_KEYS,
+  SITUATIONS,
+  SITUATION_TO_PATH,
+  SITUATION_TO_REASON,
+  STUDENT_STAGES,
+  STUDENT_RESIDENCY,
+  STUDENT_HOUSING,
+} from '../lib/types';
+import type {
+  JourneyTaskKey,
+  Profile,
+  Situation,
+  StudentStage,
+  StudentResidency,
+  StudentHousing,
+} from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
 import { AppIcon, DirArrow } from '../components/AppIcon';
@@ -28,7 +44,25 @@ const HAS_ICONS: Record<JourneyTaskKey, IconName> = {
   bankAccount: 'landmark',
 };
 
-const TOTAL_STEPS = 4;
+const STUDENT_STAGE_ICONS: Record<StudentStage, IconName> = {
+  coming: 'luggage',
+  arrived: 'map-pin',
+  settled: 'home',
+};
+
+/**
+ * The questionnaire is a dynamic list of step keys, not a fixed count: the
+ * `studentDetails` step is inserted only for someone who answered "student",
+ * so everyone else keeps the original four-question flow untouched.
+ */
+type StepKey = 'situation' | 'studentDetails' | 'city' | 'has' | 'family';
+
+function stepsFor(situation: Situation | null): StepKey[] {
+  const base: StepKey[] = ['situation', 'city', 'has', 'family'];
+  if (situation !== 'student') return base;
+  // Right after they tell us they're a student, ask the student follow-ups.
+  return ['situation', 'studentDetails', 'city', 'has', 'family'];
+}
 
 /** A large, accessible choice button (min 44px target, no colour-only state). */
 function Choice({
@@ -81,12 +115,15 @@ function OnboardingInner() {
   const navigate = useNavigate();
   const { profile, updateProfile, refresh } = useApp();
 
-  const [step, setStep] = useState(1);
+  const [stepIndex, setStepIndex] = useState(0);
   const [situation, setSituation] = useState<Situation | null>(profile.situation ?? null);
   const [city, setCity] = useState<string>(profile.city ?? '');
   const [otherCity, setOtherCity] = useState('');
   const [has, setHas] = useState({ ...EMPTY_PROFILE.has, ...profile.has });
   const [family, setFamily] = useState<'yes' | 'no' | null>(profile.family ?? null);
+  const [studentStage, setStudentStage] = useState<StudentStage | null>(profile.studentStage ?? null);
+  const [studentResidency, setStudentResidency] = useState<StudentResidency | null>(profile.studentResidency ?? null);
+  const [studentHousing, setStudentHousing] = useState<StudentHousing | null>(profile.studentHousing ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -95,16 +132,26 @@ function OnboardingInner() {
     description: t('onboard.subtitle'),
   });
 
+  const steps = stepsFor(situation);
+  const totalSteps = steps.length;
+  // Clamp: changing the situation on step 1 can grow/shrink the list; never let
+  // the index dangle past the end.
+  const safeIndex = Math.min(stepIndex, totalSteps - 1);
+  const stepKey = steps[safeIndex];
+  const isLast = safeIndex === totalSteps - 1;
+
   const canNext =
-    (step === 1 && situation !== null) ||
-    (step === 2 && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
-    step === 3 ||
-    (step === 4 && family !== null);
+    (stepKey === 'situation' && situation !== null) ||
+    (stepKey === 'studentDetails' && studentStage !== null) ||
+    (stepKey === 'city' && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
+    stepKey === 'has' ||
+    (stepKey === 'family' && family !== null);
 
   const finish = async () => {
     if (!situation || !family) return;
     setSaving(true);
     setError(false);
+    const isStudent = situation === 'student';
     const next: Profile = {
       ...EMPTY_PROFILE,
       ...profile,
@@ -115,6 +162,11 @@ function OnboardingInner() {
       reason: SITUATION_TO_REASON[situation] ?? profile.reason ?? null,
       has,
       family,
+      // Student follow-ups are only meaningful for a student; clear them if the
+      // answer changed away from "student" so a stale stage can't skew matching.
+      studentStage: isStudent ? studentStage : null,
+      studentResidency: isStudent ? studentResidency : null,
+      studentHousing: isStudent ? studentHousing : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -132,35 +184,40 @@ function OnboardingInner() {
     }
   };
 
-  const next = () => (step === TOTAL_STEPS ? finish() : setStep((s) => s + 1));
+  const next = () => (isLast ? finish() : setStepIndex(safeIndex + 1));
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10">
       {/* progress */}
       <p className="text-xs font-semibold text-navy/60">
-        {t('onboard.stepOf', { current: step, total: TOTAL_STEPS })}
+        {t('onboard.stepOf', { current: safeIndex + 1, total: totalSteps })}
       </p>
       <div
         className="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden"
         role="progressbar"
-        aria-valuenow={step}
+        aria-valuenow={safeIndex + 1}
         aria-valuemin={1}
-        aria-valuemax={TOTAL_STEPS}
+        aria-valuemax={totalSteps}
       >
-        <div className="h-full bg-navy transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+        <div
+          className="h-full bg-navy transition-all duration-300"
+          style={{ width: `${((safeIndex + 1) / totalSteps) * 100}%` }}
+        />
       </div>
 
       <h1 className="mt-6 text-2xl font-extrabold text-navy leading-snug">
-        {step === 1 && t('onboard.situation.title')}
-        {step === 2 && t('onboard.city.title')}
-        {step === 3 && t('onboard.has.title')}
-        {step === 4 && t('onboard.family.title')}
+        {stepKey === 'situation' && t('onboard.situation.title')}
+        {stepKey === 'studentDetails' && t('onboard.student.title')}
+        {stepKey === 'city' && t('onboard.city.title')}
+        {stepKey === 'has' && t('onboard.has.title')}
+        {stepKey === 'family' && t('onboard.family.title')}
       </h1>
-      {step === 3 && <p className="mt-2 text-sm text-gray-500">{t('onboard.has.subtitle')}</p>}
-      {step === 1 && <p className="mt-2 text-sm text-gray-500">{t('onboard.subtitle')}</p>}
+      {stepKey === 'has' && <p className="mt-2 text-sm text-gray-500">{t('onboard.has.subtitle')}</p>}
+      {stepKey === 'situation' && <p className="mt-2 text-sm text-gray-500">{t('onboard.subtitle')}</p>}
+      {stepKey === 'studentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.student.subtitle')}</p>}
 
       <div className="mt-6 flex flex-col gap-2.5">
-        {step === 1 &&
+        {stepKey === 'situation' &&
           SITUATIONS.map((s) => (
             <Choice
               key={s}
@@ -172,7 +229,64 @@ function OnboardingInner() {
             />
           ))}
 
-        {step === 2 && (
+        {stepKey === 'studentDetails' && (
+          <>
+            {/* Q1 — stage (the hero question; drives the top-3 recommendations) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.student.stage.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {STUDENT_STAGES.map((s) => (
+                  <Choice
+                    key={s}
+                    icon={STUDENT_STAGE_ICONS[s]}
+                    label={t(`onboard.student.stage.${s}`)}
+                    ariaLabel={t(`onboard.student.stage.${s}`)}
+                    selected={studentStage === s}
+                    onClick={() => setStudentStage(s)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — residence status (optional refinement) */}
+            <label htmlFor="onboarding-student-residency" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.student.residency.title')}
+            </label>
+            <select
+              id="onboarding-student-residency"
+              className="input"
+              value={studentResidency ?? ''}
+              onChange={(e) => setStudentResidency((e.target.value || null) as StudentResidency | null)}
+            >
+              <option value="">{t('onboard.student.optionalPlaceholder')}</option>
+              {STUDENT_RESIDENCY.map((r) => (
+                <option key={r} value={r}>
+                  {t(`onboard.student.residency.${r}`)}
+                </option>
+              ))}
+            </select>
+
+            {/* Q3 — housing status (optional refinement) */}
+            <label htmlFor="onboarding-student-housing" className="mt-3 text-sm font-semibold text-navy/70">
+              {t('onboard.student.housing.title')}
+            </label>
+            <select
+              id="onboarding-student-housing"
+              className="input"
+              value={studentHousing ?? ''}
+              onChange={(e) => setStudentHousing((e.target.value || null) as StudentHousing | null)}
+            >
+              <option value="">{t('onboard.student.optionalPlaceholder')}</option>
+              {STUDENT_HOUSING.map((h) => (
+                <option key={h} value={h}>
+                  {t(`onboard.student.housing.${h}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'city' && (
           <>
             <label htmlFor="onboarding-city" className="text-sm font-semibold text-navy/70">
               {t('onboard.city.title')}
@@ -207,7 +321,7 @@ function OnboardingInner() {
           </>
         )}
 
-        {step === 3 &&
+        {stepKey === 'has' &&
           JOURNEY_TASK_KEYS.map((k) => (
             <Choice
               key={k}
@@ -219,7 +333,7 @@ function OnboardingInner() {
             />
           ))}
 
-        {step === 4 && (
+        {stepKey === 'family' && (
           <>
             <Choice
               icon="user"
@@ -248,8 +362,12 @@ function OnboardingInner() {
 
       {/* actions */}
       <div className="mt-8 flex gap-3">
-        {step > 1 && (
-          <button type="button" onClick={() => setStep((s) => s - 1)} className="btn-secondary min-h-[44px] flex-1">
+        {safeIndex > 0 && (
+          <button
+            type="button"
+            onClick={() => setStepIndex(Math.max(0, safeIndex - 1))}
+            className="btn-secondary min-h-[44px] flex-1"
+          >
             {t('onboard.back')}
           </button>
         )}
@@ -259,8 +377,8 @@ function OnboardingInner() {
           disabled={!canNext || saving}
           className="btn-primary min-h-[44px] flex-1 disabled:opacity-50"
         >
-          {saving ? t('onboard.saving') : step === TOTAL_STEPS ? t('onboard.finish') : t('onboard.next')}
-          {!saving && step < TOTAL_STEPS && <DirArrow />}
+          {saving ? t('onboard.saving') : isLast ? t('onboard.finish') : t('onboard.next')}
+          {!saving && !isLast && <DirArrow />}
         </button>
       </div>
     </div>

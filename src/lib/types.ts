@@ -53,7 +53,28 @@ export interface Profile {
   /** onboarding slice: richer situation + city (mirrored to profile columns) */
   situation?: Situation | null;
   city?: string | null;
+  /**
+   * Student-only follow-up answers. Persisted in the `onboarding` jsonb only
+   * (no dedicated columns, no migration needed), so they are always optional
+   * and default to null for everyone who is not a student. They refine which
+   * of the catalog services we surface first — see data/serviceRecommend.ts.
+   */
+  studentStage?: StudentStage | null;
+  studentResidency?: StudentResidency | null;
+  studentHousing?: StudentHousing | null;
 }
+
+/** Where a student is in their study journey — drives service priority order. */
+export type StudentStage = 'coming' | 'arrived' | 'settled';
+export const STUDENT_STAGES: StudentStage[] = ['coming', 'arrived', 'settled'];
+
+/** A student's residence-permit status. */
+export type StudentResidency = 'have' | 'applied' | 'none' | 'other' | 'unsure';
+export const STUDENT_RESIDENCY: StudentResidency[] = ['have', 'applied', 'none', 'other', 'unsure'];
+
+/** A student's housing status. */
+export type StudentHousing = 'dorm' | 'private' | 'temporary' | 'none';
+export const STUDENT_HOUSING: StudentHousing[] = ['dorm', 'private', 'temporary', 'none'];
 
 export const EMPTY_PROFILE: Profile = {
   path: null,
@@ -64,6 +85,9 @@ export const EMPTY_PROFILE: Profile = {
   renewals: {},
   situation: null,
   city: null,
+  studentStage: null,
+  studentResidency: null,
+  studentHousing: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------

@@ -2181,6 +2181,32 @@
       "alone": "On my own",
       "family": "With my family"
     },
+    "student": {
+      "title": "About your studies",
+      "subtitle": "A few quick questions so we can show the services that fit you as a student.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "stage": {
+        "title": "Where are you in your study journey?",
+        "coming": "Coming to Istanbul soon",
+        "arrived": "Arrived recently",
+        "settled": "Studying and living here for a year or more"
+      },
+      "residency": {
+        "title": "What is your residence status?",
+        "have": "I have a valid student residence permit",
+        "applied": "I applied and I'm waiting",
+        "none": "I don't have a student permit",
+        "other": "I have another type of permit",
+        "unsure": "I'm not sure"
+      },
+      "housing": {
+        "title": "What is your housing situation?",
+        "dorm": "University dormitory",
+        "private": "Private housing with a contract",
+        "temporary": "Temporary housing only",
+        "none": "No housing yet"
+      }
+    },
     "done": {
       "title": "Your journey is ready",
       "body": "We built your first steps based on your answers.",
