@@ -533,7 +533,7 @@ export function UserHome() {
 
       {/* ── the single next action ── */}
       {next && (
-        <section className="relative mt-4 overflow-hidden rounded-card bg-navy p-6 text-white">
+        <section className="relative mt-4 overflow-hidden rounded-card bg-navy p-5 text-white">
           <span
             className="pointer-events-none absolute -top-24 -end-20 h-72 w-72 rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(255,255,255,.09), transparent 62%)' }}
@@ -546,7 +546,7 @@ export function UserHome() {
           <p className="mt-2 text-sm text-white/75 leading-relaxed">{journeyDesc(t, next)}</p>
 
           {nextFacts.length > 0 && (
-            <div className="mt-5 flex border-t border-white/15 pt-4">
+            <div className="mt-4 flex border-t border-white/15 pt-3">
               {nextFacts.map((f, i) => (
                 <div key={f.label} className={`flex-1 ${i ? 'border-s border-white/15 ps-4' : ''}`}>
                   <b className="block text-lg font-bold">{f.value}</b>
@@ -556,13 +556,24 @@ export function UserHome() {
             </div>
           )}
 
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link to={next.relatedRoute || '/journey'} className="btn bg-white text-navy hover:bg-brand-blue min-h-[44px]">
+          {/* Equal-width (flex-1), not content-sized: two unevenly-sized
+              buttons left a big dead gap after the short one on narrow
+              screens, and "اسأل رفيق..." alone was wide enough to force a
+              wrap to a second row. Both read as "too big / too much empty
+              space" from the same root cause. */}
+          <div className="mt-4 flex gap-2">
+            <Link
+              to={next.relatedRoute || '/journey'}
+              className="btn h-auto min-h-[44px] flex-1 whitespace-normal px-3 text-center bg-white text-navy hover:bg-brand-blue"
+            >
               {t('journeyPage.openService')}
               <DirArrow />
             </Link>
-            <Link to={`/premium?step=${encodeURIComponent(next.taskKey)}`} className="btn border border-white/30 text-white hover:bg-white/10 min-h-[44px]">
-              <AppIcon name="message-circle" className="w-4 h-4" />
+            <Link
+              to={`/premium?step=${encodeURIComponent(next.taskKey)}`}
+              className="btn h-auto min-h-[44px] flex-1 gap-1.5 whitespace-normal px-3 text-center border border-white/30 text-white hover:bg-white/10"
+            >
+              <AppIcon name="message-circle" className="w-4 h-4 shrink-0" />
               {t('dash.askAboutStep')}
             </Link>
           </div>
