@@ -18,7 +18,7 @@
  *  - Every id returned MUST exist in SERVICES; a test asserts that, so a typo
  *    or a removed service can never surface a dead card.
  */
-import type { Profile, Situation, StudentStage, JourneyTaskKey } from '../lib/types';
+import type { Profile, Situation, StudentStage, ArrivedReason, JourneyTaskKey } from '../lib/types';
 
 /**
  * Services made redundant by an onboarding "has" answer. When the user ticked
@@ -52,13 +52,8 @@ const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
       'res-tourist', 'ins-residence', 'bank-account', 'tel-sim', 'edu-tomer', 'edu-denklik',
     ],
   },
-  arrived: {
-    top: ['tel-sim', 'bank-account', 'res-tax'],
-    base: [
-      'tel-sim', 'tel-istanbulkart', 'bank-account', 'res-tax', 'res-foreignid', 'tel-address',
-      'res-tourist', 'ins-residence', 're-rent', 're-contracts', 'tr-companion', 'daily-moving',
-    ],
-  },
+  // NOTE: `arrived` is handled by recommendForArrived() — its top three branch
+  // on the reason the newcomer came, which a static bundle can't express.
   visiting: {
     top: ['tour-airport', 'tour-daytrips', 'tour-hotels'],
     base: [
@@ -153,6 +148,54 @@ function recommendForStudent(profile: Profile): string[] {
   return orderedUnique([...STUDENT_STAGE_TOP[stage], ...base, ...familyExtras]);
 }
 
+/**
+ * A newcomer's top three, chosen by WHY they came — the research's clearest
+ * finding. Falls back to the generic "settling-in essentials" when the reason
+ * hasn't been answered (or is "other").
+ */
+const ARRIVED_REASON_TOP: Partial<Record<ArrivedReason, string[]>> = {
+  work: ['res-work', 'bank-account', 'tel-sim'],
+  living: ['re-rent', 'tel-address', 'ins-residence'],
+  family: ['res-family', 'edu-schools', 'ins-family'],
+  business: ['legal-ltd', 'acc-monthly', 'legal-consult'],
+  study: ['res-student', 'ins-residence', 'edu-tomer'],
+  short: ['tour-daytrips', 'tour-hotels', 'tel-sim'],
+};
+const ARRIVED_DEFAULT_TOP = ['tel-sim', 'bank-account', 'res-tax'];
+
+/** The full set of services a newcomer might need, across every reason. */
+const ARRIVED_BASE: string[] = [
+  'tel-sim', 'tel-istanbulkart', 'bank-account', 'res-tax', 'res-foreignid', 'tel-address',
+  'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn', 'tr-companion',
+  'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult', 'res-family',
+  'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
+];
+
+/** The newcomer basket: reason picks the lead, housing/family re-rank the rest. */
+function recommendForArrived(profile: Profile): string[] {
+  const top = (profile.arrivedReason && ARRIVED_REASON_TOP[profile.arrivedReason]) || ARRIVED_DEFAULT_TOP;
+  let base = [...ARRIVED_BASE];
+
+  // Housing status decides whether the housing sub-bundle is relevant.
+  const needsHome =
+    profile.arrivedHousing === 'none' ||
+    profile.arrivedHousing === 'temporary' ||
+    profile.arrivedHousing === 'withRelative';
+  if (needsHome) {
+    base = orderedUnique(['re-rent', 're-contracts', 'daily-moving', 'tel-address', ...base]);
+  } else if (profile.arrivedHousing === 'owned') {
+    base = without(base, ['re-rent', 're-contracts', 'daily-moving']);
+  } else if (profile.arrivedHousing === 'rented') {
+    // Already has a leased home → no search/move, but the contract/address may
+    // still need sorting.
+    base = without(base, ['re-rent', 'daily-moving']);
+  }
+
+  // Schooling / family insurance for a newcomer bringing family.
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...top, ...base, ...familyExtras]);
+}
+
 /** A non-student persona bundle, with family extras where they make sense. */
 function recommendForPersona(situation: Situation, profile: Profile): string[] {
   const bundle = PERSONA_BUNDLES[situation];
@@ -173,6 +216,11 @@ function recommendForPersona(situation: Situation, profile: Profile): string[] {
 export function recommendedServiceIds(profile: Profile): string[] {
   const situation = profile.situation;
   if (!situation) return [];
-  const ranked = situation === 'student' ? recommendForStudent(profile) : recommendForPersona(situation, profile);
+  const ranked =
+    situation === 'student'
+      ? recommendForStudent(profile)
+      : situation === 'arrived'
+        ? recommendForArrived(profile)
+        : recommendForPersona(situation, profile);
   return without(ranked, ownedServices(profile));
 }

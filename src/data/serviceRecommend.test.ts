@@ -29,10 +29,35 @@ describe('recommendedServiceIds', () => {
   it('leads each persona with its intended top three', () => {
     const top3 = (p: Partial<Profile>) => recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).slice(0, 3);
     expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
-    expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']);
+    expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
     expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']);
     expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']);
     expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
+  });
+
+  // ── newcomer: reason branches the top three ──
+  it('branches the newcomer top-3 by the reason they came', () => {
+    const top3 = (reason: Profile['arrivedReason']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'arrived', arrivedReason: reason }).slice(0, 3);
+    expect(top3('work')).toEqual(['res-work', 'bank-account', 'tel-sim']);
+    expect(top3('living')).toEqual(['re-rent', 'tel-address', 'ins-residence']);
+    expect(top3('family')).toEqual(['res-family', 'edu-schools', 'ins-family']);
+    expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 'legal-consult']);
+    expect(top3('study')).toEqual(['res-student', 'ins-residence', 'edu-tomer']);
+    expect(top3('short')).toEqual(['tour-daytrips', 'tour-hotels', 'tel-sim']);
+    expect(top3('other')).toEqual(['tel-sim', 'bank-account', 'res-tax']); // unknown → default
+  });
+
+  it('a newcomer who owns their home is not offered rentals or moving', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'arrived', arrivedHousing: 'owned' });
+    expect(ids).not.toContain('re-rent');
+    expect(ids).not.toContain('daily-moving');
+  });
+
+  it('a newcomer with no home gets the housing bundle promoted', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'arrived', arrivedReason: 'work', arrivedHousing: 'none' });
+    expect(ids).toContain('re-rent');
+    expect(ids.indexOf('re-rent')).toBeLessThan(ids.indexOf('daily-reminders'));
   });
 
   // ── the "give him what he doesn't have" rule ──

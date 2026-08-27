@@ -62,6 +62,9 @@ export interface Profile {
   studentStage?: StudentStage | null;
   studentResidency?: StudentResidency | null;
   studentHousing?: StudentHousing | null;
+  /** Newcomer-only follow-up answers (jsonb only, no migration; null otherwise). */
+  arrivedReason?: ArrivedReason | null;
+  arrivedHousing?: ArrivedHousing | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -76,6 +79,19 @@ export const STUDENT_RESIDENCY: StudentResidency[] = ['have', 'applied', 'none',
 export type StudentHousing = 'dorm' | 'private' | 'temporary' | 'none';
 export const STUDENT_HOUSING: StudentHousing[] = ['dorm', 'private', 'temporary', 'none'];
 
+/**
+ * Why a newcomer ("arrived") came — the single biggest driver of which
+ * services fit them, so it branches the dashboard's top three. Student-persona
+ * users answer their own questions instead; a newcomer who picks `study` here
+ * just gets an education-leaning bundle.
+ */
+export type ArrivedReason = 'work' | 'living' | 'family' | 'business' | 'study' | 'short' | 'other';
+export const ARRIVED_REASONS: ArrivedReason[] = ['work', 'living', 'family', 'business', 'study', 'short', 'other'];
+
+/** A newcomer's housing status. */
+export type ArrivedHousing = 'temporary' | 'rented' | 'withRelative' | 'owned' | 'none';
+export const ARRIVED_HOUSING: ArrivedHousing[] = ['temporary', 'rented', 'withRelative', 'owned', 'none'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -88,6 +104,8 @@ export const EMPTY_PROFILE: Profile = {
   studentStage: null,
   studentResidency: null,
   studentHousing: null,
+  arrivedReason: null,
+  arrivedHousing: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------

@@ -13,6 +13,8 @@ import {
   STUDENT_STAGES,
   STUDENT_RESIDENCY,
   STUDENT_HOUSING,
+  ARRIVED_REASONS,
+  ARRIVED_HOUSING,
 } from '../lib/types';
 import type {
   JourneyTaskKey,
@@ -21,6 +23,8 @@ import type {
   StudentStage,
   StudentResidency,
   StudentHousing,
+  ArrivedReason,
+  ArrivedHousing,
 } from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
@@ -50,18 +54,29 @@ const STUDENT_STAGE_ICONS: Record<StudentStage, IconName> = {
   settled: 'home',
 };
 
+const ARRIVED_REASON_ICONS: Record<ArrivedReason, IconName> = {
+  work: 'briefcase',
+  living: 'home',
+  family: 'users',
+  business: 'trending-up',
+  study: 'graduation-cap',
+  short: 'plane',
+  other: 'compass',
+};
+
 /**
- * The questionnaire is a dynamic list of step keys, not a fixed count: the
- * `studentDetails` step is inserted only for someone who answered "student",
- * so everyone else keeps the original four-question flow untouched.
+ * The questionnaire is a dynamic list of step keys, not a fixed count: a
+ * persona-specific follow-up step is inserted only for the situations that have
+ * one (student, arrived), so everyone else keeps the original four-question flow.
  */
-type StepKey = 'situation' | 'studentDetails' | 'city' | 'has' | 'family';
+type StepKey = 'situation' | 'studentDetails' | 'arrivedDetails' | 'city' | 'has' | 'family';
 
 function stepsFor(situation: Situation | null): StepKey[] {
   const base: StepKey[] = ['situation', 'city', 'has', 'family'];
-  if (situation !== 'student') return base;
-  // Right after they tell us they're a student, ask the student follow-ups.
-  return ['situation', 'studentDetails', 'city', 'has', 'family'];
+  // Right after they tell us who they are, ask that persona's follow-ups.
+  if (situation === 'student') return ['situation', 'studentDetails', 'city', 'has', 'family'];
+  if (situation === 'arrived') return ['situation', 'arrivedDetails', 'city', 'has', 'family'];
+  return base;
 }
 
 /** A large, accessible choice button (min 44px target, no colour-only state). */
@@ -124,6 +139,8 @@ function OnboardingInner() {
   const [studentStage, setStudentStage] = useState<StudentStage | null>(profile.studentStage ?? null);
   const [studentResidency, setStudentResidency] = useState<StudentResidency | null>(profile.studentResidency ?? null);
   const [studentHousing, setStudentHousing] = useState<StudentHousing | null>(profile.studentHousing ?? null);
+  const [arrivedReason, setArrivedReason] = useState<ArrivedReason | null>(profile.arrivedReason ?? null);
+  const [arrivedHousing, setArrivedHousing] = useState<ArrivedHousing | null>(profile.arrivedHousing ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -143,6 +160,7 @@ function OnboardingInner() {
   const canNext =
     (stepKey === 'situation' && situation !== null) ||
     (stepKey === 'studentDetails' && studentStage !== null) ||
+    (stepKey === 'arrivedDetails' && arrivedReason !== null) ||
     (stepKey === 'city' && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
     stepKey === 'has' ||
     (stepKey === 'family' && family !== null);
@@ -152,6 +170,7 @@ function OnboardingInner() {
     setSaving(true);
     setError(false);
     const isStudent = situation === 'student';
+    const isArrived = situation === 'arrived';
     const next: Profile = {
       ...EMPTY_PROFILE,
       ...profile,
@@ -162,11 +181,13 @@ function OnboardingInner() {
       reason: SITUATION_TO_REASON[situation] ?? profile.reason ?? null,
       has,
       family,
-      // Student follow-ups are only meaningful for a student; clear them if the
-      // answer changed away from "student" so a stale stage can't skew matching.
+      // Persona follow-ups are only meaningful for their own persona; clear them
+      // if the answer changed away, so a stale answer can't skew matching.
       studentStage: isStudent ? studentStage : null,
       studentResidency: isStudent ? studentResidency : null,
       studentHousing: isStudent ? studentHousing : null,
+      arrivedReason: isArrived ? arrivedReason : null,
+      arrivedHousing: isArrived ? arrivedHousing : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -208,6 +229,7 @@ function OnboardingInner() {
       <h1 className="mt-6 text-2xl font-extrabold text-navy leading-snug">
         {stepKey === 'situation' && t('onboard.situation.title')}
         {stepKey === 'studentDetails' && t('onboard.student.title')}
+        {stepKey === 'arrivedDetails' && t('onboard.arrived.title')}
         {stepKey === 'city' && t('onboard.city.title')}
         {stepKey === 'has' && t('onboard.has.title')}
         {stepKey === 'family' && t('onboard.family.title')}
@@ -215,6 +237,7 @@ function OnboardingInner() {
       {stepKey === 'has' && <p className="mt-2 text-sm text-gray-500">{t('onboard.has.subtitle')}</p>}
       {stepKey === 'situation' && <p className="mt-2 text-sm text-gray-500">{t('onboard.subtitle')}</p>}
       {stepKey === 'studentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.student.subtitle')}</p>}
+      {stepKey === 'arrivedDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.arrived.subtitle')}</p>}
 
       <div className="mt-6 flex flex-col gap-2.5">
         {stepKey === 'situation' &&
@@ -280,6 +303,45 @@ function OnboardingInner() {
               {STUDENT_HOUSING.map((h) => (
                 <option key={h} value={h}>
                   {t(`onboard.student.housing.${h}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'arrivedDetails' && (
+          <>
+            {/* Q1 — reason for coming (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.arrived.reason.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {ARRIVED_REASONS.map((r) => (
+                  <Choice
+                    key={r}
+                    icon={ARRIVED_REASON_ICONS[r]}
+                    label={t(`onboard.arrived.reason.${r}`)}
+                    ariaLabel={t(`onboard.arrived.reason.${r}`)}
+                    selected={arrivedReason === r}
+                    onClick={() => setArrivedReason(r)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — housing status (optional refinement) */}
+            <label htmlFor="onboarding-arrived-housing" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.arrived.housing.title')}
+            </label>
+            <select
+              id="onboarding-arrived-housing"
+              className="input"
+              value={arrivedHousing ?? ''}
+              onChange={(e) => setArrivedHousing((e.target.value || null) as ArrivedHousing | null)}
+            >
+              <option value="">{t('onboard.arrived.optionalPlaceholder')}</option>
+              {ARRIVED_HOUSING.map((h) => (
+                <option key={h} value={h}>
+                  {t(`onboard.arrived.housing.${h}`)}
                 </option>
               ))}
             </select>

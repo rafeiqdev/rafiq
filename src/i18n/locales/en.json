@@ -2207,6 +2207,29 @@
         "none": "No housing yet"
       }
     },
+    "arrived": {
+      "title": "About your arrival",
+      "subtitle": "A few quick questions so we can show the services that fit your situation.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "reason": {
+        "title": "What is your main reason for coming to Istanbul?",
+        "work": "Working for a company or employer",
+        "living": "Living and settling in",
+        "family": "Family reunification or joining family",
+        "business": "Starting a business or managing an investment",
+        "study": "Study or training",
+        "short": "A short visit or stay",
+        "other": "Another reason"
+      },
+      "housing": {
+        "title": "Where are you staying now?",
+        "temporary": "Hotel or temporary housing",
+        "rented": "Rented home with a contract",
+        "withRelative": "With a relative or friend",
+        "owned": "Owned home",
+        "none": "No stable housing yet"
+      }
+    },
     "done": {
       "title": "Your journey is ready",
       "body": "We built your first steps based on your answers.",
