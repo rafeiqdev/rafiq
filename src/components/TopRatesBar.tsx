@@ -23,8 +23,6 @@ export function TopRatesBar() {
   const { t, i18n } = useTranslation();
   const [rates, setRates] = useState<FxRate[]>([]);
   const [loaded, setLoaded] = useState(false);
-  // WCAG 2.2.2: anything auto-moving longer than 5s needs a user stop control.
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -122,7 +120,7 @@ export function TopRatesBar() {
             </p>
 
             <div className="relative flex-1 overflow-hidden" aria-hidden>
-              <div className="flex w-max animate-ticker" style={{ animationPlayState: paused ? 'paused' : undefined }}>
+              <div className="flex w-max animate-ticker">
                 {[0, 1].map((group) => (
                   <div key={group} className="flex items-center gap-7 pe-7 shrink-0">
                     {items.map((r) => (
@@ -139,33 +137,6 @@ export function TopRatesBar() {
                 ))}
               </div>
             </div>
-
-            {/* Provenance lives OUTSIDE the marquee: it used to ride along in
-                both duplicated groups, appearing twice per cycle and colliding
-                with the pairs. */}
-            <span className="hidden lg:block shrink-0 whitespace-nowrap px-3 text-white/40 border-s border-white/15">
-              {t('rates.updatedAt', { time: updatedLabel })} · {t('rates.source', { source: sourceLabel })}
-            </span>
-
-            {/* WCAG 2.2.2 pause control for the auto-scrolling strip. */}
-            <button
-              type="button"
-              onClick={() => setPaused((v) => !v)}
-              aria-pressed={paused}
-              aria-label={t(paused ? 'rates.resume' : 'rates.pause')}
-              className="shrink-0 z-10 flex h-9 w-9 items-center justify-center bg-black text-white/60 hover:text-white border-s border-white/15"
-            >
-              {paused ? (
-                <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden>
-                  <path d="M2.5 1.5l8 4.5-8 4.5z" fill="currentColor" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden>
-                  <rect x="2" y="1.5" width="2.6" height="9" fill="currentColor" />
-                  <rect x="7.4" y="1.5" width="2.6" height="9" fill="currentColor" />
-                </svg>
-              )}
-            </button>
           </>
         )}
       </div>
