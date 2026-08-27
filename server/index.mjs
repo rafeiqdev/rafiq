@@ -351,6 +351,49 @@ export function createApp(db = openDb(), cfg = loadConfig()) {
     res.json(ratesCache.data ? { ...ratesCache.data, live: false } : { usdtry: 41.2, eurtry: 44.8, live: false, source: 'fallback' });
   });
 
+  // ---- news photo proxy ---------------------------------------------------
+  // Dev-parity twin of api/news-photo.ts (the Vercel edge function used in
+  // production). Telegram CDN URLs expire within days, so the client asks for a
+  // post's photo by its permanent permalink ref and this re-resolves a fresh
+  // URL from the post's embed page on every request. Without this route, /api
+  // is proxied to this server in dev and every news image 404s locally.
+  const TG_CDN_HOST = /^https:\/\/cdn\d+\.telesco\.pe\/file\/[\w-]+\.(?:jpg|jpeg|png|webp)$/i;
+  const newsPhotoRef = (post) => {
+    const m = /^([A-Za-z]\w{3,31})\/(\d{1,12})$/.exec((post ?? '').trim());
+    return m ? `${m[1]}/${m[2]}` : null;
+  };
+  const parseTgPhotoUrl = (html) => {
+    const m = /background-image:url\('([^']+)'\)/.exec(html);
+    if (!m) return null;
+    const url = m[1].replace(/&amp;/g, '&');
+    return TG_CDN_HOST.test(url) ? url : null;
+  };
+  app.get('/api/news-photo', async (req, res) => {
+    const ref = newsPhotoRef(req.query.post);
+    if (!ref) return res.status(400).send('bad_reference');
+    let photoUrl = null;
+    try {
+      const page = await fetch(`https://t.me/${ref}?embed=1`, {
+        signal: AbortSignal.timeout(8000),
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RafiqIstanbul/1.0)' },
+      });
+      if (page.ok) photoUrl = parseTgPhotoUrl(await page.text());
+    } catch {
+      /* fall through to 502 */
+    }
+    if (!photoUrl) return res.status(502).send('no_photo');
+    try {
+      const upstream = await fetch(photoUrl, { signal: AbortSignal.timeout(8000) });
+      if (!upstream.ok) return res.status(502).send('upstream_error');
+      res.set('Content-Type', upstream.headers.get('Content-Type') ?? 'image/jpeg');
+      res.set('Cache-Control', 'public, max-age=86400');
+      const buf = Buffer.from(await upstream.arrayBuffer());
+      return res.send(buf);
+    } catch {
+      return res.status(502).send('upstream_error');
+    }
+  });
+
   // ---- auth ---------------------------------------------------------------
 
   app.post('/api/auth/register', async (req, res) => {

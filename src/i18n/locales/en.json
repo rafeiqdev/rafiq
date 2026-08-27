@@ -270,6 +270,12 @@
     "news": {
       "eyebrow": "News",
       "title": "Latest from Rafiq",
+      "latest": "Latest",
+      "category": "Turkey",
+      "backToNews": "Back to news",
+      "related": "Related news",
+      "latestNews": "Latest news",
+      "source": "Source",
       "follow": "Follow us on Telegram",
       "readMore": "Read more",
       "empty": "No news yet.",

@@ -22,7 +22,7 @@ import { WhatsAppButton } from './WhatsAppButton';
 // footer chrome entirely for these so the mobile screen isn't sandwiched
 // between bars it wasn't designed for. Add a path here whenever a new
 // Mobile* page is wired in.
-const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/real-estate', '/health-tourism', '/tricks', '/profile', '/requests', '/notifications']);
+const MOBILE_CHROME_FREE_ROUTES = new Set(['/auth', '/', '/premium', '/chat', '/help', '/services', '/map', '/referrals', '/real-estate', '/health-tourism', '/tricks', '/profile', '/requests', '/notifications', '/news']);
 
 // Dropping the desktop chrome on phones also dropped the footer, so the terms /
 // privacy / refund block and the language switcher were unreachable from every
@@ -191,7 +191,8 @@ export function Layout() {
     isGuestHome ||
     (isMobile &&
       (MOBILE_CHROME_FREE_ROUTES.has(location.pathname) ||
-        location.pathname.startsWith('/services/')));
+        location.pathname.startsWith('/services/') ||
+        location.pathname.startsWith('/news/')));
   const showMobileFooter =
     hideChrome &&
     isMobile &&
