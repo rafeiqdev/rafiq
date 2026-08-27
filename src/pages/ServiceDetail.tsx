@@ -97,6 +97,23 @@ function copyFor(language: string) {
   };
 }
 
+/**
+ * Category → hero background photo. Only categories with a reviewed official
+ * photo appear here; every other category falls back to the plain blue
+ * gradient, so the header always looks intentional. We intentionally use these
+ * curated category photos rather than the admin-set card image
+ * (`service.image`), which is an arbitrary thumbnail unsuited to a full-bleed
+ * hero.
+ */
+const CATEGORY_HERO_IMAGE: Record<string, string> = {
+  residency: '/images/services/official/residence.png',
+  realestate: '/images/services/official/real-estate.png',
+  tourism: '/images/services/official/tourism.png',
+  translation: '/images/services/official/translation.png',
+  banking: '/images/services/official/banking.png',
+  health: '/images/services/official/health.png',
+};
+
 /** Renders "**bold**" spans within a line; everything else passes through as-is. */
 function renderInline(text: string) {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
@@ -247,6 +264,7 @@ export function ServiceDetail() {
     ? services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4)
     : [];
   const serviceMode = service?.type as ServiceType;
+  const heroImage = service ? CATEGORY_HERO_IMAGE[service.category] : undefined;
 
   // usePageMeta is a hook and must run unconditionally on every render — the
   // catalog loads admin overrides asynchronously, so `service` can flip from
@@ -268,17 +286,45 @@ export function ServiceDetail() {
         <Link to={`/guides/${service.category}`} className="hover:text-navy hover:underline">{categoryTitle}</Link>
       </nav>
 
-      <header className="rounded-card bg-navy px-6 py-8 text-white shadow-card sm:px-9 sm:py-10">
-        <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
-            <AppIcon name={service.icon} className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-gold-light">{categoryTitle}</p>
-            <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">{seoTitle}</h1>
+      <header className="relative overflow-hidden rounded-card shadow-card">
+        {/* Improved blue: a deep diagonal gradient instead of the old flat navy. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-br from-navy-dark via-navy to-navy-light"
+        />
+        {heroImage && (
+          <>
+            {/* Category photo bleeds in from the trailing edge. */}
+            <img
+              src={heroImage}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className={`pointer-events-none absolute inset-y-0 h-full w-3/5 object-cover object-center ${
+                isRtl ? 'left-0' : 'right-0'
+              }`}
+            />
+            {/* Navy gradient keeps the title fully readable over the photo. */}
+            <div
+              aria-hidden="true"
+              className={`absolute inset-0 from-navy-dark via-navy/95 to-navy/10 ${
+                isRtl ? 'bg-gradient-to-l' : 'bg-gradient-to-r'
+              }`}
+            />
+          </>
+        )}
+        <div className="relative px-6 py-8 text-white sm:px-9 sm:py-10">
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+              <AppIcon name={service.icon} className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-gold-light">{categoryTitle}</p>
+              <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">{seoTitle}</h1>
+            </div>
           </div>
+          <p className="mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">{seoDescription}</p>
         </div>
-        <p className="mt-5 max-w-3xl text-sm leading-7 text-white/90 sm:text-base">{seoDescription}</p>
       </header>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
