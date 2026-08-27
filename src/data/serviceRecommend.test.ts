@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { recommendedServiceIds } from './serviceRecommend';
 import { SERVICES } from './services';
-import { EMPTY_PROFILE } from '../lib/types';
+import { EMPTY_PROFILE, SITUATIONS } from '../lib/types';
 import type { Profile } from '../lib/types';
 
 const student = (over: Partial<Profile> = {}): Profile => ({
@@ -13,50 +13,57 @@ const student = (over: Partial<Profile> = {}): Profile => ({
 const ID_SET = new Set(SERVICES.map((s) => s.id));
 
 describe('recommendedServiceIds', () => {
-  it('returns nothing for a non-student (falls back to default dashboard)', () => {
-    expect(recommendedServiceIds(student({ situation: 'resident' }))).toEqual([]);
+  it('returns nothing when there is no situation', () => {
     expect(recommendedServiceIds(EMPTY_PROFILE)).toEqual([]);
   });
 
-  it('every recommended id is a real catalog service (no dead cards)', () => {
-    const profiles: Profile[] = [
-      student(),
-      student({ studentStage: 'coming' }),
-      student({ studentStage: 'arrived' }),
-      student({ studentStage: 'settled', studentResidency: 'have' }),
-      student({ studentHousing: 'none', family: 'yes' }),
-    ];
-    for (const p of profiles) {
-      for (const id of recommendedServiceIds(p)) {
-        expect(ID_SET.has(id), `unknown service id: ${id}`).toBe(true);
-      }
+  it('every situation produces a non-empty, all-real, no-repeat list', () => {
+    for (const situation of SITUATIONS) {
+      const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation });
+      expect(ids.length, `${situation} is empty`).toBeGreaterThan(0);
+      expect(new Set(ids).size, `${situation} has repeats`).toBe(ids.length);
+      for (const id of ids) expect(ID_SET.has(id), `${situation}: unknown id ${id}`).toBe(true);
     }
   });
 
-  it('never repeats a service id', () => {
-    const ids = recommendedServiceIds(student({ studentStage: 'arrived', studentHousing: 'none', family: 'yes' }));
-    expect(new Set(ids).size).toBe(ids.length);
+  it('leads each persona with its intended top three', () => {
+    const top3 = (p: Partial<Profile>) => recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).slice(0, 3);
+    expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
+    expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']);
+    expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']);
+    expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']);
+    expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
   });
 
-  it('leads with the stage-specific top picks', () => {
+  // ── the "give him what he doesn't have" rule ──
+  it('never recommends a service the user ticked as already done', () => {
+    const has = { turkishPhone: true, taxNumber: true, residencePermit: true, bankAccount: true };
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'arrived', has });
+    expect(ids).not.toContain('tel-sim'); // has phone
+    expect(ids).not.toContain('res-tax'); // has tax number
+    expect(ids).not.toContain('bank-account'); // has bank
+    expect(ids).not.toContain('res-tourist'); // has a permit → no first-application permit
+    expect(ids.length).toBeGreaterThan(0); // but still has things to offer
+  });
+
+  it('a student who has a phone/bank is not offered the SIM/bank services', () => {
+    const ids = recommendedServiceIds(student({ has: { ...EMPTY_PROFILE.has, turkishPhone: true, bankAccount: true } }));
+    expect(ids).not.toContain('tel-sim');
+    expect(ids).not.toContain('bank-account');
+    expect(ids).toContain('res-student'); // student-specific offer survives
+  });
+
+  // ── student stage / follow-up behaviour ──
+  it('leads with the student stage-specific top picks', () => {
     expect(recommendedServiceIds(student({ studentStage: 'coming' })).slice(0, 3)).toEqual([
-      'edu-university',
-      'tr-sworn',
-      'tour-airport',
-    ]);
-    expect(recommendedServiceIds(student({ studentStage: 'arrived' })).slice(0, 3)).toEqual([
-      'res-student',
-      'ins-residence',
-      'bank-account',
+      'edu-university', 'tr-sworn', 'tour-airport',
     ]);
     expect(recommendedServiceIds(student({ studentStage: 'settled' })).slice(0, 3)).toEqual([
-      'res-renew',
-      'ins-residence',
-      'res-work',
+      'res-renew', 'ins-residence', 'res-work',
     ]);
   });
 
-  it('defaults an un-answered stage to the "just arrived" ordering', () => {
+  it('defaults an un-answered student stage to the "just arrived" ordering', () => {
     expect(recommendedServiceIds(student()).slice(0, 3)).toEqual(['res-student', 'ins-residence', 'bank-account']);
   });
 
@@ -75,14 +82,19 @@ describe('recommendedServiceIds', () => {
 
   it('a student with no housing gets the housing bundle promoted', () => {
     const ids = recommendedServiceIds(student({ studentStage: 'arrived', studentHousing: 'none' }));
-    // housing services appear ahead of the tail of the base list
     expect(ids).toContain('re-rent');
     expect(ids.indexOf('re-rent')).toBeLessThan(ids.indexOf('res-work'));
   });
 
-  it('adds schooling and family insurance only when family joins', () => {
-    expect(recommendedServiceIds(student({ family: 'yes' }))).toContain('edu-schools');
+  // ── family extras ──
+  it('adds schooling and family insurance for a staying persona with family', () => {
+    expect(recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', family: 'yes' })).toContain('edu-schools');
     expect(recommendedServiceIds(student({ family: 'yes' }))).toContain('ins-family');
-    expect(recommendedServiceIds(student({ family: 'no' }))).not.toContain('edu-schools');
+  });
+
+  it('does NOT add schooling for a visitor with family (they are passing through)', () => {
+    expect(recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', family: 'yes' })).not.toContain(
+      'edu-schools',
+    );
   });
 });
