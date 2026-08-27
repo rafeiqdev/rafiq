@@ -2292,6 +2292,15 @@
       "cta": "Sign up to save progress"
     }
   },
+  "journeyProgressBar": {
+    "title": "My Journey Progress",
+    "milestones": {
+      "25": "Great start! You've done a quarter of your steps.",
+      "50": "Nice work! You're halfway there.",
+      "75": "Excellent progress! Just a few steps left.",
+      "100": "Congratulations! You've completed every step of your journey."
+    }
+  },
   "officialSource": {
     "eIkamet": "Verify on e-İkamet",
     "gib": "Verify on GİB",
