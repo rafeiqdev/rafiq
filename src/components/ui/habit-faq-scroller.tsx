@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { HelpCircle } from "lucide-react";
 import { GradientBackground } from "@/components/ui/oceanic-shimmer";
@@ -104,17 +104,6 @@ export const HorizontalScroller: React.FC<HorizontalScrollerProps> = ({
   isRtl = false,
   verifiedLabel,
 }) => {
-  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
   const animationClass = direction === "left" ? "animate-scroll-left" : "animate-scroll-right";
 
   return (
@@ -133,7 +122,7 @@ export const HorizontalScroller: React.FC<HorizontalScrollerProps> = ({
       <div
         className={cn(
           "flex w-max gap-4 sm:gap-6",
-          !reducedMotion && animationClass,
+          animationClass,
           pauseOnHover && "pause-on-hover"
         )}
         style={{

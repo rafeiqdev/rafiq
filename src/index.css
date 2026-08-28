@@ -858,6 +858,9 @@ html[dir='rtl'] li {
   animation-play-state: paused;
 }
 
+/* Owner asked these to keep scrolling for every visitor, including under
+   prefers-reduced-motion (used by the FAQ horizontal scroller). */
+
 @keyframes rafiqHomeMarqueeContinuous {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }
@@ -872,9 +875,3 @@ html[dir='rtl'] li {
   animation-play-state: paused;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-scroll-left,
-  .animate-scroll-right {
-    animation: none !important;
-  }
-}
