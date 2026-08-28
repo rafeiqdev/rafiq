@@ -42,8 +42,17 @@ function isValidName(s: string): boolean {
   return v.length >= 3 && (v.match(/\p{L}/gu)?.length ?? 0) >= 2;
 }
 
-/** Preset problem chips — keys resolve under services.modal.problems.* */
-const PROBLEM_CHIPS = ['newResidency', 'rejectedRenewal', 'nufusAddress', 'bankAccount'] as const;
+/**
+ * Preset problem chips — keys resolve under services.modal.problems.*
+ * Scoped per service category so, e.g., a banking request never offers
+ * "rejected residency renewal" and a residency request never offers
+ * "bank account without residency". Categories with no entry here simply
+ * skip the quick-chip row — the free-text field below still covers them.
+ */
+const PROBLEM_CHIPS_BY_CATEGORY: Partial<Record<string, readonly string[]>> = {
+  residency: ['newResidency', 'rejectedRenewal', 'nufusAddress'],
+  banking: ['bankAccount'],
+};
 
 export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
   const { t, i18n } = useTranslation();
@@ -73,6 +82,8 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const [throttledWhen, setThrottledWhen] = useState<string | null>(null);
   /** The database trigger refused the insert (a real flood, or storage cleared). */
   const [rateLimited, setRateLimited] = useState(false);
+
+  const problemChips = PROBLEM_CHIPS_BY_CATEGORY[source.category] ?? [];
 
   const phoneValid = isValidPhone(phone);
   const showPhoneError = phoneTouched && phone.trim().length > 0 && !phoneValid;
@@ -280,10 +291,11 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                     </select>
                   </label>
                 )}
+                {problemChips.length > 0 && (
                 <div>
                   <p className="text-xs font-semibold text-navy/70">{t('services.modal.problemLabel')}</p>
                   <div className="mt-1.5 flex flex-wrap gap-2">
-                    {PROBLEM_CHIPS.map((id) => {
+                    {problemChips.map((id) => {
                       const selected = problem === id;
                       return (
                         <button
@@ -303,6 +315,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
                     })}
                   </div>
                 </div>
+                )}
                 <label className="text-xs font-semibold text-navy/70">
                   {t('services.modal.problemDetailsLabel')}
                   <textarea
