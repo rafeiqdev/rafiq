@@ -298,16 +298,6 @@ src={CAROUSEL[0]}
                 </span>
               ))}
             </div>
-
-            {/* guest journey preview — same low-commitment demo as desktop
-                Home.tsx; see journeyPage.guest.* copy */}
-            <Link
-              to="/journey"
-              className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-btn border-2 border-navy bg-white px-5 py-3 text-sm font-bold text-navy shadow-soft active:bg-brand-blue"
-            >
-              <AppIcon name="compass" className="w-4 h-4" />
-              {t('home.guestJourneyCta')}
-            </Link>
           </div>
         </header>
 
