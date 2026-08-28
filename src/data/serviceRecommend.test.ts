@@ -32,7 +32,24 @@ describe('recommendedServiceIds', () => {
     expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
     expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // trip unset → default
     expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']); // type unset → default
-    expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
+    expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']); // goal unset → default
+  });
+
+  // ── long-settled resident: main goal + property branch the top three ──
+  it('branches the long-resident top-3 by their main goal now', () => {
+    const top3 = (goal: Profile['longResidentGoal']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'long_resident', longResidentGoal: goal }).slice(0, 3);
+    expect(top3('citizenship')).toEqual(['res-citizenship', 'legal-consult', 'tr-sworn']);
+    expect(top3('longstay')).toEqual(['res-renew', 'ins-residence', 'legal-consult']);
+    expect(top3('property')).toEqual(['re-buy', 're-valuation', 're-management']);
+    expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 'legal-contracts']);
+    expect(top3('family')).toEqual(['edu-university', 'res-family', 'ins-family']);
+    expect(top3('stability')).toEqual(['res-renew', 'ins-residence', 'daily-reminders']);
+  });
+
+  it('a property-owning long resident leads with management and valuation', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'long_resident', longResidentGoal: 'stability', longResidentProperty: 'multiple' });
+    expect(ids.slice(0, 2)).toEqual(['re-management', 're-valuation']);
   });
 
   // ── planner: reason for relocating branches the top three ──

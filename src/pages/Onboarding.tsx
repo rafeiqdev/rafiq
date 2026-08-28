@@ -20,6 +20,8 @@ import {
   RESIDENT_TYPES,
   RESIDENT_PLANS,
   PLANNING_REASONS,
+  LONG_RESIDENT_GOALS,
+  LONG_RESIDENT_PROPERTY,
 } from '../lib/types';
 import type {
   JourneyTaskKey,
@@ -35,6 +37,8 @@ import type {
   ResidentType,
   ResidentPlan,
   PlanningReason,
+  LongResidentGoal,
+  LongResidentProperty,
 } from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
@@ -103,6 +107,16 @@ const PLANNING_REASON_ICONS: Record<PlanningReason, IconName> = {
   other: 'compass',
 };
 
+const LONG_RESIDENT_GOAL_ICONS: Record<LongResidentGoal, IconName> = {
+  citizenship: 'star',
+  longstay: 'id-card',
+  property: 'building',
+  business: 'trending-up',
+  family: 'users',
+  stability: 'home',
+  other: 'compass',
+};
+
 /**
  * The questionnaire is a dynamic list of step keys, not a fixed count: a
  * persona-specific follow-up step is inserted only for the situations that have
@@ -115,6 +129,7 @@ type StepKey =
   | 'arrivedDetails'
   | 'visitorDetails'
   | 'residentDetails'
+  | 'longResidentDetails'
   | 'city'
   | 'has'
   | 'family';
@@ -127,6 +142,7 @@ function stepsFor(situation: Situation | null): StepKey[] {
   if (situation === 'arrived') return ['situation', 'arrivedDetails', 'city', 'has', 'family'];
   if (situation === 'visiting') return ['situation', 'visitorDetails', 'city', 'has', 'family'];
   if (situation === 'resident') return ['situation', 'residentDetails', 'city', 'has', 'family'];
+  if (situation === 'long_resident') return ['situation', 'longResidentDetails', 'city', 'has', 'family'];
   return base;
 }
 
@@ -197,6 +213,10 @@ function OnboardingInner() {
   const [residentType, setResidentType] = useState<ResidentType | null>(profile.residentType ?? null);
   const [residentPlan, setResidentPlan] = useState<ResidentPlan | null>(profile.residentPlan ?? null);
   const [planningReason, setPlanningReason] = useState<PlanningReason | null>(profile.planningReason ?? null);
+  const [longResidentGoal, setLongResidentGoal] = useState<LongResidentGoal | null>(profile.longResidentGoal ?? null);
+  const [longResidentProperty, setLongResidentProperty] = useState<LongResidentProperty | null>(
+    profile.longResidentProperty ?? null,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -220,6 +240,7 @@ function OnboardingInner() {
     (stepKey === 'arrivedDetails' && arrivedReason !== null) ||
     (stepKey === 'visitorDetails' && visitorTrip !== null) ||
     (stepKey === 'residentDetails' && residentType !== null) ||
+    (stepKey === 'longResidentDetails' && longResidentGoal !== null) ||
     (stepKey === 'city' && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
     stepKey === 'has' ||
     (stepKey === 'family' && family !== null);
@@ -233,6 +254,7 @@ function OnboardingInner() {
     const isArrived = situation === 'arrived';
     const isVisiting = situation === 'visiting';
     const isResident = situation === 'resident';
+    const isLongResident = situation === 'long_resident';
     const next: Profile = {
       ...EMPTY_PROFILE,
       ...profile,
@@ -255,6 +277,8 @@ function OnboardingInner() {
       residentType: isResident ? residentType : null,
       residentPlan: isResident ? residentPlan : null,
       planningReason: isPlanning ? planningReason : null,
+      longResidentGoal: isLongResident ? longResidentGoal : null,
+      longResidentProperty: isLongResident ? longResidentProperty : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -300,6 +324,7 @@ function OnboardingInner() {
         {stepKey === 'arrivedDetails' && t('onboard.arrived.title')}
         {stepKey === 'visitorDetails' && t('onboard.visitor.title')}
         {stepKey === 'residentDetails' && t('onboard.resident.title')}
+        {stepKey === 'longResidentDetails' && t('onboard.longResident.title')}
         {stepKey === 'city' && t('onboard.city.title')}
         {stepKey === 'has' && t('onboard.has.title')}
         {stepKey === 'family' && t('onboard.family.title')}
@@ -311,6 +336,9 @@ function OnboardingInner() {
       {stepKey === 'arrivedDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.arrived.subtitle')}</p>}
       {stepKey === 'visitorDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.visitor.subtitle')}</p>}
       {stepKey === 'residentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.resident.subtitle')}</p>}
+      {stepKey === 'longResidentDetails' && (
+        <p className="mt-2 text-sm text-gray-500">{t('onboard.longResident.subtitle')}</p>
+      )}
 
       <div className="mt-6 flex flex-col gap-2.5">
         {stepKey === 'situation' &&
@@ -511,6 +539,45 @@ function OnboardingInner() {
               {RESIDENT_PLANS.map((p) => (
                 <option key={p} value={p}>
                   {t(`onboard.resident.plan.${p}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'longResidentDetails' && (
+          <>
+            {/* Q1 — main goal now (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.longResident.goal.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {LONG_RESIDENT_GOALS.map((g) => (
+                  <Choice
+                    key={g}
+                    icon={LONG_RESIDENT_GOAL_ICONS[g]}
+                    label={t(`onboard.longResident.goal.${g}`)}
+                    ariaLabel={t(`onboard.longResident.goal.${g}`)}
+                    selected={longResidentGoal === g}
+                    onClick={() => setLongResidentGoal(g)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — property status (optional; promotes the property services) */}
+            <label htmlFor="onboarding-long-property" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.longResident.property.title')}
+            </label>
+            <select
+              id="onboarding-long-property"
+              className="input"
+              value={longResidentProperty ?? ''}
+              onChange={(e) => setLongResidentProperty((e.target.value || null) as LongResidentProperty | null)}
+            >
+              <option value="">{t('onboard.longResident.optionalPlaceholder')}</option>
+              {LONG_RESIDENT_PROPERTY.map((p) => (
+                <option key={p} value={p}>
+                  {t(`onboard.longResident.property.${p}`)}
                 </option>
               ))}
             </select>

@@ -2290,6 +2290,28 @@
         "explore": "No set plan — I want to weigh my options"
       }
     },
+    "longResident": {
+      "title": "About your long stay",
+      "subtitle": "A few quick questions so we can show the services that fit your goal.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "goal": {
+        "title": "What is your main goal now in Türkiye?",
+        "citizenship": "Apply for citizenship or check eligibility",
+        "longstay": "Long-term residence or securing my status",
+        "property": "Buy property or expand investment",
+        "business": "Grow a company or business",
+        "family": "Arrange the children's and family's future",
+        "stability": "Just keep my current status",
+        "other": "Another goal, or I need to set priorities"
+      },
+      "property": {
+        "title": "What is your current property situation?",
+        "owns": "I own a home to live in",
+        "multiple": "I own more than one, or a rental property",
+        "considering": "Considering buying, not decided yet",
+        "none": "I don't own property"
+      }
+    },
     "done": {
       "title": "Your journey is ready",
       "body": "We built your first steps based on your answers.",

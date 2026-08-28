@@ -20,13 +20,14 @@
  */
 import type {
   Profile,
-  Situation,
   StudentStage,
   ArrivedReason,
   VisitorTrip,
   ResidentType,
   ResidentPlan,
   PlanningReason,
+  LongResidentGoal,
+  LongResidentProperty,
   JourneyTaskKey,
 } from '../lib/types';
 
@@ -43,30 +44,8 @@ const HAS_TO_SERVICES: Record<JourneyTaskKey, string[]> = {
   residencePermit: ['res-student', 'res-tourist'],
 };
 
-/** A persona's services: `top` lead the list, then the rest of `base`. */
-interface Bundle {
-  top: string[];
-  base: string[];
-}
-
-/**
- * Non-student personas. Each `base` is the full set of catalog services that
- * fit that situation, richest-first; `top` are the three we lead with on the
- * dashboard. Student is handled separately (it has follow-up questions).
- */
-const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
-  // NOTE: `planning` → recommendForPlanning (branches on reason for relocating);
-  //       `arrived` → recommendForArrived (branches on reason for coming);
-  //       `visiting` → recommendForVisitor (branches on trip type + VIP level);
-  //       `resident` → recommendForResident (branches on nature of residence + plan).
-  long_resident: {
-    top: ['res-citizenship', 're-buy', 'legal-ltd'],
-    base: [
-      'res-citizenship', 're-buy', 'res-family', 'legal-ltd', 'acc-monthly', 'ins-family',
-      'daily-license', 're-management', 'res-renew', 'legal-consult',
-    ],
-  },
-};
+// Every one of the six situations has its own dedicated matcher below, each
+// branching on that persona's follow-up answer (see recommendedServiceIds).
 
 /** Top picks per student stage — these float to the head of the ranked list. */
 const STUDENT_STAGE_TOP: Record<StudentStage, string[]> = {
@@ -292,15 +271,63 @@ function recommendForResident(profile: Profile): string[] {
   return orderedUnique([...planLead, ...typeTop, ...RESIDENT_BASE, ...familyExtras]);
 }
 
-/** A non-student persona bundle, with family extras where they make sense. */
-function recommendForPersona(situation: Situation, profile: Profile): string[] {
-  const bundle = PERSONA_BUNDLES[situation];
-  if (!bundle) return [];
-  // Schooling / family insurance only make sense for someone staying — never a
-  // visitor passing through.
-  const familyExtras =
-    profile.family === 'yes' && situation !== 'visiting' ? ['edu-schools', 'ins-family'] : [];
-  return orderedUnique([...bundle.top, ...bundle.base, ...familyExtras]);
+/**
+ * A long-settled resident's top three, chosen by their main GOAL now. Their
+ * property status then promotes the matching property services (an owner leads
+ * with management + valuation; a would-be buyer with buying) ahead of the rest.
+ */
+const LONG_GOAL_TOP: Record<LongResidentGoal, string[]> = {
+  citizenship: ['res-citizenship', 'legal-consult', 'tr-sworn'],
+  longstay: ['res-renew', 'ins-residence', 'legal-consult'],
+  property: ['re-buy', 're-valuation', 're-management'],
+  business: ['legal-ltd', 'acc-monthly', 'legal-contracts'],
+  family: ['edu-university', 'res-family', 'ins-family'],
+  stability: ['res-renew', 'ins-residence', 'daily-reminders'],
+  other: ['res-citizenship', 're-buy', 'legal-ltd'],
+};
+const LONG_DEFAULT_TOP = ['res-citizenship', 're-buy', 'legal-ltd'];
+
+const LONG_PROPERTY_LEAD: Record<LongResidentProperty, string[]> = {
+  owns: ['re-management', 're-valuation'],
+  multiple: ['re-management', 're-valuation'],
+  considering: ['re-buy', 're-valuation'],
+  none: [],
+};
+
+/** Every service a long-settled resident might need, across every goal. */
+const LONG_BASE: string[] = [
+  'res-citizenship', 'res-renew', 're-citizenship', 're-buy', 're-management', 're-valuation',
+  'legal-ltd', 'legal-as', 'legal-consult', 'legal-contracts', 'acc-monthly', 'acc-consult',
+  'ins-residence', 'ins-family', 'ins-carhome', 'res-family', 'edu-university', 'edu-denklik',
+  'edu-schools', 'daily-license', 'tr-sworn', 'daily-reminders', 'bank-transfer',
+];
+
+/** The long-resident basket: goal leads, property status promotes its services. */
+function recommendForLongResident(profile: Profile): string[] {
+  const goalTop = (profile.longResidentGoal && LONG_GOAL_TOP[profile.longResidentGoal]) || LONG_DEFAULT_TOP;
+  const propertyLead = (profile.longResidentProperty && LONG_PROPERTY_LEAD[profile.longResidentProperty]) || [];
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...propertyLead, ...goalTop, ...LONG_BASE, ...familyExtras]);
+}
+
+/** Route a profile to its persona-specific matcher. All six are covered. */
+function rankFor(profile: Profile): string[] {
+  switch (profile.situation) {
+    case 'planning':
+      return recommendForPlanning(profile);
+    case 'student':
+      return recommendForStudent(profile);
+    case 'arrived':
+      return recommendForArrived(profile);
+    case 'visiting':
+      return recommendForVisitor(profile);
+    case 'resident':
+      return recommendForResident(profile);
+    case 'long_resident':
+      return recommendForLongResident(profile);
+    default:
+      return [];
+  }
 }
 
 /**
@@ -310,19 +337,6 @@ function recommendForPersona(situation: Situation, profile: Profile): string[] {
  * behaviour".
  */
 export function recommendedServiceIds(profile: Profile): string[] {
-  const situation = profile.situation;
-  if (!situation) return [];
-  const ranked =
-    situation === 'planning'
-      ? recommendForPlanning(profile)
-      : situation === 'student'
-      ? recommendForStudent(profile)
-      : situation === 'arrived'
-        ? recommendForArrived(profile)
-        : situation === 'visiting'
-          ? recommendForVisitor(profile)
-          : situation === 'resident'
-            ? recommendForResident(profile)
-            : recommendForPersona(situation, profile);
-  return without(ranked, ownedServices(profile));
+  if (!profile.situation) return [];
+  return without(rankFor(profile), ownedServices(profile));
 }

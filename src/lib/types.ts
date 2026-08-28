@@ -73,6 +73,9 @@ export interface Profile {
   residentPlan?: ResidentPlan | null;
   /** Planning-to-relocate follow-up answer (jsonb only, no migration; null otherwise). */
   planningReason?: PlanningReason | null;
+  /** Long-settled resident follow-up answers (jsonb only, no migration; null otherwise). */
+  longResidentGoal?: LongResidentGoal | null;
+  longResidentProperty?: LongResidentProperty | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -129,6 +132,17 @@ export const RESIDENT_PLANS: ResidentPlan[] = ['maintain', 'job', 'business', 'p
 export type PlanningReason = 'work' | 'study' | 'family' | 'business' | 'retirement' | 'other';
 export const PLANNING_REASONS: PlanningReason[] = ['work', 'study', 'family', 'business', 'retirement', 'other'];
 
+/**
+ * A long-settled resident's main goal now — the biggest driver of which
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type LongResidentGoal = 'citizenship' | 'longstay' | 'property' | 'business' | 'family' | 'stability' | 'other';
+export const LONG_RESIDENT_GOALS: LongResidentGoal[] = ['citizenship', 'longstay', 'property', 'business', 'family', 'stability', 'other'];
+
+/** A long-settled resident's property status — promotes the matching property services. */
+export type LongResidentProperty = 'owns' | 'multiple' | 'considering' | 'none';
+export const LONG_RESIDENT_PROPERTY: LongResidentProperty[] = ['owns', 'multiple', 'considering', 'none'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -148,6 +162,8 @@ export const EMPTY_PROFILE: Profile = {
   residentType: null,
   residentPlan: null,
   planningReason: null,
+  longResidentGoal: null,
+  longResidentProperty: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------
