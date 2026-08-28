@@ -39,12 +39,25 @@ describe('recommendedServiceIds', () => {
   it('branches the long-resident top-3 by their main goal now', () => {
     const top3 = (goal: Profile['longResidentGoal']) =>
       recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'long_resident', longResidentGoal: goal }).slice(0, 3);
-    expect(top3('citizenship')).toEqual(['res-citizenship', 'legal-consult', 'tr-sworn']);
-    expect(top3('longstay')).toEqual(['res-renew', 'ins-residence', 'legal-consult']);
+    expect(top3('citizenship')).toEqual(['res-eligibility', 'res-citizenship', 'legal-consult']);
+    expect(top3('longstay')).toEqual(['res-renew', 'ins-residence', 'res-eligibility']);
     expect(top3('property')).toEqual(['re-buy', 're-valuation', 're-management']);
     expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 'legal-contracts']);
     expect(top3('family')).toEqual(['edu-university', 'res-family', 'ins-family']);
     expect(top3('stability')).toEqual(['res-renew', 'ins-residence', 'daily-reminders']);
+  });
+
+  it('surfaces the new phase-2 gap services for the personas that need them', () => {
+    const has = (p: Partial<Profile>, id: string) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).includes(id);
+    expect(has({ situation: 'student', studentStage: 'coming' }, 'edu-advisory')).toBe(true);
+    expect(has({ situation: 'student', studentStage: 'settled' }, 'edu-career')).toBe(true);
+    expect(has({ situation: 'student' }, 'ins-student')).toBe(true);
+    expect(has({ situation: 'visiting' }, 'visa-check')).toBe(true);
+    expect(has({ situation: 'planning', planningReason: 'work' }, 'visa-check')).toBe(true);
+    expect(has({ situation: 'arrived' }, 'res-eligibility')).toBe(true);
+    expect(has({ situation: 'resident', residentType: 'retired' }, 'daily-eldercare')).toBe(true);
+    expect(has({ situation: 'long_resident', longResidentGoal: 'citizenship' }, 'res-eligibility')).toBe(true);
   });
 
   it('a property-owning long resident leads with management and valuation', () => {
@@ -114,7 +127,7 @@ describe('recommendedServiceIds', () => {
     expect(top3('employee')).toEqual(['res-renew', 'res-work', 'ins-residence']);
     expect(top3('business')).toEqual(['acc-monthly', 'legal-ltd', 'res-renew']);
     expect(top3('family')).toEqual(['res-renew', 'ins-family', 'edu-schools']);
-    expect(top3('retired')).toEqual(['res-renew', 'ins-residence', 'health-doctors']);
+    expect(top3('retired')).toEqual(['res-renew', 'ins-residence', 'daily-eldercare']);
     expect(top3('investor')).toEqual(['re-buy', 're-management', 'res-citizenship']);
   });
 
@@ -146,10 +159,10 @@ describe('recommendedServiceIds', () => {
   // ── student stage / follow-up behaviour ──
   it('leads with the student stage-specific top picks', () => {
     expect(recommendedServiceIds(student({ studentStage: 'coming' })).slice(0, 3)).toEqual([
-      'edu-university', 'tr-sworn', 'tour-airport',
+      'edu-advisory', 'edu-university', 'tr-sworn',
     ]);
     expect(recommendedServiceIds(student({ studentStage: 'settled' })).slice(0, 3)).toEqual([
-      'res-renew', 'ins-residence', 'res-work',
+      'res-renew', 'res-work', 'edu-career',
     ]);
   });
 

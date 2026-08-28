@@ -49,15 +49,15 @@ const HAS_TO_SERVICES: Record<JourneyTaskKey, string[]> = {
 
 /** Top picks per student stage — these float to the head of the ranked list. */
 const STUDENT_STAGE_TOP: Record<StudentStage, string[]> = {
-  coming: ['edu-university', 'tr-sworn', 'tour-airport'],
+  coming: ['edu-advisory', 'edu-university', 'tr-sworn'],
   arrived: ['res-student', 'ins-residence', 'bank-account'],
-  settled: ['res-renew', 'ins-residence', 'res-work'],
+  settled: ['res-renew', 'res-work', 'edu-career'],
 };
 
 /** The full set of catalog services relevant to a student, richest-first. */
 const STUDENT_BASE: string[] = [
-  'res-student', 'ins-residence', 'bank-account', 'tel-address', 're-rent', 're-contracts',
-  'edu-university', 'edu-denklik', 'edu-tomer', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'res-student', 'ins-student', 'ins-residence', 'bank-account', 'tel-address', 're-rent', 're-contracts',
+  'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-career', 'tr-sworn', 'tr-notary', 'tr-docs',
   'res-foreignid', 'res-tax', 'tel-sim', 'tel-istanbulkart', 'tour-airport', 'daily-moving',
   'res-renew', 'res-work', 'daily-license',
 ];
@@ -136,9 +136,9 @@ const ARRIVED_DEFAULT_TOP = ['tel-sim', 'bank-account', 'res-tax'];
 /** The full set of services a newcomer might need, across every reason. */
 const ARRIVED_BASE: string[] = [
   'tel-sim', 'tel-istanbulkart', 'bank-account', 'res-tax', 'res-foreignid', 'tel-address',
-  'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn', 'tr-companion',
-  'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult', 'res-family',
-  'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
+  'res-eligibility', 'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn',
+  'tr-companion', 'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult',
+  'res-family', 'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
 ];
 
 /** The newcomer basket: reason picks the lead, housing/family re-rank the rest. */
@@ -185,7 +185,7 @@ const VISITOR_DEFAULT_TOP = ['tour-airport', 'tour-daytrips', 'tour-hotels'];
 const VISITOR_BASE: string[] = [
   'tour-airport', 'tour-vip', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
   'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'daily-shopping', 'tr-companion',
-  'health-tourism', 'tr-medical', 'health-hospitals',
+  'health-tourism', 'tr-medical', 'health-hospitals', 'visa-check',
 ];
 
 /** The visitor basket: trip type leads, VIP/comfort promote the premium services. */
@@ -215,10 +215,10 @@ const PLANNING_DEFAULT_TOP = ['re-rent', 'tr-sworn', 'tour-airport'];
 
 /** Every service a pre-arrival planner might need, across every reason. */
 const PLANNING_BASE: string[] = [
-  're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs', 'tour-airport', 'res-tourist',
-  'res-work', 'res-student', 'res-family', 'ins-residence', 'ins-family', 'bank-account', 'tel-sim',
-  'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools', 'legal-ltd', 'acc-monthly',
-  'legal-consult', 're-buy', 'health-doctors',
+  'visa-check', 'res-eligibility', 're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'tour-airport', 'res-tourist', 'res-work', 'res-student', 'res-family', 'ins-residence', 'ins-family',
+  'bank-account', 'tel-sim', 'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools',
+  'legal-ltd', 'acc-monthly', 'legal-consult', 're-buy', 'health-doctors',
 ];
 
 /** The planner basket: reason picks the lead, family adds schooling/insurance. */
@@ -238,10 +238,10 @@ const RESIDENT_TYPE_TOP: Record<ResidentType, string[]> = {
   employee: ['res-renew', 'res-work', 'ins-residence'],
   business: ['acc-monthly', 'legal-ltd', 'res-renew'],
   family: ['res-renew', 'ins-family', 'edu-schools'],
-  retired: ['res-renew', 'ins-residence', 'health-doctors'],
+  retired: ['res-renew', 'ins-residence', 'daily-eldercare'],
   investor: ['re-buy', 're-management', 'res-citizenship'],
   student: ['res-renew', 'ins-residence', 'edu-tomer'],
-  unsure: ['res-renew', 'ins-residence', 'daily-license'],
+  unsure: ['res-eligibility', 'res-renew', 'ins-residence'],
 };
 const RESIDENT_DEFAULT_TOP = ['res-renew', 'ins-residence', 'daily-license'];
 
@@ -258,9 +258,9 @@ const RESIDENT_PLAN_LEAD: Record<ResidentPlan, string[]> = {
 /** Every service a settled resident might need, across every nature/plan. */
 const RESIDENT_BASE: string[] = [
   'res-renew', 'ins-residence', 'ins-family', 'daily-license', 're-rent', 're-contracts', 're-buy',
-  're-management', 're-valuation', 'res-work', 'res-citizenship', 're-citizenship', 'tel-utilities',
-  'tel-address', 'acc-monthly', 'acc-consult', 'legal-ltd', 'legal-consult', 'health-doctors',
-  'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
+  're-management', 're-valuation', 'res-work', 'res-citizenship', 're-citizenship', 'res-eligibility',
+  'tel-utilities', 'tel-address', 'acc-monthly', 'acc-consult', 'legal-ltd', 'legal-consult',
+  'health-doctors', 'daily-eldercare', 'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
 ];
 
 /** The resident basket: nature leads, an explicit plan promotes its services. */
@@ -277,8 +277,8 @@ function recommendForResident(profile: Profile): string[] {
  * with management + valuation; a would-be buyer with buying) ahead of the rest.
  */
 const LONG_GOAL_TOP: Record<LongResidentGoal, string[]> = {
-  citizenship: ['res-citizenship', 'legal-consult', 'tr-sworn'],
-  longstay: ['res-renew', 'ins-residence', 'legal-consult'],
+  citizenship: ['res-eligibility', 'res-citizenship', 'legal-consult'],
+  longstay: ['res-renew', 'ins-residence', 'res-eligibility'],
   property: ['re-buy', 're-valuation', 're-management'],
   business: ['legal-ltd', 'acc-monthly', 'legal-contracts'],
   family: ['edu-university', 'res-family', 'ins-family'],
@@ -296,10 +296,10 @@ const LONG_PROPERTY_LEAD: Record<LongResidentProperty, string[]> = {
 
 /** Every service a long-settled resident might need, across every goal. */
 const LONG_BASE: string[] = [
-  'res-citizenship', 'res-renew', 're-citizenship', 're-buy', 're-management', 're-valuation',
+  'res-citizenship', 'res-eligibility', 'res-renew', 're-citizenship', 're-buy', 're-management', 're-valuation',
   'legal-ltd', 'legal-as', 'legal-consult', 'legal-contracts', 'acc-monthly', 'acc-consult',
   'ins-residence', 'ins-family', 'ins-carhome', 'res-family', 'edu-university', 'edu-denklik',
-  'edu-schools', 'daily-license', 'tr-sworn', 'daily-reminders', 'bank-transfer',
+  'edu-schools', 'daily-license', 'daily-eldercare', 'tr-sworn', 'daily-reminders', 'bank-transfer',
 ];
 
 /** The long-resident basket: goal leads, property status promotes its services. */

@@ -7,9 +7,9 @@ import { TURKEY_CITIES, pickCity } from './turkeyCities';
  * loudly if services/categories are deleted or the search helper regresses.
  */
 describe('existing services catalog stays intact', () => {
-  it('keeps exactly 78 unique services and 12 categories', () => {
-    expect(SERVICES.length).toBe(78);
-    expect(new Set(SERVICES.map((s) => s.id)).size).toBe(78);
+  it('keeps exactly 84 unique services and 12 categories', () => {
+    expect(SERVICES.length).toBe(84);
+    expect(new Set(SERVICES.map((s) => s.id)).size).toBe(84);
     expect(SERVICE_CATEGORIES.length).toBe(12);
     expect(new Set(SERVICE_CATEGORIES.map((c) => c.id)).size).toBe(12);
   });

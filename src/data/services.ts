@@ -86,6 +86,8 @@ export const SERVICE_KEYWORDS: Record<string, string> = {
   'res-foreignid': 'رقم اجنبي كملك هوية yabanci kimlik foreigner id number',
   'res-appointment': 'موعد هجرة دائرة الهجرة حجز goc idaresi randevu immigration appointment',
   'res-citizenship': 'جنسية تركية تجنيس جواز تركي citizenship vatandaslik passport',
+  'res-eligibility': 'تدقيق مسار اقامة اهلية استشارة جنسية residence path eligibility check uygunluk',
+  'visa-check': 'تدقيق تأشيرة فيزا متطلبات دخول visa entry requirements vize kontrol',
   'legal-ltd': 'تاسيس شركة محدودة ليمتد limited sirket company formation ltd',
   'legal-as': 'شركة مساهمة انونيم anonim sirket joint stock company',
   'legal-contracts': 'عقود تجارية شراكة اتفاقية contract sozlesme partnership',
@@ -125,6 +127,7 @@ export const SERVICE_KEYWORDS: Record<string, string> = {
   'ins-residence': 'تأمين صحي اقامة تامين health insurance saglik sigortasi',
   'ins-family': 'تأمين عائلي عائلة family insurance aile sigortasi',
   'ins-carhome': 'تأمين سيارة منزل كاسكو car home insurance kasko dask',
+  'ins-student': 'تأمين صحي طلابي عام جي اس اس student health insurance gss ogrenci saglik',
   'bank-transfer': 'تحويل مالي حوالة money transfer havale western union',
   'tel-sim': 'شريحة جوال خط هاتف رقم turkcell vodafone sim kart line',
   'tel-internet': 'انترنت منزلي نت واي فاي internet wifi fiber',
@@ -139,6 +142,8 @@ export const SERVICE_KEYWORDS: Record<string, string> = {
   'edu-denklik': 'معادلة شهادة تعديل denklik equivalency diploma',
   'edu-university': 'تسجيل جامعة قبول جامعي university universite admission',
   'edu-tomer': 'تومر لغة تركية تعلم تركي tomer turkish language turkce kursu',
+  'edu-advisory': 'استشارة اختيار جامعة تخصص توجيه university program selection advice danismanlik',
+  'edu-career': 'مسار مهني سيرة ذاتية تدريب توظيف طلاب career cv internship kariyer',
   'biz-restaurant': 'مطعم كافيه رخصة فتح restaurant cafe ruhsat license',
   'biz-location': 'موقع تجاري محل مكان مشروع location shop dukkan',
   'biz-licenses': 'رخصة عمل تصريح بلدية ruhsat business license',
@@ -153,6 +158,7 @@ export const SERVICE_KEYWORDS: Record<string, string> = {
   'daily-emergency': 'طوارئ مساعدة عاجلة مشكلة emergency acil urgent',
   'daily-embassy': 'سفارة جواز سفر قنصلية embassy passport pasaport konsolosluk',
   'daily-reminders': 'تذكير تجديد وثائق متابعة reminder hatirlatma renewal',
+  'daily-eldercare': 'رعاية كبار السن متقاعد مسنين تنسيق elderly senior retiree care yasli bakim',
 };
 
 export function keywordsFor(id: string): string {
@@ -191,6 +197,8 @@ export const SERVICES: ServiceItem[] = [
   { id: 'res-foreignid', category: 'residency', type: 'partner', icon: 'id-card', title: { ar: 'استخراج الرقم الأجنبي (Yabancı Kimlik)', en: 'Foreigner ID (Yabancı Kimlik)', tr: 'Yabancı Kimlik No' }, desc: { ar: 'رقم الهوية للأجانب', en: 'Foreigner identification number', tr: 'Yabancılar için kimlik numarası' } },
   { id: 'res-appointment', category: 'residency', type: 'partner', icon: 'calendar', title: { ar: 'حجز مواعيد دائرة الهجرة', en: 'Immigration office appointments', tr: 'Göç İdaresi randevusu' }, desc: { ar: 'حجز ومتابعة موعد الهجرة', en: 'Book & track migration appointments', tr: 'Göç randevusu alma ve takip' } },
   { id: 'res-citizenship', category: 'residency', type: 'partner', icon: 'star', title: { ar: 'خدمات الجنسية التركية', en: 'Turkish citizenship services', tr: 'Türk vatandaşlığı hizmetleri' }, desc: { ar: 'تجهيز ومتابعة ملف الجنسية', en: 'Prepare & follow the citizenship file', tr: 'Vatandaşlık dosyası hazırlığı ve takibi' } },
+  { id: 'res-eligibility', category: 'residency', type: 'partner', icon: 'file-check', title: { ar: 'تدقيق مسار الإقامة والأهلية', en: 'Residence path & eligibility check', tr: 'İkamet yolu ve uygunluk değerlendirmesi' }, desc: { ar: 'نراجع وضعك ونحدّد أنسب مسار إقامة أو جنسية', en: 'We review your case and identify the best-fit residence or citizenship path', tr: 'Durumunuzu inceleyip en uygun ikamet veya vatandaşlık yolunu belirleriz' } },
+  { id: 'visa-check', category: 'residency', type: 'partner', icon: 'stamp', title: { ar: 'تدقيق التأشيرة ومتطلبات الدخول', en: 'Visa & entry requirements check', tr: 'Vize ve giriş şartları kontrolü' }, desc: { ar: 'نتحقّق من نوع التأشيرة ومتطلبات الدخول حسب جنسيتك وغرضك', en: 'We check the visa type and entry requirements for your nationality and purpose', tr: 'Uyruğunuza ve amacınıza göre vize türünü ve giriş şartlarını kontrol ederiz' } },
 
   // ───────────────────────── Legal (partner) ─────────────────────────
   { id: 'legal-ltd', category: 'legal', type: 'partner', icon: 'building', title: { ar: 'تأسيس شركة محدودة (Limited)', en: 'Limited company formation', tr: 'Limited şirket kuruluşu' }, desc: { ar: 'تأسيس Limited بالكامل', en: 'Full Limited company setup', tr: 'Eksiksiz Limited şirket kurulumu' } },
@@ -241,6 +249,7 @@ export const SERVICES: ServiceItem[] = [
   { id: 'bank-account', category: 'banking', type: 'direct', icon: 'credit-card', title: { ar: 'مرافقة فتح حساب بنكي', en: 'Bank account opening (escort)', tr: 'Banka hesabı açma (refakat)' }, desc: { ar: 'نرافقك للبنك ونترجم لك', en: 'Bank visit escort and interpreting assistance', tr: 'Bankada refakat ve tercüme' } },
   { id: 'ins-residence', category: 'banking', type: 'partner', icon: 'shield-check', title: { ar: 'التأمين الصحي للإقامة', en: 'Health insurance for residence', tr: 'İkamet için sağlık sigortası' }, desc: { ar: 'تأمين مقبول لمعاملة الإقامة', en: 'Residence insurance options through partner insurers', tr: 'İkamet için geçerli sigorta' } },
   { id: 'ins-family', category: 'banking', type: 'partner', icon: 'heart-pulse', title: { ar: 'التأمين الصحي العائلي', en: 'Family health insurance', tr: 'Aile sağlık sigortası' }, desc: { ar: 'تغطية صحية للعائلة', en: 'Health cover for the family', tr: 'Aile için sağlık teminatı' } },
+  { id: 'ins-student', category: 'banking', type: 'partner', icon: 'shield-check', title: { ar: 'التأمين الصحي الطلابي العام (GSS)', en: 'Student public health insurance (GSS)', tr: 'Öğrenci genel sağlık sigortası (GSS)' }, desc: { ar: 'تنسيق تسجيل الطالب في التأمين الصحي العام ضمن المهلة', en: 'Coordinating student enrolment in public health insurance within the window', tr: 'Öğrencinin süresi içinde genel sağlık sigortasına kaydını koordine ederiz' } },
   { id: 'ins-carhome', category: 'banking', type: 'partner', icon: 'car', title: { ar: 'تأمين السيارات والمنزل', en: 'Car & home insurance', tr: 'Araç ve konut sigortası' }, desc: { ar: 'تأمين المركبات والممتلكات', en: 'Vehicle & property insurance', tr: 'Araç ve mülk sigortası' } },
   { id: 'bank-transfer', category: 'banking', type: 'direct', icon: 'globe', title: { ar: 'ربط بشركات التحويل المالي', en: 'Money-transfer connections', tr: 'Para transfer şirketlerine bağlama' }, desc: { ar: 'حلول تحويل مالي موثوقة', en: 'International money transfer options and partner guidance', tr: 'Güvenilir para transfer seçenekleri' } },
 
@@ -262,6 +271,8 @@ export const SERVICES: ServiceItem[] = [
   { id: 'edu-denklik', category: 'education', type: 'partner', icon: 'file-check', title: { ar: 'معادلة الشهادات (Denklik)', en: 'Diploma equivalency (Denklik)', tr: 'Diploma denkliği (Denklik)' }, desc: { ar: 'معادلة شهاداتك الدراسية', en: 'Partner guidance for diploma equivalency application processes', tr: 'Diplomalarınızın denkliği' } },
   { id: 'edu-university', category: 'education', type: 'partner', icon: 'graduation-cap', title: { ar: 'التسجيل الجامعي للأجانب', en: 'University admission for foreigners', tr: 'Yabancılar için üniversite kaydı' }, desc: { ar: 'قبول وتسجيل جامعي', en: 'Partner guidance for university applications and enrollment processes', tr: 'Üniversite kabulü ve kaydı' } },
   { id: 'edu-tomer', category: 'education', type: 'partner', icon: 'languages', title: { ar: 'معاهد اللغة التركية (TÖMER)', en: 'Turkish language institutes (TÖMER)', tr: 'Türkçe dil kursları (TÖMER)' }, desc: { ar: 'تعلّم التركية في معهد معتمد', en: 'Partner assistance with TÖMER course selection and enrollment procedures', tr: 'Onaylı kursta Türkçe öğrenin' } },
+  { id: 'edu-advisory', category: 'education', type: 'partner', icon: 'compass', title: { ar: 'استشارة اختيار الجامعة والتخصص', en: 'University & program selection advice', tr: 'Üniversite ve bölüm seçimi danışmanlığı' }, desc: { ar: 'نساعدك تختار الجامعة والتخصص المناسبين قبل التقديم', en: 'We help you choose the right university and major before applying', tr: 'Başvurudan önce doğru üniversite ve bölümü seçmenize yardımcı oluruz' } },
+  { id: 'edu-career', category: 'education', type: 'direct', icon: 'briefcase', title: { ar: 'خدمات المسار المهني للطلاب', en: 'Student career services', tr: 'Öğrenci kariyer hizmetleri' }, desc: { ar: 'إعداد السيرة الذاتية والبحث عن تدريب أو عمل للطلاب', en: 'CV preparation and finding internships or jobs for students', tr: 'Öğrenciler için CV hazırlığı ve staj veya iş bulma' } },
 
   // ───────────────────────── Business setup (mixed) ─────────────────────────
   { id: 'biz-restaurant', category: 'business', type: 'partner', icon: 'utensils', title: { ar: 'تأسيس مطعم/كافيه (رخص بلدية وصحية)', en: 'Restaurant/café setup (permits)', tr: 'Restoran/kafe kurulumu (ruhsatlar)' }, desc: { ar: 'رخص البلدية والصحة', en: 'Municipality & health permits', tr: 'Belediye ve sağlık ruhsatları' } },
@@ -280,6 +291,7 @@ export const SERVICES: ServiceItem[] = [
   { id: 'daily-emergency', category: 'daily', type: 'direct', icon: 'alert-triangle', title: { ar: 'خدمة الطوارئ والمواقف الصعبة', en: 'Emergency & tough-situation help', tr: 'Acil durum ve zor durum yardımı' }, desc: { ar: 'دعم سريع وقت الحاجة', en: 'On-the-ground assistance and local contacts when needed', tr: 'İhtiyaç anında hızlı destek' } },
   { id: 'daily-embassy', category: 'daily', type: 'direct', icon: 'landmark', title: { ar: 'توجيه خدمات السفارات وتجديد الجوازات', en: 'Embassy guidance & passport renewal', tr: 'Elçilik rehberliği ve pasaport yenileme' }, desc: { ar: 'إرشادك لإجراءات السفارة والجواز', en: 'Guidance for embassy & passport steps', tr: 'Elçilik ve pasaport işlemlerinde rehberlik' } },
   { id: 'daily-reminders', category: 'daily', type: 'direct', icon: 'alarm-clock', title: { ar: 'تذكير ومتابعة تجديد الوثائق الدورية', en: 'Document-renewal reminders & follow-up', tr: 'Belge yenileme hatırlatma ve takip' }, desc: { ar: 'ننبهك قبل انتهاء وثائقك', en: 'We alert you before documents expire', tr: 'Belgeleriniz dolmadan uyarırız' } },
+  { id: 'daily-eldercare', category: 'daily', type: 'direct', icon: 'heart-pulse', title: { ar: 'رعاية وتنسيق لكبار السن والمتقاعدين', en: 'Senior & retiree care coordination', tr: 'Yaşlı ve emekli bakım koordinasyonu' }, desc: { ar: 'تنسيق المواعيد والوثائق والخدمات اليومية والرعاية', en: 'Coordinating appointments, documents, daily services and care', tr: 'Randevu, belge, günlük hizmet ve bakım koordinasyonu' } },
 ];
 
 // Merge ru/fa translations (services-i18n.ts) into the catalog at load, so
