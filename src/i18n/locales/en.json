@@ -2342,12 +2342,6 @@
       "cta": "Sign up to save progress"
     }
   },
-  "officialSource": {
-    "eIkamet": "Verify on e-İkamet",
-    "gib": "Verify on GİB",
-    "tkgm": "Verify on TKGM (Land Registry)",
-    "eDevlet": "Verify on e-Devlet"
-  },
   "account": {
     "title": "My account",
     "situation": "Current situation",

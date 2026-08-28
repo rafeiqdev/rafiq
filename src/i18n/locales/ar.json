@@ -2342,12 +2342,6 @@
       "cta": "سجّل لحفظ تقدّمك"
     }
   },
-  "officialSource": {
-    "eIkamet": "تحقّق عبر e-İkamet",
-    "gib": "تحقّق عبر هيئة الإيرادات (GİB)",
-    "tkgm": "تحقّق عبر السجل العقاري (TKGM)",
-    "eDevlet": "تحقّق عبر e-Devlet"
-  },
   "account": {
     "title": "حسابي",
     "situation": "الوضع الحالي",

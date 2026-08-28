@@ -6,7 +6,6 @@ import type { ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
-import { OfficialSourceBadge } from '../components/OfficialSourceBadge';
 import { usePageMeta } from '../lib/seo';
 import { track, normalizeSearchQuery } from '../lib/analytics';
 
@@ -228,7 +227,6 @@ export function Services() {
                     {guideLabel}
                   </Link>
                   <span className="text-xs text-navy/50 shrink-0">({items.length})</span>
-                  <OfficialSourceBadge categoryId={c.id} className="shrink-0" />
                 </div>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
                   {items.map((s, i) => (

@@ -2342,12 +2342,6 @@
       "cta": "ثبت‌نام برای ذخیره پیشرفت"
     }
   },
-  "officialSource": {
-    "eIkamet": "بررسی در e-İkamet",
-    "gib": "بررسی در اداره درآمد (GİB)",
-    "tkgm": "بررسی در اداره ثبت املاک (TKGM)",
-    "eDevlet": "بررسی در e-Devlet"
-  },
   "account": {
     "title": "حساب من",
     "situation": "وضعیت فعلی",
