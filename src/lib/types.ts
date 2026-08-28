@@ -65,6 +65,17 @@ export interface Profile {
   /** Newcomer-only follow-up answers (jsonb only, no migration; null otherwise). */
   arrivedReason?: ArrivedReason | null;
   arrivedHousing?: ArrivedHousing | null;
+  /** Visitor-only follow-up answers (jsonb only, no migration; null otherwise). */
+  visitorTrip?: VisitorTrip | null;
+  visitorService?: VisitorService | null;
+  /** Resident-only follow-up answers (jsonb only, no migration; null otherwise). */
+  residentType?: ResidentType | null;
+  residentPlan?: ResidentPlan | null;
+  /** Planning-to-relocate follow-up answer (jsonb only, no migration; null otherwise). */
+  planningReason?: PlanningReason | null;
+  /** Long-settled resident follow-up answers (jsonb only, no migration; null otherwise). */
+  longResidentGoal?: LongResidentGoal | null;
+  longResidentProperty?: LongResidentProperty | null;
 }
 
 /** Where a student is in their study journey — drives service priority order. */
@@ -92,6 +103,46 @@ export const ARRIVED_REASONS: ArrivedReason[] = ['work', 'living', 'family', 'bu
 export type ArrivedHousing = 'temporary' | 'rented' | 'withRelative' | 'owned' | 'none';
 export const ARRIVED_HOUSING: ArrivedHousing[] = ['temporary', 'rented', 'withRelative', 'owned', 'none'];
 
+/**
+ * What a visitor/tourist wants to DO — the biggest driver of which tourism
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type VisitorTrip = 'sights' | 'shopping' | 'nature' | 'multicity' | 'medical' | 'family' | 'mix';
+export const VISITOR_TRIPS: VisitorTrip[] = ['sights', 'shopping', 'nature', 'multicity', 'medical', 'family', 'mix'];
+
+/** The service level a visitor prefers — VIP promotes the private/premium services. */
+export type VisitorService = 'standard' | 'comfort' | 'vip' | 'unsure';
+export const VISITOR_SERVICES: VisitorService[] = ['standard', 'comfort', 'vip', 'unsure'];
+
+/**
+ * The nature of someone's residence — the biggest driver of which ongoing
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type ResidentType = 'employee' | 'business' | 'family' | 'retired' | 'investor' | 'student' | 'unsure';
+export const RESIDENT_TYPES: ResidentType[] = ['employee', 'business', 'family', 'retired', 'investor', 'student', 'unsure'];
+
+/** A resident's plan for the coming period — promotes the matching "development" services. */
+export type ResidentPlan = 'maintain' | 'job' | 'business' | 'property' | 'citizenship' | 'family' | 'explore';
+export const RESIDENT_PLANS: ResidentPlan[] = ['maintain', 'job', 'business', 'property', 'citizenship', 'family', 'explore'];
+
+/**
+ * Why someone still abroad is planning to relocate — the biggest driver of
+ * which pre-arrival services fit them, so it branches the dashboard's top three.
+ */
+export type PlanningReason = 'work' | 'study' | 'family' | 'business' | 'retirement' | 'other';
+export const PLANNING_REASONS: PlanningReason[] = ['work', 'study', 'family', 'business', 'retirement', 'other'];
+
+/**
+ * A long-settled resident's main goal now — the biggest driver of which
+ * services fit them, so it branches the dashboard's top three.
+ */
+export type LongResidentGoal = 'citizenship' | 'longstay' | 'property' | 'business' | 'family' | 'stability' | 'other';
+export const LONG_RESIDENT_GOALS: LongResidentGoal[] = ['citizenship', 'longstay', 'property', 'business', 'family', 'stability', 'other'];
+
+/** A long-settled resident's property status — promotes the matching property services. */
+export type LongResidentProperty = 'owns' | 'multiple' | 'considering' | 'none';
+export const LONG_RESIDENT_PROPERTY: LongResidentProperty[] = ['owns', 'multiple', 'considering', 'none'];
+
 export const EMPTY_PROFILE: Profile = {
   path: null,
   reason: null,
@@ -106,6 +157,13 @@ export const EMPTY_PROFILE: Profile = {
   studentHousing: null,
   arrivedReason: null,
   arrivedHousing: null,
+  visitorTrip: null,
+  visitorService: null,
+  residentType: null,
+  residentPlan: null,
+  planningReason: null,
+  longResidentGoal: null,
+  longResidentProperty: null,
 };
 
 // ---------- "مسيرتي" journey -------------------------------------------------

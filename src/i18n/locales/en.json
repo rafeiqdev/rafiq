@@ -2181,6 +2181,19 @@
       "alone": "On my own",
       "family": "With my family"
     },
+    "planning": {
+      "title": "About your move",
+      "subtitle": "A few quick questions so we can show the services that fit your plan.",
+      "reason": {
+        "title": "What is your main reason for moving to Istanbul?",
+        "work": "Working for a company or employer",
+        "study": "Study or training",
+        "family": "Family or reunification",
+        "business": "Starting a business or investing",
+        "retirement": "Retirement and living",
+        "other": "Another reason, or not decided yet"
+      }
+    },
     "student": {
       "title": "About your studies",
       "subtitle": "A few quick questions so we can show the services that fit you as a student.",
@@ -2228,6 +2241,75 @@
         "withRelative": "With a relative or friend",
         "owned": "Owned home",
         "none": "No stable housing yet"
+      }
+    },
+    "visitor": {
+      "title": "About your trip",
+      "subtitle": "A few quick questions so we can suggest the right plan and services.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "trip": {
+        "title": "What kind of trip do you want in Istanbul?",
+        "sights": "Sights, history and culture",
+        "shopping": "Shopping and dining",
+        "nature": "Nature, Bosphorus and islands",
+        "multicity": "Istanbul plus a trip to another city",
+        "medical": "Treatment or medical tourism",
+        "family": "A family trip with children",
+        "mix": "A mix of more than one"
+      },
+      "service": {
+        "title": "What service level do you prefer?",
+        "standard": "Standard",
+        "comfort": "Comfort",
+        "vip": "Premium / VIP",
+        "unsure": "Not sure — suggest for me"
+      }
+    },
+    "resident": {
+      "title": "About your residence",
+      "subtitle": "A few quick questions so we can show the services that fit your situation.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "type": {
+        "title": "What is the main nature of your residence now?",
+        "employee": "Employed by a company or organization",
+        "business": "Business owner, trader or self-employed",
+        "family": "Resident for family, or head of household",
+        "retired": "Retired",
+        "investor": "Property investor",
+        "student": "Student or another status",
+        "unsure": "Not sure — I need help classifying my situation"
+      },
+      "plan": {
+        "title": "What is your plan for the coming period?",
+        "maintain": "Just keep my current status",
+        "job": "A job, work permit or career move",
+        "business": "Start a company or grow a business",
+        "property": "Buy or manage property",
+        "citizenship": "Citizenship or longer residence",
+        "family": "Arrange the family's future and children's education",
+        "explore": "No set plan — I want to weigh my options"
+      }
+    },
+    "longResident": {
+      "title": "About your long stay",
+      "subtitle": "A few quick questions so we can show the services that fit your goal.",
+      "optionalPlaceholder": "Optional — you can skip",
+      "goal": {
+        "title": "What is your main goal now in Türkiye?",
+        "citizenship": "Apply for citizenship or check eligibility",
+        "longstay": "Long-term residence or securing my status",
+        "property": "Buy property or expand investment",
+        "business": "Grow a company or business",
+        "family": "Arrange the children's and family's future",
+        "stability": "Just keep my current status",
+        "other": "Another goal, or I need to set priorities"
+      },
+      "property": {
+        "title": "What is your current property situation?",
+        "owns": "I own a home to live in",
+        "multiple": "I own more than one, or a rental property",
+        "considering": "Considering buying, not decided yet",
+        "none": "I don't own property"
       }
     },
     "done": {

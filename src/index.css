@@ -621,6 +621,8 @@ html[dir='rtl'] li {
     transform: translateX(-50%);
   }
 }
+/* Owner asked this to keep scrolling for every visitor, including under
+   prefers-reduced-motion — excluded from that media query below on purpose. */
 .animate-ticker {
   animation: ticker 38s linear infinite;
 }
@@ -791,7 +793,6 @@ html[dir='rtl'] li {
   .adv-car,
   .adv-wheel,
   .adv-person,
-  .animate-ticker,
   .rq-rise,
   .rq-breathe,
   .rq-letter,
@@ -857,10 +858,15 @@ html[dir='rtl'] li {
   animation-play-state: paused;
 }
 
+/* Owner asked these to keep scrolling for every visitor, including under
+   prefers-reduced-motion (used by the FAQ horizontal scroller). */
+
 @keyframes rafiqHomeMarqueeContinuous {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }
 }
+/* Owner asked this to keep scrolling for every visitor, including under
+   prefers-reduced-motion — excluded from that media query below on purpose. */
 .animate-marquee-continuous {
   animation: rafiqHomeMarqueeContinuous 42s linear infinite;
   will-change: transform;
@@ -869,10 +875,3 @@ html[dir='rtl'] li {
   animation-play-state: paused;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-scroll-left,
-  .animate-scroll-right,
-  .animate-marquee-continuous {
-    animation: none !important;
-  }
-}

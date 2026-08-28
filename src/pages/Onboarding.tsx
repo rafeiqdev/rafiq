@@ -15,6 +15,13 @@ import {
   STUDENT_HOUSING,
   ARRIVED_REASONS,
   ARRIVED_HOUSING,
+  VISITOR_TRIPS,
+  VISITOR_SERVICES,
+  RESIDENT_TYPES,
+  RESIDENT_PLANS,
+  PLANNING_REASONS,
+  LONG_RESIDENT_GOALS,
+  LONG_RESIDENT_PROPERTY,
 } from '../lib/types';
 import type {
   JourneyTaskKey,
@@ -25,6 +32,13 @@ import type {
   StudentHousing,
   ArrivedReason,
   ArrivedHousing,
+  VisitorTrip,
+  VisitorService,
+  ResidentType,
+  ResidentPlan,
+  PlanningReason,
+  LongResidentGoal,
+  LongResidentProperty,
 } from '../lib/types';
 import { TURKEY_CITIES, pickCity } from '../data/turkeyCities';
 import { RequireAuth } from '../components/Gates';
@@ -64,18 +78,71 @@ const ARRIVED_REASON_ICONS: Record<ArrivedReason, IconName> = {
   other: 'compass',
 };
 
+const VISITOR_TRIP_ICONS: Record<VisitorTrip, IconName> = {
+  sights: 'camera',
+  shopping: 'shopping-bag',
+  nature: 'navigation',
+  multicity: 'compass',
+  medical: 'heart-pulse',
+  family: 'users',
+  mix: 'star',
+};
+
+const RESIDENT_TYPE_ICONS: Record<ResidentType, IconName> = {
+  employee: 'briefcase',
+  business: 'trending-up',
+  family: 'users',
+  retired: 'home',
+  investor: 'building',
+  student: 'graduation-cap',
+  unsure: 'compass',
+};
+
+const PLANNING_REASON_ICONS: Record<PlanningReason, IconName> = {
+  work: 'briefcase',
+  study: 'graduation-cap',
+  family: 'users',
+  business: 'trending-up',
+  retirement: 'home',
+  other: 'compass',
+};
+
+const LONG_RESIDENT_GOAL_ICONS: Record<LongResidentGoal, IconName> = {
+  citizenship: 'star',
+  longstay: 'id-card',
+  property: 'building',
+  business: 'trending-up',
+  family: 'users',
+  stability: 'home',
+  other: 'compass',
+};
+
 /**
  * The questionnaire is a dynamic list of step keys, not a fixed count: a
  * persona-specific follow-up step is inserted only for the situations that have
  * one (student, arrived), so everyone else keeps the original four-question flow.
  */
-type StepKey = 'situation' | 'studentDetails' | 'arrivedDetails' | 'city' | 'has' | 'family';
+type StepKey =
+  | 'situation'
+  | 'planningDetails'
+  | 'studentDetails'
+  | 'arrivedDetails'
+  | 'visitorDetails'
+  | 'residentDetails'
+  | 'longResidentDetails'
+  | 'city'
+  | 'has'
+  | 'family';
 
 function stepsFor(situation: Situation | null): StepKey[] {
   const base: StepKey[] = ['situation', 'city', 'has', 'family'];
   // Right after they tell us who they are, ask that persona's follow-ups.
+  if (situation === 'planning') return ['situation', 'planningDetails', 'city', 'has', 'family'];
   if (situation === 'student') return ['situation', 'studentDetails', 'city', 'has', 'family'];
   if (situation === 'arrived') return ['situation', 'arrivedDetails', 'city', 'has', 'family'];
+  if (situation === 'visiting') return ['situation', 'visitorDetails', 'city', 'has', 'family'];
+  if (situation === 'resident') return ['situation', 'residentDetails', 'city', 'has', 'family'];
+  if (situation === 'long_resident') return ['situation', 'longResidentDetails', 'city', 'has', 'family'];
   return base;
 }
 
@@ -141,6 +208,15 @@ function OnboardingInner() {
   const [studentHousing, setStudentHousing] = useState<StudentHousing | null>(profile.studentHousing ?? null);
   const [arrivedReason, setArrivedReason] = useState<ArrivedReason | null>(profile.arrivedReason ?? null);
   const [arrivedHousing, setArrivedHousing] = useState<ArrivedHousing | null>(profile.arrivedHousing ?? null);
+  const [visitorTrip, setVisitorTrip] = useState<VisitorTrip | null>(profile.visitorTrip ?? null);
+  const [visitorService, setVisitorService] = useState<VisitorService | null>(profile.visitorService ?? null);
+  const [residentType, setResidentType] = useState<ResidentType | null>(profile.residentType ?? null);
+  const [residentPlan, setResidentPlan] = useState<ResidentPlan | null>(profile.residentPlan ?? null);
+  const [planningReason, setPlanningReason] = useState<PlanningReason | null>(profile.planningReason ?? null);
+  const [longResidentGoal, setLongResidentGoal] = useState<LongResidentGoal | null>(profile.longResidentGoal ?? null);
+  const [longResidentProperty, setLongResidentProperty] = useState<LongResidentProperty | null>(
+    profile.longResidentProperty ?? null,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -159,8 +235,12 @@ function OnboardingInner() {
 
   const canNext =
     (stepKey === 'situation' && situation !== null) ||
+    (stepKey === 'planningDetails' && planningReason !== null) ||
     (stepKey === 'studentDetails' && studentStage !== null) ||
     (stepKey === 'arrivedDetails' && arrivedReason !== null) ||
+    (stepKey === 'visitorDetails' && visitorTrip !== null) ||
+    (stepKey === 'residentDetails' && residentType !== null) ||
+    (stepKey === 'longResidentDetails' && longResidentGoal !== null) ||
     (stepKey === 'city' && (city === 'other' ? otherCity.trim().length > 1 : city.length > 0)) ||
     stepKey === 'has' ||
     (stepKey === 'family' && family !== null);
@@ -169,8 +249,12 @@ function OnboardingInner() {
     if (!situation || !family) return;
     setSaving(true);
     setError(false);
+    const isPlanning = situation === 'planning';
     const isStudent = situation === 'student';
     const isArrived = situation === 'arrived';
+    const isVisiting = situation === 'visiting';
+    const isResident = situation === 'resident';
+    const isLongResident = situation === 'long_resident';
     const next: Profile = {
       ...EMPTY_PROFILE,
       ...profile,
@@ -188,6 +272,13 @@ function OnboardingInner() {
       studentHousing: isStudent ? studentHousing : null,
       arrivedReason: isArrived ? arrivedReason : null,
       arrivedHousing: isArrived ? arrivedHousing : null,
+      visitorTrip: isVisiting ? visitorTrip : null,
+      visitorService: isVisiting ? visitorService : null,
+      residentType: isResident ? residentType : null,
+      residentPlan: isResident ? residentPlan : null,
+      planningReason: isPlanning ? planningReason : null,
+      longResidentGoal: isLongResident ? longResidentGoal : null,
+      longResidentProperty: isLongResident ? longResidentProperty : null,
     };
     try {
       await profileApi.save(next, { completed: true });
@@ -228,16 +319,26 @@ function OnboardingInner() {
 
       <h1 className="mt-6 text-2xl font-extrabold text-navy leading-snug">
         {stepKey === 'situation' && t('onboard.situation.title')}
+        {stepKey === 'planningDetails' && t('onboard.planning.title')}
         {stepKey === 'studentDetails' && t('onboard.student.title')}
         {stepKey === 'arrivedDetails' && t('onboard.arrived.title')}
+        {stepKey === 'visitorDetails' && t('onboard.visitor.title')}
+        {stepKey === 'residentDetails' && t('onboard.resident.title')}
+        {stepKey === 'longResidentDetails' && t('onboard.longResident.title')}
         {stepKey === 'city' && t('onboard.city.title')}
         {stepKey === 'has' && t('onboard.has.title')}
         {stepKey === 'family' && t('onboard.family.title')}
       </h1>
       {stepKey === 'has' && <p className="mt-2 text-sm text-gray-500">{t('onboard.has.subtitle')}</p>}
       {stepKey === 'situation' && <p className="mt-2 text-sm text-gray-500">{t('onboard.subtitle')}</p>}
+      {stepKey === 'planningDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.planning.subtitle')}</p>}
       {stepKey === 'studentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.student.subtitle')}</p>}
       {stepKey === 'arrivedDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.arrived.subtitle')}</p>}
+      {stepKey === 'visitorDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.visitor.subtitle')}</p>}
+      {stepKey === 'residentDetails' && <p className="mt-2 text-sm text-gray-500">{t('onboard.resident.subtitle')}</p>}
+      {stepKey === 'longResidentDetails' && (
+        <p className="mt-2 text-sm text-gray-500">{t('onboard.longResident.subtitle')}</p>
+      )}
 
       <div className="mt-6 flex flex-col gap-2.5">
         {stepKey === 'situation' &&
@@ -251,6 +352,24 @@ function OnboardingInner() {
               onClick={() => setSituation(s)}
             />
           ))}
+
+        {stepKey === 'planningDetails' && (
+          <fieldset>
+            <legend className="text-sm font-semibold text-navy/70">{t('onboard.planning.reason.title')}</legend>
+            <div className="mt-2 flex flex-col gap-2.5">
+              {PLANNING_REASONS.map((r) => (
+                <Choice
+                  key={r}
+                  icon={PLANNING_REASON_ICONS[r]}
+                  label={t(`onboard.planning.reason.${r}`)}
+                  ariaLabel={t(`onboard.planning.reason.${r}`)}
+                  selected={planningReason === r}
+                  onClick={() => setPlanningReason(r)}
+                />
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         {stepKey === 'studentDetails' && (
           <>
@@ -342,6 +461,123 @@ function OnboardingInner() {
               {ARRIVED_HOUSING.map((h) => (
                 <option key={h} value={h}>
                   {t(`onboard.arrived.housing.${h}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'visitorDetails' && (
+          <>
+            {/* Q1 — trip type (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.visitor.trip.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {VISITOR_TRIPS.map((trip) => (
+                  <Choice
+                    key={trip}
+                    icon={VISITOR_TRIP_ICONS[trip]}
+                    label={t(`onboard.visitor.trip.${trip}`)}
+                    ariaLabel={t(`onboard.visitor.trip.${trip}`)}
+                    selected={visitorTrip === trip}
+                    onClick={() => setVisitorTrip(trip)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — service level (optional; VIP promotes the premium services) */}
+            <label htmlFor="onboarding-visitor-service" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.visitor.service.title')}
+            </label>
+            <select
+              id="onboarding-visitor-service"
+              className="input"
+              value={visitorService ?? ''}
+              onChange={(e) => setVisitorService((e.target.value || null) as VisitorService | null)}
+            >
+              <option value="">{t('onboard.visitor.optionalPlaceholder')}</option>
+              {VISITOR_SERVICES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`onboard.visitor.service.${s}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'residentDetails' && (
+          <>
+            {/* Q1 — nature of residence (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.resident.type.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {RESIDENT_TYPES.map((rt) => (
+                  <Choice
+                    key={rt}
+                    icon={RESIDENT_TYPE_ICONS[rt]}
+                    label={t(`onboard.resident.type.${rt}`)}
+                    ariaLabel={t(`onboard.resident.type.${rt}`)}
+                    selected={residentType === rt}
+                    onClick={() => setResidentType(rt)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — plan for the coming period (optional; promotes development services) */}
+            <label htmlFor="onboarding-resident-plan" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.resident.plan.title')}
+            </label>
+            <select
+              id="onboarding-resident-plan"
+              className="input"
+              value={residentPlan ?? ''}
+              onChange={(e) => setResidentPlan((e.target.value || null) as ResidentPlan | null)}
+            >
+              <option value="">{t('onboard.resident.optionalPlaceholder')}</option>
+              {RESIDENT_PLANS.map((p) => (
+                <option key={p} value={p}>
+                  {t(`onboard.resident.plan.${p}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {stepKey === 'longResidentDetails' && (
+          <>
+            {/* Q1 — main goal now (the hero; branches the top-3 services) */}
+            <fieldset>
+              <legend className="text-sm font-semibold text-navy/70">{t('onboard.longResident.goal.title')}</legend>
+              <div className="mt-2 flex flex-col gap-2.5">
+                {LONG_RESIDENT_GOALS.map((g) => (
+                  <Choice
+                    key={g}
+                    icon={LONG_RESIDENT_GOAL_ICONS[g]}
+                    label={t(`onboard.longResident.goal.${g}`)}
+                    ariaLabel={t(`onboard.longResident.goal.${g}`)}
+                    selected={longResidentGoal === g}
+                    onClick={() => setLongResidentGoal(g)}
+                  />
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Q2 — property status (optional; promotes the property services) */}
+            <label htmlFor="onboarding-long-property" className="mt-4 text-sm font-semibold text-navy/70">
+              {t('onboard.longResident.property.title')}
+            </label>
+            <select
+              id="onboarding-long-property"
+              className="input"
+              value={longResidentProperty ?? ''}
+              onChange={(e) => setLongResidentProperty((e.target.value || null) as LongResidentProperty | null)}
+            >
+              <option value="">{t('onboard.longResident.optionalPlaceholder')}</option>
+              {LONG_RESIDENT_PROPERTY.map((p) => (
+                <option key={p} value={p}>
+                  {t(`onboard.longResident.property.${p}`)}
                 </option>
               ))}
             </select>

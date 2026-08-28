@@ -28,11 +28,53 @@ describe('recommendedServiceIds', () => {
 
   it('leads each persona with its intended top three', () => {
     const top3 = (p: Partial<Profile>) => recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).slice(0, 3);
-    expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']);
+    expect(top3({ situation: 'planning' })).toEqual(['re-rent', 'tr-sworn', 'tour-airport']); // reason unset → default
     expect(top3({ situation: 'arrived' })).toEqual(['tel-sim', 'bank-account', 'res-tax']); // reason unset → default
-    expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']);
-    expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']);
-    expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']);
+    expect(top3({ situation: 'visiting' })).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // trip unset → default
+    expect(top3({ situation: 'resident' })).toEqual(['res-renew', 'ins-residence', 'daily-license']); // type unset → default
+    expect(top3({ situation: 'long_resident' })).toEqual(['res-citizenship', 're-buy', 'legal-ltd']); // goal unset → default
+  });
+
+  // ── long-settled resident: main goal + property branch the top three ──
+  it('branches the long-resident top-3 by their main goal now', () => {
+    const top3 = (goal: Profile['longResidentGoal']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'long_resident', longResidentGoal: goal }).slice(0, 3);
+    expect(top3('citizenship')).toEqual(['res-eligibility', 'res-citizenship', 'legal-consult']);
+    expect(top3('longstay')).toEqual(['res-renew', 'ins-residence', 'res-eligibility']);
+    expect(top3('property')).toEqual(['re-buy', 're-valuation', 're-management']);
+    expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 'legal-contracts']);
+    expect(top3('family')).toEqual(['edu-university', 'res-family', 'ins-family']);
+    expect(top3('stability')).toEqual(['res-renew', 'ins-residence', 'daily-reminders']);
+  });
+
+  it('surfaces the new phase-2 gap services for the personas that need them', () => {
+    const has = (p: Partial<Profile>, id: string) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).includes(id);
+    expect(has({ situation: 'student', studentStage: 'coming' }, 'edu-advisory')).toBe(true);
+    expect(has({ situation: 'student', studentStage: 'settled' }, 'edu-career')).toBe(true);
+    expect(has({ situation: 'student' }, 'ins-student')).toBe(true);
+    expect(has({ situation: 'visiting' }, 'visa-check')).toBe(true);
+    expect(has({ situation: 'planning', planningReason: 'work' }, 'visa-check')).toBe(true);
+    expect(has({ situation: 'arrived' }, 'res-eligibility')).toBe(true);
+    expect(has({ situation: 'resident', residentType: 'retired' }, 'daily-eldercare')).toBe(true);
+    expect(has({ situation: 'long_resident', longResidentGoal: 'citizenship' }, 'res-eligibility')).toBe(true);
+  });
+
+  it('a property-owning long resident leads with management and valuation', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'long_resident', longResidentGoal: 'stability', longResidentProperty: 'multiple' });
+    expect(ids.slice(0, 2)).toEqual(['re-management', 're-valuation']);
+  });
+
+  // ── planner: reason for relocating branches the top three ──
+  it('branches the planner top-3 by the reason they are moving', () => {
+    const top3 = (reason: Profile['planningReason']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'planning', planningReason: reason }).slice(0, 3);
+    expect(top3('work')).toEqual(['res-work', 'tr-sworn', 'ins-residence']);
+    expect(top3('study')).toEqual(['edu-university', 'tr-sworn', 'edu-denklik']);
+    expect(top3('family')).toEqual(['res-family', 'tr-sworn', 'edu-schools']);
+    expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 're-buy']);
+    expect(top3('retirement')).toEqual(['re-rent', 'ins-residence', 'health-doctors']);
+    expect(top3('other')).toEqual(['re-rent', 'tr-sworn', 'tour-airport']); // unknown → default
   });
 
   // ── newcomer: reason branches the top three ──
@@ -60,6 +102,42 @@ describe('recommendedServiceIds', () => {
     expect(ids.indexOf('re-rent')).toBeLessThan(ids.indexOf('daily-reminders'));
   });
 
+  // ── visitor: trip type + service level branch the top three ──
+  it('branches the visitor top-3 by the kind of trip they want', () => {
+    const top3 = (trip: Profile['visitorTrip']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: trip }).slice(0, 3);
+    expect(top3('sights')).toEqual(['tour-daytrips', 'tour-tickets', 'tour-airport']);
+    expect(top3('shopping')).toEqual(['daily-shopping', 'tour-driver', 'tour-airport']);
+    expect(top3('nature')).toEqual(['tour-bosphorus', 'tour-daytrips', 'tour-airport']);
+    expect(top3('multicity')).toEqual(['tour-multicity', 'tour-packages', 'tour-airport']);
+    expect(top3('medical')).toEqual(['health-tourism', 'tr-medical', 'tour-airport']);
+    expect(top3('family')).toEqual(['tour-packages', 'tour-daytrips', 'tour-airport']);
+    expect(top3('mix')).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // no override → default
+  });
+
+  it('a VIP visitor leads with the premium airport reception and private driver', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: 'sights', visitorService: 'vip' });
+    expect(ids.slice(0, 2)).toEqual(['tour-vip', 'tour-driver']);
+  });
+
+  // ── resident: nature of residence + plan branch the top three ──
+  it('branches the resident top-3 by the nature of their residence', () => {
+    const top3 = (type: Profile['residentType']) =>
+      recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: type }).slice(0, 3);
+    expect(top3('employee')).toEqual(['res-renew', 'res-work', 'ins-residence']);
+    expect(top3('business')).toEqual(['acc-monthly', 'legal-ltd', 'res-renew']);
+    expect(top3('family')).toEqual(['res-renew', 'ins-family', 'edu-schools']);
+    expect(top3('retired')).toEqual(['res-renew', 'ins-residence', 'daily-eldercare']);
+    expect(top3('investor')).toEqual(['re-buy', 're-management', 'res-citizenship']);
+  });
+
+  it('a resident plan promotes the matching development service to the front', () => {
+    const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: 'employee', residentPlan: 'property' });
+    expect(ids.slice(0, 2)).toEqual(['re-buy', 're-management']);
+    const cit = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'resident', residentType: 'family', residentPlan: 'citizenship' });
+    expect(cit[0]).toBe('res-citizenship');
+  });
+
   // ── the "give him what he doesn't have" rule ──
   it('never recommends a service the user ticked as already done', () => {
     const has = { turkishPhone: true, taxNumber: true, residencePermit: true, bankAccount: true };
@@ -81,10 +159,10 @@ describe('recommendedServiceIds', () => {
   // ── student stage / follow-up behaviour ──
   it('leads with the student stage-specific top picks', () => {
     expect(recommendedServiceIds(student({ studentStage: 'coming' })).slice(0, 3)).toEqual([
-      'edu-university', 'tr-sworn', 'tour-airport',
+      'edu-advisory', 'edu-university', 'tr-sworn',
     ]);
     expect(recommendedServiceIds(student({ studentStage: 'settled' })).slice(0, 3)).toEqual([
-      'res-renew', 'ins-residence', 'res-work',
+      'res-renew', 'res-work', 'edu-career',
     ]);
   });
 

@@ -18,7 +18,18 @@
  *  - Every id returned MUST exist in SERVICES; a test asserts that, so a typo
  *    or a removed service can never surface a dead card.
  */
-import type { Profile, Situation, StudentStage, ArrivedReason, JourneyTaskKey } from '../lib/types';
+import type {
+  Profile,
+  StudentStage,
+  ArrivedReason,
+  VisitorTrip,
+  ResidentType,
+  ResidentPlan,
+  PlanningReason,
+  LongResidentGoal,
+  LongResidentProperty,
+  JourneyTaskKey,
+} from '../lib/types';
 
 /**
  * Services made redundant by an onboarding "has" answer. When the user ticked
@@ -33,61 +44,20 @@ const HAS_TO_SERVICES: Record<JourneyTaskKey, string[]> = {
   residencePermit: ['res-student', 'res-tourist'],
 };
 
-/** A persona's services: `top` lead the list, then the rest of `base`. */
-interface Bundle {
-  top: string[];
-  base: string[];
-}
-
-/**
- * Non-student personas. Each `base` is the full set of catalog services that
- * fit that situation, richest-first; `top` are the three we lead with on the
- * dashboard. Student is handled separately (it has follow-up questions).
- */
-const PERSONA_BUNDLES: Partial<Record<Situation, Bundle>> = {
-  planning: {
-    top: ['re-rent', 'tr-sworn', 'tour-airport'],
-    base: [
-      're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs', 'tour-airport',
-      'res-tourist', 'ins-residence', 'bank-account', 'tel-sim', 'edu-tomer', 'edu-denklik',
-    ],
-  },
-  // NOTE: `arrived` is handled by recommendForArrived() — its top three branch
-  // on the reason the newcomer came, which a static bundle can't express.
-  visiting: {
-    top: ['tour-airport', 'tour-daytrips', 'tour-hotels'],
-    base: [
-      'tour-airport', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
-      'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'tr-companion', 'health-tourism',
-    ],
-  },
-  resident: {
-    top: ['res-renew', 'ins-residence', 'daily-license'],
-    base: [
-      'res-renew', 'ins-residence', 'daily-license', 're-rent', 're-buy', 'tel-utilities',
-      'tr-companion', 'health-doctors', 'ins-carhome', 'res-work', 'daily-reminders', 'bank-account',
-    ],
-  },
-  long_resident: {
-    top: ['res-citizenship', 're-buy', 'legal-ltd'],
-    base: [
-      'res-citizenship', 're-buy', 'res-family', 'legal-ltd', 'acc-monthly', 'ins-family',
-      'daily-license', 're-management', 'res-renew', 'legal-consult',
-    ],
-  },
-};
+// Every one of the six situations has its own dedicated matcher below, each
+// branching on that persona's follow-up answer (see recommendedServiceIds).
 
 /** Top picks per student stage — these float to the head of the ranked list. */
 const STUDENT_STAGE_TOP: Record<StudentStage, string[]> = {
-  coming: ['edu-university', 'tr-sworn', 'tour-airport'],
+  coming: ['edu-advisory', 'edu-university', 'tr-sworn'],
   arrived: ['res-student', 'ins-residence', 'bank-account'],
-  settled: ['res-renew', 'ins-residence', 'res-work'],
+  settled: ['res-renew', 'res-work', 'edu-career'],
 };
 
 /** The full set of catalog services relevant to a student, richest-first. */
 const STUDENT_BASE: string[] = [
-  'res-student', 'ins-residence', 'bank-account', 'tel-address', 're-rent', 're-contracts',
-  'edu-university', 'edu-denklik', 'edu-tomer', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'res-student', 'ins-student', 'ins-residence', 'bank-account', 'tel-address', 're-rent', 're-contracts',
+  'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-career', 'tr-sworn', 'tr-notary', 'tr-docs',
   'res-foreignid', 'res-tax', 'tel-sim', 'tel-istanbulkart', 'tour-airport', 'daily-moving',
   'res-renew', 'res-work', 'daily-license',
 ];
@@ -166,9 +136,9 @@ const ARRIVED_DEFAULT_TOP = ['tel-sim', 'bank-account', 'res-tax'];
 /** The full set of services a newcomer might need, across every reason. */
 const ARRIVED_BASE: string[] = [
   'tel-sim', 'tel-istanbulkart', 'bank-account', 'res-tax', 'res-foreignid', 'tel-address',
-  'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn', 'tr-companion',
-  'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult', 'res-family',
-  'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
+  'res-eligibility', 'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn',
+  'tr-companion', 'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult',
+  'res-family', 'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
 ];
 
 /** The newcomer basket: reason picks the lead, housing/family re-rank the rest. */
@@ -196,15 +166,168 @@ function recommendForArrived(profile: Profile): string[] {
   return orderedUnique([...top, ...base, ...familyExtras]);
 }
 
-/** A non-student persona bundle, with family extras where they make sense. */
-function recommendForPersona(situation: Situation, profile: Profile): string[] {
-  const bundle = PERSONA_BUNDLES[situation];
-  if (!bundle) return [];
-  // Schooling / family insurance only make sense for someone staying — never a
-  // visitor passing through.
-  const familyExtras =
-    profile.family === 'yes' && situation !== 'visiting' ? ['edu-schools', 'ins-family'] : [];
-  return orderedUnique([...bundle.top, ...bundle.base, ...familyExtras]);
+/**
+ * A visitor's top three, chosen by WHAT they want to do. The service-level
+ * answer (VIP / comfort) then promotes the private/premium services ahead of
+ * the trip picks.
+ */
+const VISITOR_TRIP_TOP: Partial<Record<VisitorTrip, string[]>> = {
+  sights: ['tour-daytrips', 'tour-tickets', 'tour-airport'],
+  shopping: ['daily-shopping', 'tour-driver', 'tour-airport'],
+  nature: ['tour-bosphorus', 'tour-daytrips', 'tour-airport'],
+  multicity: ['tour-multicity', 'tour-packages', 'tour-airport'],
+  medical: ['health-tourism', 'tr-medical', 'tour-airport'],
+  family: ['tour-packages', 'tour-daytrips', 'tour-airport'],
+};
+const VISITOR_DEFAULT_TOP = ['tour-airport', 'tour-daytrips', 'tour-hotels'];
+
+/** Every service a visitor might want, across all trip types. */
+const VISITOR_BASE: string[] = [
+  'tour-airport', 'tour-vip', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
+  'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'daily-shopping', 'tr-companion',
+  'health-tourism', 'tr-medical', 'health-hospitals', 'visa-check',
+];
+
+/** The visitor basket: trip type leads, VIP/comfort promote the premium services. */
+function recommendForVisitor(profile: Profile): string[] {
+  const tripTop = (profile.visitorTrip && VISITOR_TRIP_TOP[profile.visitorTrip]) || VISITOR_DEFAULT_TOP;
+  const serviceLead =
+    profile.visitorService === 'vip'
+      ? ['tour-vip', 'tour-driver']
+      : profile.visitorService === 'comfort'
+        ? ['tour-driver']
+        : [];
+  return orderedUnique([...serviceLead, ...tripTop, ...VISITOR_BASE]);
+}
+
+/**
+ * A relocation planner's top three, chosen by WHY they are moving. Falls back
+ * to generic pre-arrival essentials when the reason hasn't been answered.
+ */
+const PLANNING_REASON_TOP: Partial<Record<PlanningReason, string[]>> = {
+  work: ['res-work', 'tr-sworn', 'ins-residence'],
+  study: ['edu-university', 'tr-sworn', 'edu-denklik'],
+  family: ['res-family', 'tr-sworn', 'edu-schools'],
+  business: ['legal-ltd', 'acc-monthly', 're-buy'],
+  retirement: ['re-rent', 'ins-residence', 'health-doctors'],
+};
+const PLANNING_DEFAULT_TOP = ['re-rent', 'tr-sworn', 'tour-airport'];
+
+/** Every service a pre-arrival planner might need, across every reason. */
+const PLANNING_BASE: string[] = [
+  'visa-check', 'res-eligibility', 're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'tour-airport', 'res-tourist', 'res-work', 'res-student', 'res-family', 'ins-residence', 'ins-family',
+  'bank-account', 'tel-sim', 'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools',
+  'legal-ltd', 'acc-monthly', 'legal-consult', 're-buy', 'health-doctors',
+];
+
+/** The planner basket: reason picks the lead, family adds schooling/insurance. */
+function recommendForPlanning(profile: Profile): string[] {
+  const top = (profile.planningReason && PLANNING_REASON_TOP[profile.planningReason]) || PLANNING_DEFAULT_TOP;
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...top, ...PLANNING_BASE, ...familyExtras]);
+}
+
+/**
+ * A resident's top three, chosen by the NATURE of their residence. The plan for
+ * the coming period then promotes the matching "development" services (a
+ * property plan leads with buying/managing property; a citizenship plan with
+ * the citizenship file) ahead of the type picks.
+ */
+const RESIDENT_TYPE_TOP: Record<ResidentType, string[]> = {
+  employee: ['res-renew', 'res-work', 'ins-residence'],
+  business: ['acc-monthly', 'legal-ltd', 'res-renew'],
+  family: ['res-renew', 'ins-family', 'edu-schools'],
+  retired: ['res-renew', 'ins-residence', 'daily-eldercare'],
+  investor: ['re-buy', 're-management', 'res-citizenship'],
+  student: ['res-renew', 'ins-residence', 'edu-tomer'],
+  unsure: ['res-eligibility', 'res-renew', 'ins-residence'],
+};
+const RESIDENT_DEFAULT_TOP = ['res-renew', 'ins-residence', 'daily-license'];
+
+const RESIDENT_PLAN_LEAD: Record<ResidentPlan, string[]> = {
+  job: ['res-work'],
+  business: ['legal-ltd', 'acc-monthly'],
+  property: ['re-buy', 're-management'],
+  citizenship: ['res-citizenship', 're-citizenship'],
+  family: ['edu-schools', 'ins-family'],
+  maintain: [],
+  explore: [],
+};
+
+/** Every service a settled resident might need, across every nature/plan. */
+const RESIDENT_BASE: string[] = [
+  'res-renew', 'ins-residence', 'ins-family', 'daily-license', 're-rent', 're-contracts', 're-buy',
+  're-management', 're-valuation', 'res-work', 'res-citizenship', 're-citizenship', 'res-eligibility',
+  'tel-utilities', 'tel-address', 'acc-monthly', 'acc-consult', 'legal-ltd', 'legal-consult',
+  'health-doctors', 'daily-eldercare', 'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
+];
+
+/** The resident basket: nature leads, an explicit plan promotes its services. */
+function recommendForResident(profile: Profile): string[] {
+  const typeTop = (profile.residentType && RESIDENT_TYPE_TOP[profile.residentType]) || RESIDENT_DEFAULT_TOP;
+  const planLead = (profile.residentPlan && RESIDENT_PLAN_LEAD[profile.residentPlan]) || [];
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...planLead, ...typeTop, ...RESIDENT_BASE, ...familyExtras]);
+}
+
+/**
+ * A long-settled resident's top three, chosen by their main GOAL now. Their
+ * property status then promotes the matching property services (an owner leads
+ * with management + valuation; a would-be buyer with buying) ahead of the rest.
+ */
+const LONG_GOAL_TOP: Record<LongResidentGoal, string[]> = {
+  citizenship: ['res-eligibility', 'res-citizenship', 'legal-consult'],
+  longstay: ['res-renew', 'ins-residence', 'res-eligibility'],
+  property: ['re-buy', 're-valuation', 're-management'],
+  business: ['legal-ltd', 'acc-monthly', 'legal-contracts'],
+  family: ['edu-university', 'res-family', 'ins-family'],
+  stability: ['res-renew', 'ins-residence', 'daily-reminders'],
+  other: ['res-citizenship', 're-buy', 'legal-ltd'],
+};
+const LONG_DEFAULT_TOP = ['res-citizenship', 're-buy', 'legal-ltd'];
+
+const LONG_PROPERTY_LEAD: Record<LongResidentProperty, string[]> = {
+  owns: ['re-management', 're-valuation'],
+  multiple: ['re-management', 're-valuation'],
+  considering: ['re-buy', 're-valuation'],
+  none: [],
+};
+
+/** Every service a long-settled resident might need, across every goal. */
+const LONG_BASE: string[] = [
+  'res-citizenship', 'res-eligibility', 'res-renew', 're-citizenship', 're-buy', 're-management', 're-valuation',
+  'legal-ltd', 'legal-as', 'legal-consult', 'legal-contracts', 'acc-monthly', 'acc-consult',
+  'ins-residence', 'ins-family', 'ins-carhome', 'res-family', 'edu-university', 'edu-denklik',
+  'edu-schools', 'daily-license', 'daily-eldercare', 'tr-sworn', 'daily-reminders', 'bank-transfer',
+];
+
+/** The long-resident basket: goal leads, property status promotes its services. */
+function recommendForLongResident(profile: Profile): string[] {
+  const goalTop = (profile.longResidentGoal && LONG_GOAL_TOP[profile.longResidentGoal]) || LONG_DEFAULT_TOP;
+  const propertyLead = (profile.longResidentProperty && LONG_PROPERTY_LEAD[profile.longResidentProperty]) || [];
+  const familyExtras = profile.family === 'yes' ? ['edu-schools', 'ins-family'] : [];
+  return orderedUnique([...propertyLead, ...goalTop, ...LONG_BASE, ...familyExtras]);
+}
+
+/** Route a profile to its persona-specific matcher. All six are covered. */
+function rankFor(profile: Profile): string[] {
+  switch (profile.situation) {
+    case 'planning':
+      return recommendForPlanning(profile);
+    case 'student':
+      return recommendForStudent(profile);
+    case 'arrived':
+      return recommendForArrived(profile);
+    case 'visiting':
+      return recommendForVisitor(profile);
+    case 'resident':
+      return recommendForResident(profile);
+    case 'long_resident':
+      return recommendForLongResident(profile);
+    default:
+      return [];
+  }
 }
 
 /**
@@ -214,13 +337,6 @@ function recommendForPersona(situation: Situation, profile: Profile): string[] {
  * behaviour".
  */
 export function recommendedServiceIds(profile: Profile): string[] {
-  const situation = profile.situation;
-  if (!situation) return [];
-  const ranked =
-    situation === 'student'
-      ? recommendForStudent(profile)
-      : situation === 'arrived'
-        ? recommendForArrived(profile)
-        : recommendForPersona(situation, profile);
-  return without(ranked, ownedServices(profile));
+  if (!profile.situation) return [];
+  return without(rankFor(profile), ownedServices(profile));
 }
