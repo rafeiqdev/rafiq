@@ -720,16 +720,21 @@
     display: none;
   }
 
-  .navButton {
-    padding: 0.25rem 0.3rem;
-    font-size: 0.68rem;
-    gap: 0.15rem;
-    flex-shrink: 0;
+  /* Smaller pills, bigger labels: on a 360–375px phone the four Arabic/Farsi
+     labels only fit legibly if the leading icon is dropped here. Hiding it
+     reclaims ~14px per pill, which we spend on a larger, more readable label
+     (older users) while the overall button footprint gets *smaller*, not
+     bigger. The Services dropdown chevron (.chevronIcon) is intentionally kept
+     so that pill still reads as expandable. */
+  .navIconWrapper {
+    display: none;
   }
 
-  .navIconWrapper svg {
-    width: 12px;
-    height: 12px;
+  .navButton {
+    padding: 0.3rem 0.2rem;
+    font-size: 0.76rem;
+    gap: 0.15rem;
+    flex-shrink: 0;
   }
 
   .navCtaSlot {
