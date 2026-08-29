@@ -204,15 +204,21 @@
       // rule. Ad measurement must not be the one place that quietly collects
       // before the visitor agrees.
       //
-      // The ID is empty until a pixel exists in Meta Events Manager; the
-      // %VITE_ placeholder check below is what keeps an unbuilt/unset value
-      // from being treated as a real ID.
+      // A pixel ID is public by design — it ships in every page that loads the
+      // pixel and is readable by anyone viewing source — so the live one is
+      // written here as the default rather than being a deploy-time secret.
+      // That keeps the site's ad measurement working without a dashboard step.
+      // VITE_META_PIXEL_ID still overrides it when set, which is how a second
+      // environment would point at its own pixel.
       (function () {
-        var PIXEL_ID = "%VITE_META_PIXEL_ID%";
+        var CONFIGURED = "%VITE_META_PIXEL_ID%";
+        var PIXEL_ID = (CONFIGURED && CONFIGURED.indexOf('%VITE_') !== 0)
+          ? CONFIGURED
+          : '1052019674091480'; // "Rafiq.ist Pixel" in Events Manager
         var CONSENT_KEY = 'rafiq_analytics_consent';
         var loaded = false;
         var host = window.location.hostname;
-        if (!PIXEL_ID || PIXEL_ID.indexOf('%VITE_') === 0) return;
+        if (!PIXEL_ID) return;
         // Same reason as GA4: previews and localhost must never pollute the
         // audiences and conversion counts the ad campaigns optimise against.
         if (host !== 'rafiq.ist' && host !== 'www.rafiq.ist') return;
