@@ -6,7 +6,7 @@ import type { NewsPost } from '../lib/api';
 import { postRef } from '../lib/telegramNews';
 import { parseNewsBody } from '../lib/newsBody';
 import { AppIcon, BackArrow, DirArrow } from '../components/AppIcon';
-import { usePageMeta } from '../lib/seo';
+import { usePageMeta, SITE_URL } from '../lib/seo';
 
 /**
  * Desktop reading page for one news post (/news/:id). Two columns: the article
@@ -72,8 +72,38 @@ export function NewsArticle() {
   const sidebar = more.slice(0, 3);
   const relatedGrid = more.slice(3, 9);
 
+  // Only Google's second-pass JS rendering (and browsers) ever see this — a
+  // crawler that fetches the raw HTML gets the generic pre-rendered /news hub
+  // shell instead, since these ~20 posts are Supabase rows with no build-time
+  // static content to bake a per-article shell from (see the guide/service
+  // pages' generate-seo-pages.mjs for that pattern, which needs data known at
+  // build time). Still worth emitting: it is real signal for any client that
+  // does execute JS, and costs nothing extra to compute.
+  const articleJsonLd = state === 'ready' && post && text
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: text.title,
+        description: text.body?.slice(0, 200) ?? undefined,
+        image: post.imageUrl ?? undefined,
+        datePublished: post.createdAt,
+        dateModified: post.createdAt,
+        inLanguage: i18n.language,
+        url: `${SITE_URL}/${i18n.language}/news/${post.id}`,
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        publisher: { '@id': `${SITE_URL}/#organization` },
+      }
+    : null;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      {articleJsonLd && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        />
+      )}
       <Link to="/news" className="inline-flex items-center gap-1.5 text-sm font-bold text-navy hover:underline">
         <BackArrow className="w-4 h-4" />
         {t('home.news.backToNews')}

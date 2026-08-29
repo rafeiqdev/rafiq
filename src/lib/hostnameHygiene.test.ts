@@ -37,15 +37,17 @@ const root = process.cwd();
 const SCAN_GLOBS = ['src/**/*', 'api/**/*', 'scripts/**/*', 'public/**/*', 'index.html'];
 
 /**
- * Generated from VITE_BASE_URL at build time by scripts/generate-sitemap.mjs —
- * they are OUTPUT of the single source of truth, not a second copy of it, so
- * they legitimately contain the host and must not be scanned.
+ * Generated from VITE_BASE_URL at build time by scripts/generate-sitemap.mjs
+ * and scripts/generate-llms-txt.mjs — they are OUTPUT of the single source of
+ * truth, not a second copy of it, so they legitimately contain the host and
+ * must not be scanned.
  */
 const GENERATED = new Set([
   'public/sitemap.xml',
   'public/sitemap-priority.xml',
   'public/sitemap-guides.xml',
   'public/robots.txt',
+  'public/llms.txt',
 ]);
 
 /** This file necessarily contains the very patterns it bans. */

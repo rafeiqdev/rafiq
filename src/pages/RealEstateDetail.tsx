@@ -5,7 +5,7 @@ import { listings as listingsApi } from '../lib/api';
 import type { Listing } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
 import { LISTING_PHOTOS, listingThumbUrl } from '../lib/images';
-import { usePageMeta } from '../lib/seo';
+import { usePageMeta, SITE_URL } from '../lib/seo';
 import { CitizenshipBadge, ListingCard } from '../components/realestate/ListingCard';
 import { DescriptionBox } from '../components/realestate/DescriptionBox';
 import { PhotoLightbox } from '../components/realestate/PhotoLightbox';
@@ -33,7 +33,7 @@ function Spec({ label, value }: { label: string; value: string }) {
 }
 
 export function RealEstateDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [all, setAll] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +72,37 @@ export function RealEstateDetail() {
     description: listing?.description ?? t('realEstate.subtitle'),
   });
 
+  // Same caveat as NewsArticle's articleJsonLd: these ~19 listings are
+  // Supabase rows with no build-time static content, so this only reaches
+  // clients that execute JS (browsers, Google's second rendering pass) — not
+  // a non-JS/AI crawler fetching the raw HTML. Still real signal for anyone
+  // that does render it, and the data is already in hand.
+  const listingJsonLd = listing
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: `${listing.district} — ${listing.rooms}`,
+        description: listing.description ?? t('realEstate.subtitle'),
+        image: photos[0],
+        url: `${SITE_URL}/${i18n.language}/real-estate/${listing.id}`,
+        category: t('realEstate.title'),
+        additionalProperty: [
+          { '@type': 'PropertyValue', name: 'rooms', value: listing.rooms },
+          { '@type': 'PropertyValue', name: 'area_m2', value: listing.m2 },
+          ...(listing.bathrooms != null ? [{ '@type': 'PropertyValue', name: 'bathrooms', value: listing.bathrooms }] : []),
+          ...(listing.floor != null ? [{ '@type': 'PropertyValue', name: 'floor', value: listing.floor }] : []),
+        ],
+        offers: {
+          '@type': 'Offer',
+          price: listing.priceUsd,
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          businessFunction: listing.listingType === 'rent' ? 'https://schema.org/LeaseOut' : 'https://schema.org/Sell',
+          url: `${SITE_URL}/${i18n.language}/real-estate/${listing.id}`,
+        },
+      }
+    : null;
+
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
@@ -93,6 +124,13 @@ export function RealEstateDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      {listingJsonLd && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(listingJsonLd) }}
+        />
+      )}
       <nav className="text-sm text-gray-500 flex items-center gap-1.5 flex-wrap">
         <Link to="/real-estate" className="hover:text-navy">{t('realEstate.title')}</Link>
         <AppIcon name="arrow-right" className="w-3 h-3 dir-arrow" />
