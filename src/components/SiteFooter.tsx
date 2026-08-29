@@ -145,7 +145,7 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
         <AppIcon name="info" className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>{t('footer.disclaimer')}</span>
       </p>
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-x-4 gap-y-2">
         <p className="text-[12px] text-white/55">
           © {new Date().getFullYear()} {t('common.appName')} — {t('footer.rights')}
         </p>
@@ -157,9 +157,6 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
           ))}
         </nav>
       </div>
-      <p className="mt-4 text-center text-[11px] text-white/60">
-        © 2026 Rafiq.ist. All rights reserved. Registered Medical Coordination Services.
-      </p>
     </div>
   );
 }
