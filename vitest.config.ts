@@ -16,7 +16,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'api/**/*.test.{ts,tsx}'],
     env: {
       // src/lib/seo.ts throws without this, and .env is gitignored — so it is
       // absent in CI, where the suite must still run. `.invalid` is reserved by
