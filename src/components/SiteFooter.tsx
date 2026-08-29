@@ -254,35 +254,43 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
 
   return (
     <footer className="bg-navy text-white/80 mt-16">
-      <div className="mx-auto max-w-6xl px-4 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-12">
-        {/* brand + help */}
-        <div className="sm:col-span-2 lg:col-span-3">
-          <Logo size={34} variant="white" />
-          <p className="mt-4 text-sm leading-relaxed text-white/70">{t('footer.brandBody')}</p>
-          <div className="mt-5">
-            <HelpCard />
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        {/* top row: brand + help, the three link groups, and the language picker */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12">
+          <div className="sm:col-span-2 lg:col-span-4">
+            <Logo size={34} variant="white" />
+            <p className="mt-4 text-sm leading-relaxed text-white/70">{t('footer.brandBody')}</p>
+            <div className="mt-5">
+              <HelpCard />
+            </div>
+          </div>
+
+          {GROUPS.map((g) => (
+            <nav key={g.id} className="lg:col-span-2">
+              <GroupHeading icon={g.icon} label={t(g.titleKey)} />
+              <ul className="mt-3 flex flex-col gap-2.5 text-sm">
+                {g.links.map((l) => (
+                  <li key={l.to}>
+                    <Link to={l.to} className="text-white/70 hover:text-white transition-colors">
+                      {t(l.key)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+
+          <div className="sm:col-span-2 lg:col-span-2">
+            <LangRow />
           </div>
         </div>
 
-        {/* link groups */}
-        {GROUPS.map((g) => (
-          <nav key={g.id} className="lg:col-span-2">
-            <GroupHeading icon={g.icon} label={t(g.titleKey)} />
-            <ul className="mt-3 flex flex-col gap-2.5 text-sm">
-              {g.links.map((l) => (
-                <li key={l.to}>
-                  <Link to={l.to} className="text-white/70 hover:text-white transition-colors">
-                    {t(l.key)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
-
-        <nav className="lg:col-span-2">
+        {/* Practical guides — kept complete for crawlability, but laid out as a
+            short wide grid instead of one long 12-item column so it no longer
+            towers over the rest of the footer. */}
+        <nav className="mt-10 pt-8 border-t border-white/10">
           <GroupHeading icon="file-text" label={t('footer.guidesTitle')} />
-          <ul className="mt-3 flex flex-col gap-2.5 text-sm">
+          <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-2.5 text-sm">
             {guideLinks.map((l) => (
               <li key={l.to}>
                 <Link to={l.to} className="text-white/70 hover:text-white transition-colors">
@@ -292,10 +300,6 @@ export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mob
             ))}
           </ul>
         </nav>
-
-        <div className="sm:col-span-2 lg:col-span-1">
-          <LangRow />
-        </div>
       </div>
 
       <LegalStrip />
