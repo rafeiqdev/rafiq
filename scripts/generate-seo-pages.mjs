@@ -7,6 +7,7 @@
  * serves these files before the SPA rewrite; the React app then hydrates the
  * same #root element and keeps the existing client-side behavior.
  */
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,45 @@ import { resolveSiteUrlOrExit } from './siteUrl.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const SITE_URL = resolveSiteUrlOrExit(process.env);
+const today = new Date().toISOString().slice(0, 10);
+
+// Same real-content-change-date approach as generate-sitemap.mjs's
+// gitLastModified/lastmodFor (see that file's header comment for the "why
+// git, not build time" reasoning) — duplicated rather than imported because
+// the two scripts key their route -> source-file mapping differently (one by
+// sitemap <loc> path, one by in-memory route string) and neither route table
+// is a strict subset of the other. AI answer engines weight recency heavily
+// (pages stale 6+ months lose citation eligibility), so exposing a real
+// dateModified here — not just in the sitemap Google already sees — is what
+// actually reaches AI crawlers reading the static HTML directly.
+const lastmodCache = new Map();
+function gitLastModified(paths) {
+  const key = paths.join('|');
+  if (lastmodCache.has(key)) return lastmodCache.get(key);
+  let result = today;
+  try {
+    const out = execFileSync(
+      'git',
+      ['log', '-1', '--format=%cd', '--date=short', '--', ...paths],
+      { cwd: root, encoding: 'utf8' },
+    ).trim();
+    if (out) result = out;
+  } catch {
+    // Not a git checkout, or git unavailable in this build environment —
+    // fall back to the build date rather than failing the whole build.
+  }
+  lastmodCache.set(key, result);
+  return result;
+}
+
+const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
+
+function dateModifiedFor(lang, route) {
+  if (route.startsWith('/guides/')) return gitLastModified(['src/data/categoryGuides.ts']);
+  const serviceMatch = route.match(/^\/services\/([^/]+)$/);
+  if (serviceMatch) return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
+  return gitLastModified([`src/i18n/locales/${lang}.json`]);
+}
 const LANGS = ['ar', 'en', 'ru', 'fa'];
 const localeDir = join(root, 'src/i18n/locales');
 const localeData = Object.fromEntries(
@@ -645,6 +685,7 @@ function buildHtml(template, lang, route, meta) {
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
   const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
   const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
+  const dateModified = dateModifiedFor(lang, route);
   const serviceJsonLd = serviceMatch && serviceSeo[lang][serviceMatch[1]]
     ? escapeJsonForHtml({
         '@context': 'https://schema.org',
@@ -701,6 +742,7 @@ function buildHtml(template, lang, route, meta) {
     description: meta.description,
     url,
     inLanguage: lang,
+    dateModified,
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#organization` },
   });

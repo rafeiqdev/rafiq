@@ -9,6 +9,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const servicesSource = readFileSync(join(root, 'src/data/services.ts'), 'utf8');
 const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].map((match) => match[1]);
+// Same catalog regex as generate-sitemap.mjs's serviceIds, used below to
+// derive the expected URL count instead of a literal that silently drifted
+// stale (400) as services were added to the catalog — see STATIC_ROUTES in
+// generate-sitemap.mjs for where the "10" static routes below comes from.
+const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
+const STATIC_ROUTE_COUNT = 10;
 // sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
 // URLs live in its two member sitemaps.
 const sitemap = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
@@ -105,7 +111,10 @@ for (const url of urls) {
   }
 }
 
-if (urls.length !== 400) errors.push(`Unexpected sitemap URL count: ${urls.length}`);
+const expectedUrlCount = langs.length * (STATIC_ROUTE_COUNT + categoryIds.length + serviceIds.length);
+if (urls.length !== expectedUrlCount) {
+  errors.push(`Unexpected sitemap URL count: ${urls.length} (expected ${expectedUrlCount} = ${langs.length} langs × (${STATIC_ROUTE_COUNT} static + ${categoryIds.length} guides + ${serviceIds.length} services))`);
+}
 const robots = readFileSync(join(root, 'public/robots.txt'), 'utf8');
 const sitemapDirective = robots.match(/^Sitemap:\s*(\S+)$/im)?.[1];
 const expectedSitemap = urls[0] ? `${new URL(urls[0]).origin}/sitemap.xml` : null;

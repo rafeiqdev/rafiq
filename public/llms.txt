@@ -1,0 +1,32 @@
+# Rafiq Istanbul
+
+> Your companion for life in Istanbul — residency (İkamet), banking, housing, health and daily life in Istanbul, coordinated step by step for foreigners in Arabic, English, Russian and Farsi.
+
+## Core pages
+- [Home](https://rafiq.ist/en): overview of every service Rafiq coordinates in Istanbul.
+- [All services](https://rafiq.ist/en/services): the full service catalog, browsable by category.
+- [Real estate](https://rafiq.ist/en/real-estate): property search, buying, and Turkish real-estate investment guidance.
+- [Health tourism](https://rafiq.ist/en/health-tourism): medical travel coordination — treatment, hospitals, and logistics in Istanbul.
+- [Practical guides](https://rafiq.ist/en/tricks): day-to-day tips for living in Istanbul as a foreigner.
+
+## Guides
+- [Residency and Official Procedures in Istanbul, Türkiye — Rafiq Guide](https://rafiq.ist/en/guides/residency): Practical guidance for foreigners in Istanbul on residence, IDs, tax numbers, address registration and immigration coordination via Rafiq.
+- [Health support in Istanbul, Türkiye — Rafiq coordination guide](https://rafiq.ist/en/guides/health): Practical guide for foreigners in Istanbul on finding private hospitals, language support, appointments and medical‑tourism coordination via Rafiq and partners.
+- [Real estate help in Istanbul — renting, buying and property coordination](https://rafiq.ist/en/guides/realestate): Practical guide for foreigners in Istanbul on renting, buying, valuations, contracts and coordinating property services with Rafiq.
+- [Banking and Insurance support in Istanbul | Rafiq coordination](https://rafiq.ist/en/guides/banking): Practical guide for foreigners in Istanbul: bank visit escorts, insurance choices (family, residence, property, vehicle) and money-transfer guidance.
+- [Tourism and transport support in Istanbul — Rafiq coordination](https://rafiq.ist/en/guides/tourism): Practical guide for foreigners in Istanbul arranging airport transfers, drivers, tours, hotels, tickets and travel planning via Rafiq coordination.
+
+## Key services
+- [Tourist Residence in Istanbul | Rafiq](https://rafiq.ist/en/services/res-tourist): Rafiq helps you prepare and submit a first-time tourist residence application through e-İkamet, with guidance on documents, appointments and tracking.
+- [Property-based residence permit for property owners](https://rafiq.ist/en/services/res-property): Prepare and submit residence applications based on property ownership through a partner. Help with documents, tapu, appointments and follow-up.
+- [Residence renewal — renew all permit types](https://rafiq.ist/en/services/res-renew): We assist preparing and submitting residence renewals through a partner. Help with documents, appointments, biometrics and application tracking.
+- [Turkish citizenship services — file preparation & follow-up](https://rafiq.ist/en/services/res-citizenship): We prepare and follow citizenship files through a partner. Assistance with document preparation, translations, appointments and case tracking.
+- [Medical tourism: hair, dental, aesthetics](https://rafiq.ist/en/services/health-tourism): Information and coordination guidance for hair transplants, dental work, and aesthetic procedures in Istanbul through partner clinics.
+- [Buying and Selling Property in Istanbul](https://rafiq.ist/en/services/re-buy): Assistance with property purchase or sale: viewings, paperwork coordination and support working with local brokers in Istanbul.
+- [Bank visit escort and interpretation Istanbul](https://rafiq.ist/en/services/bank-account): Escort and interpretation at Istanbul banks to help with paperwork, documents, and communication during account visits.
+
+## Languages
+Every page above is also published in Arabic (https://rafiq.ist/ar/...), Russian (https://rafiq.ist/ru/...) and Farsi (https://rafiq.ist/fa/...); Arabic is the default for the site's primary audience. Swap the leading /en/ segment for /ar/, /ru/ or /fa/ to reach the same page in another language.
+
+## Contact
+Rafiq coordinates these services directly or through vetted local partners; every service page names which, and every page carries a request form to start a conversation about a specific need.
