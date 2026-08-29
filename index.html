@@ -197,6 +197,63 @@
         }
       })();
     </script>
+    <script>
+      // Meta (Facebook/Instagram) Pixel — the ad platform's counterpart to the
+      // GA4 block above, and deliberately a copy of its shape: same consent
+      // key, same production-host guard, same "stay unloaded until granted"
+      // rule. Ad measurement must not be the one place that quietly collects
+      // before the visitor agrees.
+      //
+      // The ID is empty until a pixel exists in Meta Events Manager; the
+      // %VITE_ placeholder check below is what keeps an unbuilt/unset value
+      // from being treated as a real ID.
+      (function () {
+        var PIXEL_ID = "%VITE_META_PIXEL_ID%";
+        var CONSENT_KEY = 'rafiq_analytics_consent';
+        var loaded = false;
+        var host = window.location.hostname;
+        if (!PIXEL_ID || PIXEL_ID.indexOf('%VITE_') === 0) return;
+        // Same reason as GA4: previews and localhost must never pollute the
+        // audiences and conversion counts the ad campaigns optimise against.
+        if (host !== 'rafiq.ist' && host !== 'www.rafiq.ist') return;
+
+        function loadPixel() {
+          if (loaded) return;
+          loaded = true;
+
+          // Standard Meta bootstrap, kept verbatim so the vendor script finds
+          // the queue it expects.
+          !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+            t = b.createElement(e); t.async = !0; t.src = v;
+            s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+          }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+          window.fbq('init', PIXEL_ID);
+          window.fbq('track', 'PageView');
+        }
+
+        window.rafiqMetaPixel = {
+          setConsent: function (state) {
+            // There is no "revoke" call once fbevents.js is running, so the
+            // only honest implementation is: load on grant, never load
+            // otherwise. A declined visitor's session ends without the vendor
+            // script ever being fetched.
+            if (state === 'granted') loadPixel();
+          }
+        };
+
+        try {
+          if (localStorage.getItem(CONSENT_KEY) === 'granted') loadPixel();
+        } catch (_) {
+          // Storage can be unavailable in privacy modes; wait for an explicit choice.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

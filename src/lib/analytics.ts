@@ -30,7 +30,11 @@ import { supabase } from './supabase';
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
     rafiqGoogleAnalytics?: {
+      setConsent: (state: 'granted' | 'declined') => void;
+    };
+    rafiqMetaPixel?: {
       setConsent: (state: 'granted' | 'declined') => void;
     };
   }
@@ -117,6 +121,15 @@ export function setConsent(state: 'granted' | 'declined'): void {
     window.rafiqGoogleAnalytics?.setConsent(state);
   } catch {
     /* Google Analytics must never affect the product experience. */
+  }
+
+  // Same contract for the Meta pixel: the ad platform learns nothing about a
+  // visitor who has not agreed. Unlike GA4 there is no consent-update call to
+  // fall back on, so index.html simply never fetches fbevents.js on 'declined'.
+  try {
+    window.rafiqMetaPixel?.setConsent(state);
+  } catch {
+    /* Ad measurement must never affect the product experience. */
   }
 
   if (state === 'granted' && previous !== 'granted') {
@@ -492,6 +505,58 @@ function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): voi
   }
 }
 
+// ── Meta (Facebook/Instagram) Pixel ─────────────────────────────
+
+/**
+ * Meta pixel bridge. Campaigns optimise against these events, so only the
+ * handful that represent real commercial intent are forwarded, under Meta's
+ * standard-event names — everything else stays in GA4 and the first-party
+ * table. Runs behind the same privacy guard as sendGoogleEvent(): flat,
+ * non-identifying values only, after explicit consent.
+ *
+ * `contact` (a WhatsApp click) is the event a "send us a message" campaign
+ * should be told to optimise for, and `Lead` is the submitted service
+ * request — keep those two names stable, or in-flight campaigns lose their
+ * optimisation history.
+ */
+function sendMetaEvent(eventType: AnalyticsEventType, opts: TrackOptions): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const fbq = window.fbq;
+    if (!fbq) return;
+
+    const target = opts.target ?? undefined;
+    const meta = opts.meta ?? {};
+    const category = typeof meta.category === 'string' ? meta.category : undefined;
+
+    switch (eventType) {
+      case 'service_view':
+        fbq('track', 'ViewContent', { content_ids: target ? [target] : [], content_category: category });
+        return;
+      case 'request_started':
+        fbq('track', 'InitiateCheckout', { content_ids: target ? [target] : [], content_category: category });
+        return;
+      case 'request_submitted':
+        fbq('track', 'Lead', { content_ids: target ? [target] : [], content_category: category });
+        return;
+      case 'whatsapp_clicked':
+        fbq('track', 'Contact', { placement: target ?? 'unknown' });
+        return;
+      case 'signup':
+        fbq('track', 'CompleteRegistration', {
+          method: typeof meta.method === 'string' ? meta.method : 'website',
+        });
+        return;
+      default:
+        // page_view is already sent by the pixel bootstrap, and the rest of the
+        // taxonomy is product analytics with no advertising meaning.
+        return;
+    }
+  } catch {
+    /* Analytics must remain best-effort. */
+  }
+}
+
 // ── public API ────────────────────────────────────────────────────────────
 
 export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): void {
@@ -513,6 +578,7 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
     // GA4 remains useful even if the optional first-party event table is not
     // deployed. Its delivery must not depend on the Supabase event sink.
     sendGoogleEvent(eventType, { target, meta: meta ?? undefined });
+    sendMetaEvent(eventType, { target, meta: meta ?? undefined });
 
     if (sinkMissing) return; // Skip only the unavailable first-party queue.
 
