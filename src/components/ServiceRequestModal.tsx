@@ -44,14 +44,22 @@ function isValidName(s: string): boolean {
 
 /**
  * Preset problem chips — keys resolve under services.modal.problems.*
- * Scoped per service category so, e.g., a banking request never offers
- * "rejected residency renewal" and a residency request never offers
- * "bank account without residency". Categories with no entry here simply
- * skip the quick-chip row — the free-text field below still covers them.
+ * Scoped per SERVICE ID (not category — a category like "residency" spans
+ * tax-number lookups, appointment booking and citizenship, and "banking"
+ * spans health/car insurance and money transfer alongside actual bank
+ * accounts, so a category-wide chip set showed irrelevant options on most
+ * services in those categories). Services with no entry here simply skip
+ * the quick-chip row — the free-text field below still covers them.
  */
-const PROBLEM_CHIPS_BY_CATEGORY: Partial<Record<string, readonly string[]>> = {
-  residency: ['newResidency', 'rejectedRenewal', 'nufusAddress'],
-  banking: ['bankAccount'],
+const PROBLEM_CHIPS_BY_SERVICE_ID: Partial<Record<string, readonly string[]>> = {
+  'res-tourist': ['newResidency', 'nufusAddress'],
+  'res-property': ['newResidency', 'nufusAddress'],
+  'res-work': ['newResidency', 'nufusAddress'],
+  'res-student': ['newResidency', 'nufusAddress'],
+  'res-family': ['newResidency', 'nufusAddress'],
+  'res-renew': ['rejectedRenewal'],
+  'res-rejected': ['rejectedRenewal'],
+  'bank-account': ['bankAccount'],
 };
 
 export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
@@ -83,7 +91,7 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   /** The database trigger refused the insert (a real flood, or storage cleared). */
   const [rateLimited, setRateLimited] = useState(false);
 
-  const problemChips = PROBLEM_CHIPS_BY_CATEGORY[source.category] ?? [];
+  const problemChips = PROBLEM_CHIPS_BY_SERVICE_ID[source.id] ?? [];
 
   const phoneValid = isValidPhone(phone);
   const showPhoneError = phoneTouched && phone.trim().length > 0 && !phoneValid;
