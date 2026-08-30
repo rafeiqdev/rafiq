@@ -52,7 +52,9 @@ function readJsonLd(html, id) {
 function checkSiteEntity(html, url) {
   const entity = readJsonLd(html, 'ld-organization');
   const graph = entity?.['@graph'] ?? [];
-  if (!entity || !graph.some((item) => item['@type'] === 'Organization')) errors.push(`Missing Organization schema: ${url}`);
+  const org = graph.find((item) => item['@type'] === 'Organization');
+  if (!entity || !org) errors.push(`Missing Organization schema: ${url}`);
+  if (!org?.sameAs?.length) errors.push(`Missing Organization sameAs (social profile links): ${url}`);
   const website = graph.find((item) => item['@type'] === 'WebSite');
   if (!website || website.potentialAction?.['@type'] !== 'SearchAction') errors.push(`Missing WebSite SearchAction: ${url}`);
 }

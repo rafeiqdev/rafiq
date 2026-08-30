@@ -454,6 +454,15 @@ function renderServiceBody(body) {
     .join('');
 }
 
+// Same public profile URLs and same reasoning as SAME_AS in
+// src/components/LocalBusinessSchema.tsx (the client-side, Home-only
+// equivalent of this function) — kept in sync manually since one is a build
+// script and the other a React component with no shared module between them.
+const SAME_AS = [
+  'https://www.facebook.com/profile.php?id=61593278548147',
+  'https://www.instagram.com/rafiq.ist/',
+];
+
 function siteEntityJsonLd(lang) {
   return {
     '@context': 'https://schema.org',
@@ -468,6 +477,7 @@ function siteEntityJsonLd(lang) {
         logo: `${SITE_URL}/icon-512.png`,
         image: `${SITE_URL}/og-cover.png`,
         availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+        sameAs: SAME_AS,
       },
       {
         '@type': 'WebSite',

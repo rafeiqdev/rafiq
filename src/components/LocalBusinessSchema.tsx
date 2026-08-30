@@ -10,6 +10,17 @@ const SCRIPT_ID = 'ld-organization';
 const WA = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
 const WA_CONFIGURED = !!WA && WA !== '905000000000';
 
+// Public profile URLs, not secrets — same reasoning as the Meta Pixel ID
+// default in index.html. sameAs is what lets search engines and AI systems
+// tie "Rafiq" together as one entity across platforms instead of treating
+// the website and these profiles as unrelated (see the GEO work this
+// supports — entity linking is a real citation signal, unlike this file's
+// deliberately absent LocalBusiness fields).
+const SAME_AS = [
+  'https://www.facebook.com/profile.php?id=61593278548147',
+  'https://www.instagram.com/rafiq.ist/',
+];
+
 /**
  * Organization + WebSite JSON-LD for the public home page.
  *
@@ -36,6 +47,7 @@ export function LocalBusinessSchema() {
       logo: `${SITE_URL}/icon-512.png`,
       image: DEFAULT_OG_IMAGE,
       availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+      sameAs: SAME_AS,
     };
 
     if (WA_CONFIGURED) {
