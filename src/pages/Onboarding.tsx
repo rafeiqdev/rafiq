@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
@@ -232,6 +232,14 @@ function OnboardingInner() {
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
   const stepKey = steps[safeIndex];
   const isLast = safeIndex === totalSteps - 1;
+
+  // Each step can be much shorter than the one before it (e.g. going from a
+  // long details list down to the two-choice family step), so without this the
+  // page stays scrolled to wherever "next" was clicked and the new step's
+  // content — and the button itself — can land below the fold.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [safeIndex]);
 
   const canNext =
     (stepKey === 'situation' && situation !== null) ||
