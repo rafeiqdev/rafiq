@@ -42,6 +42,7 @@ const GROUPS: FooterGroup[] = [
       { to: '/premium', key: 'nav.premium' },
       { to: '/map', key: 'nav.map' },
       { to: '/referrals', key: 'nav.referrals' },
+      { to: '/faq', key: 'nav.faq' },
       { to: '/company/register', key: 'nav.forCompanies' },
     ],
   },

@@ -14,10 +14,10 @@ const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].m
 // stale (400) as services were added to the catalog — see STATIC_ROUTES in
 // generate-sitemap.mjs for where the "10" static routes below comes from.
 const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
-const STATIC_ROUTE_COUNT = 10;
+const STATIC_ROUTE_COUNT = 11;
 // Same hand-maintained list as generate-sitemap.mjs's COMPARISON_IDS —
 // src/data/comparisons.ts is hand-written, not catalog-generated.
-const COMPARISON_IDS = ['residency-diy'];
+const COMPARISON_IDS = ['residency-diy', 'citizenship-consultancy', 'health-tourism-direct', 'bank-account-alone'];
 // sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
 // URLs live in its two member sitemaps.
 const sitemap = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
@@ -114,6 +114,9 @@ for (const url of urls) {
   }
   if (/^\/compare\/[^/]+$/.test(info.route) && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
     errors.push(`Comparison FAQ schema/content is incomplete: ${url}`);
+  }
+  if (info.route === '/faq' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 10)) {
+    errors.push(`FAQ hub schema/content is incomplete: ${url}`);
   }
 }
 

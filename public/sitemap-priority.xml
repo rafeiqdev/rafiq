@@ -56,6 +56,17 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/health-tourism" />
   </url>
   <url>
+    <loc>https://rafiq.ist/ar/faq</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/faq" />
+  </url>
+  <url>
     <loc>https://rafiq.ist/en</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -109,6 +120,17 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/health-tourism" />
     <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/health-tourism" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/health-tourism" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/en/faq</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/faq" />
   </url>
   <url>
     <loc>https://rafiq.ist/ru</loc>
@@ -166,6 +188,17 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/health-tourism" />
   </url>
   <url>
+    <loc>https://rafiq.ist/ru/faq</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/faq" />
+  </url>
+  <url>
     <loc>https://rafiq.ist/fa</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -219,6 +252,17 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/health-tourism" />
     <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/health-tourism" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/health-tourism" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/fa/faq</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/faq" />
   </url>
   <url>
     <loc>https://rafiq.ist/ar/guides/residency</loc>
@@ -442,7 +486,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/res-tourist</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/res-tourist" />
@@ -453,7 +497,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/res-property</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/res-property" />
@@ -464,7 +508,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/res-renew</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/res-renew" />
@@ -475,7 +519,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/res-citizenship</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/res-citizenship" />
@@ -486,7 +530,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/re-buy</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/re-buy" />
@@ -497,7 +541,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/bank-account</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/bank-account" />
@@ -508,7 +552,7 @@
   </url>
   <url>
     <loc>https://rafiq.ist/ar/services/health-tourism</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/services/health-tourism" />
@@ -760,6 +804,39 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
   </url>
   <url>
+    <loc>https://rafiq.ist/ar/compare/citizenship-consultancy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/ar/compare/health-tourism-direct</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/ar/compare/bank-account-alone</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+  </url>
+  <url>
     <loc>https://rafiq.ist/en/compare/residency-diy</loc>
     <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -769,6 +846,39 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
     <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/en/compare/citizenship-consultancy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/en/compare/health-tourism-direct</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/en/compare/bank-account-alone</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/bank-account-alone" />
   </url>
   <url>
     <loc>https://rafiq.ist/ru/compare/residency-diy</loc>
@@ -782,6 +892,39 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
   </url>
   <url>
+    <loc>https://rafiq.ist/ru/compare/citizenship-consultancy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/ru/compare/health-tourism-direct</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/ru/compare/bank-account-alone</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+  </url>
+  <url>
     <loc>https://rafiq.ist/fa/compare/residency-diy</loc>
     <lastmod>2026-08-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -791,5 +934,38 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
     <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/fa/compare/citizenship-consultancy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/citizenship-consultancy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/citizenship-consultancy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/fa/compare/health-tourism-direct</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/health-tourism-direct" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/health-tourism-direct" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/fa/compare/bank-account-alone</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/bank-account-alone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/bank-account-alone" />
   </url>
 </urlset>

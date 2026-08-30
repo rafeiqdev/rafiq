@@ -65,6 +65,7 @@ const MobileServices = lazyPage(() => import('./pages/mobile/MobileServices').th
 const ServiceDetail = lazyPage(() => import('./pages/ServiceDetail').then((m) => ({ default: m.ServiceDetail })));
 const CategoryGuide = lazyPage(() => import('./pages/CategoryGuide').then((m) => ({ default: m.CategoryGuide })));
 const Comparison = lazyPage(() => import('./pages/Comparison').then((m) => ({ default: m.Comparison })));
+const Faq = lazyPage(() => import('./pages/Faq').then((m) => ({ default: m.Faq })));
 const MapPage = lazyPage(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 const MobileMapPage = lazyPage(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
 const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
@@ -236,6 +237,7 @@ function Shell() {
             <Route path="/services/:id" element={<ServiceDetail />} />
             <Route path="/guides/:id" element={<CategoryGuide />} />
             <Route path="/compare/:id" element={<Comparison />} />
+            <Route path="/faq" element={<Faq />} />
             <Route path="/map" element={isMobile ? <MobileMapPage /> : <MapPage />} />
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
             <Route path="/wallet" element={isMobile ? <MobileWallet /> : <Wallet />} />

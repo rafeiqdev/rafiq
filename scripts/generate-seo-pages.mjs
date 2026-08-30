@@ -52,6 +52,7 @@ const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 function dateModifiedFor(lang, route) {
   if (route.startsWith('/guides/')) return gitLastModified(['src/data/categoryGuides.ts']);
   if (route.startsWith('/compare/')) return gitLastModified(['src/data/comparisons.ts']);
+  if (route === '/faq') return gitLastModified(['src/data/faqHub.ts']);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
   return gitLastModified([`src/i18n/locales/${lang}.json`]);
@@ -199,11 +200,29 @@ function readComparisons() {
   return records;
 }
 
+/**
+ * src/data/faqHub.ts's FAQ_HUB is a flat Record<Lang, Content> (unlike
+ * COMPARISONS, which nests an id above the language) — the top-level keys
+ * ARE the language codes, so this is a simpler version of readComparisons()'s
+ * brace-matching + JSON.parse approach, one level shallower.
+ */
+function readFaqHub() {
+  const source = readFileSync(join(root, 'src/data/faqHub.ts'), 'utf8');
+  const records = {};
+  for (const langMatch of source.matchAll(/^ {2}"(ar|en|ru|fa)":\s*\{$/gm)) {
+    const openIndex = langMatch.index + langMatch[0].length - 1;
+    const closeIndex = findMatchingBrace(source, openIndex);
+    records[langMatch[1]] = JSON.parse(source.slice(openIndex, closeIndex + 1));
+  }
+  return records;
+}
+
 const serviceSeo = Object.fromEntries(LANGS.map((lang) => [lang, readServiceSeo(lang)]));
 const guideSeo = readGuideSeo();
 const guideFaqs = readGuideFaqs();
 const guideSections = readGuideSections();
 const comparisons = readComparisons();
+const faqHub = readFaqHub();
 
 // Same category order as the live SiteFooter (src/components/SiteFooter.tsx's
 // useGuideLinks, sourced from SERVICE_CATEGORIES) and the same extraction
@@ -398,6 +417,11 @@ const staticMeta = {
     description: text(lang, 'legal.refund.body').split(/\n+/)[0],
     content: text(lang, 'legal.refund.body').split(/\n+/)[0],
   }),
+  '/faq': (lang) => ({
+    title: faqHub[lang].seoTitle,
+    description: faqHub[lang].metaDescription,
+    content: faqHub[lang].intro,
+  }),
 };
 
 function escapeHtml(value) {
@@ -514,6 +538,15 @@ function homeFaqItems(lang) {
       answer: text(lang, `home.faq.${id}.a`),
     }))
     .filter((item) => item.question && item.answer);
+}
+
+/** Just the <details> blocks, no wrapping <section>/heading — for callers (like /faq's per-category sections) that already provide their own heading. renderFaqHtml wraps both, which would be a redundant, duplicate-id heading here. */
+function renderDetailsListHtml(items) {
+  return items.map((item) => `
+        <details>
+          <summary>${escapeHtml(item.question)}</summary>
+          <p>${escapeHtml(item.answer)}</p>
+        </details>`).join('');
 }
 
 function renderFaqHtml(items, lang) {
@@ -758,9 +791,11 @@ function buildHtml(template, lang, route, meta) {
       ? guideFaqs[guideMatch[1]]?.[lang] ?? []
       : comparison
         ? comparison.faqs
-        : route === '/health-tourism'
-          ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
-          : [];
+        : route === '/faq'
+          ? faqHub[lang].categories.flatMap((category) => category.items)
+          : route === '/health-tourism'
+            ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
+            : [];
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
   const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
   const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
@@ -824,6 +859,20 @@ function buildHtml(template, lang, route, meta) {
         <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
         <p>${escapeHtml(comparison.intro)}</p>
         ${renderComparisonTableHtml(comparison, lang)}${sectionHtml}${renderFaqHtml(comparison.faqs, lang)}
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
+    </main>`;
+  } else if (route === '/faq') {
+    const categoriesHtml = faqHub[lang].categories.map((category) => `
+        <section>
+          <h2>${escapeHtml(category.heading)}</h2>
+          ${renderDetailsListHtml(category.items)}
+        </section>`).join('');
+    staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
+        <p>${escapeHtml(faqHub[lang].intro)}</p>${categoriesHtml}
       </article>
       <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
       ${priorityLinksHtml}

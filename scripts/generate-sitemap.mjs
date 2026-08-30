@@ -108,6 +108,9 @@ function lastmodFor(path, lang) {
   if (path.startsWith('/compare/')) {
     return gitLastModified(['src/data/comparisons.ts']);
   }
+  if (path === '/faq') {
+    return gitLastModified(['src/data/faqHub.ts']);
+  }
   const serviceMatch = path.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) {
     return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
@@ -133,7 +136,7 @@ const PRIORITY_SERVICE_IDS = [
 // Comparison content is deliberately always "priority": there are only ever
 // a few of these, each one written for a specific high-intent query, so none
 // belongs in the long-tail sitemap-guides.xml.
-const COMPARISON_IDS = ['residency-diy'];
+const COMPARISON_IDS = ['residency-diy', 'citizenship-consultancy', 'health-tourism-direct', 'bank-account-alone'];
 
 /** @type {{ path: string, changefreq: string, priority: string, isPriority?: boolean }[]} */
 const STATIC_ROUTES = [
@@ -142,6 +145,7 @@ const STATIC_ROUTES = [
   { path: '/news', changefreq: 'daily', priority: '0.7', isPriority: true },
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8', isPriority: true },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7', isPriority: true },
+  { path: '/faq', changefreq: 'monthly', priority: '0.8', isPriority: true },
   { path: '/tricks', changefreq: 'monthly', priority: '0.6' },
   { path: '/referrals', changefreq: 'monthly', priority: '0.5' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
