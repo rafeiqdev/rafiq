@@ -105,6 +105,9 @@ function lastmodFor(path, lang) {
   if (path.startsWith('/guides/')) {
     return gitLastModified(['src/data/categoryGuides.ts']);
   }
+  if (path.startsWith('/compare/')) {
+    return gitLastModified(['src/data/comparisons.ts']);
+  }
   const serviceMatch = path.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) {
     return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
@@ -124,6 +127,13 @@ const PRIORITY_SERVICE_IDS = [
   'res-tourist', 'res-property', 'res-renew', 'res-citizenship',
   'health-tourism', 're-buy', 'bank-account',
 ];
+// Hand-maintained like the two lists above (src/data/comparisons.ts is
+// hand-written, not catalog-generated, so there is no source array to derive
+// this from) — update it when a new /compare/:id entry is added there.
+// Comparison content is deliberately always "priority": there are only ever
+// a few of these, each one written for a specific high-intent query, so none
+// belongs in the long-tail sitemap-guides.xml.
+const COMPARISON_IDS = ['residency-diy'];
 
 /** @type {{ path: string, changefreq: string, priority: string, isPriority?: boolean }[]} */
 const STATIC_ROUTES = [
@@ -156,6 +166,12 @@ const dynamicRoutes = serviceIds.map((id) => ({
   priority: PRIORITY_SERVICE_IDS.includes(id) ? '0.8' : '0.7',
   isPriority: PRIORITY_SERVICE_IDS.includes(id),
 }));
+const comparisonRoutes = COMPARISON_IDS.map((id) => ({
+  path: `/compare/${id}`,
+  changefreq: 'monthly',
+  priority: '0.8',
+  isPriority: true,
+}));
 
 const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -181,7 +197,8 @@ function urlEntry(lang, { path, changefreq, priority }, alternateLanguages) {
 const staticEntries = LANGS.flatMap((lang) => STATIC_ROUTES.map((route) => [route, urlEntry(lang, route, LANGS)]));
 const guideEntries = LANGS.flatMap((lang) => guideRoutes.map((route) => [route, urlEntry(lang, route, LANGS)]));
 const dynamicEntries = SERVICE_LANGS.flatMap((lang) => dynamicRoutes.map((route) => [route, urlEntry(lang, route, SERVICE_LANGS)]));
-const allEntries = [...staticEntries, ...guideEntries, ...dynamicEntries];
+const comparisonEntries = LANGS.flatMap((lang) => comparisonRoutes.map((route) => [route, urlEntry(lang, route, LANGS)]));
+const allEntries = [...staticEntries, ...guideEntries, ...dynamicEntries, ...comparisonEntries];
 const priorityBody = allEntries.filter(([route]) => route.isPriority).map(([, entry]) => entry).join('\n');
 const guidesBody = allEntries.filter(([route]) => !route.isPriority).map(([, entry]) => entry).join('\n');
 
@@ -223,5 +240,5 @@ const robots = [
 writeFileSync(join(root, 'public/robots.txt'), robots, 'utf8');
 
 console.log(
-  `sitemap-priority.xml (${allEntries.filter(([r]) => r.isPriority).length} URLs) + sitemap-guides.xml (${allEntries.filter(([r]) => !r.isPriority).length} URLs) + sitemap.xml index + robots.txt generated: ${staticEntries.length + guideEntries.length + dynamicEntries.length} URLs total (${STATIC_ROUTES.length} static routes, ${guideRoutes.length} guide routes and ${dynamicRoutes.length} service routes in ${LANGS.length} languages) (${SITE_URL})`,
+  `sitemap-priority.xml (${allEntries.filter(([r]) => r.isPriority).length} URLs) + sitemap-guides.xml (${allEntries.filter(([r]) => !r.isPriority).length} URLs) + sitemap.xml index + robots.txt generated: ${staticEntries.length + guideEntries.length + dynamicEntries.length + comparisonEntries.length} URLs total (${STATIC_ROUTES.length} static routes, ${guideRoutes.length} guide routes, ${dynamicRoutes.length} service routes and ${comparisonRoutes.length} comparison routes in ${LANGS.length} languages) (${SITE_URL})`,
 );

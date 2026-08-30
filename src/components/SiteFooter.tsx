@@ -8,6 +8,7 @@ import { LANGS } from '../lib/types';
 import type { Lang } from '../lib/types';
 import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
+import { COMPARISONS } from '../data/comparisons';
 
 // Same guard the floating WhatsApp button uses: hide the channel entirely
 // unless a real number is configured, so we never hand a customer off to an
@@ -179,11 +180,24 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
  * toggle on /services that never appears in a crawler's rendered DOM — see
  * the SEO audit that added this. Guides are few enough (12) to list in full
  * instead of trimming to a "popular" subset the way /services does.
+ *
+ * /compare/:id pages (src/data/comparisons.ts) are appended here rather than
+ * given their own footer group: there is deliberately just one so far, and a
+ * single extra list item costs nothing visually, while a whole new labeled
+ * section would. This is also the only internal link path to a comparison
+ * page today — see that file's header for why "cited from real content
+ * elsewhere" matters more here than a nav-level placement would.
  */
 function useGuideLinks() {
   const { i18n } = useTranslation();
   const { categories } = useCatalog();
-  return categories.map((c) => ({ to: `/guides/${c.id}`, label: pickText(c.title, i18n.language) }));
+  const language = i18n.language as 'ar' | 'en' | 'ru' | 'fa';
+  const guideLinks = categories.map((c) => ({ to: `/guides/${c.id}`, label: pickText(c.title, i18n.language) }));
+  const comparisonLinks = Object.entries(COMPARISONS).map(([id, byLang]) => ({
+    to: `/compare/${id}`,
+    label: byLang[language]?.navLabel ?? byLang.ar.navLabel,
+  }));
+  return [...guideLinks, ...comparisonLinks];
 }
 
 export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {

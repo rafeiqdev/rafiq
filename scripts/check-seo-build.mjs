@@ -15,6 +15,9 @@ const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].m
 // generate-sitemap.mjs for where the "10" static routes below comes from.
 const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
 const STATIC_ROUTE_COUNT = 10;
+// Same hand-maintained list as generate-sitemap.mjs's COMPARISON_IDS —
+// src/data/comparisons.ts is hand-written, not catalog-generated.
+const COMPARISON_IDS = ['residency-diy'];
 // sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
 // URLs live in its two member sitemaps.
 const sitemap = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
@@ -109,11 +112,14 @@ for (const url of urls) {
   if (/^\/services\/[^/]+$/.test(info.route) && !readJsonLd(html, 'ld-service')) {
     errors.push(`Service schema is missing: ${url}`);
   }
+  if (/^\/compare\/[^/]+$/.test(info.route) && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
+    errors.push(`Comparison FAQ schema/content is incomplete: ${url}`);
+  }
 }
 
-const expectedUrlCount = langs.length * (STATIC_ROUTE_COUNT + categoryIds.length + serviceIds.length);
+const expectedUrlCount = langs.length * (STATIC_ROUTE_COUNT + categoryIds.length + serviceIds.length + COMPARISON_IDS.length);
 if (urls.length !== expectedUrlCount) {
-  errors.push(`Unexpected sitemap URL count: ${urls.length} (expected ${expectedUrlCount} = ${langs.length} langs × (${STATIC_ROUTE_COUNT} static + ${categoryIds.length} guides + ${serviceIds.length} services))`);
+  errors.push(`Unexpected sitemap URL count: ${urls.length} (expected ${expectedUrlCount} = ${langs.length} langs × (${STATIC_ROUTE_COUNT} static + ${categoryIds.length} guides + ${serviceIds.length} services + ${COMPARISON_IDS.length} comparisons))`);
 }
 const robots = readFileSync(join(root, 'public/robots.txt'), 'utf8');
 const sitemapDirective = robots.match(/^Sitemap:\s*(\S+)$/im)?.[1];

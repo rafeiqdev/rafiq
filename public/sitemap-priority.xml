@@ -748,4 +748,48 @@
     <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/services/health-tourism" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/services/health-tourism" />
   </url>
+  <url>
+    <loc>https://rafiq.ist/ar/compare/residency-diy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/en/compare/residency-diy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/ru/compare/residency-diy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
+  <url>
+    <loc>https://rafiq.ist/fa/compare/residency-diy</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rafiq.ist/ar/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://rafiq.ist/en/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://rafiq.ist/ru/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://rafiq.ist/fa/compare/residency-diy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rafiq.ist/ar/compare/residency-diy" />
+  </url>
 </urlset>

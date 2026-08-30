@@ -51,6 +51,7 @@ const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
 function dateModifiedFor(lang, route) {
   if (route.startsWith('/guides/')) return gitLastModified(['src/data/categoryGuides.ts']);
+  if (route.startsWith('/compare/')) return gitLastModified(['src/data/comparisons.ts']);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
   return gitLastModified([`src/i18n/locales/${lang}.json`]);
@@ -162,10 +163,47 @@ function readGuideSections() {
   return records;
 }
 
+/** Index of the character after `start` in `source` that closes the brace opened at `start`. */
+function findMatchingBrace(source, start) {
+  let depth = 0;
+  for (let i = start; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}' && --depth === 0) return i;
+  }
+  throw new Error(`Unbalanced braces from index ${start}`);
+}
+
+/**
+ * src/data/comparisons.ts's string values are double-quoted with JSON-style
+ * escaping (see that file's header for why), so — unlike the field-by-field
+ * regex parsing readGuideSeo/readGuideFaqs/readGuideSections do above — each
+ * per-language block can be sliced out by brace-matching and handed straight
+ * to JSON.parse. Simpler and more robust than replicating that regex
+ * approach for a shape with an extra nesting level (the "rows" array).
+ */
+function readComparisons() {
+  const source = readFileSync(join(root, 'src/data/comparisons.ts'), 'utf8');
+  const records = {};
+  const idPattern = /^ {2}"([^"]+)":\s*\{$/gm;
+  for (const idMatch of source.matchAll(idPattern)) {
+    const openIndex = idMatch.index + idMatch[0].length - 1;
+    const closeIndex = findMatchingBrace(source, openIndex);
+    const block = source.slice(openIndex, closeIndex + 1);
+    records[idMatch[1]] = {};
+    for (const langMatch of block.matchAll(/"(ar|en|ru|fa)":\s*\{/g)) {
+      const langOpen = langMatch.index + langMatch[0].length - 1;
+      const langClose = findMatchingBrace(block, langOpen);
+      records[idMatch[1]][langMatch[1]] = JSON.parse(block.slice(langOpen, langClose + 1));
+    }
+  }
+  return records;
+}
+
 const serviceSeo = Object.fromEntries(LANGS.map((lang) => [lang, readServiceSeo(lang)]));
 const guideSeo = readGuideSeo();
 const guideFaqs = readGuideFaqs();
 const guideSections = readGuideSections();
+const comparisons = readComparisons();
 
 // Same category order as the live SiteFooter (src/components/SiteFooter.tsx's
 // useGuideLinks, sourced from SERVICE_CATEGORIES) and the same extraction
@@ -549,6 +587,30 @@ function renderRealEstateSections(lang) {
   return parts.join('');
 }
 
+const COMPARISON_ASPECT_LABEL = { ar: 'النقطة', en: 'What matters', ru: 'Что важно', fa: 'نکته مهم' };
+
+/** Mirrors the <table> Comparison.tsx renders client-side — same three columns, same row data. */
+function renderComparisonTableHtml(comparison, lang) {
+  const rowsHtml = comparison.rows.map((row) => `
+          <tr>
+            <td>${escapeHtml(row.aspect)}</td>
+            <td>${escapeHtml(row.alone)}</td>
+            <td>${escapeHtml(row.rafiq)}</td>
+          </tr>`).join('');
+  return `
+      <table>
+        <thead>
+          <tr>
+            <th>${escapeHtml(COMPARISON_ASPECT_LABEL[lang])}</th>
+            <th>${escapeHtml(comparison.aloneLabel)}</th>
+            <th>${escapeHtml(comparison.rafiqLabel)}</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}
+        </tbody>
+      </table>`;
+}
+
 function priorityLinkItems(lang) {
   const items = [
     ['/services/res-tourist', serviceSeo[lang]?.['res-tourist']?.title],
@@ -591,9 +653,16 @@ function renderPriorityLinks(lang) {
 // renderPriorityLinks above, which is the same orphan-link gap the footer
 // change was meant to close. See the indexing audit this responds to.
 function footerGuideLinkItems(lang) {
-  return categoryIds
+  // Mirrors SiteFooter.tsx's useGuideLinks(), which appends /compare/:id
+  // links after the category guides — keep both lists in the same order so
+  // the pre-rendered shell matches what React hydrates over it.
+  const guideLinks = categoryIds
     .map((id) => [`/guides/${id}`, guideSeo[id]?.[lang]?.title])
     .filter(([, label]) => label);
+  const comparisonLinks = Object.keys(comparisons)
+    .map((id) => [`/compare/${id}`, comparisons[id]?.[lang]?.navLabel])
+    .filter(([, label]) => label);
+  return [...guideLinks, ...comparisonLinks];
 }
 
 function renderFooterGuideLinks(lang) {
@@ -637,6 +706,12 @@ function metaFor(lang, route) {
     if (record) return { ...record, content: record.intro };
   }
 
+  const comparisonMatch = route.match(/^\/compare\/([^/]+)$/);
+  if (comparisonMatch) {
+    const record = comparisons[comparisonMatch[1]]?.[lang];
+    if (record) return { title: record.seoTitle, description: record.metaDescription, content: record.intro };
+  }
+
   const fallbackName = route.split('/').filter(Boolean).join(' · ') || text(lang, 'common.appName');
   return {
     title: `${fallbackName} — ${text(lang, 'common.appName')}`,
@@ -672,6 +747,8 @@ function buildHtml(template, lang, route, meta) {
   const answerHeading = { ar: 'إجابة مختصرة', en: 'Quick answer', ru: 'Краткий ответ', fa: 'پاسخ کوتاه' }[lang];
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
+  const comparisonMatch = route.match(/^\/compare\/([^/]+)$/);
+  const comparison = comparisonMatch ? comparisons[comparisonMatch[1]]?.[lang] : undefined;
   const serviceBodyHtml = serviceMatch && meta.body ? renderServiceBody(meta.body) : '';
   let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n        ${serviceBodyHtml}\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
   const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
@@ -679,9 +756,11 @@ function buildHtml(template, lang, route, meta) {
     ? homeFaqItems(lang)
     : guideMatch
       ? guideFaqs[guideMatch[1]]?.[lang] ?? []
-      : route === '/health-tourism'
-        ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
-        : [];
+      : comparison
+        ? comparison.faqs
+        : route === '/health-tourism'
+          ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
+          : [];
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
   const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
   const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
@@ -697,6 +776,22 @@ function buildHtml(template, lang, route, meta) {
         provider: { '@id': `${SITE_URL}/#organization` },
         areaServed: { '@type': 'City', name: 'Istanbul' },
         inLanguage: lang,
+      })
+    : '';
+  // ItemList of the row-by-row comparison — the structured-data shape the
+  // ai-seo skill recommends for comparison content specifically, distinct
+  // from the generic WebPage entry every route already carries.
+  const comparisonJsonLd = comparison
+    ? escapeJsonForHtml({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: meta.title,
+        itemListElement: comparison.rows.map((row, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: row.aspect,
+          description: `${comparison.aloneLabel}: ${row.alone} — ${comparison.rafiqLabel}: ${row.rafiq}`,
+        })),
       })
     : '';
 
@@ -718,6 +813,21 @@ function buildHtml(template, lang, route, meta) {
       ${priorityLinksHtml}
     </main>`;
     }
+  } else if (comparison) {
+    const sectionHtml = comparison.sections.map((section) => `
+        <section>
+          <h2>${escapeHtml(section.heading)}</h2>
+          <p>${escapeHtml(section.body)}</p>
+        </section>`).join('');
+    staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
+        <p>${escapeHtml(comparison.intro)}</p>
+        ${renderComparisonTableHtml(comparison, lang)}${sectionHtml}${renderFaqHtml(comparison.faqs, lang)}
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
+    </main>`;
   } else {
     const extraSectionsHtml = route === '/health-tourism'
       ? renderHealthTourismSections(lang)
@@ -761,7 +871,7 @@ function buildHtml(template, lang, route, meta) {
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}" />`);
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
-    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    ${comparisonJsonLd ? `<script id="ld-comparison" type="application/ld+json">${comparisonJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
   // The footer must live INSIDE <main id="seo-fallback">: that id carries the
   // visually-hidden rule in index.html, and a sibling footer outside it paints
   // as raw visible text at the top of every page until React hydrates.
