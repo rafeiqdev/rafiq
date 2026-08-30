@@ -145,7 +145,7 @@
   white-space: nowrap;
 }
 
-.esc-compact-verified svg {
+.esc-compact-verified > svg {
   width: 11px;
   height: 11px;
   fill: none;
@@ -353,7 +353,7 @@
   color: #526a88;
 }
 
-.esc-verified-pill svg,
+.esc-verified-pill > svg,
 .esc-selection-toast svg {
   width: 14px;
   height: 14px;

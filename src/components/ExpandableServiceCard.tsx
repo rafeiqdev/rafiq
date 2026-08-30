@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { pickText } from '../data/services';
 import type { ServiceItem } from '../data/services';
 import { AppIcon, DirArrow } from './AppIcon';
+import { VerifiedBadge } from './ui/verified-badge';
 import { ServiceRequestModal } from './ServiceRequestModal';
 import { TransparentFeeBreakdown } from './TransparentFeeBreakdown';
 import { annotateGlossaryTerms } from './TermTooltip';
@@ -103,7 +104,11 @@ export function ExpandableServiceCard({
           <span className="esc-compact-title-row">
             <strong>{title}</strong>
             <span className="esc-compact-verified">
-              <CheckIcon />
+              {service.type === 'partner' ? (
+                <VerifiedBadge variant="shimmer" size={13} aria-hidden="true" />
+              ) : (
+                <CheckIcon />
+              )}
               {badgeText}
             </span>
           </span>
@@ -155,7 +160,11 @@ export function ExpandableServiceCard({
                   <div className="esc-card-topline">
                     <span className="esc-category-pill">{categoryTitle}</span>
                     <span className="esc-verified-pill">
-                      <CheckIcon />
+                      {service.type === 'partner' ? (
+                        <VerifiedBadge variant="shimmer" size={16} aria-hidden="true" />
+                      ) : (
+                        <CheckIcon />
+                      )}
                       {badgeText}
                     </span>
                   </div>
