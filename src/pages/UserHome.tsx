@@ -41,19 +41,21 @@ const NEXT_ROWS = ['soon', 'week', 'after'] as const;
 // row again there was a duplicate second bar; phones hide that header for '/',
 // so this row is their only in-page path to the sections.
 //
-// On phones the MobileTabBar already carries "الخدمات"/Services along the
-// bottom, so repeating it up here is pure duplication — items flagged
-// `inMobileTabBar` are dropped. Home is kept (it leads the row) even though the
-// bottom bar also has it; only Services is dropped. Net phone set: Home / Real
-// Estate / Medical Tourism / Map. /map MUST stay because signed-in users lose it
-// from the bottom bar (that slot becomes "Requests"). The breakpoint is
+// On phones the MobileTabBar already carries both "الرئيسية"/Home (leftmost
+// tab) and "الخدمات"/Services along the bottom, so repeating either up here is
+// pure duplication — items flagged `inMobileTabBar` are dropped. Home used to
+// be kept deliberately, but that meant the lamp highlighted "Home" while
+// already sitting on the home page — a "you are here" pointing at itself, with
+// no way to actually leave via this row. Net phone set: Real Estate / Medical
+// Tourism / Map / Services. /map MUST stay because signed-in users lose it from
+// the bottom bar (that slot becomes "Requests"). The breakpoint is
 // useIsMobile()'s 768px, which is also where <NavBar> switches labels→icons.
 //
 // Icons are lucide components (what <NavBar> expects); labels reuse existing
 // home.quickLinks.* / nav.* copy so all four languages are covered.
 const QUICK_NAV: { to: string; icon: LucideIcon; labelKey: string; inMobileTabBar?: boolean }[] = [
-  { to: '/', icon: Home, labelKey: 'nav.home' },
-  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices', inMobileTabBar: true },
+  { to: '/', icon: Home, labelKey: 'nav.home', inMobileTabBar: true },
+  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices' },
   { to: '/real-estate', icon: Building2, labelKey: 'home.quickLinks.realEstate' },
   { to: '/health-tourism', icon: HeartPulse, labelKey: 'home.quickLinks.health' },
   { to: '/map', icon: Map, labelKey: 'home.quickLinks.map' },
@@ -491,8 +493,8 @@ export function UserHome() {
           duplicated the top site nav (Home / Services / Real Estate / Medical
           Tourism / Map all live in Layout's header there), so it's dropped;
           phones hide that header for '/', so the row is their only in-page way
-          to reach the sections. Services is dropped on phones too (it's already
-          in the bottom MobileTabBar) — see QUICK_NAV. ── */}
+          to reach the sections. Home is dropped on phones too (it's already
+          the leftmost tab in the bottom MobileTabBar) — see QUICK_NAV. ── */}
       {isMobile && (
         <NavBar
           variant="inline"
