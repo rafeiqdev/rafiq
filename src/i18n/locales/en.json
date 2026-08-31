@@ -672,6 +672,11 @@
     "newsSeed": "I'd like to ask about this news from Rafiq:\n«{{title}}»\n\n{{body}}",
     "stepSeed": "I need details about this step: {{title}}\n\n{{desc}}",
     "voice": "Voice input",
+    "voiceMode": "Voice replies",
+    "voiceModeOn": "Voice replies on — tap to mute",
+    "voiceModeOff": "Voice replies off — tap to enable",
+    "voiceErrorPermission": "Microphone access was denied. Please allow it in your browser settings.",
+    "voiceErrorGeneric": "Couldn't hear you — please try again.",
     "newTopic": "New topic",
     "attach": "Attach a file",
     "attaching": "Uploading...",
@@ -707,7 +712,18 @@
       "booked": "appointment booked",
       "messages": "Messages: {{count}}"
     },
-    "attachedNote": "I attached these files: {{files}}"
+    "attachedNote": "I attached these files: {{files}}",
+    "autoBook": {
+      "title": "Ready to book your appointment",
+      "body": "Here is the earliest available time. Confirm it, or pick another time yourself.",
+      "slotLabel": "Suggested time",
+      "phoneLabel": "Your phone number (WhatsApp if possible)",
+      "confirm": "Confirm appointment",
+      "changeTime": "Choose another time",
+      "booking": "Booking...",
+      "errorPast": "That time just passed — here is a new suggested time.",
+      "errorGeneric": "Couldn't book the appointment. Please try again."
+    }
   },
   "booking": {
     "title": "Book a free online appointment",

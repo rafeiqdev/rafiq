@@ -34,8 +34,39 @@ const READY_MARKER = '[[READY]]';
 const OPENING_DISCLAIMER =
   'سأسألك عدة أسئلة قصيرة لأفهم حالتك وأحوّل طلبك للفريق المختص. لن أقدّم قرارًا قانونيًا أو وعدًا بالخدمة هنا.';
 
-function intakePrompt(lang: string): string {
+interface Identity {
+  name?: string;
+  phone?: string;
+  situation?: string;
+}
+
+/** `profiles.situation` values, described per language for the prompt (not shown to the user verbatim). */
+const SITUATION_LABEL: Record<string, Record<string, string>> = {
+  planning: { ar: 'يخطط للانتقال إلى إسطنبول', en: 'planning to move to Istanbul', ru: 'планирует переезд в Стамбул', fa: 'در حال برنامه‌ریزی برای مهاجرت به استانبول' },
+  arrived: { ar: 'وصل حديثًا إلى إسطنبول', en: 'recently arrived in Istanbul', ru: 'недавно прибыл(а) в Стамбул', fa: 'به‌تازگی به استانبول رسیده' },
+  visiting: { ar: 'في زيارة قصيرة لإسطنبول', en: 'visiting Istanbul short-term', ru: 'находится в Стамбуле проездом', fa: 'در سفر کوتاه‌مدت به استانبول' },
+  student: { ar: 'طالب/ة في إسطنبول', en: 'a student in Istanbul', ru: 'студент(ка) в Стамбуле', fa: 'دانشجو در استانبول' },
+  resident: { ar: 'مقيم في إسطنبول', en: 'a resident of Istanbul', ru: 'резидент Стамбула', fa: 'ساکن استانبول' },
+  long_resident: { ar: 'مقيم منذ فترة طويلة في إسطنبول', en: 'a long-term resident of Istanbul', ru: 'давний резидент Стамбула', fa: 'ساکن طولانی‌مدت استانبول' },
+};
+
+/** "KNOWN CLIENT" prompt line, built only from whatever identity fields are actually present. */
+function identityLine(lang: string, identity?: Identity): string {
+  if (!identity) return '';
+  const parts: string[] = [];
+  if (identity.name) parts.push(`name: ${identity.name}`);
+  if (identity.phone) parts.push(`phone: ${identity.phone}`);
+  if (identity.situation) {
+    const label = SITUATION_LABEL[identity.situation]?.[lang] ?? SITUATION_LABEL[identity.situation]?.en;
+    if (label) parts.push(`situation: ${label}`);
+  }
+  if (parts.length === 0) return '';
+  return `KNOWN CLIENT — ${parts.join(', ')}. Do not ask for their name or phone number, you already have them. Address them by name where it feels natural, and tailor your questions to this situation starting from your very first question.`;
+}
+
+export function intakePrompt(lang: string, identity?: Identity): string {
   const language = LANG_NAME[lang] ?? 'the same language as the user';
+  const known = identityLine(lang, identity);
   return [
     'You are "رفيق الاستقبال" (Rafiq Reception), the intake assistant for a service that helps foreigners living in or moving to Istanbul, Turkey.',
     `LANGUAGE: reply in whichever language the user's LATEST message is written in — never the site's interface language. If the user switches language mid-conversation, switch with them starting from your very next reply. Only when there is no user message yet (the very first turn you generate) default to ${language}.`,
@@ -47,6 +78,7 @@ function intakePrompt(lang: string): string {
     '',
     'OPENING',
     `Your very first message of the conversation must begin with this sentence, rendered in ${language} (canonical Arabic wording: "${OPENING_DISCLAIMER}"). Then ask question 1 in the same message. Never repeat this disclaimer in later messages. Exception: when the conversation opens with a shared news post, follow rule 10 instead.`,
+    ...(known ? ['', known] : []),
     '',
     'RULES',
     '1. Ask exactly ONE question per message. Never bundle two questions together.',
@@ -140,7 +172,7 @@ export default async function handler(req: Request): Promise<Response> {
   // No key configured yet → tell the client to use its built-in responder.
   if (!key) return json({ error: 'no_key' });
 
-  let payload: { messages?: InMessage[]; lang?: string; model?: string; summarize?: boolean };
+  let payload: { messages?: InMessage[]; lang?: string; model?: string; summarize?: boolean; identity?: Identity };
   try {
     payload = await req.json();
   } catch {
@@ -150,6 +182,7 @@ export default async function handler(req: Request): Promise<Response> {
   const messages = Array.isArray(payload.messages) ? payload.messages : [];
   const lang = typeof payload.lang === 'string' ? payload.lang : 'en';
   const summarize = payload.summarize === true;
+  const identity = payload.identity && typeof payload.identity === 'object' ? payload.identity : undefined;
 
   const contents: GeminiContent[] = messages
     .filter((m) => m && typeof m.text === 'string' && m.text.trim())
@@ -180,7 +213,7 @@ export default async function handler(req: Request): Promise<Response> {
       return json({ summary: prose || res.text, case: parsed ?? undefined });
     }
 
-    const res = await callWithFallback(key, model, intakePrompt(lang), contents);
+    const res = await callWithFallback(key, model, intakePrompt(lang, identity), contents);
     if (!res.text) return json({ error: 'upstream_error', status: res.failStatus, detail: res.failDetail });
 
     // The model appends [[READY]] once it has gathered enough. Detect + strip it.

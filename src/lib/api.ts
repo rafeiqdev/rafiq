@@ -2325,8 +2325,14 @@ export interface ChatSummary {
   caseFile?: Record<string, unknown>;
 }
 
+export interface ChatIdentity {
+  name?: string | null;
+  phone?: string | null;
+  situation?: string | null;
+}
+
 export const ai = {
-  async chat(messages: ChatMessage[], lang: string, onDelta: (text: string) => void): Promise<ChatResult> {
+  async chat(messages: ChatMessage[], lang: string, onDelta: (text: string) => void, identity?: ChatIdentity): Promise<ChatResult> {
     const last = messages[messages.length - 1]?.text ?? '';
     const history = messages.slice(0, -1).map((m) => ({ role: m.role, text: m.text }));
     // The deterministic responder is only a safety net for when the AI service
@@ -2341,7 +2347,7 @@ export const ai = {
       const res = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: messages.map((m) => ({ role: m.role, text: m.text })), lang }),
+        body: JSON.stringify({ messages: messages.map((m) => ({ role: m.role, text: m.text })), lang, identity }),
       });
       if (res.ok) {
         const d = (await res.json()) as { reply?: string; done?: boolean; error?: string };

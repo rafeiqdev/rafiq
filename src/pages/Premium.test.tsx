@@ -18,12 +18,18 @@ vi.mock('../context/AppContext', () => ({ useApp: () => useAppMock() }));
 
 const chatMock = vi.fn();
 const uploadMediaMock = vi.fn();
+const summarizeMock = vi.fn();
+const createBookingMock = vi.fn();
 vi.mock('../lib/api', () => ({
   ai: {
     chat: (...a: unknown[]) => chatMock(...a),
-    summarize: vi.fn().mockResolvedValue('summary'),
+    summarize: (...a: unknown[]) => summarizeMock(...a),
   },
-  bookings: { uploadMedia: (...a: unknown[]) => uploadMediaMock(...a) },
+  bookings: {
+    uploadMedia: (...a: unknown[]) => uploadMediaMock(...a),
+    create: (...a: unknown[]) => createBookingMock(...a),
+  },
+  profileApi: { setPhone: vi.fn().mockResolvedValue({ ok: true }) },
   ApiError: class ApiError extends Error {
     code?: string;
   },
@@ -41,7 +47,7 @@ import { Premium } from './Premium';
 
 function setup() {
   useAppMock.mockReturnValue({
-    user: { id: 'u1', name: 'Test', isAdmin: false },
+    user: { id: 'u1', name: 'Test', phone: '+905551112233', isAdmin: false },
     authLoading: false,
     tier: 'pro', // lifts the topic quota so it can't interfere
   });
@@ -62,7 +68,11 @@ beforeEach(() => {
   localStorage.clear();
   chatMock.mockReset();
   uploadMediaMock.mockReset();
+  summarizeMock.mockReset();
+  createBookingMock.mockReset();
   chatMock.mockResolvedValue({ reply: 'ok', done: false });
+  summarizeMock.mockResolvedValue({ summary: 'summary', caseFile: undefined });
+  createBookingMock.mockResolvedValue({ id: 'b1' });
 });
 
 describe('attachments are visible to the assistant', () => {
@@ -129,7 +139,12 @@ describe('a topic ends when the appointment is booked', () => {
     const confirm = await screen.findByText('chat.ready.cta');
     fireEvent.click(confirm);
 
-    fireEvent.click(await screen.findByText('confirm-booking'));
+    // the assistant already has the account's phone, so the in-chat card
+    // offers to confirm the auto-picked slot directly — no form to open.
+    const autoBookConfirm = await screen.findByText('chat.autoBook.confirm');
+    fireEvent.click(autoBookConfirm);
+
+    await waitFor(() => expect(createBookingMock).toHaveBeenCalled());
 
     // the topic is now closed: the "new topic" card replaces the composer
     expect(await screen.findByText('chat.closed.bookedTitle')).toBeInTheDocument();
