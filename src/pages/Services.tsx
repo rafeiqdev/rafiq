@@ -85,19 +85,29 @@ export function Services() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       {/* hero */}
-      <div className="relative rounded-card overflow-hidden animate-fade-in">
+      <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
+        <defs>
+          <clipPath id="servicesHeroCurve" clipPathUnits="objectBoundingBox">
+            <path d="M0,0 H1 V0.93 C0.77,0.93 0.63,1 0.46,1 C0.29,1 0.17,0.94 0,0.93 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+      <div
+        className="relative rounded-card overflow-hidden animate-fade-in"
+        style={{ clipPath: 'url(#servicesHeroCurve)' }}
+      >
         <img
           src="/img/services-hero.webp"
           alt=""
           aria-hidden="true"
           loading="eager"
           decoding="async"
-          width={1600}
-          height={900}
+          width={1909}
+          height={824}
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/20 to-white/10" />
-        <div className="relative px-6 py-12 sm:py-16 text-center">
+        <div className="relative px-6 py-16 sm:py-24 pb-20 sm:pb-28 text-center">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-navy drop-shadow-sm">{t('services.title')}</h1>
           <p className="mt-3 text-navy/80 max-w-2xl mx-auto text-sm sm:text-base">{t('services.subtitle')}</p>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur px-4 py-1.5 text-xs font-semibold text-navy shadow-sm ring-1 ring-navy/10">
