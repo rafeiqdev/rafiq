@@ -1,12 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { resolveNotificationText } from '../lib/notificationText';
+import { notificationIconName } from '../lib/notificationIcon';
+import type { AppNotification } from '../lib/types';
 import { AppIcon } from './AppIcon';
 import { ToastNotification } from './ui/toast-notification';
+import { DynamicIsland } from './ui/dynamic-island';
 
 const AUTO_DISMISS_MS = 6000;
+/** How long the island stays expanded before shrinking to an icon-only pill
+ *  — mirrors real Dynamic Island behavior (expand → hold → collapse) rather
+ *  than just popping in and out. */
+const COLLAPSE_AFTER_MS = 3500;
 
 /**
  * The live popup for a notification that arrives while the tab is open —
@@ -14,10 +21,11 @@ const AUTO_DISMISS_MS = 6000;
  * AppContext (see the unread-count poll there for what sets it).
  *
  * Desktop gets the framecn-style card, bottom-corner, English-reading-order
- * layout that reuses `ui/toast-notification`. Mobile gets a slimmer top
- * banner instead of that same wide card: at phone width the card's fixed
- * 320-420px box either overflows the screen or sits on top of MobileTabBar,
- * and a bottom-right corner has no meaning in a single-column layout anyway.
+ * layout that reuses `ui/toast-notification`. Mobile gets an Apple-style
+ * Dynamic Island pill (`ui/dynamic-island`) instead of that same wide card:
+ * at phone width the card's fixed 320-420px box either overflows the screen
+ * or sits on top of MobileTabBar, and a bottom-right corner has no meaning
+ * in a single-column layout anyway.
  */
 export function NotificationToastHost({ isMobile }: { isMobile: boolean }) {
   const { t } = useTranslation();
@@ -39,23 +47,7 @@ export function NotificationToastHost({ isMobile }: { isMobile: boolean }) {
   };
 
   if (isMobile) {
-    return (
-      <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.5rem)] z-[70] flex justify-center px-4">
-        <button
-          type="button"
-          onClick={open}
-          className="toast-mobile-enter pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-navy px-4 py-3 text-start shadow-xl transition-transform active:scale-[0.98]"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white">
-            <AppIcon name={toast.key === 'custom' ? 'megaphone' : 'bell'} className="h-[18px] w-[18px]" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-bold text-white">{title}</span>
-            {body && <span className="block truncate text-[12px] text-white/70">{body}</span>}
-          </span>
-        </button>
-      </div>
-    );
+    return <MobileIslandToast notification={toast} title={title} body={body} onOpen={open} />;
   }
 
   return (
@@ -66,6 +58,39 @@ export function NotificationToastHost({ isMobile }: { isMobile: boolean }) {
         variant="info"
         background="transparent"
         className="pointer-events-auto cursor-pointer"
+      />
+    </div>
+  );
+}
+
+function MobileIslandToast({
+  notification,
+  title,
+  body,
+  onOpen,
+}: {
+  notification: AppNotification;
+  title: string;
+  body: string;
+  onOpen: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    setExpanded(true);
+    const id = setTimeout(() => setExpanded(false), COLLAPSE_AFTER_MS);
+    return () => clearTimeout(id);
+  }, [notification.id]);
+
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.5rem)] z-[70] flex justify-center px-4">
+      <DynamicIsland
+        expanded={expanded}
+        icon={<AppIcon name={notificationIconName(notification.key)} className="h-3.5 w-3.5" />}
+        title={title}
+        body={body || undefined}
+        onClick={onOpen}
+        className="pointer-events-auto"
       />
     </div>
   );
