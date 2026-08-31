@@ -8,6 +8,7 @@ import { LangSwitcher } from './LangSwitcher';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
 import { NotificationBell } from './NotificationBell';
+import { NotificationToastHost } from './NotificationToastHost';
 import { TopRatesBar } from './TopRatesBar';
 import { SiteFooter } from './SiteFooter';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -488,6 +489,7 @@ export function Layout() {
         </div>
       )}
       <ConsentBanner />
+      <NotificationToastHost isMobile={isMobile} />
     </div>
   );
 }

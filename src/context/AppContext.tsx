@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { AI_FREE_PERIOD, ApiError, auth, config as configApi, notifications, profileApi, referrals } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { setAnalyticsUser, track } from '../lib/analytics';
-import type { AppConfig, PlanTier, Profile, Subscription, User } from '../lib/types';
+import type { AppConfig, AppNotification, PlanTier, Profile, Subscription, User } from '../lib/types';
 import { EMPTY_PROFILE } from '../lib/types';
 
 const PROFILE_KEY = 'rafiq_profile';
@@ -64,6 +64,10 @@ interface AppState {
   authError: string | null;
   langSelected: boolean;
   unread: number;
+  /** Newest notification that just pushed `unread` up while the tab was open
+   *  — the live toast popup renders this and clears it on dismiss/timeout. */
+  toast: AppNotification | null;
+  dismissToast: () => void;
   appConfig: AppConfig;
   setLangSelected: (v: boolean) => void;
   updateProfile: (patch: Partial<Profile>) => void;
@@ -85,6 +89,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
+  const [toast, setToast] = useState<AppNotification | null>(null);
+  const dismissToast = useCallback(() => setToast(null), []);
   const [appConfig, setAppConfig] = useState<AppConfig>({
     googleClientId: null,
     freeChatMessages: 3,
@@ -181,13 +187,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // bell polls its badge instead of waiting for the next full page load.
   useEffect(() => {
     if (!user) return;
+    // Seeded from the badge count `refresh()` already loaded for this user, so
+    // the very first tick compares against something real instead of 0 — a
+    // returning user with a pre-existing backlog must not get toasted for it.
+    let prev = unread;
     const tick = () =>
       notifications
         .unreadCount()
-        .then(setUnread)
+        .then((count) => {
+          setUnread(count);
+          if (count > prev) {
+            // A real push channel would hand us the new row directly; polling
+            // only gives a count, so the newest unread item is fetched to
+            // stand in for "the notification that just arrived".
+            notifications
+              .list()
+              .then((items) => setToast(items.find((n) => !n.read) ?? null))
+              .catch(() => {});
+          }
+          prev = count;
+        })
         .catch(() => {});
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const updateProfile = useCallback(
@@ -263,6 +286,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       authError,
       langSelected,
       unread,
+      toast,
+      dismissToast,
       appConfig,
       setLangSelected,
       updateProfile,
@@ -272,7 +297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       signOut,
       refresh,
     }),
-    [user, authLoading, tier, subscription, profile, onboardingCompleted, authError, langSelected, unread, appConfig, setLangSelected, updateProfile, login, register, googleSignIn, signOut, refresh],
+    [user, authLoading, tier, subscription, profile, onboardingCompleted, authError, langSelected, unread, toast, dismissToast, appConfig, setLangSelected, updateProfile, login, register, googleSignIn, signOut, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

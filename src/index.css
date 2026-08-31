@@ -612,6 +612,22 @@ html[dir='rtl'] li {
   animation: bellRing 3.6s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
 }
 
+/* mobile live-notification banner (NotificationToastHost) — slides down from
+   the safe-area top instead of the desktop card's bottom-corner rise. */
+@keyframes toastMobileEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.toast-mobile-enter {
+  animation: toastMobileEnter 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* scrolling currency ticker (two identical groups, translate -50% = seamless loop) */
 @keyframes ticker {
   from {
@@ -801,6 +817,7 @@ html[dir='rtl'] li {
   .bell-clap,
   .bell-badge,
   .bell-ring,
+  .toast-mobile-enter,
   .hover-spring,
   .motion-card-glow,
   .rmap-pin,
