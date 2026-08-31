@@ -106,10 +106,10 @@ export function Services() {
           height={824}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/20 to-white/10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/35 to-black/15" />
         <div className="relative px-6 py-16 sm:py-24 pb-20 sm:pb-28 text-center">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-navy drop-shadow-sm">{t('services.title')}</h1>
-          <p className="mt-3 text-navy/80 max-w-2xl mx-auto text-sm sm:text-base">{t('services.subtitle')}</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">{t('services.title')}</h1>
+          <p className="mt-3 text-white/90 max-w-2xl mx-auto text-sm sm:text-base drop-shadow-[0_1px_4px_rgba(0,0,0,0.55)]">{t('services.subtitle')}</p>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur px-4 py-1.5 text-xs font-semibold text-navy shadow-sm ring-1 ring-navy/10">
             <AppIcon name="shield-check" className="w-4 h-4" />
             {t('services.trustNote')}
