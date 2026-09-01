@@ -25,9 +25,9 @@ function ChatUI() {
             <button
               onClick={c.toggleVoiceMode}
               aria-pressed={c.voiceModeOn}
-              aria-label={t(c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
-              title={t(c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
-              className={`btn-secondary !h-9 px-3 text-xs ${c.voiceModeOn ? 'text-brand-red' : ''}`}
+              aria-label={t(c.preparingSpeech ? 'chat.voicePreparing' : c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
+              title={t(c.preparingSpeech ? 'chat.voicePreparing' : c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
+              className={`btn-secondary !h-9 px-3 text-xs ${c.voiceModeOn ? 'text-brand-red' : ''} ${c.preparingSpeech ? 'animate-pulse' : ''}`}
             >
               <SpeakerGlyph className="w-3.5 h-3.5" active={c.speaking} />
               {t('chat.voiceMode')}

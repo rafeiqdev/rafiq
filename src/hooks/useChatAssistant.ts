@@ -85,6 +85,7 @@ export function useChatAssistant() {
   const [viewing, setViewing] = useState<ArchivedTopic | null>(null);
   const [voiceModeOn, setVoiceModeOn] = useState(() => loadJson<boolean>(voiceModeKey(userId), false));
   const [speaking, setSpeaking] = useState(false);
+  const [preparingSpeech, setPreparingSpeech] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   /** which ?topic= has already been seeded, so switching services reseeds */
@@ -159,6 +160,7 @@ export function useChatAssistant() {
       }
     }
     setSpeaking(false);
+    setPreparingSpeech(false);
   };
 
   /** Same-device fallback voice, used only when the cloud TTS call fails. */
@@ -194,17 +196,28 @@ export function useChatAssistant() {
     if (!voiceModeOn || !text.trim()) return;
     stopSpeaking();
     const token = speakTokenRef.current;
+    // Cloud TTS generation takes a few seconds — flag it so the UI can show
+    // "preparing audio" instead of looking stuck between the text landing and
+    // the voice actually starting.
+    setPreparingSpeech(true);
     try {
       const url = await ai.speak(text);
       if (speakTokenRef.current !== token) return; // interrupted while awaiting
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onplay = () => setSpeaking(true);
+      audio.onplay = () => {
+        setPreparingSpeech(false);
+        setSpeaking(true);
+      };
       audio.onended = () => setSpeaking(false);
-      audio.onerror = () => setSpeaking(false);
+      audio.onerror = () => {
+        setPreparingSpeech(false);
+        setSpeaking(false);
+      };
       await audio.play();
     } catch {
       if (speakTokenRef.current !== token) return; // interrupted while awaiting
+      setPreparingSpeech(false);
       speakWithBrowserVoice(text);
     }
   };
@@ -322,12 +335,15 @@ export function useChatAssistant() {
         i18n.language,
         (partial) => setMessages((m) => m.map((msg) => (msg.ts === placeholderTs ? { ...msg, text: partial } : msg))),
         { name: user?.name ?? null, phone: user?.phone ?? null, situation: user?.situation ?? null },
+        // Start TTS generation (the slow step) the instant the real reply is
+        // known, in parallel with the word-by-word typing animation below —
+        // not after it, which used to stack both delays back to back.
+        (fullReply) => speak(fullReply),
       );
       setMessages((m) =>
         m.map((msg) => (msg.ts === placeholderTs ? { ...msg, text: result.reply, streaming: false, showConfirm: result.done } : msg)),
       );
       if (result.done) setReadyToBook(true);
-      speak(result.reply);
     } catch {
       setMessages((m) => m.filter((msg) => msg.ts !== placeholderTs));
       setError('chat.error');
@@ -600,6 +616,7 @@ export function useChatAssistant() {
     voiceModeOn,
     toggleVoiceMode,
     speaking,
+    preparingSpeech,
     stopSpeaking,
     send,
     retry,

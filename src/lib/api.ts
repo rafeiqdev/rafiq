@@ -2332,7 +2332,20 @@ export interface ChatIdentity {
 }
 
 export const ai = {
-  async chat(messages: ChatMessage[], lang: string, onDelta: (text: string) => void, identity?: ChatIdentity): Promise<ChatResult> {
+  /**
+   * `onReply`, if given, fires the instant the full reply text is known —
+   * BEFORE the word-by-word streaming animation below plays it out. Voice
+   * mode hooks into this to start TTS generation (the slowest step) while
+   * the text is still animating on screen, instead of only after, which
+   * used to stack the two delays back to back.
+   */
+  async chat(
+    messages: ChatMessage[],
+    lang: string,
+    onDelta: (text: string) => void,
+    identity?: ChatIdentity,
+    onReply?: (text: string) => void,
+  ): Promise<ChatResult> {
     const last = messages[messages.length - 1]?.text ?? '';
     const history = messages.slice(0, -1).map((m) => ({ role: m.role, text: m.text }));
     // The deterministic responder is only a safety net for when the AI service
@@ -2357,6 +2370,8 @@ export const ai = {
     } catch {
       /* offline or function unavailable — keep the fallback reply */
     }
+
+    onReply?.(reply);
 
     // simulate token streaming so the UI animates like the old SSE endpoint
     const words = reply.split(' ');

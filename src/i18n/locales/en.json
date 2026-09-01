@@ -675,6 +675,7 @@
     "voiceMode": "Voice replies",
     "voiceModeOn": "Voice replies on — tap to mute",
     "voiceModeOff": "Voice replies off — tap to enable",
+    "voicePreparing": "Preparing the voice reply…",
     "voiceErrorPermission": "Microphone access is blocked for this specific site. Tap the lock icon 🔒 next to the site's address, allow the microphone there, then reload the page.",
     "voiceErrorGeneric": "Couldn't hear you — please try again.",
     "newTopic": "New topic",

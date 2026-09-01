@@ -55,8 +55,8 @@ function MobileChatUI() {
             <button
               onClick={c.toggleVoiceMode}
               aria-pressed={c.voiceModeOn}
-              aria-label={t(c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
-              className={`inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold ${c.voiceModeOn ? 'text-brand-red' : 'text-white'}`}
+              aria-label={t(c.preparingSpeech ? 'chat.voicePreparing' : c.voiceModeOn ? 'chat.voiceModeOn' : 'chat.voiceModeOff')}
+              className={`inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-bold ${c.voiceModeOn ? 'text-brand-red' : 'text-white'} ${c.preparingSpeech ? 'animate-pulse' : ''}`}
             >
               <SpeakerGlyph className="w-3.5 h-3.5" active={c.speaking} />
               {t('chat.voiceMode')}
