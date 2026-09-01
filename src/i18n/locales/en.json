@@ -2465,6 +2465,15 @@
       "cta": "Sign up to save progress"
     }
   },
+  "journeyProgressBar": {
+    "title": "Your journey progress",
+    "milestones": {
+      "25": "Great start! You're on the right track.",
+      "50": "Halfway there!",
+      "75": "Almost done, keep going!",
+      "100": "Well done! You've completed your whole journey."
+    }
+  },
   "account": {
     "title": "My account",
     "situation": "Current situation",
