@@ -17,6 +17,7 @@ import {
 import type { ArchivedTopic } from '../lib/chatHistory';
 import { CASE_FILE_DIVIDER } from '../lib/bookingSummary';
 import { nextAvailableSlot } from '../lib/scheduling';
+import { pickVoice } from '../lib/speechVoice';
 import type { BookingMedia, ChatMessage } from '../lib/types';
 import { MAX_MEDIA_MB, formatFileList, wantsMedia } from '../components/ChatAttach';
 import { SERVICES, pickText } from '../data/services';
@@ -93,6 +94,8 @@ export function useChatAssistant() {
   const topic = sp.get('topic');
   const newsId = sp.get('news');
   const step = sp.get('step');
+  /** situation-suggestion id (see SituationSuggestions) — swaps the generic topicSeed for the exact suggested question */
+  const askId = sp.get('ask');
 
   // Covers every way of reaching the chat (service action modal, guide page
   // link, nav bar, direct URL) with one call, rather than tracking each entry
@@ -118,6 +121,20 @@ export function useChatAssistant() {
   const voiceSupported = !!SR;
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
+  // Installed system voices load asynchronously on most browsers — cache them
+  // in a ref (not state) since `speak()` only needs the latest list, not a re-render.
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  useEffect(() => {
+    if (!ttsSupported) return;
+    const load = () => {
+      voicesRef.current = window.speechSynthesis.getVoices();
+    };
+    load();
+    window.speechSynthesis.addEventListener('voiceschanged', load);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stopSpeaking = () => {
     if (!ttsSupported) return;
     try {
@@ -133,8 +150,15 @@ export function useChatAssistant() {
     if (!ttsSupported || !voiceModeOn || !text.trim()) return;
     try {
       window.speechSynthesis.cancel();
+      const bcp47 = SPEECH_LANG[i18n.language] ?? 'en-US';
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = SPEECH_LANG[i18n.language] ?? 'en-US';
+      utter.lang = bcp47;
+      const voice = pickVoice(voicesRef.current, bcp47);
+      if (voice) utter.voice = voice;
+      // A touch slower than the 1.0 default reads less harsh/robotic on the
+      // compact offline voices most OSes fall back to when no natural voice
+      // for the language is installed.
+      utter.rate = 0.95;
       utter.onstart = () => setSpeaking(true);
       utter.onend = () => setSpeaking(false);
       utter.onerror = () => setSpeaking(false);
@@ -431,7 +455,11 @@ export function useChatAssistant() {
     setClosedByBooking(false);
     persistClosed(userId, false);
 
-    ask(t('chat.topicSeed', { service: pickText(svc.title, i18n.language) }), false, []);
+    // ?ask=<suggestionId> (from the Services page's situation suggestions) carries
+    // the exact question the user tapped — prefer it over the generic topicSeed.
+    const askKey = askId ? `services.situationSuggest.questions.${askId}` : '';
+    const askText = askKey ? t(askKey, { defaultValue: '' }) : '';
+    ask(askText || t('chat.topicSeed', { service: pickText(svc.title, i18n.language) }), false, []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic]);
 

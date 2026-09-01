@@ -1134,6 +1134,30 @@
       "guide": "Istanbul residence guide",
       "open": "Explore"
     },
+    "situationSuggest": {
+      "title": "Questions people in your situation usually ask",
+      "subtitle": "Tap one to open a chat about it right away.",
+      "questions": {
+        "planning-eligibility": "What's the best residence path for my situation?",
+        "planning-visa": "What documents and requirements do I need to enter Turkey?",
+        "planning-bank": "Can I open a Turkish bank account before I arrive?",
+        "arrived-tax": "How do I get my tax number now that I've arrived?",
+        "arrived-sim": "How do I get a Turkish SIM card?",
+        "arrived-address": "How do I officially register my home address?",
+        "visiting-airport": "I need airport pickup and drop-off.",
+        "visiting-tours": "What are the best day tours in Istanbul?",
+        "visiting-hotel": "Can you help me book a hotel?",
+        "student-residence": "How do I get a student residence permit?",
+        "student-insurance": "How do I enroll in student public health insurance (GSS)?",
+        "student-university": "How do I apply to a Turkish university as a foreigner?",
+        "resident-renew": "When and how should I renew my residence permit?",
+        "resident-company": "I want to start a small company in Turkey — where do I begin?",
+        "resident-accounting": "I need an accountant to handle my company's taxes.",
+        "longres-citizenship": "What are the requirements for Turkish citizenship?",
+        "longres-realestate": "I'm looking to buy property in Turkey.",
+        "longres-eldercare": "I need care coordination for an elderly family member."
+      }
+    },
     "searchPlaceholder": "Search services…",
     "allCategories": "All",
     "noResults": "No services match your search.",

@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor } from '../data/services';
 import type { ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
+import { useApp } from '../context/AppContext';
 import { AppIcon } from '../components/AppIcon';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
+import { SituationSuggestions } from '../components/SituationSuggestions';
 import { usePageMeta } from '../lib/seo';
 import { track, normalizeSearchQuery } from '../lib/analytics';
 
@@ -40,6 +42,7 @@ export function Services() {
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
+  const { profile } = useApp();
 
   usePageMeta({
     title: `${t('services.title')} — ${t('common.appName')}`,
@@ -116,6 +119,9 @@ export function Services() {
           </div>
         </div>
             </div>
+
+      {/* personalized suggestions — only for the untouched landing state, and only when we know the visitor's situation */}
+      {trimToPopular && <SituationSuggestions situation={profile.situation} services={services} />}
 
       <section aria-labelledby="residence-spotlight-title" className="mt-8 border-y border-cream-dark bg-cream/45 px-5 py-6 sm:px-6">
         <h2 id="residence-spotlight-title" className="text-xl font-extrabold text-navy">
