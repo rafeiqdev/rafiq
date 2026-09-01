@@ -2393,6 +2393,24 @@ export const ai = {
     const firstUser = messages.find((m) => m.role === 'user')?.text ?? '';
     return { summary: firstUser.slice(0, 200) };
   },
+
+  /**
+   * Real (non-robotic) speech for voice mode, via /api/tts (Gemini TTS —
+   * same key as chat). Returns a playable data: URL. Throws if unavailable
+   * (no key, quota, network) — the caller falls back to the browser's own
+   * voice rather than going silent.
+   */
+  async speak(text: string): Promise<string> {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) throw new Error('tts_unavailable');
+    const d = (await res.json()) as { audio?: string; mime?: string; error?: string };
+    if (!d?.audio) throw new Error(d?.error ?? 'tts_unavailable');
+    return `data:${d.mime ?? 'audio/wav'};base64,${d.audio}`;
+  },
 };
 
 // ---------- FX rates (server-synced, read-only from the client) --------------

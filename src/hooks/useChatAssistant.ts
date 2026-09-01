@@ -119,13 +119,17 @@ export function useChatAssistant() {
   // Web Speech API (browser-dependent). Only show the mic button if supported.
   const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
   const voiceSupported = !!SR;
-  const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  // Cloud TTS (the primary path) only needs fetch + Audio() — universal in any
+  // real browser. window.speechSynthesis (checked separately below where it's
+  // used) is just the offline/failure fallback, so it doesn't gate this.
+  const ttsSupported = typeof window !== 'undefined' && typeof Audio !== 'undefined';
+  const browserVoiceSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
   // Installed system voices load asynchronously on most browsers — cache them
   // in a ref (not state) since `speak()` only needs the latest list, not a re-render.
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   useEffect(() => {
-    if (!ttsSupported) return;
+    if (!browserVoiceSupported) return;
     const load = () => {
       voicesRef.current = window.speechSynthesis.getVoices();
     };
@@ -135,21 +139,32 @@ export function useChatAssistant() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cloud TTS audio playback + guard against a stale fetch resolving after a
+  // newer speak()/stopSpeaking() call (network response order isn't guaranteed).
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const speakTokenRef = useRef(0);
+
   const stopSpeaking = () => {
-    if (!ttsSupported) return;
-    try {
-      window.speechSynthesis.cancel();
-    } catch {
-      /* ignore */
+    speakTokenRef.current += 1;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    if (browserVoiceSupported) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        /* ignore */
+      }
     }
     setSpeaking(false);
   };
 
-  /** Speaks the FULL reply once it has landed — never the word-by-word streaming partials. */
-  const speak = (text: string) => {
-    if (!ttsSupported || !voiceModeOn || !text.trim()) return;
+  /** Same-device fallback voice, used only when the cloud TTS call fails. */
+  const speakWithBrowserVoice = (text: string) => {
+    if (!browserVoiceSupported) return;
     try {
-      window.speechSynthesis.cancel();
       const bcp47 = SPEECH_LANG[i18n.language] ?? 'en-US';
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = bcp47;
@@ -165,6 +180,32 @@ export function useChatAssistant() {
       window.speechSynthesis.speak(utter);
     } catch {
       setSpeaking(false);
+    }
+  };
+
+  /**
+   * Speaks the FULL reply once it has landed — never the word-by-word
+   * streaming partials. Prefers real Gemini TTS (same voice for every
+   * visitor regardless of what's installed on their device); if that call
+   * fails (no key, quota, offline) it falls back to the browser's own voice
+   * rather than staying silent.
+   */
+  const speak = async (text: string) => {
+    if (!voiceModeOn || !text.trim()) return;
+    stopSpeaking();
+    const token = speakTokenRef.current;
+    try {
+      const url = await ai.speak(text);
+      if (speakTokenRef.current !== token) return; // interrupted while awaiting
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onplay = () => setSpeaking(true);
+      audio.onended = () => setSpeaking(false);
+      audio.onerror = () => setSpeaking(false);
+      await audio.play();
+    } catch {
+      if (speakTokenRef.current !== token) return; // interrupted while awaiting
+      speakWithBrowserVoice(text);
     }
   };
 
