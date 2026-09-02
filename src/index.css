@@ -101,6 +101,20 @@ textarea,
   word-break: break-word;
 }
 
+/* ── Phone scale ──
+   Every Tailwind size (type, padding, gaps, radii, icon boxes) is in rem, so
+   shrinking the root font on phones scales the whole interface down together
+   instead of patching one class at a time. 14px is 87.5% of the desktop scale:
+   the owner's report was that every page looked oversized on a phone and some
+   elements were pushed off-screen. Inputs stay pinned at 16px further down
+   (the iOS auto-zoom guard), so forms are unaffected. Values written in px
+   (hero video heights, 10px badges) keep their size, which is what we want. */
+@media (max-width: 767px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 /* ── Phone shrink-to-fit: compact the desktop scale so everything fits ──
    The base styles are sized for desktop; on phones they were too big and ate
    the ~360px width. Trim the biggest headings and paddings on small screens. */

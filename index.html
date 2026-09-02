@@ -262,6 +262,73 @@
     </script>
   </head>
   <body>
+    <!-- Boot loader: the same Rafiq wordmark the app uses for every waiting
+         state, drawn here in plain HTML/CSS so it is on screen from the very
+         first paint. Before this, main.tsx waited for the language bundle and
+         the JS chunks with NOTHING rendered — on a slow phone connection that
+         was a blank (or half-drawn) screen for a second or two, which the
+         owner reported as "the loading animation sometimes doesn't show and
+         the screen looks scrambled". main.tsx removes it once React has
+         mounted. Kept OUTSIDE #root: the build injects the SEO fallback into
+         #root and React wipes that container on mount. -->
+    <style>
+      #boot-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #faf8f0;
+        transition: opacity 0.25s ease;
+      }
+      #boot-loader.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #boot-loader .bl-box {
+        position: relative;
+        width: clamp(116px, 30vw, 150px);
+        height: clamp(116px, 30vw, 150px);
+      }
+      #boot-loader .bl-letter {
+        position: absolute;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        transform-origin: 50% 90%;
+        animation: blHop 2.4s cubic-bezier(0.34, 1.4, 0.5, 1) infinite;
+      }
+      @keyframes blHop {
+        0%, 46%, 100% { transform: translateY(0) scaleY(1) scaleX(1); }
+        8% { transform: translateY(0) scaleY(0.88) scaleX(1.08); }
+        22% { transform: translateY(-16%) scaleY(1.09) scaleX(0.95); }
+        36% { transform: translateY(0) scaleY(0.94) scaleX(1.04); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-loader .bl-letter { animation: none; }
+      }
+    </style>
+    <!-- Without JS nothing will ever remove the loader, and it must not sit on
+         top of the pre-rendered SEO text for text-only clients. -->
+    <noscript><style>#boot-loader { display: none; }</style></noscript>
+    <script>
+      // Safety valve: if the app never mounts (a broken chunk, a blocked
+      // script) the loader must not hide the page forever.
+      setTimeout(function () {
+        var b = document.getElementById('boot-loader');
+        if (b) b.remove();
+      }, 8000);
+    </script>
+    <div id="boot-loader" role="status" aria-live="polite" aria-busy="true">
+      <div class="bl-box" aria-hidden="true">
+        <span class="bl-letter" style="left:4.94%;top:32.30%;width:20.41%;height:34.93%;background-image:url(/loader/rafiq1.png);animation-delay:0s"></span>
+        <span class="bl-letter" style="left:22.73%;top:39.79%;width:25.68%;height:26.40%;background-image:url(/loader/rafiq2.png);animation-delay:0.13s"></span>
+        <span class="bl-letter" style="left:45.30%;top:25.68%;width:17.22%;height:41.07%;background-image:url(/loader/rafiq3.png);animation-delay:0.26s"></span>
+        <span class="bl-letter" style="left:61.08%;top:29.98%;width:9.73%;height:34.37%;background-image:url(/loader/rafiq4.png);animation-delay:0.39s"></span>
+        <span class="bl-letter" style="left:68.82%;top:38.04%;width:29.59%;height:37.48%;background-image:url(/loader/rafiq5.png);animation-delay:0.52s"></span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,5 +1,30 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+
+/**
+ * Puts the viewport back at the very top, without animation, on every
+ * scrolling element a phone browser might actually be using.
+ *
+ * `window.scrollTo(0, 0)` alone was not enough on real phones: iOS Safari
+ * ignores a programmatic scroll while a smooth-scroll is in flight, and when
+ * a long page is swapped for a shorter one in the same commit the browser
+ * first clamps the old offset to the new page's bottom — which is exactly the
+ * "every page opens from the bottom" report. So: force `scroll-behavior:auto`
+ * for the call, write the offset on documentElement and body as well, and let
+ * callers repeat it once the new page has painted.
+ */
+export function hardScrollToTop(): void {
+  const root = document.documentElement;
+  const prev = root.style.scrollBehavior;
+  root.style.scrollBehavior = 'auto';
+  try {
+    window.scrollTo(0, 0);
+    root.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  } finally {
+    root.style.scrollBehavior = prev;
+  }
+}
 
 /** How long we keep looking for a hash target that hasn't mounted yet. */
 const TARGET_WAIT_MS = 3000;
@@ -62,17 +87,38 @@ function spotlight(el: HTMLElement): () => void {
 export function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
-  useEffect(() => {
+  // Re-asserted on EVERY navigation, not once at mount. `scrollRestoration` is
+  // a per-history-entry setting, and GSAP's ScrollTrigger (the guest home's
+  // cinematic footer) writes it back to "auto" when its triggers are reverted
+  // — which happens exactly as the visitor leaves the home page. One mount-time
+  // write therefore held for a single route and then silently stopped
+  // applying: every page after that opened wherever the browser had last
+  // recorded it, usually at the bottom of a long list.
+  useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
-  }, []);
+  }, [pathname, hash]);
+
+  // Layout effect, not a plain effect: the reset must land BEFORE the browser
+  // paints the new route, otherwise a phone shows one frame of the new page at
+  // the old (clamped-to-bottom) offset and then jumps. The repeats cover the
+  // moments that arrive after our first write: the browser's own restore on
+  // back/forward (applied a tick after popstate), a lazy chunk resolving, and
+  // the Suspense fallback giving way to the real page.
+  useLayoutEffect(() => {
+    if (hash) return;
+    hardScrollToTop();
+    const frame = window.requestAnimationFrame(hardScrollToTop);
+    const timers = [60, 250].map((ms) => window.setTimeout(hardScrollToTop, ms));
+    return () => {
+      window.cancelAnimationFrame(frame);
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+  }, [pathname, hash]);
 
   useEffect(() => {
-    if (!hash) {
-      window.scrollTo(0, 0);
-      return;
-    }
+    if (!hash) return;
 
     const id = hash.slice(1);
     const deadline = Date.now() + TARGET_WAIT_MS;

@@ -1,7 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
+import { hardScrollToTop } from './ScrollToTop';
+
+/**
+ * Second line of defence for "the next page opens scrolled to the bottom".
+ *
+ * <ScrollToTop/> (in App.tsx) resets the offset when the URL changes, but on a
+ * first visit to a lazy page that moment is the Suspense fallback, not the
+ * page: the real content commits later, and a phone can carry the previous
+ * page's offset into it. This sits INSIDE the route wrapper that is keyed by
+ * pathname, so it mounts together with the page content itself — on the same
+ * commit — and resets before that content is painted. No hash handling here:
+ * deep links (#locker) are ScrollToTop's job and would be undone by a reset.
+ */
+function RouteScrollReset() {
+  const { hash } = useLocation();
+  useLayoutEffect(() => {
+    if (hash) return;
+    hardScrollToTop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only: keyed wrapper remounts it per route
+  }, []);
+  return null;
+}
 import { bookings, leads, serviceRequests } from '../lib/api';
 import { Logo } from './Logo';
 import { LangSwitcher } from './LangSwitcher';
@@ -451,6 +473,7 @@ export function Layout() {
       <main className="flex-1">
         {/* keyed by pathname so the entrance animation replays on every navigation */}
         <div key={location.pathname} className="route-fade">
+          <RouteScrollReset />
           <Outlet />
         </div>
       </main>
