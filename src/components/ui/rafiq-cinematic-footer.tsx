@@ -215,13 +215,18 @@ export function RafiqCinematicFooter({
         dir={dir}
         lang={language}
         className={cn(
-          "relative w-full h-screen min-h-[560px] max-h-[900px] overflow-hidden",
+          // Phones get a plain in-flow footer (max-md:*): the desktop "curtain"
+          // keeps a position:fixed full-screen footer behind a clip-path
+          // wrapper, and mobile Safari/Chrome compositing lets that fixed
+          // layer bleed over the page mid-scroll — a dark block flashing over
+          // the content, which the owner reported as a scrambled screen.
+          "relative w-full h-screen min-h-[560px] max-h-[900px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
           className
         )}
         style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
-        {/* The actual footer is fixed behind and reveals on scroll */}
-        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[900px] w-full flex-col justify-center overflow-hidden bg-[#0A1832] text-white selection:bg-[#FAF8F0]/20">
+        {/* The actual footer is fixed behind and reveals on scroll (desktop only) */}
+        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[900px] w-full flex-col justify-center overflow-hidden bg-[#0A1832] text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
 
           {/* 1. Calm atmospheric background: one soft gradient + one gentle glow */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#0B1A36] via-[#09152B] to-[#050C1B] z-0 pointer-events-none" />

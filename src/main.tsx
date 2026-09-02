@@ -24,6 +24,17 @@ i18nReady.then(() => {
       <App />
     </React.StrictMode>,
   );
+  // The static boot loader in index.html has done its job once React has
+  // painted its first frame (which is the app's own loader when a chunk or the
+  // session is still pending, so the hand-off is seamless). Fade, then remove.
+  // A timer, not requestAnimationFrame: rAF never fires in a background tab,
+  // which left the overlay in place until the tab was fronted.
+  window.setTimeout(() => {
+    const boot = document.getElementById('boot-loader');
+    if (!boot) return;
+    boot.classList.add('is-done');
+    window.setTimeout(() => boot.remove(), 300);
+  }, 0);
 });
 
 // Remove any previously-installed service worker (the /sw.js kill-switch clears
