@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { pickText, normalizeSearch, keywordsFor } from '../data/services';
+import { pickText, normalizeSearch, keywordsFor, SERVICE_CATEGORIES } from '../data/services';
 import type { ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { useApp } from '../context/AppContext';
@@ -38,7 +38,14 @@ export function Services() {
         : 'قراءة الدليل';
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
-  const [category, setCategory] = useState<string>('all');
+  // ?category= from the homepage service cards (and any shared link). Unknown
+  // ids fall back to 'all' rather than an empty page; the two legacy ids the
+  // homepage used before 2026-09-02 are mapped so old links keep working.
+  const [category, setCategory] = useState<string>(() => {
+    const raw = params.get('category') ?? '';
+    const id = ({ residence: 'residency', 'real-estate': 'realestate' } as Record<string, string>)[raw] ?? raw;
+    return SERVICE_CATEGORIES.some((c) => c.id === id) ? id : 'all';
+  });
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();

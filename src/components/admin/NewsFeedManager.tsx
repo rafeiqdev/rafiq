@@ -62,6 +62,8 @@ export function NewsFeedManager() {
   const [confirmPublish, setConfirmPublish] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmToggle, setConfirmToggle] = useState<{ id: string; next: boolean; title: string } | null>(null);
+  const [confirmPublishAll, setConfirmPublishAll] = useState(false);
+  const [publishAllState, setPublishAllState] = useState<'idle' | 'busy' | number>('idle');
 
   const togglePublished = async (id: string, next: boolean) => {
     setError(null);
@@ -117,6 +119,19 @@ export function NewsFeedManager() {
       setError('common.error');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const publishAll = async () => {
+    setError(null);
+    setPublishAllState('busy');
+    try {
+      const { count } = await news.publishAllDrafts();
+      setPublishAllState(count);
+      postsSec.reload();
+    } catch {
+      setPublishAllState('idle');
+      setError('common.error');
     }
   };
 
@@ -241,6 +256,19 @@ export function NewsFeedManager() {
           }}
         />
       )}
+      {confirmPublishAll && (
+        <ConfirmActionModal
+          title={t('admin.newsFeed.publishAllShort')}
+          expectedResult={t('admin.newsFeed.publishAllShort')}
+          reversible={false}
+          notifiesCustomer
+          onClose={() => setConfirmPublishAll(false)}
+          onConfirm={() => {
+            publishAll();
+            setConfirmPublishAll(false);
+          }}
+        />
+      )}
       {confirmToggle && (
         <ConfirmActionModal
           title={t(confirmToggle.next ? 'admin.newsFeed.publishDraft' : 'admin.newsFeed.unpublish')}
@@ -268,8 +296,28 @@ export function NewsFeedManager() {
         title={t('admin.newsFeed.title')}
         empty={<p className="mt-3 text-sm text-gray-500">{t('admin.newsFeed.empty')}</p>}
       >
-        {(rows) => (
-          <ul className="mt-4 flex flex-col gap-2">
+        {(rows) => {
+          const draftCount = rows.filter((r) => !r.published).length;
+          return (
+          <>
+            {draftCount > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setConfirmPublishAll(true)}
+                  disabled={publishAllState === 'busy'}
+                  className="btn-primary h-10 px-4 text-xs disabled:opacity-60"
+                >
+                  <AppIcon name="megaphone" className="w-3.5 h-3.5" />
+                  {t('admin.newsFeed.publishAll', { count: draftCount })}
+                </button>
+                {typeof publishAllState === 'number' && (
+                  <span role="status" className="text-xs font-semibold text-emerald-700">
+                    {t('admin.newsFeed.publishedAll', { count: publishAllState })}
+                  </span>
+                )}
+              </div>
+            )}
+            <ul className="mt-4 flex flex-col gap-2">
             {rows.map((p) => (
               <li key={p.id} className="rounded-xl bg-cream px-4 py-2.5 text-sm text-navy flex gap-2 items-start">
                 {p.imageUrl ? (
@@ -313,8 +361,10 @@ export function NewsFeedManager() {
                 </button>
               </li>
             ))}
-          </ul>
-        )}
+            </ul>
+          </>
+          );
+        }}
       </SectionState>
     </div>
   );

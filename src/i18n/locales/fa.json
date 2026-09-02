@@ -1515,6 +1515,9 @@
       "draft": "پیش‌نویس",
       "published": "منتشرشده",
       "publishDraft": "انتشار",
+      "publishAll": "انتشار همه پیش‌نویس‌ها ({{count}})",
+      "publishAllShort": "انتشار همه پیش‌نویس‌ها",
+      "publishedAll": "{{count}} خبر منتشر شد",
       "unpublish": "لغو انتشار",
       "empty": "هنوز خبری نیست.",
       "errors": {

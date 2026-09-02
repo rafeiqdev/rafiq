@@ -12,8 +12,8 @@ import { AppIcon } from './AppIcon';
  * it — but with a portrait photo and copy written for this spot. Desktop is
  * untouched; Home.tsx picks this component only under the mobile breakpoint.
  *
- * The photo is the Blue Mosque at dusk (public/img, already shipped for the
- * onboarding/journey cards) — a portrait image, so it fills the frame without
+ * The photo is the owner's own sunset render (public/img/home-hero-mobile.webp,
+ * 1080×1440) — a portrait image, so it fills the frame without
  * the crop the video needed. Copy lives here, not in the locale JSON, the same
  * way the cinematic footer keeps its own: the hero is four short strings that
  * belong to this layout alone.
@@ -40,7 +40,9 @@ const COPY: Record<
   },
 };
 
-const PHOTO = '/img/1527838832700-5059252407fa.webp';
+// Owner-supplied 1080×1440 (3:4) render: Ortaköy Mosque and the Bosphorus
+// bridge at sunset. The 3:4 frame below matches it exactly, so no crop.
+const PHOTO = '/img/home-hero-mobile.webp';
 
 export function MobileHomeHero() {
   const { language, dir, isRtl, t } = useLanguage();

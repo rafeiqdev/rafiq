@@ -48,6 +48,10 @@ export interface CoverflowCarouselProps extends React.HTMLAttributes<HTMLElement
   label?: string;
 }
 
+// Card photo box is landscape (~312×208 desktop, 250×176 phone, object-cover
+// centre), so supply 1200×800 (3:2) images. health.webp is the owner's clinic
+// photo; the rest are still the original portrait stock shots awaiting his
+// replacements (2026-09-02).
 const SERVICE_IMAGES: Record<string, string> = {
   residence: "/images/services/official/residence.webp",
   'real-estate': "/images/services/official/real-estate.webp",
@@ -55,6 +59,16 @@ const SERVICE_IMAGES: Record<string, string> = {
   translation: "/images/services/official/translation.webp",
   banking: "/images/services/official/banking.webp",
   health: "/images/services/official/health.webp",
+};
+
+// Card id -> catalog category id (src/data/services.ts) for the services page filter.
+const SERVICE_CATEGORY: Record<string, string> = {
+  residence: 'residency',
+  'real-estate': 'realestate',
+  tourism: 'tourism',
+  translation: 'translation',
+  banking: 'banking',
+  health: 'health',
 };
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
@@ -95,7 +109,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     return t.servicesCarousel.services.map((item) => ({
       ...item,
       src: SERVICE_IMAGES[item.id] || "/images/services/official/residence.webp",
-      href: `/${language}/services?category=${item.id}`,
+      href: `/${language}/services?category=${SERVICE_CATEGORY[item.id] ?? item.id}`,
       icon: SERVICE_ICONS[item.id],
     }));
   }, [customSlides, t, language]);
@@ -275,7 +289,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
       className={cn(
-        "relative w-full overflow-hidden pt-28 sm:pt-32 lg:pt-36 pb-24 sm:pb-32 text-[#12294D] font-sans outline-none select-none",
+        "relative w-full overflow-hidden pt-28 sm:pt-32 lg:pt-24 pb-24 sm:pb-32 lg:pb-20 text-[#12294D] font-sans outline-none select-none",
         className
       )}
       {...props}
@@ -306,12 +320,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
 
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-tight sm:leading-tight">
+          <h2 className="text-3xl sm:text-5xl lg:text-5xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-tight sm:leading-tight">
             {heading || t.servicesCarousel.heading}
           </h2>
 
           <div className="mt-5 sm:mt-6 inline-flex items-center gap-2 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-[#12294D]/80 border border-[#60A5FA]/40 shadow-xl backdrop-blur-md">
-            <span className="text-sm sm:text-base md:text-lg font-bold text-[#E8F0FB] tracking-wide">
+            <span className="text-sm sm:text-base md:text-lg lg:text-base font-bold text-[#E8F0FB] tracking-wide">
               {description || t.servicesCarousel.description}
             </span>
           </div>
@@ -362,7 +376,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className="relative mx-auto flex h-[510px] sm:h-[550px] md:h-[590px] w-full items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y"
+            className="relative mx-auto flex h-[510px] sm:h-[550px] md:h-[590px] lg:h-[520px] w-full items-center justify-center cursor-grab active:cursor-grabbing touch-pan-y"
             style={{
               perspective: "1200px",
               perspectiveOrigin: "center center",
@@ -450,7 +464,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                     className={cn(
                       "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl transition-all duration-300",
                       isRtl ? "text-right" : "text-left",
-                      "w-[290px] sm:w-[330px] md:w-[360px] p-5 sm:p-6",
+                      "w-[290px] sm:w-[330px] md:w-[360px] lg:w-[320px] p-5 sm:p-6 lg:p-5",
                       isCenter
                         ? "border-[#1A3A6B]/50 shadow-2xl shadow-[#12294D]/25 ring-2 ring-[#1A3A6B]/30"
                         : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30"
@@ -498,7 +512,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                       </div>
 
                       {/* Service Title */}
-                      <h3 className="mb-2 text-xl sm:text-2xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
+                      <h3 className="mb-2 text-xl sm:text-2xl lg:text-xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
                         {slide.title}
                       </h3>
 
