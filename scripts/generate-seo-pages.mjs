@@ -892,6 +892,81 @@ function renderFullCatalogHtml(lang) {
         </section>`;
 }
 
+// Official Turkish authorities behind each category. AI answer engines weight
+// "cites sources" highest of all content signals (Princeton GEO study, +40%
+// visibility), and naming the authority also keeps the page honest: Rafiq
+// coordinates, the authority decides. Labels per language, one line each.
+const OFFICIAL_SOURCES = {
+  residency: [
+    { url: 'https://www.goc.gov.tr', label: { ar: 'رئاسة إدارة الهجرة (Göç İdaresi)', en: 'Presidency of Migration Management (Göç İdaresi)', ru: 'Управление по миграции (Göç İdaresi)', fa: 'اداره مهاجرت ترکیه (Göç İdaresi)' } },
+    { url: 'https://e-ikamet.goc.gov.tr', label: { ar: 'نظام e-İkamet لطلبات الإقامة', en: 'e-İkamet residence application system', ru: 'Система подачи на ВНЖ e-İkamet', fa: 'سامانه درخواست اقامت e-İkamet' } },
+    { url: 'https://www.nvi.gov.tr', label: { ar: 'المديرية العامة للنفوس والجنسية (NVİ)', en: 'General Directorate of Civil Registration and Citizenship (NVİ)', ru: 'Управление по делам населения и гражданства (NVİ)', fa: 'اداره کل ثبت احوال و تابعیت (NVİ)' } },
+  ],
+  banking: [
+    { url: 'https://www.bddk.org.tr', label: { ar: 'هيئة تنظيم ومراقبة البنوك (BDDK)', en: 'Banking Regulation and Supervision Agency (BDDK)', ru: 'Агентство банковского регулирования (BDDK)', fa: 'نهاد تنظیم و نظارت بانکی (BDDK)' } },
+    { url: 'https://www.tcmb.gov.tr', label: { ar: 'البنك المركزي التركي (TCMB)', en: 'Central Bank of the Republic of Türkiye (TCMB)', ru: 'Центральный банк Турции (TCMB)', fa: 'بانک مرکزی ترکیه (TCMB)' } },
+  ],
+  realestate: [
+    { url: 'https://www.tkgm.gov.tr', label: { ar: 'المديرية العامة للطابو والمساحة (TKGM)', en: 'General Directorate of Land Registry and Cadastre (TKGM)', ru: 'Управление кадастра и земельного реестра (TKGM)', fa: 'اداره کل ثبت اسناد و املاک (TKGM)' } },
+    { url: 'https://www.nvi.gov.tr', label: { ar: 'المديرية العامة للنفوس والجنسية (NVİ)', en: 'General Directorate of Civil Registration and Citizenship (NVİ)', ru: 'Управление по делам населения и гражданства (NVİ)', fa: 'اداره کل ثبت احوال و تابعیت (NVİ)' } },
+  ],
+  legal: [
+    { url: 'https://www.adalet.gov.tr', label: { ar: 'وزارة العدل التركية', en: 'Ministry of Justice of Türkiye', ru: 'Министерство юстиции Турции', fa: 'وزارت دادگستری ترکیه' } },
+    { url: 'https://www.tnb.org.tr', label: { ar: 'اتحاد كتّاب العدل الأتراك (TNB)', en: 'Union of Turkish Notaries (TNB)', ru: 'Союз нотариусов Турции (TNB)', fa: 'اتحادیه دفاتر اسناد رسمی ترکیه (TNB)' } },
+  ],
+  accounting: [
+    { url: 'https://www.gib.gov.tr', label: { ar: 'رئاسة إدارة الإيرادات (GİB)', en: 'Revenue Administration (GİB)', ru: 'Налоговое управление (GİB)', fa: 'سازمان امور مالیاتی (GİB)' } },
+  ],
+  business: [
+    { url: 'https://www.ticaret.gov.tr', label: { ar: 'وزارة التجارة التركية', en: 'Ministry of Trade of Türkiye', ru: 'Министерство торговли Турции', fa: 'وزارت بازرگانی ترکیه' } },
+    { url: 'https://mersis.ticaret.gov.tr', label: { ar: 'نظام السجل التجاري المركزي (MERSİS)', en: 'Central Trade Registry System (MERSİS)', ru: 'Центральный торговый реестр (MERSİS)', fa: 'سامانه ثبت تجاری مرکزی (MERSİS)' } },
+  ],
+  health: [
+    { url: 'https://www.saglik.gov.tr', label: { ar: 'وزارة الصحة التركية', en: 'Ministry of Health of Türkiye', ru: 'Министерство здравоохранения Турции', fa: 'وزارت بهداشت ترکیه' } },
+    { url: 'https://www.mhrs.gov.tr', label: { ar: 'نظام المواعيد الطبية المركزي (MHRS)', en: 'Central Physician Appointment System (MHRS)', ru: 'Центральная система записи к врачу (MHRS)', fa: 'سامانه نوبت‌دهی مرکزی پزشکان (MHRS)' } },
+  ],
+  education: [
+    { url: 'https://www.yok.gov.tr', label: { ar: 'مجلس التعليم العالي (YÖK)', en: 'Council of Higher Education (YÖK)', ru: 'Совет по высшему образованию (YÖK)', fa: 'شورای آموزش عالی (YÖK)' } },
+    { url: 'https://www.meb.gov.tr', label: { ar: 'وزارة التربية الوطنية (MEB)', en: 'Ministry of National Education (MEB)', ru: 'Министерство национального образования (MEB)', fa: 'وزارت آموزش ملی (MEB)' } },
+  ],
+  tourism: [
+    { url: 'https://www.ktb.gov.tr', label: { ar: 'وزارة الثقافة والسياحة', en: 'Ministry of Culture and Tourism', ru: 'Министерство культуры и туризма', fa: 'وزارت فرهنگ و گردشگری' } },
+    { url: 'https://goturkiye.com', label: { ar: 'البوابة الرسمية للسياحة في تركيا', en: 'Official tourism portal of Türkiye', ru: 'Официальный туристический портал Турции', fa: 'پرتال رسمی گردشگری ترکیه' } },
+  ],
+  translation: [
+    { url: 'https://www.tnb.org.tr', label: { ar: 'اتحاد كتّاب العدل الأتراك (TNB)', en: 'Union of Turkish Notaries (TNB)', ru: 'Союз нотариусов Турции (TNB)', fa: 'اتحادیه دفاتر اسناد رسمی ترکیه (TNB)' } },
+  ],
+  telecom: [
+    { url: 'https://www.btk.gov.tr', label: { ar: 'هيئة تقنيات المعلومات والاتصالات (BTK)', en: 'Information and Communication Technologies Authority (BTK)', ru: 'Управление информационных технологий и связи (BTK)', fa: 'سازمان فناوری اطلاعات و ارتباطات (BTK)' } },
+    { url: 'https://www.turkiye.gov.tr', label: { ar: 'بوابة الحكومة الإلكترونية e-Devlet', en: 'e-Devlet e-government portal', ru: 'Портал электронного правительства e-Devlet', fa: 'درگاه دولت الکترونیک e-Devlet' } },
+  ],
+  daily: [
+    { url: 'https://www.turkiye.gov.tr', label: { ar: 'بوابة الحكومة الإلكترونية e-Devlet', en: 'e-Devlet e-government portal', ru: 'Портал электронного правительства e-Devlet', fa: 'درگاه دولت الکترونیک e-Devlet' } },
+    { url: 'https://www.ibb.istanbul', label: { ar: 'بلدية إسطنبول الكبرى (İBB)', en: 'Istanbul Metropolitan Municipality (İBB)', ru: 'Мэрия Стамбула (İBB)', fa: 'شهرداری کلان‌شهر استانبول (İBB)' } },
+  ],
+};
+
+function renderOfficialSourcesHtml(lang, category) {
+  const sources = category ? OFFICIAL_SOURCES[category] : undefined;
+  if (!sources?.length) return '';
+  const heading = { ar: 'المصادر الرسمية', en: 'Official sources', ru: 'Официальные источники', fa: 'منابع رسمی' }[lang];
+  const intro = {
+    ar: 'المعلومات في هذه الصفحة مبنية على ما تنشره الجهات الرسمية التالية، والقرار النهائي في كل معاملة يعود إليها:',
+    en: 'The information on this page follows what these official authorities publish; the final decision in every procedure is theirs:',
+    ru: 'Информация на этой странице основана на публикациях следующих официальных органов; окончательное решение по каждой процедуре принимают они:',
+    fa: 'اطلاعات این صفحه بر پایه انتشارات نهادهای رسمی زیر است و تصمیم نهایی در هر فرایند با آن‌هاست:',
+  }[lang];
+  const items = sources
+    .map((source) => `<li><a href="${escapeHtml(source.url)}" rel="noopener">${escapeHtml(source.label[lang] ?? source.label.en)}</a></li>`)
+    .join('');
+  return `
+        <section aria-labelledby="seo-sources-heading">
+          <h2 id="seo-sources-heading">${escapeHtml(heading)}</h2>
+          <p>${escapeHtml(intro)}</p>
+          <ul>${items}</ul>
+        </section>`;
+}
+
 function renderNewsListHtml(lang, posts) {
   if (!posts.length) return '';
   const items = posts
@@ -1060,6 +1135,22 @@ function buildHtml(template, lang, route, meta) {
     }
   }
 
+  // GEO: a visible freshness line and, on service/guide pages, the official
+  // authorities the content follows. Both are plain HTML inside the static
+  // <article>, so non-JS crawlers see them; the client hides #seo-fallback.
+  const sourceCategory = serviceMatch
+    ? serviceCategory[serviceMatch[1]]
+    : guideMatch
+      ? guideMatch[1]
+      : null;
+  const updatedLabel = { ar: 'آخر تحديث', en: 'Last updated', ru: 'Обновлено', fa: 'آخرین به‌روزرسانی' }[lang];
+  staticMain = staticMain.replace(
+    '</article>',
+    `${renderOfficialSourcesHtml(lang, sourceCategory)}
+        <p><time datetime="${dateModified}">${escapeHtml(updatedLabel)}: ${dateModified}</time></p>
+      </article>`,
+  );
+
   const jsonLd = escapeJsonForHtml({
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -1071,6 +1162,8 @@ function buildHtml(template, lang, route, meta) {
     dateModified,
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#organization` },
+    author: { '@id': `${SITE_URL}/#organization` },
+    publisher: { '@id': `${SITE_URL}/#organization` },
   });
 
   let html = template;
@@ -1129,3 +1222,41 @@ for (const url of urls) {
 }
 
 console.log(`Generated ${generated} route-specific SEO HTML shells under ${relative(root, resolve(dist))}.`);
+
+// /llms-full.txt — the whole service catalog and every guide as one Markdown
+// document (llmstxt.org's "full" companion to /llms.txt). ChatGPT/Claude/
+// Perplexity-style fetchers read this directly instead of crawling 444 shells.
+// Arabic first (primary audience), then English; ru/fa stay on their pages.
+function llmsFullDocument() {
+  const lines = [
+    '# Rafiq Istanbul — full content',
+    '',
+    `> ${text('en', 'common.tagline')} — every service and guide Rafiq coordinates for foreigners in Istanbul, in Arabic and English. Rafiq coordinates; the named official authorities decide. Russian and Farsi versions live at the same paths under /ru/ and /fa/.`,
+    '',
+    `Site: ${SITE_URL}  ·  Index: ${SITE_URL}/llms.txt  ·  Generated: ${today}`,
+    '',
+  ];
+  for (const lang of ['ar', 'en']) {
+    lines.push(`# ${lang === 'ar' ? 'العربية' : 'English'}`, '');
+    lines.push(`## ${lang === 'ar' ? 'الأدلة' : 'Guides'}`, '');
+    for (const [id, byLang] of Object.entries(guideSeo)) {
+      const guide = byLang[lang];
+      if (!guide) continue;
+      lines.push(`### ${guide.title}`, `URL: ${pageUrl(lang, `/guides/${id}`)}`, '', guide.intro, '');
+      for (const section of guideSections[id]?.[lang] ?? []) lines.push(`#### ${section.heading}`, '', section.body, '');
+      for (const faq of guideFaqs[id]?.[lang] ?? []) lines.push(`**${faq.question}**`, '', faq.answer, '');
+    }
+    lines.push(`## ${lang === 'ar' ? 'الخدمات' : 'Services'}`, '');
+    for (const [id, record] of Object.entries(serviceSeo[lang])) {
+      const category = serviceCategory[id];
+      const sources = (OFFICIAL_SOURCES[category] ?? []).map((s) => `- ${s.label[lang] ?? s.label.en}: ${s.url}`);
+      lines.push(`### ${record.title}`, `URL: ${pageUrl(lang, `/services/${id}`)}`, '', record.description, '');
+      if (record.body) lines.push(record.body.trim(), '');
+      if (sources.length) lines.push(`${lang === 'ar' ? 'المصادر الرسمية' : 'Official sources'}:`, ...sources, '');
+    }
+  }
+  return lines.join('\n');
+}
+const llmsFull = llmsFullDocument();
+writeFileSync(join(dist, 'llms-full.txt'), llmsFull, 'utf8');
+console.log(`Generated llms-full.txt (${Math.round(llmsFull.length / 1024)} KB).`);
