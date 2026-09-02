@@ -49,7 +49,7 @@ export const RafiqMarqueeDivider: React.FC<RafiqMarqueeDividerProps> = ({
           <MarqueeAnimation
             direction="left"
             baseVelocity={speed}
-            className="text-lg sm:text-xl md:text-2xl font-black text-[#12294D] tracking-tight"
+            className="text-lg sm:text-xl md:text-2xl lg:text-xl font-black text-[#12294D] tracking-tight"
           >
             <div
               dir={isRtl ? "rtl" : "ltr"}
@@ -70,7 +70,7 @@ export const RafiqMarqueeDivider: React.FC<RafiqMarqueeDividerProps> = ({
           <MarqueeAnimation
             direction="right"
             baseVelocity={speed}
-            className="text-lg sm:text-xl md:text-2xl font-black text-[#FAF8F0] tracking-tight"
+            className="text-lg sm:text-xl md:text-2xl lg:text-xl font-black text-[#FAF8F0] tracking-tight"
           >
             <div
               dir={isRtl ? "rtl" : "ltr"}

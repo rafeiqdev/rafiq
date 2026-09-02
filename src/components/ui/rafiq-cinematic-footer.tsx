@@ -221,13 +221,13 @@ export function RafiqCinematicFooter({
           // wrapper, and mobile Safari/Chrome compositing lets that fixed
           // layer bleed over the page mid-scroll — a dark block flashing over
           // the content, which the owner reported as a scrambled screen.
-          "relative w-full h-screen min-h-[560px] max-h-[900px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
+          "relative w-full h-screen min-h-[560px] max-h-[760px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
           className
         )}
         style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
         {/* The actual footer is fixed behind and reveals on scroll (desktop only) */}
-        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[900px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
+        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[760px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
 
           {/* 1. Calm atmospheric background: the site-navy "Oceanic Shimmer"
               gradient (grain + soft radial glows) + one gentle glow */}
@@ -242,7 +242,7 @@ export function RafiqCinematicFooter({
             {/* Main Heading with Metallic Glow */}
             <h2
               ref={headingRef}
-              className="text-4xl sm:text-5xl md:text-6xl font-black rafiq-text-glow tracking-tight mb-8 sm:mb-10 max-w-3xl leading-[1.15]"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-5xl font-black rafiq-text-glow tracking-tight mb-8 sm:mb-10 lg:mb-8 max-w-3xl leading-[1.15]"
             >
               {language === "ar"
                 ? "جاهز لترتيب معاملتك؟"
