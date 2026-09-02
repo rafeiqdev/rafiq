@@ -33,7 +33,7 @@ export const FaqCard: React.FC<FaqCardProps> = ({
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-between w-[290px] sm:w-[340px] md:w-[380px] shrink-0 rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFDF7] p-5 sm:p-6 shadow-md transition-all duration-300",
+        "group relative flex flex-col justify-between w-[290px] sm:w-[340px] md:w-[380px] lg:w-[330px] shrink-0 rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFDF7] p-5 sm:p-6 shadow-md transition-all duration-300",
         isRtl ? "text-right" : "text-left",
         "hover:-translate-y-1 hover:border-[#1A3A6B]/40 hover:shadow-xl hover:shadow-[#12294D]/15",
         "focus-within:ring-2 focus-within:ring-[#1A3A6B] focus-within:ring-offset-2 focus-within:ring-offset-[#FAF8F0]",
@@ -58,7 +58,7 @@ export const FaqCard: React.FC<FaqCardProps> = ({
         </div>
 
         {/* Question Heading */}
-        <h3 className="mb-2 text-base sm:text-lg font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-snug">
+        <h3 className="mb-2 text-base sm:text-lg lg:text-base font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-snug">
           {item.question}
         </h3>
 
@@ -185,7 +185,7 @@ export const HabitFaqScroller: React.FC<HabitFaqScrollerProps> = ({
       dir={dir}
       lang={language}
       className={cn(
-        "relative w-full overflow-hidden pt-16 sm:pt-24 pb-20 sm:pb-28 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
+        "relative w-full overflow-hidden pt-16 sm:pt-24 lg:pt-20 pb-20 sm:pb-28 lg:pb-20 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
         className
       )}
       {...props}
@@ -208,7 +208,7 @@ export const HabitFaqScroller: React.FC<HabitFaqScrollerProps> = ({
 
       <div className="relative z-10 w-full">
         {/* Header Block */}
-        <div className="container mx-auto max-w-4xl px-4 text-center mb-10 sm:mb-12">
+        <div className="container mx-auto max-w-4xl px-4 text-center mb-10 sm:mb-12 lg:mb-9">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 bg-[#1A3A6B]/30" aria-hidden="true" />
             <span className="text-xs sm:text-sm font-black tracking-widest text-[#1A3A6B] uppercase">
@@ -217,11 +217,11 @@ export const HabitFaqScroller: React.FC<HabitFaqScrollerProps> = ({
             <span className="h-px w-6 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#12294D] leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
             {title || t.faq.title}
           </h2>
 
-          <p className="mt-4 text-sm sm:text-base md:text-lg text-[#3A5070] max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base md:text-lg lg:text-base text-[#3A5070] max-w-2xl mx-auto leading-relaxed">
             {subtitle || t.faq.subtitle}
           </p>
         </div>

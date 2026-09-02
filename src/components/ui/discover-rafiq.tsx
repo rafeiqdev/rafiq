@@ -102,8 +102,9 @@ export function DiscoverRafiq() {
   // off a 375px screen, the drag handler fought the page's own scrolling, and
   // the perspective transforms stuttered — so phones get the same four cards
   // as a plain horizontal swipe row instead (below).
-  const cardWidth = 520;
-  const cardHeight = 325; // 520×325 = 16:10, the same ratio as the phone card and the owner's 1200×750 images
+  // Scaled down 2026-09-02 (owner: desktop looked oversized); still 16:10.
+  const cardWidth = 450;
+  const cardHeight = 281; // 450×281 ≈ 16:10, the same ratio as the phone card and the owner's 1200×750 images
 
   return (
     <section
@@ -111,7 +112,7 @@ export function DiscoverRafiq() {
       dir={dir}
       lang={language}
       aria-labelledby="discover-rafiq-heading"
-      className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20"
+      className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20 lg:pt-14"
     >
       <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-10 lg:px-8">
         <div className="mx-auto mb-2 max-w-3xl text-center sm:mb-4">
@@ -120,7 +121,7 @@ export function DiscoverRafiq() {
             <span className="text-xs font-black uppercase tracking-widest text-[#1A3A6B] sm:text-sm">{c.eyebrow}</span>
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
           </div>
-          <h2 id="discover-rafiq-heading" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-4xl">
+          <h2 id="discover-rafiq-heading" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-4xl lg:text-3xl">
             {c.heading}
           </h2>
         </div>
@@ -188,7 +189,7 @@ export function DiscoverRafiq() {
                 </div>
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" />
                 <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5">
-                  <div className="text-lg font-black text-white drop-shadow sm:text-2xl">{item.title}</div>
+                  <div className="text-lg font-black text-white drop-shadow sm:text-2xl lg:text-xl">{item.title}</div>
                   {item.description ? (
                     <div className="mt-1 line-clamp-2 text-xs text-white/85 sm:text-sm">{item.description}</div>
                   ) : null}

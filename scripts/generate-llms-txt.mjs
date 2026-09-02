@@ -103,6 +103,9 @@ ${guideLines}
 ## Key services
 ${serviceLines}
 
+## Full content
+- [llms-full.txt](${SITE_URL}/llms-full.txt): every service page and guide in full (Arabic and English) as one Markdown document, with the official Turkish authority behind each topic.
+
 ## Languages
 Every page above is also published in Arabic (${SITE_URL}/ar/...), Russian (${SITE_URL}/ru/...) and Farsi (${SITE_URL}/fa/...); Arabic is the default for the site's primary audience. Swap the leading /en/ segment for /ar/, /ru/ or /fa/ to reach the same page in another language.
 

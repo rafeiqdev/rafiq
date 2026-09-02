@@ -788,3 +788,32 @@
     font-size: 1rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Desktop scale-down (owner, 2026-09-02): on laptop/desktop screens the hero
+   copy and buttons read oversized. Roughly -15% on type and button bulk;
+   phones/tablets keep the values above.
+   -------------------------------------------------------------------------- */
+@media (min-width: 961px) {
+  .textSection {
+    max-width: 640px;
+    gap: 1.25rem;
+  }
+
+  .headline {
+    font-size: clamp(1.6rem, 2.7vw, 2.4rem);
+  }
+
+  .supportingText {
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .buttonBase {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    min-height: 50px;
+    border-radius: 0.75rem;
+  }
+}

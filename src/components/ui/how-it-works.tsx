@@ -103,7 +103,7 @@ const StepCard: React.FC<StepCardProps> = ({
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-start overflow-hidden rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFFFF] p-5 sm:p-7 shadow-sm transition-all duration-300 ease-out",
+        "group relative flex flex-col justify-start overflow-hidden rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFFFF] p-5 sm:p-7 lg:p-6 shadow-sm transition-all duration-300 ease-out",
         // phone: one swipe-row card; desktop: a grid cell (see the row in HowItWorks)
         // an explicit width, not min-width: a flex-row item sizes to its
         // text otherwise, and the one-line description then never wraps
@@ -122,7 +122,7 @@ const StepCard: React.FC<StepCardProps> = ({
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-none select-none absolute -top-3 font-black text-7xl sm:text-8xl text-[#1A3A6B]/[0.035] transition-transform duration-500 ease-out group-hover:scale-105 group-hover:text-[#1A3A6B]/[0.06]",
+          "pointer-events-none select-none absolute -top-3 font-black text-7xl sm:text-8xl lg:text-7xl text-[#1A3A6B]/[0.035] transition-transform duration-500 ease-out group-hover:scale-105 group-hover:text-[#1A3A6B]/[0.06]",
           isRtl ? "-left-2" : "-right-2"
         )}
       >
@@ -133,14 +133,14 @@ const StepCard: React.FC<StepCardProps> = ({
         {/* Top Header: Icon Badge */}
         <div className="mb-4 sm:mb-5 flex items-center">
           <div
-            className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFFFFF] via-[#FAF8F0] to-[#E8F0FB] border border-[#D0E0F5] shadow-sm shadow-[#1A3A6B]/8 group-hover:border-[#1A3A6B]/40 group-hover:shadow-md group-hover:shadow-[#1A3A6B]/15 transition-all duration-300"
+            className="flex h-14 w-14 sm:h-16 sm:w-16 lg:h-14 lg:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FFFFFF] via-[#FAF8F0] to-[#E8F0FB] border border-[#D0E0F5] shadow-sm shadow-[#1A3A6B]/8 group-hover:border-[#1A3A6B]/40 group-hover:shadow-md group-hover:shadow-[#1A3A6B]/15 transition-all duration-300"
           >
             {icon}
           </div>
         </div>
 
         {/* Step Title & Description */}
-        <h3 className="mb-2 text-lg sm:text-2xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
+        <h3 className="mb-2 text-lg sm:text-2xl lg:text-xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
           {title}
         </h3>
         <p className="text-xs sm:text-sm leading-relaxed text-[#4A5F7D]">
@@ -181,7 +181,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
       dir={dir}
       lang={language}
       className={cn(
-        "relative w-full overflow-hidden bg-[#FAF8F0] pt-8 sm:pt-16 lg:pt-20 pb-0 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
+        "relative w-full overflow-hidden bg-[#FAF8F0] pt-8 sm:pt-16 lg:pt-14 pb-0 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
         className
       )}
       {...props}
@@ -200,9 +200,9 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative z-10 container mx-auto max-w-6xl xl:max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 sm:pb-16 lg:pb-20">
+      <div className="relative z-10 container mx-auto max-w-6xl xl:max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 sm:pb-16 lg:pb-14">
         {/* Section Header */}
-        <div className="mx-auto mb-6 sm:mb-12 max-w-3xl text-center">
+        <div className="mx-auto mb-6 sm:mb-12 lg:mb-9 max-w-3xl text-center">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
             <span className="text-xs sm:text-sm font-black tracking-widest text-[#1A3A6B] uppercase">
@@ -211,10 +211,10 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#12294D] leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
             {t.howItWorks.heading}
           </h2>
-          <p className="mt-3.5 hidden text-base sm:block sm:text-lg leading-relaxed text-[#4A5F7D] max-w-2xl mx-auto">
+          <p className="mt-3.5 hidden text-base sm:block sm:text-lg lg:text-base leading-relaxed text-[#4A5F7D] max-w-2xl mx-auto">
             {t.howItWorks.description}
           </p>
         </div>
@@ -224,7 +224,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
             horizontal, swipeable row: each card is ~80% of the viewport wide
             with the next one peeking in, and the bullet list is dropped
             (StepCard hides it under md) so a card is a title and one line. */}
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:gap-7 md:overflow-visible md:px-0 md:pb-0 lg:gap-8">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:gap-7 md:overflow-visible md:px-0 md:pb-0 lg:gap-6">
           {t.howItWorks.steps.map((step, index) => (
             <StepCard
               key={index}
