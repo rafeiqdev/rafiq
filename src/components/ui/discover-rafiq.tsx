@@ -23,7 +23,7 @@ type Feature = { key: string; href: string; img: string };
 const FEATURES: Feature[] = [
   { key: 'map', href: '/map', img: '/img/istanbul-map.webp' },
   { key: 'news', href: '/news', img: '/img/1524231757912-21f4fe3a7200.webp' },
-  { key: 'realEstate', href: '/real-estate', img: '/img/1545324418-cc1a3fa10c00.webp' },
+  { key: 'realEstate', href: '/real-estate', img: '/img/discover-real-estate.webp' } // owner's rooftop photo, 1200×750,
   { key: 'health', href: '/health-tourism', img: '/img/1538108149393-fbbd81895907.webp' },
 ];
 
