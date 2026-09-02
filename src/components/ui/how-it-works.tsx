@@ -103,7 +103,11 @@ const StepCard: React.FC<StepCardProps> = ({
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-start overflow-hidden rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFFFF] p-6 sm:p-7 shadow-sm transition-all duration-300 ease-out",
+        "group relative flex flex-col justify-start overflow-hidden rounded-2xl sm:rounded-3xl border border-[#EFEADB] bg-[#FFFFFF] p-5 sm:p-7 shadow-sm transition-all duration-300 ease-out",
+        // phone: one swipe-row card; desktop: a grid cell (see the row in HowItWorks)
+        // an explicit width, not min-width: a flex-row item sizes to its
+        // text otherwise, and the one-line description then never wraps
+        "w-[80%] max-w-[80%] shrink-0 snap-center md:w-auto md:max-w-none md:shrink",
         isRtl ? "text-right" : "text-left",
         "before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-transparent before:via-[#1A3A6B] before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300",
         "hover:-translate-y-1.5 hover:border-[#1A3A6B]/35 hover:shadow-xl hover:shadow-[#1A3A6B]/10",
@@ -136,7 +140,7 @@ const StepCard: React.FC<StepCardProps> = ({
         </div>
 
         {/* Step Title & Description */}
-        <h3 className="mb-2 text-xl sm:text-2xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
+        <h3 className="mb-2 text-lg sm:text-2xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
           {title}
         </h3>
         <p className="text-xs sm:text-sm leading-relaxed text-[#4A5F7D]">
@@ -144,8 +148,8 @@ const StepCard: React.FC<StepCardProps> = ({
         </p>
       </div>
 
-      {/* Benefits List */}
-      <div className="relative z-10 mt-5 border-t border-[#EFEADB]/80 pt-4">
+      {/* Benefits List — desktop only; on phones the card is title + one line */}
+      <div className="relative z-10 mt-5 hidden border-t border-[#EFEADB]/80 pt-4 md:block">
         <ul className="space-y-2.5">
           {benefits.map((benefit, index) => (
             <li key={index} className={cn("flex items-start gap-2.5", isRtl ? "text-right" : "text-left")}>
@@ -177,7 +181,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
       dir={dir}
       lang={language}
       className={cn(
-        "relative w-full overflow-hidden bg-[#FAF8F0] pt-12 sm:pt-16 lg:pt-20 pb-0 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
+        "relative w-full overflow-hidden bg-[#FAF8F0] pt-8 sm:pt-16 lg:pt-20 pb-0 text-[#12294D] font-sans selection:bg-[#1A3A6B]/15",
         className
       )}
       {...props}
@@ -196,9 +200,9 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative z-10 container mx-auto max-w-6xl xl:max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
+      <div className="relative z-10 container mx-auto max-w-6xl xl:max-w-7xl px-4 sm:px-6 lg:px-8 pb-6 sm:pb-16 lg:pb-20">
         {/* Section Header */}
-        <div className="mx-auto mb-10 sm:mb-12 max-w-3xl text-center">
+        <div className="mx-auto mb-6 sm:mb-12 max-w-3xl text-center">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
             <span className="text-xs sm:text-sm font-black tracking-widest text-[#1A3A6B] uppercase">
@@ -210,13 +214,17 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#12294D] leading-tight">
             {t.howItWorks.heading}
           </h2>
-          <p className="mt-3.5 text-base sm:text-lg leading-relaxed text-[#4A5F7D] max-w-2xl mx-auto">
+          <p className="mt-3.5 hidden text-base sm:block sm:text-lg leading-relaxed text-[#4A5F7D] max-w-2xl mx-auto">
             {t.howItWorks.description}
           </p>
         </div>
 
-        {/* 3-Column Steps Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:gap-7 md:grid-cols-3 lg:gap-8">
+        {/* 3-Column Steps Grid on desktop. On phones the three cards stacked
+            into a screen and a half of reading, so there they become one
+            horizontal, swipeable row: each card is ~80% of the viewport wide
+            with the next one peeking in, and the bullet list is dropped
+            (StepCard hides it under md) so a card is a title and one line. */}
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none md:mx-0 md:grid md:grid-cols-3 md:gap-7 md:overflow-visible md:px-0 md:pb-0 lg:gap-8">
           {t.howItWorks.steps.map((step, index) => (
             <StepCard
               key={index}
