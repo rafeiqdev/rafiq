@@ -48,6 +48,10 @@ export interface CoverflowCarouselProps extends React.HTMLAttributes<HTMLElement
   label?: string;
 }
 
+// Card photo box is landscape (~312×208 desktop, 250×176 phone, object-cover
+// centre), so supply 1200×800 (3:2) images. health.webp is the owner's clinic
+// photo; the rest are still the original portrait stock shots awaiting his
+// replacements (2026-09-02).
 const SERVICE_IMAGES: Record<string, string> = {
   residence: "/images/services/official/residence.webp",
   'real-estate': "/images/services/official/real-estate.webp",
