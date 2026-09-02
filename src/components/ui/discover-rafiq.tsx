@@ -1,5 +1,7 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { CardStack, type CardStackItem } from '@/components/ui/card-stack';
 
 /**
  * "Discover Rafiq" — the guest homepage section that introduces the parts of
@@ -9,18 +11,19 @@ import { useLanguage } from '@/i18n/LanguageContext';
  * "how it works" section right above it with more shapes and more text, and
  * told the visitor nothing they didn't already have.
  *
- * Four photo tiles, one per feature: photo, title, one line, "open". Two per
- * row on phones, four across on desktop. No motion — the photos do the work.
- * Photos are ones the site already ships (public/img), so nothing new to load
- * or license. Copy lives here, like the cinematic footer's: these strings
- * belong to this layout alone.
+ * The four features are shown in the owner's chosen CardStack (a fanned,
+ * swipeable 3D card deck — components/ui/card-stack.tsx, ported 1:1 from the
+ * prompt he sent). One card per feature: photo, title, one line, and an
+ * "open" pill on the card in front. Photos are ones the site already ships
+ * (public/img) until the owner supplies replacements. Copy lives here, like
+ * the cinematic footer's: these strings belong to this layout alone.
  */
-type Tile = { key: string; href: string; img: string; position?: string };
+type Feature = { key: string; href: string; img: string };
 
-const TILES: Tile[] = [
-  { key: 'map', href: '/map', img: '/img/istanbul-map.webp', position: '50% 45%' },
+const FEATURES: Feature[] = [
+  { key: 'map', href: '/map', img: '/img/istanbul-map.webp' },
   { key: 'news', href: '/news', img: '/img/1524231757912-21f4fe3a7200.webp' },
-  { key: 'realEstate', href: '/real-estate', img: '/img/1545324418-cc1a3fa10c00.webp', position: '50% 60%' },
+  { key: 'realEstate', href: '/real-estate', img: '/img/1545324418-cc1a3fa10c00.webp' },
   { key: 'health', href: '/health-tourism', img: '/img/1538108149393-fbbd81895907.webp' },
 ];
 
@@ -81,8 +84,24 @@ const COPY: Record<string, Copy> = {
 
 export function DiscoverRafiq() {
   const { language, dir, isRtl } = useLanguage();
+  const isMobile = useIsMobile();
   const c = COPY[language] ?? COPY.ar;
   const Arrow = isRtl ? ArrowLeft : ArrowRight;
+
+  const items: CardStackItem[] = FEATURES.map((f) => ({
+    id: f.key,
+    title: c.tiles[f.key].title,
+    description: c.tiles[f.key].line,
+    imageSrc: f.img,
+    href: `/${language}${f.href}`,
+    ctaLabel: c.open,
+  }));
+
+  // The deck's geometry is in pixels; a phone gets a card that fits its width
+  // with the neighbours peeking from behind, desktop the prompt's own sizes.
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const cardWidth = isMobile ? Math.min(300, vw - 72) : 520;
+  const cardHeight = isMobile ? Math.round(cardWidth * 0.78) : 320;
 
   return (
     <section
@@ -92,8 +111,8 @@ export function DiscoverRafiq() {
       aria-labelledby="discover-rafiq-heading"
       className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20"
     >
-      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-10 sm:px-6 sm:pb-14 lg:px-8">
-        <div className="mx-auto mb-6 max-w-3xl text-center sm:mb-10">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-10 lg:px-8">
+        <div className="mx-auto mb-2 max-w-3xl text-center sm:mb-4">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
             <span className="text-xs font-black uppercase tracking-widest text-[#1A3A6B] sm:text-sm">{c.eyebrow}</span>
@@ -104,42 +123,55 @@ export function DiscoverRafiq() {
           </h2>
         </div>
 
-        <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4" role="list">
-          {TILES.map((tile) => {
-            const tc = c.tiles[tile.key];
-            return (
-              <li key={tile.key} className="min-w-0">
-                <a
-                  href={`/${language}${tile.href}`}
-                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#EFEADB] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#1A3A6B]/35 hover:shadow-xl hover:shadow-[#1A3A6B]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1A3A6B] sm:rounded-3xl"
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#E8F0FB]">
-                    <img
-                      src={tile.img}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      style={tile.position ? { objectPosition: tile.position } : undefined}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A1832]/55 via-transparent to-transparent" aria-hidden="true" />
-                    <h3 className="absolute inset-x-3 bottom-2.5 text-base font-black leading-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:inset-x-4 sm:bottom-3 sm:text-xl">
-                      {tc.title}
-                    </h3>
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between gap-3 p-3 sm:p-4">
-                    <p className="text-xs leading-relaxed text-[#4A5F7D] sm:text-sm">{tc.line}</p>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A3A6B] sm:text-sm">
-                      {c.open}
-                      <Arrow className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
-                    </span>
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        {/* The deck lays cards out left-to-right in pixels, so it runs LTR even
+            on the Arabic/Farsi page; the text inside each card keeps the
+            page direction. */}
+        <div dir="ltr">
+          <CardStack
+            items={items}
+            initialIndex={0}
+            maxVisible={isMobile ? 3 : 5}
+            cardWidth={cardWidth}
+            cardHeight={cardHeight}
+            overlap={isMobile ? 0.62 : 0.48}
+            spreadDeg={isMobile ? 26 : 48}
+            autoAdvance
+            intervalMs={3200}
+            pauseOnHover
+            showDots
+            renderCard={(item, { active }) => (
+              <div dir={dir} className="relative h-full w-full">
+                <div className="absolute inset-0">
+                  <img
+                    src={item.imageSrc}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                    loading="eager"
+                  />
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5">
+                  <div className="text-lg font-black text-white drop-shadow sm:text-2xl">{item.title}</div>
+                  {item.description ? (
+                    <div className="mt-1 line-clamp-2 text-xs text-white/85 sm:text-sm">{item.description}</div>
+                  ) : null}
+                  {active && item.href ? (
+                    <a
+                      href={item.href}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md transition hover:bg-[#FAF8F0] sm:text-sm"
+                    >
+                      {item.ctaLabel}
+                      <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            )}
+          />
+        </div>
       </div>
 
       {/* Same organic wave the previous section carried into the FAQ scroller */}
