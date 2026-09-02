@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
+import { NavyShimmerBackground } from "@/components/ui/oceanic-shimmer-navy";
 
 // Register ScrollTrigger safely in React / browser environment
 if (typeof window !== "undefined") {
@@ -226,10 +227,13 @@ export function RafiqCinematicFooter({
         style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
         {/* The actual footer is fixed behind and reveals on scroll (desktop only) */}
-        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[900px] w-full flex-col justify-center overflow-hidden bg-[#0A1832] text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
+        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[900px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
 
-          {/* 1. Calm atmospheric background: one soft gradient + one gentle glow */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1A36] via-[#09152B] to-[#050C1B] z-0 pointer-events-none" />
+          {/* 1. Calm atmospheric background: the site-navy "Oceanic Shimmer"
+              gradient (grain + soft radial glows) + one gentle glow */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <NavyShimmerBackground className="h-full w-full" />
+          </div>
           <div className="rafiq-footer-aurora absolute left-1/2 top-1/2 h-[60vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] blur-[100px] pointer-events-none z-0" />
 
           {/* 2. Main Center Content: Title & Action Buttons */}
