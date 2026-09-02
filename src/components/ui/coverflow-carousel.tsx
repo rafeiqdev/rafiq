@@ -61,6 +61,16 @@ const SERVICE_IMAGES: Record<string, string> = {
   health: "/images/services/official/health.webp",
 };
 
+// Card id -> catalog category id (src/data/services.ts) for the services page filter.
+const SERVICE_CATEGORY: Record<string, string> = {
+  residence: 'residency',
+  'real-estate': 'realestate',
+  tourism: 'tourism',
+  translation: 'translation',
+  banking: 'banking',
+  health: 'health',
+};
+
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
   residence: <FileCheck2 className="h-4 w-4" aria-hidden="true" />,
   'real-estate': <Building2 className="h-4 w-4" aria-hidden="true" />,
@@ -99,7 +109,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     return t.servicesCarousel.services.map((item) => ({
       ...item,
       src: SERVICE_IMAGES[item.id] || "/images/services/official/residence.webp",
-      href: `/${language}/services?category=${item.id}`,
+      href: `/${language}/services?category=${SERVICE_CATEGORY[item.id] ?? item.id}`,
       icon: SERVICE_ICONS[item.id],
     }));
   }, [customSlides, t, language]);

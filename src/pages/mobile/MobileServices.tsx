@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { pickText, normalizeSearch, keywordsFor } from '../../data/services';
+import { pickText, normalizeSearch, keywordsFor, SERVICE_CATEGORIES } from '../../data/services';
 import type { ServiceType } from '../../data/services';
 import { useCatalog } from '../../data/catalogStore';
 import { useApp } from '../../context/AppContext';
@@ -31,7 +31,12 @@ export function MobileServices() {
   const { user, profile } = useApp();
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
-  const [category, setCategory] = useState<string>('all');
+  // ?category= from the homepage service cards — same mapping as pages/Services.tsx.
+  const [category, setCategory] = useState<string>(() => {
+    const raw = params.get('category') ?? '';
+    const id = ({ residence: 'residency', 'real-estate': 'realestate' } as Record<string, string>)[raw] ?? raw;
+    return SERVICE_CATEGORIES.some((c) => c.id === id) ? id : 'all';
+  });
   const [typeFilter, setTypeFilter] = useState<'all' | ServiceType>('all');
   const [showAllCategories, setShowAllCategories] = useState(false);
   const { services, categories } = useCatalog();
