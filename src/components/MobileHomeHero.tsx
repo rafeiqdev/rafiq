@@ -20,27 +20,23 @@ import { AppIcon } from './AppIcon';
  */
 const COPY: Record<
   string,
-  { title: string; subtitle: string; trust: string }
+  { title: string; subtitle: string }
 > = {
   ar: {
     title: 'رفيقك في إسطنبول',
     subtitle: 'الإقامة، السكن، الصحة والمعاملات — نرتّبها لك بلغتك ومع شركاء موثوقين.',
-    trust: 'خدمة مباشرة + شركاء موثوقون',
   },
   en: {
     title: 'Your companion in Istanbul',
     subtitle: 'Residency, housing, health and paperwork — arranged for you in your language, with trusted partners.',
-    trust: 'Direct service + trusted partners',
   },
   ru: {
     title: 'Ваш спутник в Стамбуле',
     subtitle: 'ВНЖ, жильё, здоровье и документы — организуем на вашем языке с проверенными партнёрами.',
-    trust: 'Прямой сервис + проверенные партнёры',
   },
   fa: {
     title: 'همراه شما در استانبول',
     subtitle: 'اقامت، مسکن، سلامت و امور اداری — به زبان خودتان و با شرکای مطمئن برایتان ترتیب می‌دهیم.',
-    trust: 'خدمات مستقیم + شرکای مطمئن',
   },
 };
 
@@ -80,9 +76,12 @@ export function MobileHomeHero() {
           </clipPath>
         </defs>
       </svg>
-      <div className="px-3 pt-3">
+      {/* Edge to edge, and locked to the photo's own 3:4 ratio (the owner
+          supplies a 1080×1440 image) so the picture is never cropped on any
+          phone width — only the curved bottom edge trims it. */}
+      <div>
         <div
-          className="relative overflow-hidden rounded-[28px] bg-[#1A3A6B] shadow-lg shadow-[#1A3A6B]/15"
+          className="relative aspect-[3/4] w-full overflow-hidden bg-[#1A3A6B]"
           style={{ clipPath: 'url(#mobileHomeHeroCurve)' }}
         >
           <img
@@ -92,23 +91,19 @@ export function MobileHomeHero() {
             loading="eager"
             decoding="async"
             fetchPriority="high"
-            className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
           {/* the dusk sky stays untouched up top; the bottom half darkens so
               the copy and buttons stay legible */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent from-30% via-[#0A1832]/45 via-60% to-[#0A1832]/90" />
 
-          <div className="relative flex min-h-[520px] flex-col items-center justify-end px-5 pb-14 pt-24 text-center text-white">
+          <div className="absolute inset-0 flex flex-col items-center justify-end px-5 pb-14 text-center text-white">
             <h1 className="text-[1.9rem] font-extrabold leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)]">
               {c.title}
             </h1>
             <p className="mt-3 max-w-[18rem] text-[0.95rem] leading-relaxed text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
               {c.subtitle}
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3.5 py-1.5 text-xs font-semibold text-[#1A3A6B] shadow-sm ring-1 ring-[#1A3A6B]/10 backdrop-blur">
-              <AppIcon name="shield-check" className="h-4 w-4" />
-              {c.trust}
-            </div>
 
             {/* Both actions full-width, stacked, thumb-height. */}
             <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5">
