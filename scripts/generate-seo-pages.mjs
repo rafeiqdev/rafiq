@@ -838,6 +838,60 @@ async function fetchLatestNews() {
   }
 }
 
+// The full catalog, grouped by category, for the /services shell. The live
+// page renders the catalog client-side, so a non-JS crawler saw only the
+// seven priority links — Search Console reported "Referring page: none
+// detected" for service pages and left 364 of them at "Discovered – currently
+// not indexed". Every category heading links to its guide, every service to
+// its own page, so each service URL has at least one real internal referrer
+// in static HTML.
+const CATALOG_CATEGORY_ORDER = [
+  'residency', 'banking', 'realestate', 'legal', 'accounting', 'business',
+  'health', 'education', 'tourism', 'translation', 'telecom', 'daily',
+];
+function renderFullCatalogHtml(lang) {
+  const byCategory = {};
+  for (const [id, category] of Object.entries(serviceCategory)) {
+    if (!serviceSeo[lang][id]) continue; // only services that have a real page
+    (byCategory[category] ??= []).push(id);
+  }
+  const categories = [
+    ...CATALOG_CATEGORY_ORDER.filter((category) => byCategory[category]),
+    ...Object.keys(byCategory).filter((category) => !CATALOG_CATEGORY_ORDER.includes(category)),
+  ];
+  const sections = categories
+    .map((category) => {
+      const guide = guideSeo[category]?.[lang];
+      const headingLabel = guide?.title ?? catalogTitle(lang, byCategory[category][0]) ?? category;
+      const heading = guide
+        ? `<a href="${escapeHtml(`/${lang}/guides/${category}`)}">${escapeHtml(headingLabel)}</a>`
+        : escapeHtml(headingLabel);
+      const items = byCategory[category]
+        .map((id) => {
+          const label = catalogTitle(lang, id) || serviceSeo[lang][id].title;
+          return `<li><a href="${escapeHtml(`/${lang}/services/${id}`)}">${escapeHtml(label)}</a></li>`;
+        })
+        .join('');
+      return `
+        <section>
+          <h3>${heading}</h3>
+          <ul>${items}</ul>
+        </section>`;
+    })
+    .join('');
+  if (!sections) return '';
+  const heading = {
+    ar: 'كل الخدمات حسب الفئة',
+    en: 'All services by category',
+    ru: 'Все услуги по категориям',
+    fa: 'همه خدمات بر اساس دسته',
+  }[lang];
+  return `
+        <section aria-labelledby="seo-catalog-heading">
+          <h2 id="seo-catalog-heading">${escapeHtml(heading)}</h2>${sections}
+        </section>`;
+}
+
 function renderNewsListHtml(lang, posts) {
   if (!posts.length) return '';
   const items = posts
@@ -993,7 +1047,9 @@ function buildHtml(template, lang, route, meta) {
         ? renderRealEstateSections(lang)
         : route === '/news'
           ? renderNewsListHtml(lang, latestNews)
-          : serviceMatch && serviceSeo[lang][serviceMatch[1]]
+          : route === '/services'
+            ? renderFullCatalogHtml(lang)
+            : serviceMatch && serviceSeo[lang][serviceMatch[1]]
             ? renderServiceTopicsSections(lang, serviceMatch[1], catalogTitle(lang, serviceMatch[1]))
             : '';
     if (faqItems.length || extraSectionsHtml) {
