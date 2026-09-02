@@ -1515,6 +1515,9 @@
       "draft": "Черновик",
       "published": "Опубликовано",
       "publishDraft": "Опубликовать",
+      "publishAll": "Опубликовать все черновики ({{count}})",
+      "publishAllShort": "Опубликовать все черновики",
+      "publishedAll": "Опубликовано {{count}} записей",
       "unpublish": "Снять с публикации",
       "empty": "Новостей пока нет.",
       "errors": {

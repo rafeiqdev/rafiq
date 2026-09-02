@@ -1515,6 +1515,9 @@
       "draft": "Draft",
       "published": "Published",
       "publishDraft": "Publish",
+      "publishAll": "Publish all drafts ({{count}})",
+      "publishAllShort": "Publish all drafts",
+      "publishedAll": "Published {{count}} posts",
       "unpublish": "Unpublish",
       "empty": "No news posts yet.",
       "errors": {

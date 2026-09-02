@@ -1515,6 +1515,9 @@
       "draft": "مسودة",
       "published": "منشور",
       "publishDraft": "نشر",
+      "publishAll": "نشر كل المسودات ({{count}})",
+      "publishAllShort": "نشر كل المسودات",
+      "publishedAll": "تم نشر {{count}} خبرًا",
       "unpublish": "إلغاء النشر",
       "empty": "لا أخبار بعد.",
       "errors": {
