@@ -7,7 +7,7 @@ import { LogoCloudSection } from '../components/ui/logo-cloud-section';
 import { HowItWorks } from '../components/ui/how-it-works';
 import { CoverflowCarousel } from '../components/ui/coverflow-carousel';
 import { RafiqMarqueeDivider } from '../components/ui/rafiq-marquee-divider';
-import { RafiqConnectionAnimationSection } from '../components/ui/rafiq-connection-animation-section';
+import { DiscoverRafiq } from '../components/ui/discover-rafiq';
 import { HabitFaqScroller } from '../components/ui/habit-faq-scroller';
 import { RafiqCinematicFooter } from '../components/ui/rafiq-cinematic-footer';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
@@ -63,7 +63,9 @@ function HomeContent() {
         <HowItWorks />
         <CoverflowCarousel />
         <RafiqMarqueeDivider />
-        <RafiqConnectionAnimationSection />
+        {/* "Discover Rafiq" (map / news / real estate / health) replaced the
+            connection-animation section here — see discover-rafiq.tsx. */}
+        <DiscoverRafiq />
         <HabitFaqScroller />
       </main>
       <RafiqCinematicFooter />
