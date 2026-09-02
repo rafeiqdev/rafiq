@@ -97,11 +97,13 @@ export function DiscoverRafiq() {
     ctaLabel: c.open,
   }));
 
-  // The deck's geometry is in pixels; a phone gets a card that fits its width
-  // with the neighbours peeking from behind, desktop the prompt's own sizes.
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
-  const cardWidth = isMobile ? Math.min(300, vw - 72) : 520;
-  const cardHeight = isMobile ? Math.round(cardWidth * 0.78) : 320;
+  // Desktop only: the 3D fan deck at the prompt's own sizes. On phones the
+  // deck was, in the owner's words, very bad — the tilted neighbours spilled
+  // off a 375px screen, the drag handler fought the page's own scrolling, and
+  // the perspective transforms stuttered — so phones get the same four cards
+  // as a plain horizontal swipe row instead (below).
+  const cardWidth = 520;
+  const cardHeight = 320;
 
   return (
     <section
@@ -126,15 +128,48 @@ export function DiscoverRafiq() {
         {/* The deck lays cards out left-to-right in pixels, so it runs LTR even
             on the Arabic/Farsi page; the text inside each card keeps the
             page direction. */}
+        {isMobile ? (
+          <ul
+            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 pt-3 scrollbar-none"
+            role="list"
+          >
+            {items.map((item) => (
+              <li key={item.id} className="w-[82%] max-w-[82%] shrink-0 snap-center">
+                <a
+                  href={item.href}
+                  className="relative block aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md"
+                >
+                  <img
+                    src={item.imageSrc}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" aria-hidden="true" />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="text-lg font-black text-white drop-shadow">{item.title}</div>
+                    <div className="mt-1 text-xs leading-relaxed text-white/85">{item.description}</div>
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md">
+                      {item.ctaLabel}
+                      <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
         <div dir="ltr">
           <CardStack
             items={items}
             initialIndex={0}
-            maxVisible={isMobile ? 3 : 5}
+            maxVisible={5}
             cardWidth={cardWidth}
             cardHeight={cardHeight}
-            overlap={isMobile ? 0.62 : 0.48}
-            spreadDeg={isMobile ? 26 : 48}
+            overlap={0.48}
+            spreadDeg={48}
             autoAdvance
             intervalMs={3200}
             pauseOnHover
@@ -172,6 +207,7 @@ export function DiscoverRafiq() {
             )}
           />
         </div>
+        )}
       </div>
 
       {/* Same organic wave the previous section carried into the FAQ scroller */}
