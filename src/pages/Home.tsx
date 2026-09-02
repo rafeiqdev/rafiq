@@ -1,6 +1,8 @@
 import { LanguageProvider, useLanguage } from '../i18n/LanguageContext';
 import { TopRatesBar } from '../components/TopRatesBar';
 import { RafiqHero } from '../components/RafiqHero';
+import { MobileHomeHero } from '../components/MobileHomeHero';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { LogoCloudSection } from '../components/ui/logo-cloud-section';
 import { HowItWorks } from '../components/ui/how-it-works';
 import { CoverflowCarousel } from '../components/ui/coverflow-carousel';
@@ -33,6 +35,10 @@ import { usePageMeta } from '../lib/seo';
  */
 function HomeContent() {
   const { language, dir, t } = useLanguage();
+  // Phones get the framed-photo hero (see MobileHomeHero): the desktop hero's
+  // landscape video and its text/button placement don't survive a portrait
+  // screen. Everything below the hero is shared.
+  const isMobile = useIsMobile();
 
   usePageMeta({
     title: `${t.common.brandName} — ${t.common.tagline}`,
@@ -52,7 +58,7 @@ function HomeContent() {
       </div>
       <LocalBusinessSchema />
       <main className="relative z-10 w-full bg-[#FAF8F0] shadow-2xl">
-        <RafiqHero />
+        {isMobile ? <MobileHomeHero /> : <RafiqHero />}
         <LogoCloudSection />
         <HowItWorks />
         <CoverflowCarousel />
