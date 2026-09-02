@@ -147,10 +147,10 @@ export function DiscoverRafiq() {
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" aria-hidden="true" />
                   <div className="absolute inset-x-0 bottom-0 p-4">
-                    <div className="text-lg font-black text-white drop-shadow">{item.title}</div>
-                    <div className="mt-1 text-xs leading-relaxed text-white/85">{item.description}</div>
+                    <div className="text-lg font-black text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{item.title}</div>
+                    <div className="mt-1 text-xs leading-relaxed text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">{item.description}</div>
                     <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md">
                       {item.ctaLabel}
                       <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
@@ -186,7 +186,7 @@ export function DiscoverRafiq() {
                     loading="eager"
                   />
                 </div>
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" />
                 <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5">
                   <div className="text-lg font-black text-white drop-shadow sm:text-2xl">{item.title}</div>
                   {item.description ? (
