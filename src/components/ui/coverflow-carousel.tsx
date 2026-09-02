@@ -275,7 +275,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
       className={cn(
-        "relative w-full overflow-hidden pt-28 sm:pt-32 lg:pt-36 pb-24 sm:pb-32 text-[#12294D] font-sans outline-none select-none",
+        "relative w-full overflow-hidden pt-16 sm:pt-32 lg:pt-36 pb-14 sm:pb-32 text-[#12294D] font-sans outline-none select-none",
         className
       )}
       {...props}
@@ -297,7 +297,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 
       <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="mx-auto mb-14 sm:mb-18 max-w-4xl text-center pointer-events-auto">
+        <div className="mx-auto mb-8 sm:mb-18 max-w-4xl text-center pointer-events-auto">
           <div className="mb-3.5 inline-flex items-center gap-2.5">
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
             <span className="text-xs sm:text-sm font-black tracking-widest text-[#1A3A6B] uppercase">
@@ -306,12 +306,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
 
-          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-tight sm:leading-tight">
+          <h2 className="text-2xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-snug sm:leading-tight">
             {heading || t.servicesCarousel.heading}
           </h2>
 
-          <div className="mt-5 sm:mt-6 inline-flex items-center gap-2 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-[#12294D]/80 border border-[#60A5FA]/40 shadow-xl backdrop-blur-md">
-            <span className="text-sm sm:text-base md:text-lg font-bold text-[#E8F0FB] tracking-wide">
+          <div className="mt-3.5 sm:mt-6 inline-flex items-center gap-2 px-4 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-[#12294D]/80 border border-[#60A5FA]/40 shadow-xl backdrop-blur-md">
+            <span className="text-xs sm:text-base md:text-lg font-bold text-[#E8F0FB] tracking-wide">
               {description || t.servicesCarousel.description}
             </span>
           </div>
