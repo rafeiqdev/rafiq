@@ -46,7 +46,7 @@ export function Services() {
 
   usePageMeta({
     title: `${t('services.title')} — ${t('common.appName')}`,
-    description: t('services.subtitle'),
+    description: t('services.metaDescription'),
   });
 
   const matches = useMemo(() => {

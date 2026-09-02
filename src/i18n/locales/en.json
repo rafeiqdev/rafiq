@@ -1125,6 +1125,7 @@
   "services": {
     "title": "All Rafiq services",
     "subtitle": "Everything you need in Istanbul — handled by our own team or vetted partners.",
+    "metaDescription": "All Rafiq services in Istanbul: residency and citizenship, bank accounts, housing, translation, insurance, health and education — by our team or vetted partners.",
     "trustNote": "Direct service + vetted partners",
     "residenceSpotlight": {
       "title": "Start with our key residence services",
@@ -2652,7 +2653,7 @@
   "medical": {
     "seo": {
       "title": "Rafiq | Medical Coordination & Healthcare Platform in Istanbul",
-      "description": "Rafiq is your platform for coordinating treatment in Istanbul: compare medical specialties across accredited (JCI) hospitals, get clear price offers, and arrange transport, translation and accommodation — with full transparency and no hidden commissions."
+      "description": "Rafiq coordinates treatment in Istanbul: compare JCI-accredited hospitals, get clear price offers, and arrange transport, translation and stay."
     },
     "hero": {
       "title": "Your medical journey in Istanbul starts with clearer options.",

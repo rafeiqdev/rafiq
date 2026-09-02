@@ -162,18 +162,26 @@ export const RafiqHero: React.FC<RafiqHeroProps> = ({
     ariaLabel: t.hero.secondaryCta,
   };
 
-  // Check prefers-reduced-motion
+  // Check prefers-reduced-motion. Phones and data-saver connections are
+  // treated the same way: the poster alone is shown and the video is never
+  // requested. The clip was the single heaviest download on the home page and
+  // on a small screen it is mostly hidden behind the copy anyway.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const phoneQuery = window.matchMedia('(max-width: 767px)');
+    const saveData = Boolean(
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData,
+    );
+    const update = () => setReducedMotion(motionQuery.matches || phoneQuery.matches || saveData);
+    update();
 
-    const handleChange = (e: MediaQueryListEvent) => {
-      setReducedMotion(e.matches);
+    motionQuery.addEventListener('change', update);
+    phoneQuery.addEventListener('change', update);
+    return () => {
+      motionQuery.removeEventListener('change', update);
+      phoneQuery.removeEventListener('change', update);
     };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // Safe video autoplay handling

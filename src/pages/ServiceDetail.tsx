@@ -105,12 +105,12 @@ function copyFor(language: string) {
  * category absent here simply falls back to the plain blue gradient.
  */
 const CATEGORY_HERO_IMAGE: Record<string, string> = {
-  residency: '/images/services/official/residence.png',
-  realestate: '/images/services/official/real-estate.png',
-  tourism: '/images/services/official/tourism.png',
-  translation: '/images/services/official/translation.png',
-  banking: '/images/services/official/banking.png',
-  health: '/images/services/official/health.png',
+  residency: '/images/services/official/residence.webp',
+  realestate: '/images/services/official/real-estate.webp',
+  tourism: '/images/services/official/tourism.webp',
+  translation: '/images/services/official/translation.webp',
+  banking: '/images/services/official/banking.webp',
+  health: '/images/services/official/health.webp',
 };
 
 /** Renders "**bold**" spans within a line; everything else passes through as-is. */
