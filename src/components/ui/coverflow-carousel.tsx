@@ -49,12 +49,12 @@ export interface CoverflowCarouselProps extends React.HTMLAttributes<HTMLElement
 }
 
 const SERVICE_IMAGES: Record<string, string> = {
-  residence: "/images/services/official/residence.png",
-  'real-estate': "/images/services/official/real-estate.png",
-  tourism: "/images/services/official/tourism.png",
-  translation: "/images/services/official/translation.png",
-  banking: "/images/services/official/banking.png",
-  health: "/images/services/official/health.png",
+  residence: "/images/services/official/residence.webp",
+  'real-estate': "/images/services/official/real-estate.webp",
+  tourism: "/images/services/official/tourism.webp",
+  translation: "/images/services/official/translation.webp",
+  banking: "/images/services/official/banking.webp",
+  health: "/images/services/official/health.webp",
 };
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
@@ -94,7 +94,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 
     return t.servicesCarousel.services.map((item) => ({
       ...item,
-      src: SERVICE_IMAGES[item.id] || "/images/services/official/residence.png",
+      src: SERVICE_IMAGES[item.id] || "/images/services/official/residence.webp",
       href: `/${language}/services?category=${item.id}`,
       icon: SERVICE_ICONS[item.id],
     }));

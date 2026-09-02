@@ -26,6 +26,24 @@ import { RafiqBrandLogo } from '@/components/ui/rafiq-brand-logo';
 // Default asset paths
 const DEFAULT_POSTER = new URL('./assets/istanbul-poster.jpg', import.meta.url).href;
 const DEFAULT_VIDEO = new URL('./assets/istanbul-video.mp4', import.meta.url).href;
+
+/**
+ * Show the poster only (no video request at all) when the visitor asked for
+ * reduced motion, is on a phone-sized viewport, or has data saver on. The
+ * clip is the single heaviest download on the home page and on a small
+ * screen it is mostly hidden behind the copy anyway.
+ */
+function shouldSkipVideo(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saveData = Boolean(
+    (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData,
+  );
+  return (
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    window.matchMedia('(max-width: 767px)').matches ||
+    saveData
+  );
+}
 const DEFAULT_LOGO = new URL('./assets/rafiq-logo.svg', import.meta.url).href;
 
 /**
@@ -61,7 +79,10 @@ export const RafiqHero: React.FC<RafiqHeroProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
-  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
+  // Initialised synchronously (not in the effect below) so the <video> is
+  // never mounted on the first paint of a phone: mounting it even briefly
+  // starts the download before the effect can unmount it.
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => shouldSkipVideo());
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   // Dynamic Navigation Items based on active language.
@@ -162,18 +183,21 @@ export const RafiqHero: React.FC<RafiqHeroProps> = ({
     ariaLabel: t.hero.secondaryCta,
   };
 
-  // Check prefers-reduced-motion
+  // Keep the initial decision (see shouldSkipVideo) in sync when the visitor
+  // rotates, resizes past the phone breakpoint, or toggles reduced motion.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const phoneQuery = window.matchMedia('(max-width: 767px)');
+    const update = () => setReducedMotion(shouldSkipVideo());
+    update();
 
-    const handleChange = (e: MediaQueryListEvent) => {
-      setReducedMotion(e.matches);
+    motionQuery.addEventListener('change', update);
+    phoneQuery.addEventListener('change', update);
+    return () => {
+      motionQuery.removeEventListener('change', update);
+      phoneQuery.removeEventListener('change', update);
     };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // Safe video autoplay handling

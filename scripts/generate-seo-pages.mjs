@@ -374,7 +374,7 @@ const staticMeta = {
   }),
   '/services': (lang) => ({
     title: `${text(lang, 'services.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'services.subtitle'),
+    description: text(lang, 'services.metaDescription'),
     content: text(lang, 'services.subtitle'),
   }),
   '/news': (lang) => ({
@@ -437,19 +437,64 @@ function escapeJsonForHtml(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
-// Mirrors ServiceDetail.tsx's renderServiceBody: paragraphs separated by a
-// blank line, except a block where every line starts with "- " renders as a
-// bullet list, so the static shell matches what crawlers/no-JS visitors see.
+// "**bold**" inside any block becomes <strong>; everything else is escaped.
+// Mirrors renderInline in ServiceDetail.tsx.
+function renderInline(text) {
+  return text
+    .split(/(\*\*[^*]+\*\*)/g)
+    .map((part) =>
+      part.startsWith('**') && part.endsWith('**') && part.length > 4
+        ? `<strong>${escapeHtml(part.slice(2, -2))}</strong>`
+        : escapeHtml(part),
+    )
+    .join('');
+}
+
+// Mirrors ServiceDetail.tsx's renderServiceBody block-for-block so the static
+// shell matches what JS visitors see: a single "## "/"### " line is a heading,
+// a block of "| ... |" lines is a table, a block where every line starts with
+// "- " or "1. " is a list, otherwise a paragraph. Without this, non-JS
+// crawlers (GPTBot, ClaudeBot, PerplexityBot) were reading raw "##" and "**"
+// markers and pipe-delimited tables as literal text.
 function renderServiceBody(body) {
   return body
     .split('\n\n')
     .map((block) => {
       const lines = block.split('\n').filter(Boolean);
-      const isList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
-      if (isList) {
-        return `<ul>${lines.map((line) => `<li>${escapeHtml(line.slice(2))}</li>`).join('')}</ul>`;
+      if (lines.length === 0) return '';
+
+      if (lines.length === 1 && lines[0].startsWith('### ')) {
+        return `<h3>${renderInline(lines[0].slice(4))}</h3>`;
       }
-      return `<p>${escapeHtml(block)}</p>`;
+      if (lines.length === 1 && lines[0].startsWith('## ')) {
+        return `<h2>${renderInline(lines[0].slice(3))}</h2>`;
+      }
+
+      const isTable = lines.length >= 2 && lines.every((line) => line.trim().startsWith('|'));
+      if (isTable) {
+        const rows = lines
+          .map((line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim()))
+          .filter((cells) => !cells.every((cell) => /^:?-+:?$/.test(cell)));
+        const [head, ...bodyRows] = rows;
+        if (!head) return '';
+        const thead = `<thead><tr>${head.map((cell) => `<th>${renderInline(cell)}</th>`).join('')}</tr></thead>`;
+        const tbody = `<tbody>${bodyRows
+          .map((cells) => `<tr>${cells.map((cell) => `<td>${renderInline(cell)}</td>`).join('')}</tr>`)
+          .join('')}</tbody>`;
+        return `<table>${thead}${tbody}</table>`;
+      }
+
+      const isBulletList = lines.every((line) => line.startsWith('- '));
+      if (isBulletList) {
+        return `<ul>${lines.map((line) => `<li>${renderInline(line.slice(2))}</li>`).join('')}</ul>`;
+      }
+
+      const isNumberedList = lines.every((line) => /^\d+\.\s/.test(line));
+      if (isNumberedList) {
+        return `<ol>${lines.map((line) => `<li>${renderInline(line.replace(/^\d+\.\s/, ''))}</li>`).join('')}</ol>`;
+      }
+
+      return `<p>${renderInline(block)}</p>`;
     })
     .join('');
 }
@@ -763,6 +808,60 @@ function metaFor(lang, route) {
   };
 }
 
+// /news used to ship an empty static shell: the article list only exists after
+// the client queries Supabase, so non-JS crawlers (and AI answer engines) saw
+// a page with zero article links. Fetch the latest published posts once at
+// build time with the same anon REST call the app makes, and render them as
+// plain links. Any failure (no env, network, RLS) degrades to the old empty
+// shell rather than failing the build.
+async function fetchLatestNews() {
+  const supaUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supaUrl || !anonKey) {
+    console.warn('generate-seo-pages: Supabase env missing — /news shells get no article links.');
+    return [];
+  }
+  try {
+    const res = await fetch(
+      `${supaUrl.replace(/\/$/, '')}/rest/v1/news_posts?published=eq.true&select=id,title,created_at,translations&order=created_at.desc&limit=20`,
+      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } },
+    );
+    if (!res.ok) {
+      console.warn(`generate-seo-pages: news fetch failed (${res.status}) — /news shells get no article links.`);
+      return [];
+    }
+    const rows = await res.json();
+    return Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    console.warn('generate-seo-pages: news fetch threw — /news shells get no article links.', error?.message ?? error);
+    return [];
+  }
+}
+
+function renderNewsListHtml(lang, posts) {
+  if (!posts.length) return '';
+  const items = posts
+    .map((post) => {
+      // Arabic is the source of truth; other languages use the stored machine
+      // translation when it exists (same rule as localizeNewsPost / the
+      // /api/render/news-article handler).
+      const title = (lang !== 'ar' && post.translations?.[lang]?.title) || post.title;
+      if (!post.id || !title) return '';
+      const date = typeof post.created_at === 'string' ? post.created_at.slice(0, 10) : '';
+      return `<li><a href="${escapeHtml(`/${lang}/news/${post.id}`)}">${escapeHtml(title)}</a>${
+        date ? ` <time datetime="${escapeHtml(date)}">${escapeHtml(date)}</time>` : ''
+      }</li>`;
+    })
+    .filter(Boolean)
+    .join('');
+  if (!items) return '';
+  return `
+        <section aria-labelledby="seo-news-heading">
+          <h2 id="seo-news-heading">${escapeHtml(text(lang, 'home.news.latest'))}</h2>
+          <ul>${items}</ul>
+        </section>`;
+}
+
 function upsertTag(html, pattern, tag) {
   if (pattern.test(html)) return html.replace(pattern, tag);
   return html.replace('</head>', `    ${tag}\n  </head>`);
@@ -892,9 +991,11 @@ function buildHtml(template, lang, route, meta) {
       ? renderHealthTourismSections(lang)
       : route === '/real-estate'
         ? renderRealEstateSections(lang)
-        : serviceMatch && serviceSeo[lang][serviceMatch[1]]
-          ? renderServiceTopicsSections(lang, serviceMatch[1], catalogTitle(lang, serviceMatch[1]))
-          : '';
+        : route === '/news'
+          ? renderNewsListHtml(lang, latestNews)
+          : serviceMatch && serviceSeo[lang][serviceMatch[1]]
+            ? renderServiceTopicsSections(lang, serviceMatch[1], catalogTitle(lang, serviceMatch[1]))
+            : '';
     if (faqItems.length || extraSectionsHtml) {
       staticMain = staticMain.replace(
         '</article>',
@@ -943,6 +1044,7 @@ function buildHtml(template, lang, route, meta) {
 }
 
 const template = readFileSync(join(dist, 'index.html'), 'utf8');
+const latestNews = await fetchLatestNews();
 // sitemap.xml is a sitemap INDEX (see generate-sitemap.mjs); the actual page
 // URLs live in its two member sitemaps.
 const sitemaps = ['public/sitemap-priority.xml', 'public/sitemap-guides.xml']
