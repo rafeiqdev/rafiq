@@ -103,7 +103,7 @@ export function DiscoverRafiq() {
   // the perspective transforms stuttered — so phones get the same four cards
   // as a plain horizontal swipe row instead (below).
   const cardWidth = 520;
-  const cardHeight = 320;
+  const cardHeight = 325; // 520×325 = 16:10, the same ratio as the phone card and the owner's 1200×750 images
 
   return (
     <section
@@ -137,7 +137,7 @@ export function DiscoverRafiq() {
               <li key={item.id} className="w-[82%] max-w-[82%] shrink-0 snap-center">
                 <a
                   href={item.href}
-                  className="relative block aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md"
+                  className="relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md"
                 >
                   <img
                     src={item.imageSrc}
