@@ -1494,6 +1494,24 @@ export const news = {
     return { ok: true };
   },
 
+  /**
+   * Flips every draft to published in one round-trip. The owner reviews each
+   * item on the sidebar; when he trusts the batch, one click ships them all
+   * instead of clicking Publish on every row.
+   */
+  async publishAllDrafts(): Promise<{ count: number }> {
+    const c = sb();
+    const { data, error } = await c
+      .from('news_posts')
+      .update({ published: true })
+      .eq('published', false)
+      .select('id');
+    if (error) fail(error);
+    const ids = ((data as { id: string }[] | null) ?? []).map((r) => r.id);
+    for (const id of ids) await logAdminAudit('news_publish', 'news_post', id);
+    return { count: ids.length };
+  },
+
   async setTelegramChannel(url: string): Promise<{ ok: true }> {
     const value = url.trim() ? { channel: url.trim() } : {};
     const { error } = await sb().from('settings').upsert({ key: 'telegram', value }, { onConflict: 'key' });
