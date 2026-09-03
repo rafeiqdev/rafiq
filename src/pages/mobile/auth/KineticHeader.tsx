@@ -92,9 +92,13 @@ export const KineticHeader: React.FC<KineticHeaderProps> = ({
     return () => clearTimeout(timeout);
   }, [charCount, isErasing, isPaused, currentFullText, phrases.length]);
 
+  // Responsive hero size: scales with viewport width (bigger on large phones,
+  // smaller on small ones) via vw, clamped so it never gets tiny or overflows
+  // the single line. Arabic/Persian kept slightly shorter in rem — the script
+  // sits taller — while still landing noticeably larger than before.
   const headlineFontSize = isRtl
-    ? 'clamp(1.02rem, 3.1vw, 1.18rem)'
-    : 'clamp(1.06rem, 3.2vw, 1.22rem)';
+    ? 'clamp(1.3rem, 6vw, 1.95rem)'
+    : 'clamp(1.35rem, 6.4vw, 2.05rem)';
 
   const fontFamily =
     language === 'ar'
@@ -158,8 +162,8 @@ export const KineticHeader: React.FC<KineticHeaderProps> = ({
           aria-hidden="true"
           className={`kinetic-cursor-dot ${!isErasing && isPaused ? 'kinetic-dot-pulse' : ''}`}
           style={{
-            width: isRtl ? '11px' : '12px',
-            height: isRtl ? '11px' : '12px',
+            width: isRtl ? '13px' : '14px',
+            height: isRtl ? '13px' : '14px',
             borderRadius: '50%',
             backgroundColor: customColor,
             marginInlineStart: '8px',
