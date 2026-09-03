@@ -9,8 +9,11 @@ import { AppIcon, DirArrow } from '../../components/AppIcon';
 import { Logo } from '../../components/Logo';
 import { TopRatesBar } from '../../components/TopRatesBar';
 import { MobileTabBar } from '../../components/MobileTabBar';
+import { MobileNewsWelcome } from './MobileNewsWelcome';
 import { useApp } from '../../context/AppContext';
 import { usePageMeta } from '../../lib/seo';
+
+const WELCOME_SEEN_KEY = 'rafiq_news_welcome_seen';
 
 /**
  * Phone-only /news screen — a magazine-style feed (one large featured post,
@@ -24,6 +27,26 @@ export function MobileNews() {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
   const [posts, setPosts] = useState<NewsPost[] | null>(null);
+
+  // First-run welcome splash — shown once per device on the reader's very first
+  // visit to /news. Guarded in a lazy initializer so it never flashes for repeat
+  // visitors; localStorage may throw in private mode, hence the try/catch.
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return localStorage.getItem(WELCOME_SEEN_KEY) !== 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const dismissWelcome = () => {
+    try {
+      localStorage.setItem(WELCOME_SEEN_KEY, 'true');
+    } catch {
+      /* ignore private-mode failures */
+    }
+    setShowWelcome(false);
+  };
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -72,6 +95,8 @@ export function MobileNews() {
 
   return (
     <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-cream flex flex-col">
+      {showWelcome && <MobileNewsWelcome onContinue={dismissWelcome} />}
+
       <TopRatesBar />
 
       {/* slim brand header — wordmark + circular profile button */}
