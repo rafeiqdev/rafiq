@@ -16,9 +16,10 @@ export function MobileNewsWelcome({ onContinue }: { onContinue: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-white overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-7 pt-[calc(env(safe-area-inset-top)+40px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
-        {/* wordmark */}
-        <Logo size={40} />
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-7 pt-[calc(env(safe-area-inset-top)+28px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
+        {/* wordmark — self-start stops the flex column from stretching the
+            image to full width (which distorts the wordmark's aspect ratio) */}
+        <Logo size={30} className="self-start" />
 
         {/* headline */}
         <h1 className="mt-8 text-[44px] font-extrabold leading-[1.05] tracking-tight">
