@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useChatAssistant } from '../../hooks/useChatAssistant';
+import { useApp } from '../../context/AppContext';
+import { useCatalog } from '../../data/catalogStore';
 import { RequireAuthChat } from '../../components/Gates';
 import { BookingModal } from '../../components/BookingModal';
 import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { MediaChips, AttachCard, ATTACH_ACCEPT } from '../../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
+import { SituationSuggestions } from '../../components/SituationSuggestions';
 import { MicGlyph, SpeakerGlyph } from '../../components/ChatVoiceIcons';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
@@ -21,6 +24,8 @@ function MobileChatUI() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const c = useChatAssistant();
+  const { profile } = useApp();
+  const { services } = useCatalog();
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -82,6 +87,12 @@ function MobileChatUI() {
         <div className="animate-fade-up self-start max-w-[85%] rounded-2xl rounded-ss-md bg-brand-blue px-4 py-2.5 text-[14.5px] leading-relaxed text-navy">
           {t('chat.greeting')}
         </div>
+
+        {/* Fresh conversation: offer situation-tailored questions to open a topic in one tap. */}
+        {c.messages.length === 0 && !c.closed && (
+          <SituationSuggestions situation={profile.situation} services={services} variant="chat" />
+        )}
+
         {c.messages.map((m, i) => (
           <div
             key={`${m.ts}_${i}`}

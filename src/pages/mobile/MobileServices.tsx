@@ -4,10 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { pickText, normalizeSearch, keywordsFor, SERVICE_CATEGORIES } from '../../data/services';
 import type { ServiceType } from '../../data/services';
 import { useCatalog } from '../../data/catalogStore';
-import { useApp } from '../../context/AppContext';
 import { AppIcon } from '../../components/AppIcon';
 import { ExpandableServiceCard } from '../../components/ExpandableServiceCard';
-import { SituationSuggestions } from '../../components/SituationSuggestions';
 import { usePageMeta } from '../../lib/seo';
 import { track, normalizeSearchQuery } from '../../lib/analytics';
 import { MobileTabBar } from '../../components/MobileTabBar';
@@ -28,7 +26,6 @@ export function MobileServices() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const navigate = useNavigate();
-  const { user, profile } = useApp();
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') ?? '');
   // ?category= from the homepage service cards — same mapping as pages/Services.tsx.
@@ -102,9 +99,6 @@ export function MobileServices() {
         </header>
 
         <div className="px-5 pt-5">
-          {/* personalized suggestions — only for the untouched landing state, and only when we know the visitor's situation */}
-          {trimToPopular && <SituationSuggestions situation={profile.situation} services={services} />}
-
           {/* ── Search ── */}
           <div className="animate-fade-up relative">
             <span className="pointer-events-none absolute inset-y-0 start-3.5 flex items-center text-navy/40">
