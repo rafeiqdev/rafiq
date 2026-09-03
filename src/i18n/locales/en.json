@@ -282,6 +282,15 @@
       "empty": "No news yet.",
       "notFound": "This news post is no longer available.",
       "askAi": "Ask Rafiq AI about this news",
+      "byline": "Rafiq Editorial Team",
+      "noCategory": "No news in this category yet.",
+      "cat": {
+        "all": "All",
+        "istanbul": "Istanbul",
+        "residency": "Residency",
+        "business": "Business",
+        "lifestyle": "Lifestyle"
+      },
       "welcome": {
         "heading1": "Welcome to",
         "heading2": "Rafiq News",

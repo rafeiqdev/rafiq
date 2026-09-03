@@ -1,0 +1,110 @@
+/* ============================================================
+   Rafiq mobile auth redesign (v2) — SCOPED styles.
+   Everything lives under .rafiq-auth-v2 so it never leaks into
+   the rest of the app (no global resets, no global scrollbar
+   overrides — unlike the original design package).
+   ============================================================ */
+.rafiq-auth-v2 {
+  /* Apple spring easing */
+  --spring-default: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Typography stack (fonts loaded in index.html) */
+  --font-english: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-arabic: "Readex Pro", "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+  --font-persian: "Vazirmatn", "Readex Pro", system-ui, sans-serif;
+  --font-russian: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.rafiq-auth-v2 *,
+.rafiq-auth-v2 *::before,
+.rafiq-auth-v2 *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tactile press */
+.rafiq-auth-v2 .apple-press {
+  position: relative;
+  transition: transform 120ms var(--spring-snappy), opacity 120ms ease,
+    background-color 150ms ease, border-color 150ms ease;
+  will-change: transform;
+}
+.rafiq-auth-v2 .apple-press:active {
+  transform: scale(0.965);
+}
+
+/* Optical typography for the kinetic headline */
+.rafiq-auth-v2 .optical-headline {
+  line-height: 1.25;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+/* Kinetic cursor dot */
+.rafiq-auth-v2 .kinetic-cursor-dot {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.18s var(--spring-default), width 0.2s var(--spring-default),
+    height 0.2s var(--spring-default), opacity 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+.rafiq-auth-v2 .kinetic-dot-pulse {
+  animation: rvKineticPulse 1.2s var(--spring-default) infinite;
+}
+
+/* Outlined "Log in" frame */
+.rafiq-auth-v2 .login-button-frame {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Sub-view entrance */
+.rafiq-auth-v2 .sheet-subview-enter {
+  animation: rvSheetSlideUp 0.34s var(--spring-snappy) both;
+}
+
+/* Hide scrollbars only inside the auth surface */
+.rafiq-auth-v2 .no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.rafiq-auth-v2 .no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+@keyframes rvSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes rvKineticPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.18); opacity: 0.82; }
+}
+@keyframes rvSheetSlideUp {
+  0% { opacity: 0; transform: translateY(24px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rafiq-auth-v2 *,
+  .rafiq-auth-v2 *::before,
+  .rafiq-auth-v2 *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .rafiq-auth-v2 .apple-press:active {
+    transform: none !important;
+    opacity: 0.7 !important;
+  }
+}
