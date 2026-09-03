@@ -205,8 +205,9 @@ export function CardStack<T extends CardStackItem>({
       <div
         className="relative w-full"
         // 380 in the original; lowered so a phone-sized card doesn't leave a
-        // band of empty stage above the deck
-        style={{ height: Math.max(300, cardHeight + 80) }}
+        // band of empty stage above the deck. The floor is set for the phone
+        // deck (cardHeight ~180); desktop clears it on its own height.
+        style={{ height: Math.max(240, cardHeight + 70) }}
         tabIndex={0}
         onKeyDown={onKeyDown}
       >

@@ -97,14 +97,17 @@ export function DiscoverRafiq() {
     ctaLabel: c.open,
   }));
 
-  // Desktop only: the 3D fan deck at the prompt's own sizes. On phones the
-  // deck was, in the owner's words, very bad — the tilted neighbours spilled
-  // off a 375px screen, the drag handler fought the page's own scrolling, and
-  // the perspective transforms stuttered — so phones get the same four cards
-  // as a plain horizontal swipe row instead (below).
-  // Scaled down 2026-09-02 (owner: desktop looked oversized); still 16:10.
-  const cardWidth = 450;
-  const cardHeight = 281; // 450×281 ≈ 16:10, the same ratio as the phone card and the owner's 1200×750 images
+  // The same 3D fan deck (CardStack) now drives BOTH desktop and phone — the
+  // owner wanted the phone to feel like the desktop, not the old plain swipe
+  // row. The phone gets its own tuning so the fan stays inside a 320px screen:
+  // a smaller card, tighter overlap, a narrower arc, and a shallower
+  // perspective (the earlier "very bad" phone deck spilled off-screen and
+  // stuttered because it ran the desktop's wide geometry). framer's drag="x"
+  // sets touch-action:pan-y, so the page still scrolls vertically over the card
+  // while a horizontal flick changes cards.
+  // Desktop scaled down 2026-09-02 (owner: looked oversized); still 16:10.
+  const cardWidth = isMobile ? 260 : 450;
+  const cardHeight = isMobile ? 163 : 281; // 16:10, the ratio of the owner's 1200×750 images
 
   return (
     <section
@@ -128,51 +131,21 @@ export function DiscoverRafiq() {
 
         {/* The deck lays cards out left-to-right in pixels, so it runs LTR even
             on the Arabic/Farsi page; the text inside each card keeps the
-            page direction. */}
-        {isMobile ? (
-          <ul
-            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 pt-3 scrollbar-none"
-            role="list"
-          >
-            {items.map((item) => (
-              <li key={item.id} className="w-[82%] max-w-[82%] shrink-0 snap-center">
-                <a
-                  href={item.href}
-                  className="relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md"
-                >
-                  <img
-                    src={item.imageSrc}
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" aria-hidden="true" />
-                  <div className="absolute inset-x-0 bottom-0 p-4">
-                    <div className="text-lg font-black text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">{item.title}</div>
-                    <div className="mt-1 text-xs leading-relaxed text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]">{item.description}</div>
-                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md">
-                      {item.ctaLabel}
-                      <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
+            page direction. Same component on phone and desktop — only the
+            geometry props below change between them. */}
         <div dir="ltr">
           <CardStack
             items={items}
             initialIndex={0}
-            maxVisible={5}
+            maxVisible={isMobile ? 3 : 5}
             cardWidth={cardWidth}
             cardHeight={cardHeight}
-            overlap={0.48}
-            spreadDeg={48}
+            overlap={isMobile ? 0.78 : 0.48}
+            spreadDeg={isMobile ? 20 : 48}
+            perspectivePx={isMobile ? 820 : 1100}
+            depthPx={isMobile ? 90 : 140}
             autoAdvance
-            intervalMs={3200}
+            intervalMs={isMobile ? 3800 : 3200}
             pauseOnHover
             showDots
             renderCard={(item, { active }) => (
@@ -188,27 +161,32 @@ export function DiscoverRafiq() {
                   />
                 </div>
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" />
-                <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5">
-                  <div className="text-lg font-black text-white drop-shadow sm:text-2xl lg:text-xl">{item.title}</div>
-                  {item.description ? (
-                    <div className="mt-1 line-clamp-2 text-xs text-white/85 sm:text-sm">{item.description}</div>
-                  ) : null}
-                  {active && item.href ? (
-                    <a
-                      href={item.href}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md transition hover:bg-[#FAF8F0] sm:text-sm"
-                    >
-                      {item.ctaLabel}
-                      <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
-                    </a>
-                  ) : null}
-                </div>
+                {/* On the phone the neighbour cards sit right behind the active
+                    one, so their angled text would pile up and read as clutter;
+                    there we show text on the front card only. Desktop keeps the
+                    label on every card (they fan out with room to breathe). */}
+                {(!isMobile || active) ? (
+                  <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5">
+                    <div className="text-base font-black text-white drop-shadow sm:text-2xl lg:text-xl">{item.title}</div>
+                    {item.description ? (
+                      <div className="mt-1 line-clamp-2 text-xs text-white/85 sm:text-sm">{item.description}</div>
+                    ) : null}
+                    {active && item.href ? (
+                      <a
+                        href={item.href}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md transition hover:bg-[#FAF8F0] sm:mt-3 sm:px-4 sm:text-sm"
+                      >
+                        {item.ctaLabel}
+                        <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             )}
           />
         </div>
-        )}
       </div>
 
       {/* Same organic wave the previous section carried into the FAQ scroller */}
