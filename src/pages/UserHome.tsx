@@ -440,7 +440,12 @@ export function UserHome() {
   const journeyServices = items
     .map((i) => catalogServices.find((s) => s.id === i.relatedServiceId))
     .filter((s): s is NonNullable<typeof s> => Boolean(s));
-  const relatedServices = (recommendedServices.length > 0 ? recommendedServices : journeyServices).slice(0, 3);
+  // Was capped to 3 and rendered near the very bottom of the dashboard, so a
+  // user who signed in specifically to find "my service" had to scroll past the
+  // journey road, renewals and the document locker to reach three cards. The
+  // rail now sits directly under the single next action (see below) and shows
+  // up to 6 — enough to actually cover a persona's needs without a full browse.
+  const relatedServices = (recommendedServices.length > 0 ? recommendedServices : journeyServices).slice(0, 6);
 
   const renewals = RENEWAL_KEYS
     .map((key) => ({ key, date: profile.renewals[key] }))
@@ -580,6 +585,39 @@ export function UserHome() {
             </Link>
           </div>
         </section>
+      )}
+
+      {/* ── "خدمات تهمّك": the services matched to the onboarding answers.
+          Deliberately placed HIGH — right under the single next action — so a
+          user who signed in to find their service sees it without scrolling
+          past the journey road, renewals and the document locker. Compact→
+          detail expandable card, ported 1:1 from the user's mockup (see
+          ExpandableServiceCard.tsx/.css). ── */}
+      {relatedServices.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[15px] font-bold text-gray-900">{t('dash.services')}</h2>
+              <span className="text-xs font-bold text-gray-500 bg-gray-100 rounded-md px-1.5 py-0.5">
+                {relatedServices.length}
+              </span>
+            </div>
+            <Link to="/services" aria-label={t('nav.allServices')} className="text-lg leading-none text-gray-400 hover:text-gray-600">
+              +
+            </Link>
+          </div>
+
+          <ul className="mt-3.5 flex flex-col gap-3">
+            {relatedServices.map((s, i) => {
+              const category = catalogCategories.find((c) => c.id === s.category);
+              return (
+                <li key={s.id}>
+                  <ExpandableServiceCard service={s} index={i} categoryTitle={category ? pickText(category.title, lang) : ''} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
 
       {/* ── city-aware note: we know where they live, so use it ── */}
@@ -814,36 +852,6 @@ export function UserHome() {
             ))}
           </ul>
         </Panel>
-      )}
-
-      {/* Compact→detail expandable card, ported 1:1 from the user's mockup —
-          see ExpandableServiceCard.tsx/.css. Replaces the earlier Linear
-          ticket-card treatment of this same rail. */}
-      {relatedServices.length > 0 && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between gap-3 px-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-bold text-gray-900">{t('dash.services')}</h2>
-              <span className="text-xs font-bold text-gray-500 bg-gray-100 rounded-md px-1.5 py-0.5">
-                {relatedServices.length}
-              </span>
-            </div>
-            <Link to="/services" aria-label={t('nav.allServices')} className="text-lg leading-none text-gray-400 hover:text-gray-600">
-              +
-            </Link>
-          </div>
-
-          <ul className="mt-3.5 flex flex-col gap-3">
-            {relatedServices.map((s, i) => {
-              const category = catalogCategories.find((c) => c.id === s.category);
-              return (
-                <li key={s.id}>
-                  <ExpandableServiceCard service={s} index={i} categoryTitle={category ? pickText(category.title, lang) : ''} />
-                </li>
-              );
-            })}
-          </ul>
-        </div>
       )}
 
       {/* real-estate entry point — was missing here entirely, so signed-in
