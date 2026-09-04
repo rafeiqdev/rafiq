@@ -1,16 +1,21 @@
 import { useTranslation } from 'react-i18next';
 import { useChatAssistant } from '../hooks/useChatAssistant';
+import { useApp } from '../context/AppContext';
+import { useCatalog } from '../data/catalogStore';
 import { RequireAuthChat } from '../components/Gates';
 import { BookingModal } from '../components/BookingModal';
 import { Logo } from '../components/Logo';
 import { AppIcon } from '../components/AppIcon';
 import { MediaChips, AttachCard, ATTACH_ACCEPT } from '../components/ChatAttach';
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../components/ChatHistory';
+import { SituationSuggestions } from '../components/SituationSuggestions';
 import { MicGlyph, SpeakerGlyph } from '../components/ChatVoiceIcons';
 
 function ChatUI() {
   const { t, i18n } = useTranslation();
   const c = useChatAssistant();
+  const { profile } = useApp();
+  const { services } = useCatalog();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 flex flex-col" style={{ minHeight: 'calc(100vh - 8rem)' }}>
@@ -52,6 +57,12 @@ function ChatUI() {
         <div className="self-start max-w-[85%] rounded-2xl rounded-ss-sm bg-brand-blue px-4 py-3 text-sm text-navy">
           {t('chat.greeting')}
         </div>
+
+        {/* Fresh conversation: offer situation-tailored questions to open a topic in one tap. */}
+        {c.messages.length === 0 && !c.closed && (
+          <SituationSuggestions situation={profile.situation} services={services} variant="chat" />
+        )}
+
         {c.messages.map((m, i) => (
           <div
             key={`${m.ts}_${i}`}

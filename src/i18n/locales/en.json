@@ -281,7 +281,28 @@
       "readMore": "Read more",
       "empty": "No news yet.",
       "notFound": "This news post is no longer available.",
-      "askAi": "Ask Rafiq AI about this news"
+      "askAi": "Ask Rafiq AI about this news",
+      "byline": "Rafiq Editorial Team",
+      "noCategory": "No news in this category yet.",
+      "cat": {
+        "all": "All",
+        "istanbul": "Istanbul",
+        "residency": "Residency",
+        "business": "Business",
+        "lifestyle": "Lifestyle"
+      },
+      "welcome": {
+        "heading1": "Welcome to",
+        "heading2": "Rafiq News",
+        "tagline": "Trusted news, in-depth analysis, and stories that keep you informed.",
+        "termsLink": "Terms of Use",
+        "privacyLink": "Privacy Policy",
+        "legalPre": "By continuing, you agree to our ",
+        "legalMid": " and acknowledge our ",
+        "legalPost": ". Rafiq News is designed for readers 17 years and older. Content may include diverse opinions and viewpoints. By using this app, you accept that we may collect and process data as described in our policy.",
+        "ageNotice": "You must be at least 17 to use Rafiq News.",
+        "continue": "Continue"
+      }
     },
     "faq": {
       "title": "Frequently asked questions",
