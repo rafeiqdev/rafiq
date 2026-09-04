@@ -141,7 +141,7 @@ export default async function handler(req: Request): Promise<Response> {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: NAV_HOME[lang], item: `${origin}/${lang}` },
         { '@type': 'ListItem', position: 2, name: NEWS_TITLE[lang], item: `${origin}/${lang}/news` },
-        { '@type': 'ListItem', position: 3, name: title },
+        { '@type': 'ListItem', position: 3, name: title, item: pageUrl },
       ],
     },
   ];

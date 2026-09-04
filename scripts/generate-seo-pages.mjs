@@ -569,18 +569,25 @@ const GUIDES_LABEL = { ar: 'الأدلة', en: 'Guides', ru: 'Гиды', fa: 'ر
 
 function breadcrumbJsonLd(lang, route, meta) {
   if (route === '/') return null;
+  // Google's spec allows the last item to omit "item" (it's the current page),
+  // but Search Console's own validator flagged that as "Missing field 'item'"
+  // on at least one page — so every entry, including the last, carries its
+  // own URL. Cheap and unambiguously valid either way.
+  const here = pageUrl(lang, route);
   const items = [{ '@type': 'ListItem', position: 1, name: text(lang, 'nav.home'), item: pageUrl(lang, '/') }];
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
 
   if (serviceMatch) {
     items.push({ '@type': 'ListItem', position: 2, name: text(lang, 'nav.allServices'), item: pageUrl(lang, '/services') });
-    items.push({ '@type': 'ListItem', position: 3, name: meta.title });
+    items.push({ '@type': 'ListItem', position: 3, name: meta.title, item: here });
   } else if (guideMatch) {
-    items.push({ '@type': 'ListItem', position: 2, name: GUIDES_LABEL[lang] });
-    items.push({ '@type': 'ListItem', position: 3, name: meta.title });
+    // No standalone "/guides" hub route exists — /tricks is the closest
+    // practical-guides listing page, so the middle crumb points there.
+    items.push({ '@type': 'ListItem', position: 2, name: GUIDES_LABEL[lang], item: pageUrl(lang, '/tricks') });
+    items.push({ '@type': 'ListItem', position: 3, name: meta.title, item: here });
   } else {
-    items.push({ '@type': 'ListItem', position: 2, name: meta.title });
+    items.push({ '@type': 'ListItem', position: 2, name: meta.title, item: here });
   }
 
   return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items };
