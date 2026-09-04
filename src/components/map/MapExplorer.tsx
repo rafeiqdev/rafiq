@@ -13,6 +13,8 @@ import { PlaceCard } from './PlaceCard';
 import { PlaceThumb } from './PlaceThumb';
 import { MapUnavailable } from './MapUnavailable';
 import { MapFilterSheet } from './MapFilterSheet';
+import { MapStyleSheet } from './MapStyleSheet';
+import type { MapMode } from './MapStyleSheet';
 
 const ISTANBUL = { lat: 41.0151, lng: 28.9795 };
 const DEFAULT_ZOOM = 11;
@@ -146,6 +148,10 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  // Overlay layers for the "Map Modes" sheet. Created lazily, then simply
+  // attached to / detached from the map as their toggles flip.
+  const trafficLayerRef = useRef<google.maps.TrafficLayer | null>(null);
+  const transitLayerRef = useRef<google.maps.TransitLayer | null>(null);
   /** Which set of places the camera was last framed to — see the markers effect. */
   const fittedSignatureRef = useRef<string>('');
   // One Autocomplete session token per typing session. Google bills a session
@@ -201,6 +207,14 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [quickFilters, setQuickFilters] = useState<QuickFilters>({ openNow: false, topRated: false });
   const [toast, setToast] = useState<string | null>(null);
+  // Phone-only "Map Modes" sheet — the look of the map itself (Apple-Maps
+  // style). `mapMode` picks the base tiles/tilt; the two toggles are separate
+  // overlays. Labels only has a visible effect on the satellite view (it swaps
+  // plain satellite for the labelled hybrid tiles).
+  const [styleSheetOpen, setStyleSheetOpen] = useState(false);
+  const [mapMode, setMapMode] = useState<MapMode>('explore');
+  const [traffic, setTraffic] = useState(false);
+  const [labels, setLabels] = useState(true);
 
   const favoriteIds = useMemo(() => new Set(favorites.map((f) => f.googlePlaceId)), [favorites]);
 
@@ -375,6 +389,39 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     const timer = setTimeout(() => google.maps.event.trigger(map, 'resize'), 60);
     return () => clearTimeout(timer);
   }, [mobileMapOpen, compact]);
+
+  // ---- map look ("Map Modes" sheet) -----------------------------------------
+  // Base tiles + tilt for the chosen mode. `labels` only bites on satellite,
+  // where it swaps the plain imagery for the labelled hybrid tiles — every
+  // other mode already carries its street names.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapsStatus !== 'ready') return;
+    if (mapMode === 'satellite') {
+      map.setMapTypeId(labels ? 'hybrid' : 'satellite');
+      map.setTilt(0);
+    } else {
+      map.setMapTypeId('roadmap');
+      map.setTilt(mapMode === 'threeD' ? 47.5 : 0);
+    }
+  }, [mapMode, labels, mapsStatus, mapCreated]);
+
+  // Transit lines: an overlay that rides on top of whatever base tiles are
+  // showing, so it is attached only while the Transit mode is selected.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapsStatus !== 'ready') return;
+    transitLayerRef.current = transitLayerRef.current ?? new google.maps.TransitLayer();
+    transitLayerRef.current.setMap(mapMode === 'transit' ? map : null);
+  }, [mapMode, mapsStatus, mapCreated]);
+
+  // Live traffic: its own toggle, independent of the base mode.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapsStatus !== 'ready') return;
+    trafficLayerRef.current = trafficLayerRef.current ?? new google.maps.TrafficLayer();
+    trafficLayerRef.current.setMap(traffic ? map : null);
+  }, [traffic, mapsStatus, mapCreated]);
 
   // ---- "you are here" marker ------------------------------------------------
   useEffect(() => {
@@ -896,6 +943,13 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
     </div>
   );
 
+  // The floating map controls live in the root stacking context (they sit at a
+  // high z-index inside a static ancestor), so a bottom sheet — which is a
+  // portal at a LOWER z-index — would otherwise be overlapped by the zoom/
+  // locate buttons poking through its top edge. While any sheet or the place
+  // card is open, the controls step aside and leave the surface to the sheet.
+  const overlayOpen = compact && (styleSheetOpen || filterSheetOpen || selected !== null);
+
   /** The map surface plus its floating controls. Rendered once, in one place. */
   const mapPane = mapUnavailable ? (
     <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-cream p-4">
@@ -918,7 +972,21 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
           </span>
         </div>
       )}
-      {mapsStatus === 'ready' && tilesReady && (
+      {/* Phone-only: the Apple-Maps-style "Map Modes" picker sits on its OWN, at
+          the top corner of the map — the way Apple places its layers button —
+          so it never crowds the zoom/locate stack in the short mobile pane. */}
+      {compact && mapsStatus === 'ready' && tilesReady && !overlayOpen && (
+        <button
+          type="button"
+          onClick={() => setStyleSheetOpen(true)}
+          aria-label={t('map.modes.title')}
+          title={t('map.modes.title')}
+          className="absolute top-4 end-4 z-[400] flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200/80 bg-white/95 text-navy shadow-md backdrop-blur-md transition-all hover:bg-white active:scale-95"
+        >
+          <AppIcon name="layers" className="h-5 w-5" />
+        </button>
+      )}
+      {mapsStatus === 'ready' && tilesReady && !overlayOpen && (
         <div className="absolute bottom-4 end-4 z-[400] flex flex-col gap-2">
           <button
             type="button"
@@ -1184,6 +1252,7 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
           saved={favoriteIds.has(selected.placeId)}
           onToggleSave={() => toggleFavorite(selected)}
           onClose={() => setSelected(null)}
+          onToast={showToast}
         />
       )}
 
@@ -1209,6 +1278,18 @@ export function MapExplorer({ compact = false }: MapExplorerProps) {
             setFilterSheetOpen(false);
           }}
           onClose={() => setFilterSheetOpen(false)}
+        />
+      )}
+
+      {styleSheetOpen && (
+        <MapStyleSheet
+          mode={mapMode}
+          traffic={traffic}
+          labels={labels}
+          onMode={setMapMode}
+          onTraffic={setTraffic}
+          onLabels={setLabels}
+          onClose={() => setStyleSheetOpen(false)}
         />
       )}
     </div>

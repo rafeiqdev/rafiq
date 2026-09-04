@@ -858,6 +858,23 @@
       "additional": "Дополнительные фильтры",
       "matching": "{{count}} из текущих результатов",
       "apply": "Применить фильтры"
+    },
+    "card": {
+      "hours": "Часы",
+      "rating": "Рейтинг",
+      "reviewsCount": "{{count}} оценок",
+      "category": "Категория",
+      "website": "Сайт"
+    },
+    "modes": {
+      "title": "Режимы карты",
+      "explore": "Обзор",
+      "threeD": "3D",
+      "satellite": "Спутник",
+      "transit": "Транспорт",
+      "traffic": "Пробки",
+      "labels": "Подписи",
+      "labelsHint": "Показаны на спутнике"
     }
   },
   "referrals": {

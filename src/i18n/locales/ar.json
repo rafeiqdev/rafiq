@@ -858,6 +858,23 @@
       "additional": "فلاتر إضافية",
       "matching": "{{count}} من النتائج الحالية",
       "apply": "تطبيق الفلاتر"
+    },
+    "card": {
+      "hours": "الدوام",
+      "rating": "التقييم",
+      "reviewsCount": "{{count}} تقييم",
+      "category": "الفئة",
+      "website": "الموقع"
+    },
+    "modes": {
+      "title": "أنماط الخريطة",
+      "explore": "استكشاف",
+      "threeD": "ثلاثي الأبعاد",
+      "satellite": "قمر صناعي",
+      "transit": "المواصلات",
+      "traffic": "حركة المرور",
+      "labels": "أسماء الأماكن",
+      "labelsHint": "تظهر على نمط القمر الصناعي"
     }
   },
   "referrals": {

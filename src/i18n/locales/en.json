@@ -858,6 +858,23 @@
       "additional": "Additional filters",
       "matching": "{{count}} of current results",
       "apply": "Apply filters"
+    },
+    "card": {
+      "hours": "Hours",
+      "rating": "Rating",
+      "reviewsCount": "{{count}} ratings",
+      "category": "Category",
+      "website": "Website"
+    },
+    "modes": {
+      "title": "Map modes",
+      "explore": "Explore",
+      "threeD": "3D",
+      "satellite": "Satellite",
+      "transit": "Transit",
+      "traffic": "Traffic",
+      "labels": "Labels",
+      "labelsHint": "Shown on satellite view"
     }
   },
   "referrals": {

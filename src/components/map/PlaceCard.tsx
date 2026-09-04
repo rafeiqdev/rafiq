@@ -5,6 +5,7 @@ import { placeSearch } from '../../lib/api';
 import type { GooglePlaceResult, PlaceOverlay } from '../../lib/types';
 import { Modal } from '../Modal';
 import { AppIcon, DirArrow } from '../AppIcon';
+import type { IconName } from '../AppIcon';
 import { PlaceThumb } from './PlaceThumb';
 
 /** Google's own deep link when available; a coordinate query is the fallback. */
@@ -16,14 +17,32 @@ function directionsUrl(p: GooglePlaceResult): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}`;
 }
 
+/** Prettify Google's machine type ("art_gallery" → "Art gallery") for the subtitle. */
+function prettyType(type: string | null): string | null {
+  if (!type) return null;
+  const s = type.replace(/_/g, ' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Tailwind can't see runtime class strings, so map the pill count to a static one. */
+const PILL_COLS: Record<number, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+};
+
 /**
- * The place detail sheet, laid out to the supplied design: banner photo with
- * badges, one unmissable Directions CTA, then a call/save/share row.
+ * The place detail sheet — laid out to the supplied Apple-Maps place card:
+ * a drag-handle sheet, big title + subtitle, a row of pill actions, a compact
+ * stats strip (hours · rating · type), then the hero photo.
  *
- * The trust block is the part that matters: Rafiq's verification status and
- * review date come from OUR table, never from Google. A place with no overlay
- * row renders an explicit "not reviewed yet" state — silence must not read as
- * endorsement.
+ * Two deliberate departures from the reference, both about honesty:
+ *   • We hold ONE Google photo, not a gallery, so the hero is a single image
+ *     (a branded placeholder when Google returned none) — never faked tiles.
+ *   • Apple's "About / Wikipedia" block is replaced by Rafiq's OWN trust block:
+ *     verification status and review date come from our table, never Google.
+ *     A place with no overlay renders an explicit "not reviewed yet" — silence
+ *     must not read as endorsement.
  */
 export function PlaceCard({
   place,
@@ -45,6 +64,7 @@ export function PlaceCard({
   const [copied, setCopied] = useState(false);
   const photo = placeSearch.photoUrl(place.photoRef, 900);
   const verified = overlay?.verifiedStatus === 'verified';
+  const typeLabel = prettyType(place.primaryType);
 
   const reviewedOn = overlay?.lastReviewedAt
     ? new Date(overlay.lastReviewedAt).toLocaleDateString(i18n.language, {
@@ -89,116 +109,174 @@ export function PlaceCard({
     }
   };
 
+  // The pill row, built from what this place actually has. Directions and Save
+  // are always there; Call and Website appear only when their data exists — so
+  // the row is 2–4 wide and the grid stays even.
+  const pills: {
+    key: string;
+    icon: IconName;
+    label: string;
+    href?: string;
+    onClick?: () => void;
+    primary?: boolean;
+    active?: boolean;
+  }[] = [
+    {
+      key: 'directions',
+      icon: 'navigation',
+      label: t('map.directory.directions'),
+      href: directionsUrl(place),
+      primary: true,
+    },
+  ];
+  if (place.phone) {
+    pills.push({
+      key: 'call',
+      icon: 'phone',
+      label: t('map.callNow'),
+      href: `tel:${place.phone.replace(/\s/g, '')}`,
+    });
+  }
+  if (place.websiteUri) {
+    pills.push({ key: 'website', icon: 'globe', label: t('map.card.website'), href: place.websiteUri });
+  }
+  pills.push({
+    key: 'save',
+    icon: 'bookmark',
+    label: t(saved ? 'map.saved' : 'map.save'),
+    onClick: onToggleSave,
+    active: saved,
+  });
+  const cols = PILL_COLS[Math.min(pills.length, 4)] ?? 'grid-cols-4';
+
   return (
     <Modal onClose={onClose} labelId="place-card-title" maxWidth="max-w-md" mobileSheet showClose={false}>
-      <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[90vh] md:rounded-3xl">
-        {/* banner */}
-        <div className="relative h-40 w-full shrink-0 bg-navy">
-          <PlaceThumb name={place.name} photo={photo} size="lg" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden />
-
-          <button
-            onClick={onClose}
-            aria-label={t('common.close')}
-            className="absolute end-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/80"
-          >
-            <AppIcon name="x" className="h-4 w-4" />
-          </button>
-
-          <div className="absolute inset-x-4 bottom-3 flex items-center justify-between gap-2 text-white">
-            {/* Only the open/closed state lives on the banner. The rating sits
-                in the meta line and the Rafiq badge in the trust block — saying
-                either of them twice in one card is noise, not emphasis. */}
-            {place.openNow !== null && (
-              <span
-                className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
-                  place.openNow ? 'bg-emerald-600' : 'bg-brand-red'
-                }`}
-              >
-                <AppIcon name="clock" className="h-3 w-3" />
-                {t(place.openNow ? 'map.openNow' : 'map.closedNow')}
-              </span>
-            )}
+      <div className="flex max-h-[92vh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[90vh] md:rounded-3xl">
+        {/* header: drag handle + share/close, floating over the scroll area */}
+        <div className="relative shrink-0 pt-2.5">
+          <div className="mx-auto h-1 w-10 rounded-full bg-gray-300" />
+          <div className="absolute end-3 top-2.5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={share}
+              aria-label={t('map.share')}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-navy transition-colors hover:bg-gray-200"
+            >
+              <AppIcon name="share-2" className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t('common.close')}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-navy transition-colors hover:bg-gray-200"
+            >
+              <AppIcon name="x" className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        {/* body */}
-        <div className="flex-1 space-y-3.5 overflow-y-auto overscroll-contain p-4">
-          <div>
-            <h2 id="place-card-title" className="text-lg font-extrabold leading-snug text-navy">
-              {place.name}
-            </h2>
-            {/* The address is NOT repeated here — it has its own row below, with
-                the copy button attached to it. */}
-            {place.rating !== null && (
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-gray-600">
-                <span className="flex items-center gap-1 font-bold text-amber-600">
-                  <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                  <span dir="ltr">
-                    {place.rating.toFixed(1)}
-                    {place.ratingCount !== null && ` (${place.ratingCount})`}
-                  </span>
-                </span>
-              </div>
-            )}
-          </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-5 pt-2">
+          {/* title + subtitle */}
+          <h2 id="place-card-title" className="pe-20 text-2xl font-extrabold leading-tight text-navy">
+            {place.name}
+          </h2>
+          {(typeLabel || place.address) && (
+            <p className="mt-1 flex items-center gap-1 text-sm font-medium text-gray-500">
+              <span className="truncate">
+                {[typeLabel, place.address].filter(Boolean).join(' · ')}
+              </span>
+            </p>
+          )}
 
-          {/* actions — one unmissable primary, then the secondary row */}
-          <div className="space-y-2 pt-1">
-            <a
-              href={directionsUrl(place)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-2xl bg-navy px-4 text-xs font-extrabold text-white shadow-md transition-colors hover:bg-navy-light sm:text-sm"
-            >
-              <AppIcon name="navigation" className="h-4 w-4 shrink-0" />
-              <span className="tracking-tight">{t('map.directory.directions')}</span>
-            </a>
-
-            <div className="grid grid-cols-3 gap-2">
-              {place.phone ? (
+          {/* pill actions — light-blue chips, one filled primary (Directions) */}
+          <div className={`mt-4 grid gap-2 ${cols}`}>
+            {pills.map((p) => {
+              const cls = `flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2.5 text-[11px] font-extrabold transition-colors ${
+                p.primary
+                  ? 'bg-navy text-white shadow-sm hover:bg-navy-light'
+                  : p.active
+                    ? 'bg-navy text-white hover:bg-navy-light'
+                    : 'bg-brand-blue text-navy hover:bg-brand-blue/70'
+              }`;
+              const inner = (
+                <>
+                  <AppIcon name={p.icon} className={`h-5 w-5 ${p.active ? 'fill-white' : ''}`} />
+                  <span>{p.label}</span>
+                </>
+              );
+              return p.href ? (
                 <a
-                  href={`tel:${place.phone.replace(/\s/g, '')}`}
-                  className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-2 text-xs font-bold text-navy transition-colors hover:bg-gray-200"
+                  key={p.key}
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cls}
                 >
-                  <AppIcon name="phone" className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>{t('map.callNow')}</span>
+                  {inner}
                 </a>
               ) : (
-                <span className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-50 px-2 text-xs font-bold text-gray-400 opacity-60">
-                  <AppIcon name="phone" className="h-3.5 w-3.5" />
-                  <span>{t('map.callNow')}</span>
-                </span>
-              )}
+                <button key={p.key} type="button" onClick={p.onClick} aria-pressed={p.active} className={cls}>
+                  {inner}
+                </button>
+              );
+            })}
+          </div>
 
-              <button
-                type="button"
-                onClick={onToggleSave}
-                aria-pressed={saved}
-                className={`flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-bold transition-colors ${
-                  saved
-                    ? 'border border-gold-dark/40 bg-gold-soft text-gold-dark'
-                    : 'bg-gray-100 text-navy hover:bg-gray-200'
+          {/* stats strip — hours · rating · type, mirroring the reference row */}
+          <div className="mt-4 grid grid-cols-3 divide-x divide-gray-200 rounded-2xl border border-gray-200 bg-gray-50/80 text-center rtl:divide-x-reverse">
+            <div className="px-1 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                {t('map.card.hours')}
+              </p>
+              <p
+                className={`mt-0.5 truncate text-[13px] font-extrabold ${
+                  place.openNow === true
+                    ? 'text-emerald-600'
+                    : place.openNow === false
+                      ? 'text-brand-red'
+                      : 'text-navy'
                 }`}
               >
-                <AppIcon name="bookmark" className={`h-3.5 w-3.5 ${saved ? 'fill-gold-dark' : ''}`} />
-                <span>{t(saved ? 'map.saved' : 'map.save')}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={share}
-                className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gray-100 px-2 text-xs font-bold text-navy transition-colors hover:bg-gray-200"
-              >
-                <AppIcon name="share-2" className="h-3.5 w-3.5 text-blue-600" />
-                <span>{t('map.share')}</span>
-              </button>
+                {place.openNow === true
+                  ? t('map.openNow')
+                  : place.openNow === false
+                    ? t('map.closedNow')
+                    : '—'}
+              </p>
+            </div>
+            <div className="px-1 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                {place.ratingCount !== null
+                  ? t('map.card.reviewsCount', { count: place.ratingCount })
+                  : t('map.card.rating')}
+              </p>
+              <p className="mt-0.5 flex items-center justify-center gap-1 text-[13px] font-extrabold text-amber-600">
+                {place.rating !== null ? (
+                  <>
+                    <AppIcon name="star" className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                    <span dir="ltr">{place.rating.toFixed(1)}</span>
+                  </>
+                ) : (
+                  <span className="text-navy">—</span>
+                )}
+              </p>
+            </div>
+            <div className="px-1 py-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                {t('map.card.category')}
+              </p>
+              <p className="mt-0.5 truncate text-[13px] font-extrabold text-navy">{typeLabel ?? '—'}</p>
             </div>
           </div>
 
-          {/* Rafiq trust block — our data, not Google's */}
+          {/* hero photo (single — we hold one Google image, not a gallery) */}
+          <div className="relative mt-4 h-44 w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-100">
+            <PlaceThumb name={place.name} photo={photo} size="lg" />
+          </div>
+
+          {/* Rafiq trust block — our data, standing in for the reference's About */}
           <div
-            className={`rounded-xl border p-3 ${
+            className={`mt-4 rounded-2xl border p-3.5 ${
               overlay?.recommended
                 ? 'border-gold-dark/40 bg-gold-soft'
                 : verified
@@ -206,7 +284,7 @@ export function PlaceCard({
                   : 'border-gray-200 bg-cream'
             }`}
           >
-            <p className="flex items-center gap-2 text-sm font-bold text-navy">
+            <p className="flex items-center gap-2 text-sm font-extrabold text-navy">
               <AppIcon
                 name={overlay?.recommended ? 'sparkles' : verified ? 'shield-check' : 'info'}
                 className="h-4 w-4 shrink-0"
@@ -224,11 +302,8 @@ export function PlaceCard({
             )}
           </div>
 
-          {/* details */}
-          <div className="space-y-2 text-xs text-navy/80">
-            {/* The number is spelled out, not just wired to the Call button:
-                `tel:` links commonly do nothing on a desktop browser, and a
-                visible number can be read, noted down or dialled by hand. */}
+          {/* details: phone spelled out, hours, address with copy */}
+          <div className="mt-4 space-y-2 text-xs text-navy/80">
             {place.phone && (
               <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-gray-50/70 p-2.5">
                 <AppIcon name="phone" className="h-3.5 w-3.5 shrink-0 text-gray-500" />
@@ -275,13 +350,13 @@ export function PlaceCard({
             )}
           </div>
 
-          <button onClick={requestHelp} className="btn-secondary min-h-[44px] w-full text-xs">
+          <button onClick={requestHelp} className="btn-secondary mt-4 min-h-[44px] w-full text-xs">
             <AppIcon name="hand-helping" className="h-4 w-4" />
             {t('map.requestHelp')}
             <DirArrow />
           </button>
 
-          <p className="border-t border-gray-100 pt-2 text-[11px] font-medium text-gray-400">
+          <p className="mt-3 border-t border-gray-100 pt-2 text-[11px] font-medium text-gray-400">
             {t('map.sourceGoogle')}
           </p>
         </div>

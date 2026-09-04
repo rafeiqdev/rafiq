@@ -858,6 +858,23 @@
       "additional": "فیلترهای بیشتر",
       "matching": "{{count}} از نتایج فعلی",
       "apply": "اعمال فیلترها"
+    },
+    "card": {
+      "hours": "ساعات کاری",
+      "rating": "امتیاز",
+      "reviewsCount": "{{count}} نظر",
+      "category": "دسته",
+      "website": "وب‌سایت"
+    },
+    "modes": {
+      "title": "حالت‌های نقشه",
+      "explore": "کاوش",
+      "threeD": "سه‌بعدی",
+      "satellite": "ماهواره",
+      "transit": "حمل‌ونقل",
+      "traffic": "ترافیک",
+      "labels": "برچسب‌ها",
+      "labelsHint": "در نمای ماهواره‌ای نمایش داده می‌شود"
     }
   },
   "referrals": {
