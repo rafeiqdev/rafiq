@@ -35,6 +35,16 @@ const ISTANBUL = { latitude: 41.0151, longitude: 28.9795 };
 const DEFAULT_RADIUS_M = 5000;
 const MAX_RADIUS_M = 50000;
 const MAX_RESULTS = 20;
+/**
+ * Nearby Search (New) hard-caps at 20 per request and cannot paginate, so a
+ * whole category over a wide radius came back capped at 20. We instead cover
+ * the area with a small grid of overlapping sub-searches and merge them, up to
+ * this ceiling — the "balanced" amount the owner chose (more places, a modest
+ * multiple of the Google request cost, never unbounded).
+ */
+const MAX_MERGED_RESULTS = 80;
+/** Text Search (New) DOES paginate; walk at most this many 20-result pages. */
+const MAX_TEXT_PAGES = 3;
 
 /**
  * Every category the API can resolve. Google's `includedTypes` only covers some
@@ -227,6 +237,9 @@ const LIST_MASK = [
   'places.businessStatus',
 ].join(',');
 
+/** The list mask plus the pagination token, for the paginated text search. */
+const LIST_MASK_PAGED = `${LIST_MASK},nextPageToken`;
+
 /** Richer mask, charged once for the single place the user actually opened. */
 const DETAIL_MASK = [
   'id',
@@ -407,6 +420,107 @@ function coord(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
 }
 
+/** Approximate metre offset → lat/lng, good enough for tiling a single city. */
+function metersOffset(lat: number, lng: number, dLatM: number, dLngM: number) {
+  const latDeg = dLatM / 111320;
+  const lngDeg = dLngM / (111320 * Math.cos((lat * Math.PI) / 180) || 111320);
+  return { latitude: lat + latDeg, longitude: lng + lngDeg };
+}
+
+/** Shape, dedupe by place id, and cap several raw Google result groups into one list. */
+function mergePlaces(...groups: (GooglePlace[] | undefined)[]) {
+  const seen = new Set<string>();
+  const out: ReturnType<typeof shape>[] = [];
+  for (const group of groups) {
+    for (const raw of group ?? []) {
+      const p = shape(raw);
+      if (!p.placeId || seen.has(p.placeId)) continue;
+      seen.add(p.placeId);
+      out.push(p);
+      if (out.length >= MAX_MERGED_RESULTS) return out;
+    }
+  }
+  return out;
+}
+
+type SearchOutcome = {
+  places?: ReturnType<typeof shape>[];
+  error?: string;
+  status?: number;
+  detail?: string;
+};
+
+/**
+ * A category search that actually covers the area: the SAME Nearby Search run
+ * over a 2×2 grid of overlapping sub-circles, merged and deduped. Four requests
+ * for roughly 3–4× the places — since Nearby Search itself won't return or
+ * paginate past 20.
+ */
+async function tiledNearby(
+  keys: string[],
+  lang: string,
+  types: string[],
+  lat: number,
+  lng: number,
+  radius: number,
+): Promise<SearchOutcome> {
+  const off = radius * 0.5;
+  const tileRadius = radius * 0.7; // overlaps enough that the centre is never a gap
+  const centers = [
+    metersOffset(lat, lng, off, off),
+    metersOffset(lat, lng, off, -off),
+    metersOffset(lat, lng, -off, off),
+    metersOffset(lat, lng, -off, -off),
+  ];
+  const results = await Promise.all(
+    centers.map((center) =>
+      callPlaces(`${PLACES_ROOT}/places:searchNearby`, keys, LIST_MASK, {
+        includedTypes: types,
+        languageCode: lang,
+        maxResultCount: MAX_RESULTS,
+        locationRestriction: { circle: { center, radius: tileRadius } },
+        rankPreference: 'POPULARITY',
+      }),
+    ),
+  );
+  const ok = results.filter((r) => !r.error);
+  // A couple of thin tiles are normal; only a total wipeout is a real failure.
+  if (ok.length === 0) return results[0];
+  return { places: mergePlaces(...ok.map((r) => r.data?.places as GooglePlace[] | undefined)) };
+}
+
+/** Text Search across up to MAX_TEXT_PAGES pages, following the nextPageToken. */
+async function pagedText(
+  keys: string[],
+  lang: string,
+  textQuery: string,
+  lat: number,
+  lng: number,
+  radius: number,
+): Promise<SearchOutcome> {
+  const groups: GooglePlace[][] = [];
+  let pageToken: string | undefined;
+  for (let page = 0; page < MAX_TEXT_PAGES; page++) {
+    const body: Record<string, unknown> = {
+      textQuery,
+      languageCode: lang,
+      pageSize: MAX_RESULTS,
+      locationBias: { circle: { center: { latitude: lat, longitude: lng }, radius } },
+    };
+    if (pageToken) body.pageToken = pageToken;
+    const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, keys, LIST_MASK_PAGED, body);
+    // A failed FIRST page is a real error; a later page failing just ends the walk.
+    if (res.error) {
+      if (page === 0) return res;
+      break;
+    }
+    groups.push((res.data?.places as GooglePlace[]) ?? []);
+    pageToken = res.data?.nextPageToken as string | undefined;
+    if (!pageToken) break;
+  }
+  return { places: mergePlaces(...groups) };
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
@@ -469,23 +583,15 @@ export default async function handler(req: Request): Promise<Response> {
       // already Turkish. This is the fix for "search doesn't work for Arabic".
       const textQuery = typed ? await toTurkish(typed, lang) : (canned as string);
 
-      const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, keys, LIST_MASK, {
-        textQuery,
-        languageCode: lang,
-        maxResultCount: MAX_RESULTS,
-        // Bias, not restrict: a user searching a landmark by name should still
-        // find it if it sits just outside the circle.
-        locationBias: {
-          circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
-        },
-      });
-      if (res.error) {
-        logFailure(payload.mode, res);
-        return json({ error: res.error, status: res.status, detail: res.detail });
+      // Bias, not restrict: a user searching a landmark by name should still
+      // find it if it sits just outside the circle. Paginated for more results.
+      const out = await pagedText(keys, lang, textQuery, lat, lng, clampRadius(payload.radius));
+      if (out.error) {
+        logFailure(payload.mode, out);
+        return json({ error: out.error, status: out.status, detail: out.detail });
       }
-      const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
       // Echo both strings so the UI can show "we searched Turkish: X" honestly.
-      return json({ places, query: original, translatedQuery: textQuery });
+      return json({ places: out.places, query: original, translatedQuery: textQuery });
     }
 
     // ---- nearby search: the user picked a category -------------------------
@@ -494,39 +600,15 @@ export default async function handler(req: Request): Promise<Response> {
       const spec = CATEGORIES[cat];
       if (!spec) return json({ error: 'unknown_category' }, 400);
 
-      // Categories with no clean Places type resolve as text instead.
-      if (!spec.types) {
-        const res = await callPlaces(`${PLACES_ROOT}/places:searchText`, keys, LIST_MASK, {
-          textQuery: spec.textQuery,
-          languageCode: lang,
-          maxResultCount: MAX_RESULTS,
-          locationBias: {
-            circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
-          },
-        });
-        if (res.error) {
-          logFailure(payload.mode, res);
-          return json({ error: res.error, status: res.status, detail: res.detail });
-        }
-        const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
-        return json({ places });
+      // Categories with no clean Places type resolve as text instead (paginated).
+      const out = spec.types
+        ? await tiledNearby(keys, lang, spec.types, lat, lng, clampRadius(payload.radius))
+        : await pagedText(keys, lang, spec.textQuery as string, lat, lng, clampRadius(payload.radius));
+      if (out.error) {
+        logFailure(payload.mode, out);
+        return json({ error: out.error, status: out.status, detail: out.detail });
       }
-
-      const res = await callPlaces(`${PLACES_ROOT}/places:searchNearby`, keys, LIST_MASK, {
-        includedTypes: spec.types,
-        languageCode: lang,
-        maxResultCount: MAX_RESULTS,
-        locationRestriction: {
-          circle: { center: { latitude: lat, longitude: lng }, radius: clampRadius(payload.radius) },
-        },
-        rankPreference: 'POPULARITY',
-      });
-      if (res.error) {
-        logFailure(payload.mode, res);
-        return json({ error: res.error, status: res.status, detail: res.detail });
-      }
-      const places = ((res.data?.places as GooglePlace[]) ?? []).map(shape).filter((p) => p.placeId);
-      return json({ places });
+      return json({ places: out.places });
     }
 
     return json({ error: 'bad_request' }, 400);
