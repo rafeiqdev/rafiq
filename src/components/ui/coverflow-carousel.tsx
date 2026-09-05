@@ -289,7 +289,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
       className={cn(
-<        "relative w-full overflow-hidden pt-16 sm:pt-32 lg:pt-24 pb-14 sm:pb-32 lg:pb-20 text-[#12294D] font-sans outline-none select-none",
+        "relative w-full overflow-hidden pt-16 sm:pt-32 lg:pt-24 pb-14 sm:pb-32 lg:pb-20 text-[#12294D] font-sans outline-none select-none",
         className
       )}
       {...props}
@@ -320,7 +320,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
 
-<          <h2 className="text-2xl sm:text-5xl lg:text-5xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-snug sm:leading-tight">
+          <h2 className="text-2xl sm:text-5xl lg:text-5xl font-black tracking-tight text-white [text-shadow:_0_4px_24px_rgb(11_31_58_/_95%),_0_2px_8px_rgb(11_31_58_/_90%)] leading-snug sm:leading-tight">
             {heading || t.servicesCarousel.heading}
           </h2>
 
