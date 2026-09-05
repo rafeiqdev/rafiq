@@ -139,45 +139,6 @@ export function CopyOrderIdChip({ id }: { id: string }) {
   );
 }
 
-/** 21st.dev Share pill (native share, falls back to copy-link) */
-export function ShareOfferButton({ title, text }: { title: string; text: string }) {
-  const { i18n } = useTranslation();
-  const [done, setDone] = useState(false);
-  const lang = i18n.language;
-  const label = lang === 'ru' ? 'Поделиться' : lang === 'en' ? 'Share' : lang === 'fa' ? 'اشتراک‌گذاری' : 'مشاركة';
-
-  const handleShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    const nav = navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> };
-    try {
-      if (nav.share) {
-        await nav.share({ title, text, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setDone(true);
-      setTimeout(() => setDone(false), 2000);
-    } catch {
-      // share sheet dismissed or clipboard blocked — stay silent
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleShare}
-      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-brand-blue/50 hover:bg-brand-blue text-navy text-xs font-extrabold border border-navy/10 transition-colors active:scale-95 cursor-pointer"
-    >
-      {done ? (
-        <span className="text-green-700 font-black">✓</span>
-      ) : (
-        <AppIcon name="share-2" className="w-3.5 h-3.5" />
-      )}
-      <span>{label}</span>
-    </button>
-  );
-}
-
 /** Full-screen Photo Lightbox */
 function PhotoLightbox({
   photos,
@@ -639,95 +600,33 @@ export function OfferPageInner() {
                 transition={{ duration: 0.45 }}
                 className="card p-6 md:p-8 shadow-card border-2 border-navy/15 bg-white relative overflow-hidden"
               >
-                {/* Cover header — page-header style with Rafiq identity */}
-                <div className="relative -mx-6 -mt-6 md:-mx-8 md:-mt-8 rounded-t-[14px] overflow-hidden">
-                  {/* Cover image: real service photo under a navy identity wash */}
-                  <div className="relative h-36 sm:h-44">
-                    <img
-                      src={serviceHeroPhoto}
-                      alt=""
-                      aria-hidden="true"
-                      className="h-full w-full object-cover"
-                      loading="eager"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/75 via-navy/55 to-navy-dark/90" />
-                    {/* Brand wordmark (top-start) */}
-                    <div className="absolute top-4 start-5 sm:start-7 flex items-center gap-2">
-                      <img
-                        src="/logo-rafiq-square.png"
-                        alt=""
-                        aria-hidden="true"
-                        className="h-7 w-7 rounded-full object-cover ring-2 ring-white/80 shadow"
-                      />
-                      <span className="text-white font-extrabold text-base sm:text-lg tracking-tight drop-shadow">
-                        {lang === 'ru' ? 'Рафик Стамбул' : lang === 'en' ? 'Rafiq Istanbul' : lang === 'fa' ? 'رفیق استانبول' : 'رفيق إسطنبول'}
+                {/* Header with Title and Price */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-cream-dark">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-navy/5 text-navy text-xs font-extrabold">
+                        <PulsingStatusDot color="bg-green-500" />
+                        {t('serviceOffer.title')}
                       </span>
-                    </div>
-                    {/* Verified official-quote pill (top-end) */}
-                    <div className="absolute top-4 end-5 sm:end-7">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 text-white text-[11px] font-bold border border-white/25 backdrop-blur-sm">
-                        <AppIcon name="shield-check" className="w-3.5 h-3.5" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-blue/30 text-navy text-[11px] font-bold border border-navy/10">
+                        <AppIcon name="shield-check" className="w-3.5 h-3.5 text-navy/80" />
                         <span>{lang === 'ar' ? 'عرض سعر رسمي معتمد' : 'Verified Official Quote'}</span>
                       </span>
                     </div>
+                    <h2 className="text-lg font-extrabold text-navy">
+                      {t('offerPage.offerSummary')}
+                    </h2>
                   </div>
 
-                  {/* Profile row: roundel avatar overlapping the cover */}
-                  <div className="bg-white px-5 sm:px-7 pb-6 border-b border-cream-dark">
-                    <div className="flex flex-col sm:flex-row gap-4 sm:items-end sm:justify-between">
-                      <div className="flex items-start gap-3.5 min-w-0">
-                        <div className="-mt-9 sm:-mt-10 shrink-0 relative z-10">
-                          <div className="h-[72px] w-[72px] sm:h-20 sm:w-20 rounded-full bg-navy p-1 ring-4 ring-white shadow-card overflow-hidden">
-                            <img
-                              src="/logo-rafiq-square.png"
-                              alt={t('common.appName')}
-                              className="h-full w-full rounded-full object-cover"
-                            />
-                          </div>
-                        </div>
-                        <div className="min-w-0 pt-1.5">
-                          <h2 className="text-lg font-extrabold text-navy">
-                            {t('serviceOffer.title')}
-                          </h2>
-                          <p className="text-xs text-navy/55 font-bold mt-1 flex items-center gap-1.5">
-                            <PulsingStatusDot color="bg-green-500" />
-                            <span>{t('offerPage.offerSummary')} • <span dir="ltr">#{request.id.slice(0, 8)}</span></span>
-                          </p>
-                          <p className="text-[11px] font-semibold text-green-700 mt-1 flex items-center gap-1">
-                            <span>✓</span>
-                            <span>{lang === 'ar' ? 'شامل الرسوم والضرائب الرسمية • لا مصاريف خفية' : 'All official taxes & fees included • No hidden costs'}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-start sm:text-end bg-cream/70 p-3.5 rounded-2xl border border-cream-dark shrink-0">
-                        <p className="text-xs font-bold text-navy/50">{t('offerPage.price')}</p>
-                        <p className="text-2xl md:text-3xl font-black text-navy tracking-tight" dir="ltr">
-                          {(primaryOffer.price ?? 0).toLocaleString()} <span className="text-lg font-bold text-navy/70">{primaryOffer.currency || 'TL'}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Quick actions */}
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      {waHref && (
-                        <a
-                          href={waHref}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={() => track('whatsapp_clicked', { target: 'offer_page_header', meta: { request_id: request.id } })}
-                          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-navy text-white text-xs font-extrabold shadow-sm hover:bg-navy-light transition-colors active:scale-95"
-                        >
-                          <WhatsAppIcon className="w-4 h-4" />
-                          <span>{lang === 'ru' ? 'Сообщение' : lang === 'en' ? 'Message' : lang === 'fa' ? 'پیام' : 'مراسلة'}</span>
-                        </a>
-                      )}
-                      <CopyOrderIdChip id={request.id} />
-                      <ShareOfferButton
-                        title={localizedTitle}
-                        text={`${t('serviceOffer.title')} — ${(primaryOffer.price ?? 0).toLocaleString()} ${primaryOffer.currency || 'TL'}`}
-                      />
-                    </div>
+                  <div className="text-start sm:text-end bg-cream/70 sm:bg-transparent p-3.5 sm:p-0 rounded-2xl border border-cream-dark sm:border-0">
+                    <p className="text-xs font-bold text-navy/50">{t('offerPage.price')}</p>
+                    <p className="text-2xl md:text-3xl font-black text-navy tracking-tight" dir="ltr">
+                      {(primaryOffer.price ?? 0).toLocaleString()} <span className="text-lg font-bold text-navy/70">{primaryOffer.currency || 'TL'}</span>
+                    </p>
+                    <p className="text-[11px] font-semibold text-green-700 mt-1 flex items-center gap-1 sm:justify-end">
+                      <span>✓</span>
+                      <span>{lang === 'ar' ? 'شامل الرسوم والضرائب الرسمية • لا مصاريف خفية' : 'All official taxes & fees included • No hidden costs'}</span>
+                    </p>
                   </div>
                 </div>
 
