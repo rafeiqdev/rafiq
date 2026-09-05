@@ -328,6 +328,9 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
 /* category-pill / verified-pill: both informational labels, not buttons —
@@ -715,6 +718,10 @@
   .esc-card-summary { padding: 22px 18px 17px; }
   .esc-card-summary h2 { font-size: 28px; }
   .esc-choice-panel { min-height: 73%; padding-inline: 17px; }
+  .esc-card-toolbar { gap: 6px; padding: 5px; }
+  .esc-card-topline { gap: 4px; }
+  .esc-category-pill,
+  .esc-verified-pill { font-size: 9px; padding-inline: 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -746,4 +753,23 @@
   font-weight: 800;
   cursor: default;
   user-select: none;
+}
+
+/*
+ * Toolbar labels stay on ONE line (mobile fix): the category name shrinks
+ * with "…" when space is tight, the verified badge never wraps or shrinks.
+ */
+.esc-category-pill {
+  display: block;
+  min-width: 0;
+  flex: 0 1 auto;
+  line-height: 34px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.esc-verified-pill {
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
