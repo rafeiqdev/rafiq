@@ -9,6 +9,9 @@
 .meta svg,.sub svg{width:15px;height:15px}
 /* ===== header ===== */
 .hdr{background:#1a3a6b;color:#fff;padding:22px 20px 26px}
+.hdr-nav{display:flex;margin-bottom:10px}
+.back{width:40px;height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .2s ease,transform .12s ease}
+.back:active{background:rgba(255,255,255,.3);transform:scale(.92)}
 .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .hdr h1{font-size:24px;font-weight:600;margin:0}
 .hdr .brand{font-size:13px;opacity:.9;margin-top:2px}
@@ -110,7 +113,8 @@
 @keyframes heroZoom{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
 @keyframes pop{0%{transform:scale(.4)}55%{transform:scale(1.25)}100%{transform:scale(1)}}
 .hdr>*{animation:riseIn .5s cubic-bezier(.2,0,0,1) both}
-.hdr>*:nth-child(2){animation-delay:.08s}
+.hdr>*:nth-child(2){animation-delay:.06s}
+.hdr>*:nth-child(3){animation-delay:.1s}
 .search{animation:riseIn .5s cubic-bezier(.2,0,0,1) .12s both}
 .infocard{animation:riseIn .5s cubic-bezier(.2,0,0,1) .2s both}
 .chips{animation:riseIn .5s cubic-bezier(.2,0,0,1) .26s both}

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
 import type { Listing, ListingType } from '../../lib/types';
-import { AppIcon } from '../../components/AppIcon';
+import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { InvestmentPhoto, useLocalized } from '../../components/realestate/InvestmentCard';
+import { InvestmentStripCard } from '../../components/realestate/InvestmentStripCard';
 import { ISTANBUL_AREAS } from '../../data/istanbulAreas';
 import { useInvestments } from '../../hooks/useInvestments';
 import { BANNERS } from '../../lib/images';
@@ -93,6 +94,7 @@ const WA = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 
 export function MobileRealEstate() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const L = useLocalized();
   const { items: investments } = useInvestments();
   const [all, setAll] = useState<Listing[]>([]);
@@ -374,6 +376,16 @@ export function MobileRealEstate() {
     <div dir={isRTL ? 'rtl' : 'ltr'} className={styles.root}>
       <div className="pb-[calc(env(safe-area-inset-bottom)+88px)]">
         <header className={styles.hdr}>
+          <div className={styles['hdr-nav']}>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label={t('common.back')}
+              className={styles.back}
+            >
+              <BackArrow className="h-6 w-6" />
+            </button>
+          </div>
           <div className={styles['hdr-top']}>
             <div>
               <h1>{t('realEstate.title')}</h1>
@@ -540,16 +552,12 @@ export function MobileRealEstate() {
                         </div>
                       </button>
                       {(i + 1) % 5 === 0 && i < filtered.length - 1 && (
-                        <Link to="/real-estate/investments" className={styles.invcard}>
-                          <span className={styles['inv-ic']}>
-                            <AppIcon name="trending-up" className="w-[22px] h-[22px]" />
-                          </span>
-                          <span className={styles['inv-tx']}>
-                            <b>{t('realEstate.mx.stripTitle')}</b>
-                            <span>{t('realEstate.mx.stripBody')}</span>
-                          </span>
-                          <span className={styles['inv-go']}>{t('realEstate.mx.stripCta')}</span>
-                        </Link>
+                        <InvestmentStripCard
+                          title={t('realEstate.mx.stripTitle')}
+                          body={t('realEstate.mx.stripBody')}
+                          cta={t('realEstate.mx.stripCta')}
+                          className="mx-4 my-3"
+                        />
                       )}
                     </div>
                   ))
