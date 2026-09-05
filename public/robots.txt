@@ -4,4 +4,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://rafiq.ist/sitemap.xml
+Sitemap: https://rafiq-istanbul-ruddy.vercel.app/sitemap.xml

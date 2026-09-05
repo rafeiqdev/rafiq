@@ -313,3 +313,74 @@ for (const s of SERVICES) {
     s.desc.fa = tr.desc.fa;
   }
 }
+
+/**
+ * Resolves a service title to the active user language (ar, en, fa, ru, tr).
+ * Matches by service ID or any known multilingual title variation.
+ */
+export function localizeServiceTitle(titleOrId: string | undefined | null, lang: string): string {
+  if (!titleOrId) return '';
+  const trimmed = titleOrId.trim();
+  if (!trimmed) return '';
+
+  // 1. Direct ID match
+  const byId = SERVICES.find((s) => s.id === trimmed);
+  if (byId) return pickText(byId.title, lang);
+
+  // 2. Exact or normalized match across all localized titles in the catalog
+  const normalized = normalizeSearch(trimmed);
+  const byTitle = SERVICES.find((s) =>
+    Object.values(s.title).some((t) => t && (t.trim().toLowerCase() === trimmed.toLowerCase() || normalizeSearch(t) === normalized))
+  );
+  if (byTitle) return pickText(byTitle.title, lang);
+
+  // 3. Match categories
+  const byCat = SERVICE_CATEGORIES.find((c) =>
+    c.id === trimmed || Object.values(c.title).some((t) => t && (t.trim().toLowerCase() === trimmed.toLowerCase() || normalizeSearch(t) === normalized))
+  );
+  if (byCat) return pickText(byCat.title, lang);
+
+  return titleOrId;
+}
+
+/**
+ * Returns a high-quality curated Istanbul/service image matching the service or category.
+ */
+export function getServiceImage(titleOrId?: string, category?: string): string {
+  const t = (titleOrId ?? '').toLowerCase();
+  const c = (category ?? '').toLowerCase();
+
+  // 1. Matched catalog service with explicit image
+  const s = SERVICES.find(
+    (item) => item.id === titleOrId || Object.values(item.title).some((x) => x && x.toLowerCase() === (titleOrId ?? '').toLowerCase())
+  );
+  if (s?.image) return s.image;
+
+  // 2. Health & Medical Tourism
+  if (c === 'health' || t.includes('health') || t.includes('طب') || t.includes('درمان') || t.includes('медицин')) {
+    return '/img/health.webp';
+  }
+
+  // 3. Certified Translation & Notary
+  if (c === 'translation' || t.includes('translat') || t.includes('ترجم') || t.includes('перевод') || t.includes('نانسي') || t.includes('tr-')) {
+    return '/img/translation.webp';
+  }
+
+  // 4. Real Estate & Investment
+  if (c === 'realestate' || t.includes('rent') || t.includes('شقة') || t.includes('invest') || t.includes('عقار') || t.includes('ملک')) {
+    return '/img/real-estate.webp';
+  }
+
+  // 5. Tourism, VIP Transfer & Airport
+  if (c === 'tourism' || t.includes('tour') || t.includes('سياح') || t.includes('گردشگر') || t.includes('туризм')) {
+    return '/img/tourism.webp';
+  }
+
+  // 6. Banking, Accounting & Finance
+  if (c === 'banking' || c === 'accounting' || t.includes('bank') || t.includes('حساب') || t.includes('بانک') || t.includes('банк') || t.includes('acc-')) {
+    return '/img/banking.webp';
+  }
+
+  // 7. Default for all Residency & Official Procedures (the real Turkish Residence Permit flatlay):
+  return '/img/residence.webp';
+}

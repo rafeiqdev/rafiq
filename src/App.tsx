@@ -11,7 +11,7 @@ import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
 import { popPostAuthRedirect } from './lib/authRedirect';
 import { isControlCenterEnabled } from './admin-control-center/flag';
-import { DEFAULT_LANG, langFromPath } from './i18n';
+import { DEFAULT_LANG, langFromPath, applyDir, loadLocale } from './i18n';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -106,6 +106,7 @@ const CompanyBilling = lazyPage(() => import('./pages/company/CompanyBilling').t
 const CompanyPublic = lazyPage(() => import('./pages/CompanyPublic').then((m) => ({ default: m.CompanyPublic })));
 const MyRequests = lazyPage(() => import('./pages/MyRequests').then((m) => ({ default: m.MyRequests })));
 const MobileMyRequests = lazyPage(() => import('./pages/mobile/MobileMyRequests').then((m) => ({ default: m.MobileMyRequests })));
+const OfferPage = lazyPage(() => import('./pages/OfferPage').then((m) => ({ default: m.OfferPage })));
 // User identity slice: onboarding → personalized home → "مسيرتي"
 const Onboarding = lazyPage(() => import('./pages/Onboarding').then((m) => ({ default: m.Onboarding })));
 const UserHome = lazyPage(() => import('./pages/UserHome').then((m) => ({ default: m.UserHome })));
@@ -212,6 +213,18 @@ function Shell() {
   const { authError, signOut } = useApp();
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const currentLang = (typeof window !== 'undefined' ? langFromPath(window.location.pathname) : null) ?? DEFAULT_LANG;
+    applyDir(currentLang);
+    if (i18n.language !== currentLang) {
+      loadLocale(currentLang).then(() => {
+        i18n.changeLanguage(currentLang);
+        applyDir(currentLang);
+      });
+    }
+  }, [location.pathname, i18n]);
 
   // The full-screen language gate is gone on purpose: a first-time visitor
   // used to see four buttons and no product. The language now comes from the
@@ -274,6 +287,9 @@ function Shell() {
                 was only on /profile) — so this redirects instead of duplicating. */}
             <Route path="/account" element={<Navigate to="/profile" replace />} />
             <Route path="/requests" element={isMobile ? <MobileMyRequests /> : <MyRequests />} />
+            <Route path="/requests/:id" element={<OfferPage />} />
+            <Route path="/requests/:id/offer" element={<OfferPage />} />
+            <Route path="/offers/:id" element={<OfferPage />} />
             <Route path="/companies/:id" element={<CompanyPublic />} />
             <Route path="/company" element={<CompanyDashboard />} />
             <Route path="/company/register" element={<CompanyRegister />} />

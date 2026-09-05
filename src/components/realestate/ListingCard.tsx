@@ -49,14 +49,24 @@ export function ListingPhoto({ listing, index, className = 'h-44' }: { listing: 
  * badge: the underlying data is scraped, so a false there means nobody
  * checked, and telling a buyer a property is ineligible on that basis would
  * be a claim we cannot stand behind.
+ *
+ * Trust-first colors: a verified listing gets a confident green "go" signal,
+ * while an unchecked one gets a neutral white badge that invites Rafiq to
+ * verify it — never an alarming red or a dark "unknown" stamp.
  */
 export function CitizenshipBadge({ listing, small = false }: { listing: Listing; small?: boolean }) {
   const { t } = useTranslation();
   const size = small ? 'text-[10px] px-2 py-0.5' : 'text-[11px] px-2.5 py-1';
   return listing.citizenship ? (
-    <span className={`rounded-full bg-brand-red text-white font-bold ${size}`}>{t('realEstate.citizenshipBadge')}</span>
+    <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white font-bold shadow-soft ${size}`}>
+      <AppIcon name="check" className="w-3 h-3" />
+      {t('realEstate.citizenshipBadge')}
+    </span>
   ) : (
-    <span className={`rounded-full bg-navy/80 text-white font-bold ${size}`}>{t('realEstate.citizenshipUnknown')}</span>
+    <span className={`inline-flex items-center gap-1 rounded-full bg-white/95 text-navy font-bold shadow-soft ${size}`}>
+      <AppIcon name="shield-check" className="w-3 h-3" />
+      {t('realEstate.citizenshipUnknown')}
+    </span>
   );
 }
 
@@ -106,10 +116,16 @@ export function ListingCard({ listing, index, to }: { listing: Listing; index: n
           {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
           {listing.buildStatus ? <span className={CHIP}>{t(`realEstate.build.${listing.buildStatus}`)}</span> : null}
         </div>
+        {/* trust reassurance: every card reminds the visitor the legal check
+            is included — the line that turns browsing into contacting us */}
+        <p className="mt-1.5 flex items-start gap-1.5 text-[11px] font-semibold leading-snug text-navy/55">
+          <AppIcon name="shield-check" className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
+          <span className="line-clamp-2">{t('realEstate.note')}</span>
+        </p>
         <div className="flex-1" />
-        <span className="mt-3 text-xs font-bold text-navy/70 inline-flex items-center gap-1">
+        <span className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-btn bg-navy text-sm font-bold text-white">
           {t('realEstate.viewDetails')}
-          <AppIcon name="arrow-right" className="w-3 h-3 dir-arrow" />
+          <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
         </span>
       </div>
     </Link>

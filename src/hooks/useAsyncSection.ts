@@ -43,7 +43,8 @@ export function useAsyncSection<T>(fetcher: () => Promise<T>, deps: unknown[] = 
         setData(value);
         setStatus('ready');
       },
-      () => {
+      (err) => {
+        console.error('[useAsyncSection error]:', err);
         // Deliberately no data reset: a retry that fails should not also wipe
         // what was on screen. status is what the UI branches on.
         if (!live) return;

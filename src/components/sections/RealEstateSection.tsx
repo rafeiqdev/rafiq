@@ -132,34 +132,75 @@ export function RealEstateSection({
 
   return (
     <section className={className ?? `mx-auto max-w-6xl px-4 ${compact ? 'py-8' : 'py-14'}`}>
-      <Link
-        to="/real-estate"
-        className="relative flex items-center gap-4 overflow-hidden rounded-card px-5 py-5 sm:px-7 shadow-card hover:shadow-cardHover transition-shadow"
-      >
+      {/* Trust-first banner: a plain container (not one big link) so the three
+          shortcut pills below are real, tappable links to real destinations.
+          The previous version rendered them as dead spans — visitors tapped
+          and nothing happened. */}
+      <div className="relative overflow-hidden rounded-card px-5 py-5 sm:px-7 shadow-card">
         <img src={BANNERS.realEstate} alt={t('realEstate.home.title')} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
         <span className="absolute inset-0 bg-gradient-to-r from-navy-dark via-navy/90 to-navy/40" />
-        <span className="relative flex-1 min-w-0 text-white">
-          <span className="block text-xl sm:text-2xl font-extrabold">{t('realEstate.home.title')}</span>
-          <span className="mt-1 block text-sm text-white/80">{t('realEstate.home.body')}</span>
-          <span className="mt-2.5 flex flex-wrap gap-2">
-            {(['citizenship', 'invest', 'filters'] as const).map((k) => (
-              <span key={k} className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-xs font-semibold">
-                {t(`realEstate.home.tag.${k}`)}
-              </span>
-            ))}
+        <div className="relative flex items-center gap-4 text-white">
+          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 border border-white/25 shrink-0">
+            <AppIcon name="shield-check" className="w-5 h-5" />
           </span>
-        </span>
-        <span className="relative hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded-btn bg-white px-4 h-11 font-bold text-navy">
+          <span className="flex-1 min-w-0">
+            <span className="block text-xl sm:text-2xl font-extrabold">{t('realEstate.home.title')}</span>
+            <span className="mt-1 block text-sm text-white/80">{t('realEstate.home.body')}</span>
+          </span>
+          <Link
+            to="/real-estate"
+            className="hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded-btn bg-white px-4 h-11 font-bold text-navy"
+          >
+            {t('realEstate.home.cta')}
+            <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
+          </Link>
+        </div>
+        <nav className="relative mt-3.5 flex flex-wrap gap-2" aria-label={t('realEstate.home.title')}>
+          <Link
+            to="/real-estate"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          >
+            <AppIcon name="shield-check" className="w-3.5 h-3.5" />
+            {t('realEstate.home.tag.citizenship')}
+          </Link>
+          <Link
+            to="/real-estate/investments"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          >
+            <AppIcon name="trending-up" className="w-3.5 h-3.5" />
+            {t('realEstate.home.tag.invest')}
+          </Link>
+          <Link
+            to="/real-estate"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          >
+            <AppIcon name="sliders-horizontal" className="w-3.5 h-3.5" />
+            {t('realEstate.home.tag.filters')}
+          </Link>
+        </nav>
+        <p className="relative mt-3 flex items-start gap-1.5 text-xs leading-snug text-white/75">
+          <AppIcon name="lock" className="w-3.5 h-3.5 mt-px shrink-0" />
+          {t('realEstate.trustNote')}
+        </p>
+        {/* on phones the side button is hidden, so the call-to-action gets its
+            own full-width row — mobile visitors previously saw no button */}
+        <Link
+          to="/real-estate"
+          className="relative mt-4 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-btn bg-white font-bold text-navy sm:hidden"
+        >
           {t('realEstate.home.cta')}
           <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
-        </span>
-      </Link>
+        </Link>
+      </div>
 
-      <div className="mt-7 flex items-baseline gap-3 flex-wrap">
+      <div className="mt-7 flex items-center gap-3 flex-wrap">
         <h2 className="section-title">{t('realEstate.home.featured')}</h2>
         <span className="text-sm text-gray-500">{t('realEstate.home.featuredBody')}</span>
         <div className="flex-1" />
-        <Link to="/real-estate" className="text-sm font-bold text-navy inline-flex items-center gap-1">
+        <Link
+          to="/real-estate"
+          className="inline-flex items-center gap-1 rounded-full border border-navy/15 bg-white px-3.5 py-1.5 text-sm font-bold text-navy shadow-soft transition-colors hover:bg-navy hover:text-white"
+        >
           {t('common.viewAll')}
           <AppIcon name="arrow-right" className="w-3.5 h-3.5 dir-arrow" />
         </Link>
