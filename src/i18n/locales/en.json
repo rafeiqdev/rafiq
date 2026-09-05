@@ -2724,6 +2724,8 @@
   "invest": {
     "title": "Investment opportunities in Istanbul",
     "body": "A detailed file per project: price range, citizenship and residence eligibility, the upside, and the risks stated plainly.",
+    "crumbParent": "Real estate",
+    "crumbHere": "Investment opportunities",
     "badge": "Investment opportunity",
     "priceRange": "Price range",
     "from": "from",
