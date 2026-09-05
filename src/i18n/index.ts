@@ -122,6 +122,35 @@ i18n.use(initReactI18next).init({
 applyDir(initial);
 
 /**
+ * REMEMBER the language the URL is actually showing.
+ *
+ * Some journeys leave the site and come back on a URL with NO language
+ * segment — Google sign-in (Supabase returns to the bare origin), the
+ * signup-confirmation and password-reset emails, any link shared without a
+ * prefix. main.tsx rewrites those through resolveInitialLang(), which reads
+ * this key; with nothing stored it fell through to the phone's own browser
+ * language. So a visitor reading the site in Arabic tapped "تسجيل الدخول",
+ * signed in with Google, and came back to an English site — English profile,
+ * English onboarding questions — without having changed anything.
+ *
+ * Only i18nextLng is written, never rafiq_lang_selected: being routed into a
+ * language is not the same as choosing one, so the first-visit language
+ * picker still appears for someone who has never picked. And this runs only
+ * when the URL carried a segment, so a langless entry reads the stored value
+ * instead of overwriting it.
+ */
+if (typeof window !== 'undefined') {
+  const fromPath = langFromPath(window.location.pathname);
+  if (fromPath) {
+    try {
+      localStorage.setItem('i18nextLng', fromPath);
+    } catch {
+      // localStorage throws outright in some privacy modes — nothing to do.
+    }
+  }
+}
+
+/**
  * Resolves once the initial language and the Arabic fallback are loaded.
  * A failed chunk fetch (flaky network mid-deploy) must not blank the app —
  * the UI degrades to raw keys instead of never rendering.

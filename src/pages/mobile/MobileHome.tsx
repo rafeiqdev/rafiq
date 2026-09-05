@@ -472,7 +472,8 @@ src={CAROUSEL[0]}
       </div>
 
       {/* ================= BOTTOM TAB BAR — copy this whole <nav> onto every mobile screen ================= */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
+      {/* data-mobile-tabbar: read by ConsentBanner — keep it on both copies. */}
+      <nav data-mobile-tabbar className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
         <div className="grid grid-cols-5">
           {tabs.map((tab) => {
             const active =

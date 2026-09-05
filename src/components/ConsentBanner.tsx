@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getConsent, setConsent } from '../lib/analytics';
 import { AppIcon } from './AppIcon';
@@ -18,12 +19,49 @@ import { useIsMobile } from '../hooks/useIsMobile';
 export function ConsentBanner() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { pathname } = useLocation();
   const [visible, setVisible] = useState(() => getConsent() === null);
+  // How far to lift the strip so it sits ON TOP OF the bottom tab bar instead
+  // of covering it — 0 on the screens that have no bar. See the effect below.
+  const [barHeight, setBarHeight] = useState(0);
 
   // In case consent was already decided in another tab while this one was open.
   useEffect(() => {
     if (getConsent() !== null) setVisible(false);
   }, []);
+
+  // MEASURE the bottom tab bar; never assume it is there.
+  //
+  // This used to be a hard-coded `bottom: 56px + safe-area`, on the reasoning
+  // that "nearly every mobile screen renders MobileTabBar". The signed-out
+  // home page does not — and that is the first screen every new visitor sees,
+  // i.e. exactly where this banner appears. So the strip floated with 56px of
+  // empty page showing underneath it: a box detached from the bottom edge.
+  //
+  // Both bars (the shared MobileTabBar and MobileHome's inline copy) carry
+  // data-mobile-tabbar, so the real height — safe-area inset included — is
+  // read off the DOM. No bar, no offset, and the strip meets the bottom edge.
+  //
+  // Re-measured on navigation, and again shortly after: pages are lazy chunks,
+  // so the bar of the page being entered often mounts after this runs.
+  useEffect(() => {
+    if (!visible) return;
+    if (!isMobile) {
+      setBarHeight(0);
+      return;
+    }
+    const measure = () => {
+      const bar = document.querySelector('[data-mobile-tabbar]');
+      setBarHeight(bar ? Math.round(bar.getBoundingClientRect().height) : 0);
+    };
+    measure();
+    const timers = [150, 600].map((ms) => window.setTimeout(measure, ms));
+    window.addEventListener('resize', measure);
+    return () => {
+      timers.forEach(window.clearTimeout);
+      window.removeEventListener('resize', measure);
+    };
+  }, [visible, isMobile, pathname]);
 
   if (!visible) return null;
 
@@ -38,14 +76,13 @@ export function ConsentBanner() {
       aria-live="polite"
       aria-labelledby="consent-title"
       aria-describedby="consent-body"
-      // Nearly every mobile screen renders MobileTabBar.tsx, a persistent
-      // fixed bottom-0 nav bar. This banner is also fixed bottom-0 with a
-      // higher z-index, so on phones it used to render directly on top of
-      // that nav and hide it completely until dismissed. Lifting the banner
-      // above the bar's height (56px content + safe-area inset, matching
-      // MobileTabBar's own layout) keeps both visible and tappable at once.
-      style={isMobile ? { bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))' } : undefined}
-      className={`fixed inset-x-0 z-50 border-t border-cream-dark bg-white px-4 py-4 shadow-float sm:px-6 ${isMobile ? '' : 'bottom-0'}`}
+      // Sits flush on the bottom edge, lifted only by the height of a bottom
+      // tab bar when the current screen actually draws one (measured above) —
+      // the banner has a higher z-index and would otherwise hide that bar
+      // completely until dismissed. On its own, the strip must never leave a
+      // strip of page visible beneath it.
+      style={{ bottom: barHeight ? `${barHeight}px` : 0 }}
+      className="fixed inset-x-0 z-50 border-t border-cream-dark bg-white px-4 pt-4 shadow-float sm:px-6 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
         <span className="icon-chip hidden shrink-0 sm:flex">

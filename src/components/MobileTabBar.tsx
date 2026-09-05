@@ -73,7 +73,10 @@ export function MobileTabBar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
+    // data-mobile-tabbar: ConsentBanner measures this bar so it can sit on
+    // top of it instead of covering it — and so it stays flush with the
+    // bottom edge on the screens that have no bar at all.
+    <nav data-mobile-tabbar className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-cream-dark pb-[env(safe-area-inset-bottom,0px)]">
       <div className="grid grid-cols-5">
         {tabs.map((tab) => {
           const active = tab.to === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.to);
