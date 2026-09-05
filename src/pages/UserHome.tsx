@@ -31,9 +31,6 @@ const RENEWAL_KEYS = ['residence', 'insurance', 'passport'] as const;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** The three "what happens now" rows — pure copy, no data behind them. */
-const NEXT_ROWS = ['soon', 'week', 'after'] as const;
-
 // Direct links to the main destinations, rendered as the "tubelight" <NavBar>
 // (see components/ui/tubelight-navbar). PHONES ONLY — see the isMobile gate at
 // the render site. On desktop these same destinations all live in Layout's top
@@ -734,24 +731,6 @@ export function UserHome() {
           </div>
         )}
       </section>
-
-      {/* ── what happens now: the new user's real question is "and then?" ── */}
-      <Panel className="mt-4">
-        <h2 className="font-extrabold text-navy">{t('dash.whatNowTitle')}</h2>
-        <ul className="mt-3 flex flex-col">
-          {NEXT_ROWS.map((k) => (
-            <li key={k} className="flex gap-4 py-3 border-t border-cream-dark first:border-t-0">
-              <span className="w-20 shrink-0 text-xs font-semibold text-navy/40 pt-0.5">
-                {t(`dash.whatNow.${k}.when`)}
-              </span>
-              <span className="min-w-0">
-                <b className="block text-sm font-semibold text-navy">{t(`dash.whatNow.${k}.title`)}</b>
-                <span className="block text-sm text-gray-500 leading-relaxed">{t(`dash.whatNow.${k}.body`)}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Panel>
 
       {/* ── upcoming renewals, or the invitation to set them ── */}
       {renewals.length > 0 ? (
