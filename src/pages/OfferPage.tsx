@@ -600,32 +600,22 @@ export function OfferPageInner() {
                 transition={{ duration: 0.45 }}
                 className="card p-6 md:p-8 shadow-card border-2 border-navy/15 bg-white relative overflow-hidden"
               >
-                {/* Header with Title and Price */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-cream-dark">
+                {/* Price summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-cream-dark">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-navy/5 text-navy text-xs font-extrabold">
-                        <PulsingStatusDot color="bg-green-500" />
-                        {t('serviceOffer.title')}
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-blue/30 text-navy text-[11px] font-bold border border-navy/10">
-                        <AppIcon name="shield-check" className="w-3.5 h-3.5 text-navy/80" />
-                        <span>{lang === 'ar' ? 'عرض سعر رسمي معتمد' : 'Verified Official Quote'}</span>
-                      </span>
-                    </div>
-                    <h2 className="text-lg font-extrabold text-navy">
-                      {t('offerPage.offerSummary')}
+                    <h2 className="text-lg font-extrabold text-navy flex items-center gap-1.5">
+                      <AppIcon name="shield-check" className="w-5 h-5 text-green-700 shrink-0" />
+                      {t('serviceOffer.title')}
                     </h2>
+                    <p className="text-xs text-navy/55 font-medium mt-1">
+                      {lang === 'ar' ? 'شامل كل الرسوم • لا مصاريف خفية' : 'All fees included • No hidden costs'}
+                    </p>
                   </div>
 
                   <div className="text-start sm:text-end bg-cream/70 sm:bg-transparent p-3.5 sm:p-0 rounded-2xl border border-cream-dark sm:border-0">
                     <p className="text-xs font-bold text-navy/50">{t('offerPage.price')}</p>
                     <p className="text-2xl md:text-3xl font-black text-navy tracking-tight" dir="ltr">
                       {(primaryOffer.price ?? 0).toLocaleString()} <span className="text-lg font-bold text-navy/70">{primaryOffer.currency || 'TL'}</span>
-                    </p>
-                    <p className="text-[11px] font-semibold text-green-700 mt-1 flex items-center gap-1 sm:justify-end">
-                      <span>✓</span>
-                      <span>{lang === 'ar' ? 'شامل الرسوم والضرائب الرسمية • لا مصاريف خفية' : 'All official taxes & fees included • No hidden costs'}</span>
                     </p>
                   </div>
                 </div>
