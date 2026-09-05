@@ -90,8 +90,8 @@ export function Services() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      {/* hero */}
+    <div className="pb-10">
+      {/* hero — full viewport width, edge-to-edge (no side gutters) */}
       <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id="servicesHeroCurve" clipPathUnits="objectBoundingBox">
@@ -100,7 +100,7 @@ export function Services() {
         </defs>
       </svg>
       <div
-        className="relative rounded-card overflow-hidden animate-fade-in"
+        className="relative overflow-hidden animate-fade-in"
         style={{ clipPath: 'url(#servicesHeroCurve)' }}
       >
         <img
@@ -122,9 +122,10 @@ export function Services() {
             {t('services.trustNote')}
           </div>
         </div>
-            </div>
+      </div>
 
-      <section aria-labelledby="residence-spotlight-title" className="mt-8 border-y border-cream-dark bg-cream/45 px-5 py-6 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-8">
+      <section aria-labelledby="residence-spotlight-title" className="mt-0 border-y border-cream-dark bg-cream/45 px-5 py-6 sm:px-6">
         <h2 id="residence-spotlight-title" className="text-xl font-extrabold text-navy">
           {t('services.residenceSpotlight.title')}
         </h2>
@@ -255,6 +256,7 @@ export function Services() {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }
