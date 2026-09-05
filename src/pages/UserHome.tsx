@@ -361,13 +361,6 @@ export function UserHome() {
       ].filter((f): f is { label: string; value: string } => Boolean(f))
     : [];
 
-  // The city-aware "before you sign a lease" tip points at one specific
-  // service (notarized rental contracts), not the whole catalogue.
-  const rentalContractService = catalogServices.find((s) => s.id === 're-contracts');
-  const cityTipHref = rentalContractService
-    ? `/services?q=${encodeURIComponent(pickText(rentalContractService.title, lang))}`
-    : '/services';
-
   const relatedServices = items
     .map((i) => catalogServices.find((s) => s.id === i.relatedServiceId))
     .filter((s): s is NonNullable<typeof s> => Boolean(s))
@@ -492,30 +485,6 @@ export function UserHome() {
             </Link>
           </div>
         </section>
-      )}
-
-      {/* ── city-aware note: we know where they live, so use it ── */}
-      {cityLabel && (
-        <Panel className="mt-4">
-          <div className="flex items-start gap-3">
-            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-cream-dark text-navy/70 shrink-0">
-              <AppIcon name="map-pin" className="w-5 h-5" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="font-extrabold text-navy">{t('dash.cityTitle', { city: cityLabel })}</h2>
-              <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.cityBody')}</p>
-            </div>
-          </div>
-          {/* Was a generic /services link — landed on the full unfiltered
-              catalogue instead of the notarized-rental-contract service the
-              "before you sign a lease" copy above is actually about. Services
-              is searched by title text (see Services.tsx), same pattern the
-              relatedServices block below already uses. */}
-          <Link to={cityTipHref} className="btn-ghost mt-4 min-h-[44px]">
-            {t('dash.cityCta')}
-            <DirArrow />
-          </Link>
-        </Panel>
       )}
 
       {/* ── the whole road, not a 3-item preview — except once every step is
