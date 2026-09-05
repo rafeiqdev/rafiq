@@ -232,11 +232,8 @@ function FormattedOfferDetails({ details }: { details?: string | null }) {
         if (bulletMatch) {
           const itemText = bulletMatch[2];
           return (
-            <div
-              key={idx}
-              className="flex items-start gap-2.5 p-2 rounded-xl bg-white/70 hover:bg-white transition-colors border border-cream-dark/60 shadow-2xs"
-            >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 font-bold text-xs mt-0.5 shadow-2xs">
+            <div key={idx} className="flex items-start gap-2">
+              <span className="text-green-700 font-extrabold text-sm leading-relaxed shrink-0">
                 ✓
               </span>
               <span className="text-sm font-medium text-navy/90 leading-relaxed flex-1">
@@ -612,7 +609,7 @@ export function OfferPageInner() {
                     </p>
                   </div>
 
-                  <div className="text-start sm:text-end bg-cream/70 sm:bg-transparent p-3.5 sm:p-0 rounded-2xl border border-cream-dark sm:border-0">
+                  <div className="text-start sm:text-end bg-cream/70 p-3.5 rounded-2xl border border-cream-dark shrink-0">
                     <p className="text-xs font-bold text-navy/50">{t('offerPage.price')}</p>
                     <p className="text-2xl md:text-3xl font-black text-navy tracking-tight" dir="ltr">
                       {(primaryOffer.price ?? 0).toLocaleString()} <span className="text-lg font-bold text-navy/70">{primaryOffer.currency || 'TL'}</span>
@@ -626,9 +623,7 @@ export function OfferPageInner() {
                     <AppIcon name="file-text" className="w-4 h-4 text-navy/60" />
                     {t('offerPage.offerDetails')}
                   </h3>
-                  <div className="bg-cream/40 p-4 sm:p-5 rounded-2xl border border-cream-dark">
-                    <FormattedOfferDetails details={primaryOffer.details} />
-                  </div>
+                  <FormattedOfferDetails details={primaryOffer.details} />
                 </div>
 
                 {/* Image Attachments / Photos & Document Gallery */}
@@ -640,12 +635,11 @@ export function OfferPageInner() {
                     <div className="py-6 border-b border-cream-dark">
                       {imageFiles.length > 0 && (
                         <div className={docFiles.length > 0 ? 'mb-4' : ''}>
-                          <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center mb-3">
                             <h3 className="text-sm font-extrabold text-navy flex items-center gap-2">
                               <AppIcon name="camera" className="w-4 h-4 text-navy/60" />
                               {t('offerPage.attachmentsCount', { count: imageFiles.length })}
                             </h3>
-                            <span className="text-xs text-navy/50">{t('offerPage.viewPhoto')}</span>
                           </div>
                           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                             {imageFiles.map((url, idx) => (
@@ -694,10 +688,7 @@ export function OfferPageInner() {
                                       {decodeURIComponent(cleanName)}
                                     </span>
                                   </div>
-                                  <span className="text-xs font-bold text-navy/60 group-hover:text-navy inline-flex items-center gap-1 shrink-0 ms-2">
-                                    <span>{lang === 'ar' ? 'معاينة المستند' : 'Open Document'}</span>
-                                    <span className="text-sm">↗</span>
-                                  </span>
+                                  <span className="text-navy/40 group-hover:text-navy text-base leading-none shrink-0 ms-2" aria-hidden="true">↗</span>
                                 </a>
                               );
                             })}
