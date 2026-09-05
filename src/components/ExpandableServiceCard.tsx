@@ -185,7 +185,6 @@ export function ExpandableServiceCard({
                       <span>{t('services.onRequest')}</span>
                     </div>
                   )}
-
                   <button
                     type="button"
                     className="esc-primary-action"
@@ -200,7 +199,7 @@ export function ExpandableServiceCard({
                   <Link
                     to={`/services/${service.id}`}
                     onClick={closeCard}
-                    className="mt-3 block w-full text-center text-xs font-bold text-navy/70 underline underline-offset-4 hover:text-navy"
+                    className="esc-detail-link mt-3 block w-full text-center text-xs font-bold underline underline-offset-4"
                   >
                     {lang === 'ar' ? 'عرض تفاصيل الخدمة' : 'View service details'}
                   </Link>

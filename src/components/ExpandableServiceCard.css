@@ -478,6 +478,19 @@
   stroke-linejoin: round;
 }
 
+/* "عرض تفاصيل الخدمة" sits on the dark gradient (white text area) — it must
+   be light, not navy. Navy on navy was invisible (reported bug). */
+.esc-detail-link {
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration-color: rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.esc-detail-link:hover {
+  color: #fff;
+  text-decoration-color: #fff;
+}
+
 [dir="rtl"] .esc-action-icon svg,
 [dir="rtl"] .esc-choice-arrow svg {
   transform: rotate(180deg);
