@@ -3,19 +3,10 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listings as listingsApi } from '../../lib/api';
-import type { InvestmentRecord, Listing, ListingType } from '../../lib/types';
+import type { Listing, ListingType } from '../../lib/types';
 import { AppIcon } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
-import {
-  EligibilityValue,
-  InvestmentPhoto,
-  useLocalized,
-} from '../../components/realestate/InvestmentCard';
-import {
-  citizenshipEligibility,
-  priceRange,
-  residencyEligibility,
-} from '../../data/investments';
+import { InvestmentPhoto, useLocalized } from '../../components/realestate/InvestmentCard';
 import { ISTANBUL_AREAS } from '../../data/istanbulAreas';
 import { useInvestments } from '../../hooks/useInvestments';
 import { BANNERS } from '../../lib/images';
@@ -347,13 +338,17 @@ export function MobileRealEstate() {
   const toggleRoom = (r: string): void =>
     setF((prev) => ({ ...prev, rooms: prev.rooms.includes(r) ? prev.rooms.filter((x) => x !== r) : [...prev.rooms, r] }));
 
-  const investCta = (o: InvestmentRecord): string =>
-    `https://wa.me/${WA}?text=${encodeURIComponent(`${t('realEstate.mx.stripTitle')}: ${L(o.name)} (${L(o.district)})`)}`;
-
   const detailWa = detail
     ? `https://wa.me/${WA}?text=${encodeURIComponent(`${t('common.appName')} — ${detailTitle(detail)} — ${fmtUsd(detail.priceUsd)}`)}`
     : '';
 
+  /*
+   * Deliberately only the photo and the project name. The card used to carry
+   * the price range, both eligibility verdicts, tags and a CTA button — six
+   * competing blocks on a 84%-wide phone card, which read as noise rather than
+   * as an invitation. Everything removed here is still on the file page one
+   * tap away, so nothing is lost, it is just no longer shouted at the reader.
+   */
   const investSection = investments.length > 0 && (
     <section className={styles.sec}>
       <h2>
@@ -365,40 +360,9 @@ export function MobileRealEstate() {
           <Link key={o.slug} to={`/real-estate/investments/${o.slug}`} className={styles.ivcard}>
             <div className={styles['iv-img']}>
               <InvestmentPhoto opp={o} />
-              <span className={styles['iv-badge']}>
-                <AppIcon name="trending-up" className="w-3.5 h-3.5" />
-                {t('invest.badge')}
-              </span>
             </div>
             <div className={styles['iv-body']}>
               <h3 className={styles['iv-name']}>{L(o.name)}</h3>
-              <div className={styles['iv-loc']}>
-                <AppIcon name="map-pin" className="w-3.5 h-3.5" />
-                {L(o.district)}
-              </div>
-              <div className={styles['iv-stats']}>
-                <div className={styles['iv-stat']}>
-                  <b dir="ltr">{priceRange(o, t('invest.from'))}</b>
-                  <span>{t('invest.priceRange')}</span>
-                </div>
-                <div className={styles['iv-stat']}>
-                  <EligibilityValue state={citizenshipEligibility(o)} kind="citizenship" />
-                  <span>{t('invest.citizenshipShort')}</span>
-                </div>
-                <div className={styles['iv-stat']}>
-                  <EligibilityValue state={residencyEligibility(o)} kind="residency" />
-                  <span>{t('invest.residencyShort')}</span>
-                </div>
-              </div>
-              <div className={styles['iv-tags']}>
-                {[L(o.type), ...o.pros.slice(0, 2).map((p) => L(p))].map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-              <span className={styles['iv-cta']}>
-                <AppIcon name="trending-up" className="w-[18px] h-[18px]" />
-                {t('invest.openFile')}
-              </span>
             </div>
           </Link>
         ))}

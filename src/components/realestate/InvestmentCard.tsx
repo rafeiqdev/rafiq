@@ -100,11 +100,10 @@ export function InvestmentCard({ opp }: { opp: InvestmentRecord }) {
           at its intrinsic size and stretched the whole card — and with it the
           page. Never pair an auto-height parent with an h-full image. */}
       <div className="relative w-full h-40 sm:h-52 sm:w-[38%] sm:min-w-[180px] shrink-0 overflow-hidden bg-navy-50">
+        {/* No brand-colour film over the photo: nothing sits on it that needs
+            the contrast, and the tint only made the project harder to see.
+            The card's accent border below already does the separating. */}
         <InvestmentPhoto opp={opp} />
-        <span
-          className="absolute inset-0 opacity-30"
-          style={{ background: 'linear-gradient(90deg, transparent, var(--brand))' }}
-        />
       </div>
       <div className="flex-1 p-4 sm:p-5 flex flex-col gap-2 border-t-4 sm:border-t-0 sm:border-s-4" style={{ borderColor: 'var(--brand)' }}>
         <span

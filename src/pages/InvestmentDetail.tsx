@@ -124,14 +124,23 @@ export function InvestmentDetail() {
 
   return (
     <div style={brand}>
-      {/* hero — the project's own colour washes the bottom of the photo */}
+      {/*
+        hero — the photo is the point, so nothing tints it.
+
+        This used to be washed bottom-to-top in the project's own brand colour,
+        which on a phone covered most of the frame and read as a coloured slab
+        sitting on top of the picture rather than as a photo at all. What is
+        left is a neutral black scrim over the lower third only: the white
+        headline still needs something to sit on, and that is the least it can
+        be without the image disappearing again.
+      */}
       <div className="relative min-h-[220px] sm:min-h-[280px] flex items-end text-white">
         <div className="absolute inset-0">
           <InvestmentPhoto opp={opp} />
         </div>
         <span
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(0deg, var(--brand) 8%, rgba(0,0,0,.45) 55%, rgba(0,0,0,.15))' }}
+          className="absolute inset-x-0 bottom-0 h-2/3"
+          style={{ background: 'linear-gradient(0deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,0) 100%)' }}
         />
         <div className="relative w-full mx-auto max-w-6xl px-4 pb-6 pt-10">
           {opp.developer !== '—' && (
