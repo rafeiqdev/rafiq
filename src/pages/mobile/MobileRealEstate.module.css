@@ -6,7 +6,9 @@
 .mark svg{width:38px;height:38px;color:#1a3a6b;display:block}
 .cit svg,.tag svg{width:12px;height:12px}
 .closeb svg{width:18px;height:18px;display:block}
-.meta svg,.sub svg{width:15px;height:15px}
+.meta svg,.sub svg{width:15px;height:15px;display:block}
+/* icon + its value travel together on one line, never stacked */
+.iv{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;vertical-align:-3px}
 /* ===== header ===== */
 .hdr{background:#1a3a6b;color:#fff;padding:22px 20px 26px}
 .hdr-nav{display:flex;margin-bottom:10px}
@@ -16,7 +18,7 @@
 .hdr h1{font-size:24px;font-weight:600;margin:0}
 .hdr .brand{font-size:13px;opacity:.9;margin-top:2px}
 .count-pill{background:rgba(0,0,0,.28);font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;white-space:nowrap}
-.hdr .upd{text-align:left;font-size:14px;margin-top:8px;font-weight:500}
+.hdr .upd{text-align:start;font-size:14px;margin-top:8px;font-weight:500}
 /* ===== search pill ===== */
 .search{background:#fff;border-radius:999px;display:flex;align-items:center;gap:10px;margin:0 16px;padding:6px 6px 6px 18px;box-shadow:0 4px 16px rgba(0,0,0,.18);position:relative;top:-24px;cursor:pointer;border:0;width:calc(100% - 32px);font:inherit;text-align:start;color:#1f2430}
 .search .ic{width:46px;height:46px;flex:0 0 46px;border-radius:50%;background:#1a3a6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}
@@ -43,9 +45,10 @@
 .hcard img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#eee}
 .hcard .cb{padding:14px 16px 16px;position:relative}
 .hcard h3{font-size:26px;font-weight:700;margin:0}
-.hcard .sub{font-size:15px;color:#333;margin-top:6px}
-.hcard .meta{display:flex;gap:14px;margin-top:8px;font-size:14.5px;color:#1f2430;align-items:center}
-.cit{position:absolute;top:-34px;right:12px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;color:#fff;background:rgba(15,36,64,.85);display:inline-flex;align-items:center;gap:4px}
+.hcard .sub{font-size:15px;color:#333;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcard .meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:14.5px;color:#1f2430;align-items:center}
+.meta>span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.cit{position:absolute;top:-34px;inset-inline-end:12px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;color:#fff;background:rgba(15,36,64,.85);display:inline-flex;align-items:center;gap:4px}
 .cit.yes{background:#0d7a3f}
 /* vertical list */
 .vlist{padding:0 16px 26px;display:flex;flex-direction:column;gap:12px}
@@ -74,7 +77,7 @@
 .gdots{position:absolute;bottom:12px;right:0;left:0;display:flex;justify-content:center;gap:5px;z-index:2;pointer-events:none}
 .gdots span{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.55)}
 .gdots span.on{background:#fff;width:18px}
-.gcount{position:absolute;bottom:10px;left:12px;background:rgba(15,23,42,.72);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;z-index:2;display:flex;gap:5px;align-items:center}
+.gcount{position:absolute;bottom:10px;inset-inline-start:12px;background:rgba(15,23,42,.72);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;z-index:2;display:flex;gap:5px;align-items:center}
 .gcount svg{width:14px;height:14px}
 .dbody{padding:16px 18px 130px}
 .dtype{font-size:13px;color:#777}
@@ -93,7 +96,13 @@
 .dtable{width:100%;border-collapse:collapse;font-size:13.5px}
 .dtable td{padding:9px 2px;border-bottom:1px solid #f1f1f1}
 .dtable td:first-child{color:#777}
-.dtable td:last-child{text-align:left;font-weight:600}
+.dtable td:last-child{text-align:end;font-weight:600}
+.dsvc{display:flex;align-items:center;gap:12px;margin-top:18px;background:#1a3a6b;color:#fff;border-radius:14px;padding:13px 15px;text-decoration:none;transition:transform .12s ease}
+.dsvc:active{transform:scale(.98)}
+.dsvc-ic{flex:0 0 36px;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center}
+.dsvc-txt{min-width:0;flex:1}
+.dsvc-txt b{display:block;font-size:14.5px;font-weight:600}
+.dsvc-txt small{display:block;font-size:12.5px;color:rgba(255,255,255,.78);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fulldesc{white-space:pre-wrap;font-size:13.5px;line-height:2;background:#faf8f0;border:1px solid #e7e0cf;border-radius:12px;padding:12px;margin-top:4px}
 .dbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e5e5e5;padding:12px 18px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px;z-index:61}
 .dprice b{font-size:23px;display:block;white-space:nowrap}
@@ -190,7 +199,7 @@
 .s-loc svg{width:20px;height:20px}
 .s-loc:active{background:#f6f7f9}
 .s-label{font-size:12px;font-weight:700;color:#9aa0a8;letter-spacing:.03em;padding:16px 16px 4px}
-.s-item{display:flex;align-items:center;gap:14px;width:100%;border:0;border-bottom:1px solid #f2f2f4;background:none;text-align:right;font:inherit;padding:13px 16px;cursor:pointer;color:#1f2430}
+.s-item{display:flex;align-items:center;gap:14px;width:100%;border:0;border-bottom:1px solid #f2f2f4;background:none;text-align:start;font:inherit;padding:13px 16px;cursor:pointer;color:#1f2430}
 .s-item:active{background:#f6f7f9}
 .s-ic{width:24px;height:24px;flex:0 0 24px;display:flex;align-items:center;justify-content:center}
 .s-ic svg{width:22px;height:22px}
