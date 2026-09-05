@@ -25,6 +25,7 @@ import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { AppNotification, Booking, JourneyItem, JourneyTaskKey, StoredDocument } from '../lib/types';
 import { usePageMeta } from '../lib/seo';
+import { track } from '../lib/analytics';
 
 /** The three tracked renewal dates on the profile, soonest first. */
 const RENEWAL_KEYS = ['residence', 'insurance', 'passport'] as const;
@@ -588,9 +589,8 @@ export function UserHome() {
       {/* ── "خدمات تهمّك": the services matched to the onboarding answers.
           Deliberately placed HIGH — right under the single next action — so a
           user who signed in to find their service sees it without scrolling
-          past the journey road, renewals and the document locker. Compact→
-          detail expandable card, ported 1:1 from the user's mockup (see
-          ExpandableServiceCard.tsx/.css). ── */}
+          past the journey road, renewals and the document locker. Rendered as
+          one swipeable card stack (see ui/animate-card-animation.tsx). ── */}
       {relatedServices.length > 0 && (
         <div className="mt-4">
           <div className="flex items-center justify-between gap-3 px-1">
@@ -608,10 +608,11 @@ export function UserHome() {
             </Link>
           </div>
 
-          {/* EXPERIMENT: the six matched services used to stack vertically as six
-              full cards, which made the dashboard very long. They now share one
-              card stack — a single card on top, the rest peeking behind it, and
-              a "next" button that throws the top card away with a spring. */}
+          {/* The six matched services used to stack vertically as six full
+              cards, which made the dashboard very long before anything else on
+              it. They now share one card stack — a single card on top, the rest
+              peeking behind it — thrown away by swiping it aside (or scrolling
+              sideways / arrow keys on a desktop). */}
           <AnimatedCardStack
             items={relatedServices.map((s) => ({
               id: s.id,
@@ -621,10 +622,15 @@ export function UserHome() {
               fallback: <AppIcon name={s.icon} className="w-16 h-16 text-navy/40" />,
             }))}
             ctaLabel={t('common.learnMore')}
-            nextLabel={t('common.next')}
+            deckLabel={t('dash.services')}
             onOpen={(id) => {
+              // the service's own page, not a title search: /services?q= is an
+              // OR-token match, so one card's title landed the reader on a list
+              // of every service sharing a word with it. Same analytics event
+              // the expandable card fired, so the rail stays comparable.
               const svc = relatedServices.find((s) => s.id === id);
-              if (svc) navigate(`/services?q=${encodeURIComponent(pickText(svc.title, lang))}`);
+              track('service_click', { target: id, meta: { category: svc?.category ?? '' } });
+              navigate(`/services/${id}`);
             }}
           />
         </div>
