@@ -488,14 +488,18 @@ export function MobileRealEstate() {
                         <h3>{dName(d.district)}</h3>
                         <div className={styles.sub}>
                           {roomsLabel(d.rooms)} · {d.m2} {t('realEstate.perM2')} ·{' '}
-                          <AppIcon name="bath" className="w-[15px] h-[15px]" /> {d.bathrooms ?? '—'}
+                          <span className={styles.iv}>
+                            <AppIcon name="bath" className="w-[15px] h-[15px]" />
+                            {d.bathrooms ?? '—'}
+                          </span>
                         </div>
                         <div className={styles.meta}>
                           <span>
-                            <AppIcon name="banknote" className="w-[15px] h-[15px]" /> <b>{fmtUsd(d.priceUsd)}</b>
+                            <AppIcon name="banknote" className="w-[15px] h-[15px]" />
+                            <b>{fmtUsd(d.priceUsd)}</b>
                           </span>
                           <span>
-                            <AppIcon name="camera" className="w-[15px] h-[15px]" />{' '}
+                            <AppIcon name="camera" className="w-[15px] h-[15px]" />
                             {t('realEstate.mx.photosCount', { count: d.images?.length ?? (d.image ? 1 : 0) })}
                           </span>
                         </div>
@@ -541,8 +545,12 @@ export function MobileRealEstate() {
                             {dName(d.district)} — {roomsLabel(d.rooms)}
                           </h3>
                           <div className={styles.sub}>
-                            {d.m2} {t('realEstate.perM2')} · <AppIcon name="bath" className="w-[15px] h-[15px]" />{' '}
-                            {d.bathrooms ?? '—'} · {d.furnished ? t('realEstate.furnished') : t('realEstate.mx.unfurnished')}
+                            {d.m2} {t('realEstate.perM2')} ·{' '}
+                            <span className={styles.iv}>
+                              <AppIcon name="bath" className="w-[15px] h-[15px]" />
+                              {d.bathrooms ?? '—'}
+                            </span>{' '}
+                            · {d.furnished ? t('realEstate.furnished') : t('realEstate.mx.unfurnished')}
                           </div>
                           <div className={styles.pr}>{fmtUsd(d.priceUsd)}</div>
                           <span className={`${styles.tag}${d.citizenship ? ` ${styles.yes}` : ''}`}>
@@ -763,6 +771,18 @@ export function MobileRealEstate() {
                   <div className={styles.fulldesc}>{detailDesc(detail)}</div>
                 </div>
               )}
+
+              {/* Rafiq's own services for this listing — the reason the listing is here at all. */}
+              <Link to={`/real-estate/${detail.id}/services`} className={styles.dsvc}>
+                <span className={styles['dsvc-ic']}>
+                  <AppIcon name="briefcase" className="w-[18px] h-[18px]" />
+                </span>
+                <span className={styles['dsvc-txt']}>
+                  <b>{t('realEstate.services.title')}</b>
+                  <small>{t('realEstate.services.short')}</small>
+                </span>
+                <AppIcon name="arrow-right" className="w-4 h-4 shrink-0 dir-arrow" />
+              </Link>
             </div>
           </div>
         )}
