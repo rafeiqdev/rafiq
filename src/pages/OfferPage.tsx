@@ -10,7 +10,8 @@ import { RafiqLoader } from '../components/RafiqLoader';
 import { Modal } from '../components/Modal';
 import { OrderTracking } from '@/components/ui/order-tracking';
 import { ReviewStars } from '../components/ReviewStars';
-import { localizeServiceTitle, getServiceImage, SERVICES, SERVICE_CATEGORIES, pickText } from '../data/services';
+import { localizeServiceTitle, SERVICE_CATEGORIES, pickText } from '../data/services';
+import { useCatalog } from '../data/catalogStore';
 import { humanMessage } from './MyRequests';
 import { track } from '../lib/analytics';
 import { RequireAuth } from '../components/Gates';
@@ -317,6 +318,9 @@ export function OfferPageInner() {
   // changes between renders (loading → loaded used to add two hooks late,
   // which crashed React with "Rendered more hooks than during the previous render").
   const [now, setNow] = useState<number>(() => Date.now());
+  // Live catalog (static + admin overrides) — the same source the "All services"
+  // cards use, so the offer banner shows the exact same service image.
+  const { services: catalogServices } = useCatalog();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 60000);
@@ -363,14 +367,15 @@ export function OfferPageInner() {
   const resumeUrl = primaryPayment ? servicePayments.resumeUrl(primaryPayment, returnPath) : null;
 
   const localizedTitle = localizeServiceTitle(request.serviceTitle, lang);
-  const serviceHeroPhoto = getServiceImage(request.serviceTitle, request.category);
 
-  // Find service item icon & category if matched
+  // Find service item icon & category if matched (from the live catalog)
   const reqTitle = request.serviceTitle || '';
   const reqTitleLower = reqTitle.toLowerCase();
-  const matchedService = SERVICES.find(
+  const matchedService = catalogServices.find(
     (s) => s.id === reqTitle || Object.values(s.title).some((t) => t && reqTitleLower && t.toLowerCase() === reqTitleLower)
   );
+  // Same visual as the service card: the admin-uploaded image when present, otherwise the service icon.
+  const serviceHeroPhoto = matchedService?.image || null;
   const matchedCatId = request.category || matchedService?.category;
   const catItem = SERVICE_CATEGORIES.find((c) => c.id === matchedCatId);
   const categoryName = catItem ? pickText(catItem.title, lang) : t('common.appName');
@@ -548,13 +553,22 @@ export function OfferPageInner() {
               isRTL ? 'left-0' : 'right-0'
             } w-5/12 sm:w-1/2 md:w-5/12 pointer-events-none overflow-hidden`}
           >
-            <img
-              src={serviceHeroPhoto}
-              alt=""
-              aria-hidden="true"
-              className="h-full w-full object-cover object-center opacity-90 transition-transform duration-700 hover:scale-105"
-              loading="eager"
-            />
+            {serviceHeroPhoto ? (
+              <img
+                src={serviceHeroPhoto}
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full object-cover object-center opacity-90 transition-transform duration-700 hover:scale-105"
+                loading="eager"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1d4b86] to-navy"
+              >
+                <AppIcon name={matchedService?.icon ?? serviceIcon} className="h-[34%] w-[34%] text-white/50" />
+              </div>
+            )}
             {/* Direction-aware gradient fade into solid navy */}
             <div
               className={`absolute inset-0 ${
