@@ -116,6 +116,12 @@ function sb(): SupabaseClient {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function sessionUser() {
+  try {
+    const { data, error } = await sb().auth.getUser();
+    if (!error && data?.user) return data.user;
+  } catch {
+    // fallback to getSession if offline or error
+  }
   const { data } = await sb().auth.getSession();
   return data.session?.user ?? null;
 }
@@ -143,7 +149,9 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
   // The recovery session expired before the new password was submitted.
   if (msg.includes('auth session missing')) throw new ApiError('reset_expired', 401);
   if (msg.includes('not_admin')) throw new ApiError('forbidden', 403);
-  if (msg.includes('not_authenticated')) throw new ApiError('not_authenticated', 401);
+  if (msg.includes('not_authenticated') || msg.includes('jwt') || msg.includes('token is expired') || msg.includes('expired')) {
+    throw new ApiError('not_authenticated', 401);
+  }
   throw new ApiError(fallback, status);
 }
 
@@ -2785,6 +2793,22 @@ export const customerRequests = {
     const { error } = await sb().rpc('choose_response', { p_response_id: responseId });
     if (error) fail(error);
     return { ok: true };
+  },
+  /** Single request by ID for the owning customer */
+  async byId(id: string): Promise<CustomerRequest | null> {
+    await requireUid();
+    const { data, error } = await sb().from('service_requests')
+      .select('id,service_title,category,service_type,area,message,status,broadcast,created_at')
+      .eq('id', id)
+      .maybeSingle();
+    if (error || !data) return null;
+    interface Row { id: string; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
+    const r = data as Row;
+    return {
+      id: r.id, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
+      message: r.message ?? null, status: r.status, createdAt: r.created_at,
+      serviceType: r.service_type ?? '', broadcast: r.broadcast === true,
+    };
   },
 };
 

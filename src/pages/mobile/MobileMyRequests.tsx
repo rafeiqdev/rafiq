@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { customerRequests, reviews, serviceOffers, servicePayments } from '../../lib/api';
 import type { CompanyResponse, CustomerRequest } from '../../lib/types';
 import { pickArea } from '../../data/istanbulAreas';
+import { localizeServiceTitle } from '../../data/services';
 import { useApp } from '../../context/AppContext';
 import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { RafiqLoader } from '../../components/RafiqLoader';
@@ -118,7 +119,7 @@ function RequestRow({ req }: { req: CustomerRequest }) {
           />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[14.5px] font-extrabold leading-snug text-navy">{req.serviceTitle}</p>
+          <p className="text-[14.5px] font-extrabold leading-snug text-navy">{localizeServiceTitle(req.serviceTitle, lang)}</p>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-navy/55">
             {req.area && (
               <>
@@ -137,6 +138,13 @@ function RequestRow({ req }: { req: CustomerRequest }) {
 
       {open && (
         <div className="border-t border-cream-dark p-4">
+          <Link
+            to={`/requests/${req.id}/offer`}
+            className="btn-primary mb-4 flex min-h-[44px] w-full items-center justify-center gap-2 text-[13.5px] font-bold shadow-sm"
+          >
+            <AppIcon name="file-text" className="h-4 w-4" />
+            <span>{t('requests.openOfferPage')}</span>
+          </Link>
           <MobileRequestOffers req={req} />
         </div>
       )}

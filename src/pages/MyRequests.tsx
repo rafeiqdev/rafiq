@@ -7,6 +7,7 @@ import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
 import { pickArea } from '../data/istanbulAreas';
+import { localizeServiceTitle } from '../data/services';
 import { RequireAuth } from '../components/Gates';
 import { MedicalRequestsPanel } from '../components/medical/MedicalRequestsPanel';
 import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
@@ -58,7 +59,7 @@ function ReassuranceBanner({ req }: { req: CustomerRequest }) {
   // to guarantee a response time on.
   if (stepIndex < 0 || stepIndex === TIMELINE_STEPS.length - 1) return null;
 
-  const waMessage = t('requests.reassurance.waMessage', { id: req.id, service: req.serviceTitle });
+  const waMessage = t('requests.reassurance.waMessage', { id: req.id, service: localizeServiceTitle(req.serviceTitle, i18n.language) });
   const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
 
   // Feed the shared OrderTracking timeline with this request's real progress:
@@ -80,18 +81,27 @@ function ReassuranceBanner({ req }: { req: CustomerRequest }) {
           <AppIcon name="clock" className="w-3.5 h-3.5 shrink-0" />
           {t('requests.reassurance.sla')}
         </p>
-        {waHref && (
-          <a
-            href={waHref}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => track('whatsapp_clicked', { target: 'requests_escalation', meta: { request_id: req.id } })}
-            className="btn-secondary !h-8 px-3 text-xs"
+        <div className="flex items-center gap-2 ms-auto flex-wrap">
+          <Link
+            to={`/requests/${req.id}/offer`}
+            className="btn-primary !h-8 px-3 text-xs inline-flex items-center gap-1.5 font-bold shadow-sm"
           >
-            <AppIcon name="message-circle" className="w-3.5 h-3.5" />
-            {t('requests.reassurance.escalate')}
-          </a>
-        )}
+            <AppIcon name="file-text" className="w-3.5 h-3.5" />
+            {t('requests.openOfferPage')}
+          </Link>
+          {waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => track('whatsapp_clicked', { target: 'requests_escalation', meta: { request_id: req.id } })}
+              className="btn-secondary !h-8 px-3 text-xs"
+            >
+              <AppIcon name="message-circle" className="w-3.5 h-3.5" />
+              {t('requests.reassurance.escalate')}
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -267,25 +277,35 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
 }
 
 function RequestRow({ req }: { req: CustomerRequest }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [open, setOpen] = useState(false);
 
   return (
     <li className="card p-4">
-      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-3 text-start" aria-expanded={open}>
-        <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
-        <span className="flex-1 min-w-0">
-          <span className="font-semibold text-navy block">{req.serviceTitle}</span>
-          <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
-            {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
-            <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
+      <div className="flex items-center gap-3">
+        <button onClick={() => setOpen((v) => !v)} className="flex-1 min-w-0 flex items-center gap-3 text-start" aria-expanded={open}>
+          <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
+          <span className="flex-1 min-w-0">
+            <span className="font-semibold text-navy block">{localizeServiceTitle(req.serviceTitle, lang)}</span>
+            <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
+              {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
+              <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
+            </span>
           </span>
-        </span>
-        {/* What the admin did with it — the only signal the customer gets that
-            anyone has looked at their request. */}
-        <RequestStatusPill status={req.status} />
-      </button>
+        </button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to={`/requests/${req.id}/offer`}
+            className="btn-secondary !h-8 px-2.5 text-xs font-bold inline-flex items-center gap-1.5 hover:bg-cream-dark shadow-sm"
+          >
+            <AppIcon name="file-text" className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t('requests.openOfferPage')}</span>
+          </Link>
+          <RequestStatusPill status={req.status} />
+        </div>
+      </div>
 
       <ReassuranceBanner req={req} />
 

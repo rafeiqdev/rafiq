@@ -36,6 +36,7 @@
     "confirm": "Confirm",
     "duration": "How long it takes",
     "requiredDocs": "Required documents",
+    "retry": "Try again",
     "markDone": "Mark as done",
     "done": "Done",
     "status": "Status",
@@ -56,10 +57,18 @@
     "phone": "Phone number"
   },
   "pricing": {
-    "free": { "name": "Free" },
-    "light": { "name": "Light" },
-    "pro": { "name": "Pro" },
-    "elite": { "name": "Elite" }
+    "free": {
+      "name": "Free"
+    },
+    "light": {
+      "name": "Light"
+    },
+    "pro": {
+      "name": "Pro"
+    },
+    "elite": {
+      "name": "Elite"
+    }
   },
   "nav": {
     "home": "Home",
@@ -255,12 +264,30 @@
       "open": "Open guide",
       "note": "Rafiq is an independent digital guidance platform, not a government office. Rules, prices and availability can change; official links and update dates matter.",
       "steps": {
-        "arrive": { "title": "Plan your arrival", "body": "Start with your language, purpose and first-week priorities before booking a service." },
-        "legal": { "title": "Understand your legal stay", "body": "Review residence-permit categories, documents and the official application path." },
-        "home": { "title": "Find a suitable home", "body": "Compare districts, rental questions and the checks to make before signing." },
-        "districts": { "title": "Learn the districts", "body": "Explore transport, daily life and practical differences across Istanbul." },
-        "daily": { "title": "Set up daily life", "body": "Find help with banking, phone, health, translation and everyday tasks." },
-        "help": { "title": "Ask for the next step", "body": "Tell us what you need; we will explain the available route before you decide." }
+        "arrive": {
+          "title": "Plan your arrival",
+          "body": "Start with your language, purpose and first-week priorities before booking a service."
+        },
+        "legal": {
+          "title": "Understand your legal stay",
+          "body": "Review residence-permit categories, documents and the official application path."
+        },
+        "home": {
+          "title": "Find a suitable home",
+          "body": "Compare districts, rental questions and the checks to make before signing."
+        },
+        "districts": {
+          "title": "Learn the districts",
+          "body": "Explore transport, daily life and practical differences across Istanbul."
+        },
+        "daily": {
+          "title": "Set up daily life",
+          "body": "Find help with banking, phone, health, translation and everyday tasks."
+        },
+        "help": {
+          "title": "Ask for the next step",
+          "body": "Tell us what you need; we will explain the available route before you decide."
+        }
       }
     },
     "explore": {
@@ -2074,7 +2101,8 @@
       }
     },
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "openOfferPage": "Open Offer Page"
   },
   "reviews": {
     "leaveTitle": "Rate this company",
@@ -3177,5 +3205,36 @@
         "rejected": "Failed"
       }
     }
+  },
+  "offerPage": {
+    "title": "Service Offer & Request Details",
+    "backToRequests": "Back to My Requests",
+    "orderRef": "Request ID",
+    "placedOn": "Submitted on",
+    "currentStatus": "Current Status",
+    "timelineTitle": "Order Progress",
+    "timelineStep1": "Request Submitted",
+    "timelineStep2": "In Review & Offer Prepared",
+    "timelineStep3": "Completed",
+    "offerDetails": "Offer Details & Scope",
+    "offerSummary": "Pricing & Execution Summary",
+    "attachments": "Attachments & Photos",
+    "attachmentsCount": "Attachments ({{count}})",
+    "price": "Total Price",
+    "includes": "What is Included",
+    "yourRequest": "Your Original Request",
+    "notes": "Notes & Requirements",
+    "area": "Area / Location",
+    "noOffersTitle": "Your request is being reviewed",
+    "noOffersDesc": "Our team is currently evaluating your requirements and preparing a custom price offer. It will appear here as soon as it is ready.",
+    "slaTitle": "Guaranteed response within 2 hours",
+    "slaDesc": "Our support team is available to answer any questions or make changes to your request.",
+    "escalateWa": "Instant WhatsApp Support",
+    "waMessage": "Hello, I would like to inquire about the price offer for request #{{id}} — {{service}}.",
+    "trustTitle": "Rafiq Verified Guarantee",
+    "trustDesc": "100% secure escrow payment and verified service standards.",
+    "notFound": "Sorry, this request could not be found.",
+    "partnerResponses": "Additional Verified Partner Quotes ({{count}})",
+    "viewPhoto": "View full size"
   }
 }
