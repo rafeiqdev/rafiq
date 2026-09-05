@@ -744,7 +744,10 @@ export function UserHome() {
       {/* ── everything below only renders once there is something real ── */}
       {myBookings.length > 0 && (
         <Panel className="mt-4">
-          <h2 className="font-extrabold text-navy">{t('dash.bookingsTitle')}</h2>
+          <h2 className="flex items-center gap-2 font-extrabold text-navy">
+            <AppIcon name="calendar" className="w-4 h-4 text-gray-500" />
+            {t('dash.bookingsTitle')}
+          </h2>
           <ul className="mt-3 flex flex-col gap-2">
             {myBookings.map((b) => (
               <li key={b.id} className="flex items-center gap-3 rounded-xl border border-cream-dark bg-white px-3 py-2.5">
@@ -767,7 +770,10 @@ export function UserHome() {
       {notifs.length > 0 && (
         <Panel className="mt-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-extrabold text-navy">{t('dash.notifTitle')}</h2>
+            <h2 className="flex items-center gap-2 font-extrabold text-navy">
+              <AppIcon name="bell" className="w-4 h-4 text-gray-500" />
+              {t('dash.notifTitle')}
+            </h2>
             <Link to="/notifications" className="text-sm font-semibold text-navy hover:underline">
               {t('dash.viewAll')}
             </Link>
@@ -792,7 +798,10 @@ export function UserHome() {
         <div className="mt-4">
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-bold text-gray-900">{t('dash.services')}</h2>
+              <h2 className="flex items-center gap-1.5 text-[15px] font-bold text-gray-900">
+                <AppIcon name="sparkles" className="w-4 h-4 text-gray-500" />
+                {t('dash.services')}
+              </h2>
               <span className="text-xs font-bold text-gray-500 bg-gray-100 rounded-md px-1.5 py-0.5">
                 {relatedServices.length}
               </span>
