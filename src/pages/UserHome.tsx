@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
@@ -15,7 +15,7 @@ import { Home, Layers, Building2, HeartPulse, Map } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { AppIcon, DirArrow } from '../components/AppIcon';
 import type { IconName } from '../components/AppIcon';
-import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
+import AnimatedCardStack from '../components/ui/animate-card-animation';
 import { NavBar } from '../components/ui/tubelight-navbar';
 import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
@@ -284,7 +284,8 @@ export function UserHome() {
   // Live catalog, not the bundled SERVICES array: an admin's card image, edited
   // title or hidden flag has to reach this dashboard too, otherwise the same
   // service looks different here than on /services.
-  const { services: catalogServices, categories: catalogCategories } = useCatalog();
+  const navigate = useNavigate();
+  const { services: catalogServices } = useCatalog();
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [notifs, setNotifs] = useState<AppNotification[]>([]);
   const [docs, setDocs] = useState<StoredDocument[] | null>(null);
@@ -610,16 +611,25 @@ export function UserHome() {
             </Link>
           </div>
 
-          <ul className="mt-3.5 flex flex-col gap-3">
-            {relatedServices.map((s, i) => {
-              const category = catalogCategories.find((c) => c.id === s.category);
-              return (
-                <li key={s.id}>
-                  <ExpandableServiceCard service={s} index={i} categoryTitle={category ? pickText(category.title, lang) : ''} />
-                </li>
-              );
-            })}
-          </ul>
+          {/* EXPERIMENT: the six matched services used to stack vertically as six
+              full cards, which made the dashboard very long. They now share one
+              card stack — a single card on top, the rest peeking behind it, and
+              a "next" button that throws the top card away with a spring. */}
+          <AnimatedCardStack
+            items={relatedServices.map((s) => ({
+              id: s.id,
+              title: pickText(s.title, lang),
+              subtitle: pickText(s.desc, lang),
+              image: s.image,
+              fallback: <AppIcon name={s.icon} className="w-16 h-16 text-navy/40" />,
+            }))}
+            ctaLabel={t('common.learnMore')}
+            nextLabel={t('common.next')}
+            onOpen={(id) => {
+              const svc = relatedServices.find((s) => s.id === id);
+              if (svc) navigate(`/services?q=${encodeURIComponent(pickText(svc.title, lang))}`);
+            }}
+          />
         </div>
       )}
 
