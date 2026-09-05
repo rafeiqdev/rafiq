@@ -212,9 +212,15 @@ html[dir='rtl'] li {
 
   /* ── Button system: one base, five variants, three sizes, full states ── */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-btn font-semibold text-sm leading-none
-           transition-all duration-150 cursor-pointer select-none whitespace-nowrap
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-btn font-semibold text-sm leading-tight
+           transition-all duration-150 cursor-pointer select-none
            active:translate-y-px disabled:opacity-50 disabled:pointer-events-none;
+    /* long labels must wrap inside the pill instead of spilling out of it
+       (mobile bug: the 55-char referral label bled past both screen edges).
+       Add `whitespace-nowrap` at the call site for chips that must stay on one line. */
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: break-word;
   }
   .btn:focus-visible {
     outline: 2px solid #fbbf24;

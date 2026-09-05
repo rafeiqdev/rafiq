@@ -208,11 +208,11 @@ function MobileProfileInner() {
               ))}
             </div>
             <div className="mt-4 flex flex-col gap-2.5">
-              <Link to="/wallet" className="btn-primary flex min-h-[50px] w-full text-[14.5px] font-bold bg-navy text-white">
+              <Link to="/wallet" className="btn-primary flex h-auto min-h-[50px] w-full py-2 text-[14.5px] font-bold bg-navy text-white">
                 <AppIcon name="sparkles" className="h-[17px] w-[17px] text-sand" />
                 {t('wallet.title')}
               </Link>
-              <Link to="/referrals" className="btn-secondary flex min-h-[50px] w-full text-[14.5px] font-bold text-navy">
+              <Link to="/referrals" className="btn-secondary flex h-auto min-h-[50px] w-full py-2 text-[14.5px] font-bold text-navy">
                 <AppIcon name="users" className="h-4 w-4 text-navy/70" />
                 {t('referrals.title')}
               </Link>

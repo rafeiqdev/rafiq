@@ -182,11 +182,11 @@ function ProfileInner() {
             <AppIcon name="check-circle" className="w-4 h-4" />
             {t('account.myJourney')}
           </Link>
-          <Link to="/wallet" className="btn-secondary min-h-[44px] px-4 text-sm font-bold text-navy">
+          <Link to="/wallet" className="btn-secondary h-auto min-h-[44px] px-4 py-2 text-sm font-bold text-navy">
             <AppIcon name="sparkles" className="w-4 h-4 text-sand" />
             {t('wallet.title')}
           </Link>
-          <Link to="/referrals" className="btn-secondary min-h-[44px] px-4 text-sm font-bold text-navy">
+          <Link to="/referrals" className="btn-secondary h-auto min-h-[44px] px-4 py-2 text-sm font-bold text-navy">
             <AppIcon name="users" className="w-4 h-4 text-navy/70" />
             {t('referrals.title')}
           </Link>
