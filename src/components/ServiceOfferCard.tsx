@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { TouchEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { servicePayments, serviceOffers } from '../lib/api';
 import { AppIcon } from './AppIcon';
@@ -158,7 +159,19 @@ export function ServiceOfferCard({
         <span className="font-extrabold text-navy shrink-0" dir="ltr">{offer.price.toLocaleString()} {offer.currency}</span>
       </div>
 
-      {offer.details && <p className="mt-2 text-sm text-navy/70 break-anywhere whitespace-pre-line">{offer.details}</p>}
+      {offer.details && (
+        <div className="mt-2">
+          <p className="text-sm text-navy/70 break-anywhere whitespace-pre-line line-clamp-2">{offer.details}</p>
+          {(offer.details.length > 140 || offer.details.split('\n').length > 2) && (
+            <Link
+              to={`/requests/${offer.requestId}/offer`}
+              className="mt-1 inline-block text-xs font-bold text-navy hover:underline"
+            >
+              {t('requests.openOfferPage')}
+            </Link>
+          )}
+        </div>
+      )}
 
       {offer.imagePaths.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">

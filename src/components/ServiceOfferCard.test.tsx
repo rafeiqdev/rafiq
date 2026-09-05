@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { ServiceOffer, ServicePayment } from '../lib/types';
 
 /**
@@ -61,7 +62,9 @@ function payment(over: Partial<ServicePayment> = {}): ServicePayment {
 async function renderCard(props: { offer: ServiceOffer; payment?: ServicePayment; onChanged?: () => void }) {
   const { ServiceOfferCard } = await import('./ServiceOfferCard');
   return render(
-    <ServiceOfferCard offer={props.offer} payment={props.payment} onChanged={props.onChanged ?? vi.fn()} />,
+    <MemoryRouter>
+      <ServiceOfferCard offer={props.offer} payment={props.payment} onChanged={props.onChanged ?? vi.fn()} />
+    </MemoryRouter>,
   );
 }
 
@@ -115,6 +118,18 @@ describe('render states', () => {
   it('an offer past its expiry date shown as "sent" still hides pay/reject (client-side expiry mirrors server check)', async () => {
     await renderCard({ offer: offer({ status: 'sent', expiresAt: '2000-01-01T00:00:00Z' }) });
     expect(screen.queryByText('serviceOffer.payCta')).toBeNull();
+  });
+
+  it('long details are clamped to a preview with a link to the full offer page', async () => {
+    await renderCard({ offer: offer({ details: 'line1\nline2\nline3\nline4' }) });
+    const link = screen.getByText('requests.openOfferPage');
+    expect(link.closest('a')).toHaveAttribute('href', '/requests/req1/offer');
+  });
+
+  it('short details render without a full-page link', async () => {
+    await renderCard({ offer: offer({ details: 'Some details' }) });
+    expect(screen.getByText('Some details')).toBeInTheDocument();
+    expect(screen.queryByText('requests.openOfferPage')).toBeNull();
   });
 });
 
