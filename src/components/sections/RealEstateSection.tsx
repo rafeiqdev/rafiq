@@ -136,12 +136,14 @@ export function RealEstateSection({
           version stacked an icon badge, a paragraph, three pills and a legal
           note on top of the image and read as clutter — citizenship filters
           and investments live on /real-estate itself. */}
-      {/* Full-bleed: the banner escapes the page gutters (the root clips
-          horizontal overflow, so 100vw cannot create a sideways scroll) so it
-          reads as a band across the page, not a boxed card. */}
+      {/* Full-bleed: symmetric negative inline margins pull the banner out to
+          the viewport edges (the root clips horizontal overflow, so this can
+          never create a sideways scroll). `left`/`translate` centring was
+          tried first and drifted off-centre under RTL — margins stay
+          direction-agnostic. */}
       <div
-        className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden text-white"
-        style={{ background: '#12305c' }}
+        className="relative overflow-hidden text-white"
+        style={{ background: '#12305c', marginInline: 'calc(50% - 50vw)' }}
       >
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
           <defs>
