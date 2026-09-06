@@ -17,6 +17,7 @@ import { AdminServicesManager } from '../components/AdminServicesManager';
 import { AdminCompaniesManager } from '../components/AdminCompaniesManager';
 import { FxRatesPanel } from '../components/admin/FxRatesPanel';
 import { NewsFeedManager } from '../components/admin/NewsFeedManager';
+import { PayoutRequestsManager } from '../components/admin/PayoutRequestsManager';
 import { PaymentSettingsPanel } from '../components/admin/PaymentSettingsPanel';
 import { AdminCompanyPaymentsManager } from '../components/AdminCompanyPaymentsManager';
 import { AdminBroadcastManager } from '../components/AdminBroadcastManager';
@@ -38,7 +39,7 @@ import { isControlCenterEnabled } from '../admin-control-center/flag';
  */
 const TABS = [
   'overview', 'users', 'bookings', 'serviceRequests', 'competitors', 'payments',
-  'paymentSettings', 'rates', 'cancellations', 'leads', 'companies', 'companyPayments',
+  'paymentSettings', 'payouts', 'rates', 'cancellations', 'leads', 'companies', 'companyPayments',
   'broadcast', 'newsFeed', 'catalog', 'listings', 'investments', 'places', 'news', 'auditLog',
 ] as const;
 type AdminTab = (typeof TABS)[number];
@@ -273,7 +274,7 @@ function UserRow({
  */
 const NAV_GROUPS: { id: string; icon: IconName; labelKey: string; tabs: AdminTab[] }[] = [
   { id: 'operations', icon: 'inbox', labelKey: 'admin.groups.operations', tabs: ['serviceRequests', 'competitors', 'bookings', 'catalog', 'leads'] },
-  { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'cancellations'] },
+  { id: 'paymentsGroup', icon: 'credit-card', labelKey: 'admin.groups.payments', tabs: ['payments', 'paymentSettings', 'payouts', 'cancellations'] },
   { id: 'content', icon: 'newspaper', labelKey: 'admin.groups.content', tabs: ['broadcast', 'newsFeed', 'news'] },
   { id: 'realEstate', icon: 'home', labelKey: 'admin.groups.realEstate', tabs: ['listings', 'investments', 'places'] },
   { id: 'settingsGroup', icon: 'trending-up', labelKey: 'admin.groups.settings', tabs: ['rates', 'auditLog'] },
@@ -291,6 +292,7 @@ const TAB_ICON: Record<AdminTab, IconName> = {
   competitors: 'search',
   payments: 'credit-card',
   paymentSettings: 'shield-check',
+  payouts: 'wallet',
   rates: 'trending-up',
   cancellations: 'x-circle',
   leads: 'mail',
@@ -368,6 +370,7 @@ function AdminInner() {
     competitors: t('admin.competitors.title'),
     payments: t('admin.payments.title'),
     paymentSettings: t('admin.paymentSettings.title'),
+    payouts: t('admin.payouts.title'),
     rates: t('admin.rates.title'),
     cancellations: t('admin.cancellations.title'),
     leads: t('admin.leads.title'),
@@ -691,6 +694,11 @@ function AdminInner() {
               what a customer actually sees, so a placeholder can never sit
               live and unnoticed again. */}
           {activeTab === 'paymentSettings' && <PaymentSettingsPanel />}
+
+          {/* referral withdrawals — the only place a payout can actually be
+              approved and marked transferred; before this existed a request
+              landed in the table and nobody could ever action it */}
+          {activeTab === 'payouts' && <PayoutRequestsManager />}
 
           {/* currency rates: the daily FX sync plus every manual-only pair
               (USD/SYP), all through one per-pair override + audit trail */}

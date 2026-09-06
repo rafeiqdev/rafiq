@@ -54,7 +54,8 @@
     "nameInvalid": "Please enter your full name.",
     "more": "Read more",
     "less": "Show less",
-    "phone": "Phone number"
+    "phone": "Phone number",
+    "refresh": "Refresh"
   },
   "pricing": {
     "free": {
@@ -909,63 +910,24 @@
     "tabReferrals": "Referrals",
     "tabWallet": "My Wallet",
     "title": "Refer and earn 5% on every successful transaction",
-    "subtitle": "Get a flat 5% commission on any paid service completed through your referral link, credited to your wallet upon payment confirmation.",
     "yourLink": "Your personal referral link",
     "copy": "Copy link",
     "copied": "Copied!",
     "share": "Share",
     "shareText": "Legal, real estate, and relocation services in Istanbul via Rafiq Istanbul:",
-    "invited": "Link clicks",
     "signedUp": "Referred clients",
     "pending": "Pending verification",
     "available": "Available to withdraw",
     "paid": "Paid out",
-    "earned": "Total earnings",
     "viewWallet": "View Wallet",
-    "how": {
-      "title": "How the referral program works (5 clear steps)",
-      "step1": "1. Share your personal link with anyone moving to or needing services in Istanbul.",
-      "step2": "2. They open the link and create an account on Rafiq Istanbul.",
-      "step3": "3. They request any paid service (residence, real estate, healthcare, legal, advisory).",
-      "step4": "4. They complete their payment successfully and the transaction is verified.",
-      "step5": "5. Your 5% commission is credited to your wallet balance, ready to withdraw."
+    "lead": "Share your link. Everyone who opens it, signs up and then pays for a service with Rafiq earns you 5% of its value, straight into your wallet.",
+    "signedOutCta": "Sign in to get your link",
+    "steps": {
+      "a": "Share your link with anyone who needs something done in Istanbul.",
+      "b": "They sign up through it and request a paid service.",
+      "c": "Once their payment clears, your commission lands in your wallet."
     },
-    "calc": {
-      "title": "Real examples of the 5% commission calculation",
-      "subtitle": "The commission is fixed at 5% and computed strictly on net paid transaction values",
-      "colValue": "Paid transaction value",
-      "colCalc": "Calculation formula (5%)",
-      "colEarn": "Your direct earnings",
-      "ex1Value": "$1,000",
-      "ex1Calc": "$1,000 × 5%",
-      "ex1Earn": "+ $50",
-      "ex2Value": "$50,000",
-      "ex2Calc": "$50,000 × 5%",
-      "ex2Earn": "+ $2,500",
-      "interactiveTitle": "Interactive 5% Earnings Calculator",
-      "sliderLabel": "Select or enter expected transaction value:",
-      "commissionFormula": "Earnings = Value × 5%",
-      "yourEstimatedProfit": "Your estimated net profit:"
-    },
-    "faq": {
-      "title": "Frequently Asked Questions about Referrals & Wallet",
-      "q1": "What is the exact commission rate?",
-      "a1": "The commission is a flat 5% on the net paid value of any completed service transaction originating from your referral link.",
-      "q2": "When is the commission credited to my wallet?",
-      "a2": "Commissions appear immediately upon successful payment confirmation by our billing system.",
-      "q3": "Which currencies are supported?",
-      "a3": "Commissions are recorded in the exact currency of the transaction (USD, EUR, or TRY) to prevent currency conversion losses.",
-      "q4": "How do I withdraw my earnings?",
-      "a4": "Navigate to the Wallet page, click 'Request Payout', and submit your IBAN or crypto address for manual review and transfer within 24-48 hours.",
-      "q5": "Is there any cap on how much I can earn?",
-      "a5": "No, there is no maximum limit. You earn 5% on every paid, successful transaction with no cap.",
-      "q6": "What happens if a transaction is refunded?",
-      "a6": "If a customer receives a verified refund, an offsetting reversal entry is recorded in your ledger to maintain accurate balances."
-    },
-    "terms": {
-      "title": "Referral Program Terms & Guidelines",
-      "body": "• The 5% commission is payable strictly on verified, paid transactions.\n• Free requests, cancellations, and unpaid consultations do not generate commissions.\n• Self-referrals and fraudulent accounts are strictly prohibited and subject to forfeiture.\n• Payouts are processed by our finance team within 24-48 business hours."
-    }
+    "fine": "Commission applies to confirmed paid services only, and becomes available to withdraw 7 days after the payment clears."
   },
   "wallet": {
     "title": "My Wallet",
@@ -1028,7 +990,8 @@
       "recentRequestsTitle": "Recent Payout Requests",
       "requestDate": "Request Date",
       "requestedAmount": "Requested Amount",
-      "requestStatus": "Status"
+      "requestStatus": "Status",
+      "fullBalanceNote": "The whole available balance in this currency is withdrawn at once."
     }
   },
   "realEstate": {
@@ -1813,6 +1776,27 @@
         "refused": "Refused"
       },
       "notes": "Internal notes"
+    },
+    "payouts": {
+      "title": "Commission payout requests",
+      "intro": "Withdrawal requests from referrers’ wallets. Send the transfer from your bank first, then press “Transferred” — only that deducts the balance from their wallet.",
+      "empty": "No payout requests yet.",
+      "unknownUser": "Unknown user",
+      "approve": "Approve",
+      "markPaid": "Transferred",
+      "reject": "Reject",
+      "accountHolder": "Account holder",
+      "bank": "Bank",
+      "wallet": "Wallet address",
+      "note": "“Approve” moves no money — it only confirms the request is sound. “Transferred” is the final step and deducts the earnings from the user’s wallet, so press it only once the transfer has actually gone out. “Reject” returns the amount to their available balance so they can request again.",
+      "confirm": {
+        "approvedTitle": "Approve this payout",
+        "approvedResult": "The request becomes cleared to send. No money moves now and the user’s balance is unchanged.",
+        "paidTitle": "Confirm the transfer was sent",
+        "paidResult": "The earnings are deducted from the user’s wallet and recorded as transferred. Press this only if the transfer has actually gone out — it cannot be undone.",
+        "cancelledTitle": "Reject this payout",
+        "cancelledResult": "The amount returns to the user’s available balance and they can request it again."
+      }
     }
   },
   "adminBookings": {

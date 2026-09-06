@@ -1324,40 +1324,94 @@ export const wallet = {
     }
   },
 
+  /**
+   * Withdraw the whole available balance of one currency.
+   *
+   * The amount is NOT sent: request_payout() reads it off the ledger and
+   * attaches the exact commissions it covers in the same transaction. The
+   * old version inserted the row straight from the browser with a
+   * client-supplied amount and nothing tying it to any earnings — so two
+   * clicks (or an edited amount) withdrew the same balance twice, and
+   * marking one paid left every commission still sitting in "available".
+   */
   async requestPayout(input: {
-    amount: number;
     currency: string;
     payoutMethod: string;
     payoutDetails: PayoutRequest['payoutDetails'];
   }): Promise<{ ok: boolean; id?: string; error?: string }> {
     const c = sb();
     const { data: userData } = await c.auth.getUser();
-    const uid = userData?.user?.id;
-    if (!uid) return { ok: false, error: 'auth_required' };
-
-    if (!input.amount || input.amount <= 0) {
-      return { ok: false, error: 'invalid_amount' };
-    }
+    if (!userData?.user?.id) return { ok: false, error: 'auth_required' };
 
     try {
-      const { data, error } = await c
-        .from('payout_requests')
-        .insert({
-          user_id: uid,
-          amount: input.amount,
-          currency: input.currency || 'USD',
-          payout_method: input.payoutMethod || 'bank_transfer',
-          payout_details: input.payoutDetails || {},
-          status: 'under_review',
-        })
-        .select('id')
-        .single();
-
+      const { data, error } = await c.rpc('request_payout', {
+        p_currency: input.currency || 'USD',
+        p_method: input.payoutMethod || 'bank_transfer',
+        p_details: input.payoutDetails || {},
+      });
       if (error) return { ok: false, error: error.message };
-      return { ok: true, id: data?.id };
+      return { ok: true, id: (data as string) ?? undefined };
     } catch (e: unknown) {
       return { ok: false, error: e instanceof Error ? e.message : 'request_failed' };
     }
+  },
+};
+
+/** One withdrawal request as the admin sees it — the payout plus who to pay. */
+export interface AdminPayout extends PayoutRequest {
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  referralCode: string | null;
+}
+
+interface AdminPayoutRow {
+  id: string; user_id: string; user_name: string | null; user_email: string | null;
+  referral_code: string | null; amount: number | string; currency: string;
+  payout_method: string; payout_details: PayoutRequest['payoutDetails'] | null;
+  status: string; admin_notes: string | null; processed_at: string | null; created_at: string;
+}
+
+/**
+ * The admin side of the wallet. Until this existed a withdrawal request
+ * landed in payout_requests as 'under_review' and stayed there forever —
+ * the Control Center only reads those rows, and classic /admin had no payout
+ * section at all, so no one could ever pay anybody.
+ */
+export const adminPayouts = {
+  async list(): Promise<AdminPayout[]> {
+    const { data, error } = await sb().rpc('admin_list_payouts');
+    if (error) fail(error);
+    return ((data ?? []) as AdminPayoutRow[]).map((r) => ({
+      id: r.id,
+      userId: r.user_id,
+      userName: r.user_name,
+      userEmail: r.user_email,
+      referralCode: r.referral_code,
+      amount: Number(r.amount ?? 0),
+      currency: r.currency ?? 'USD',
+      payoutMethod: r.payout_method ?? 'bank_transfer',
+      payoutDetails: r.payout_details ?? {},
+      status: (r.status as PayoutStatus) ?? 'under_review',
+      adminNotes: r.admin_notes,
+      processedAt: r.processed_at,
+      createdAt: r.created_at,
+    }));
+  },
+
+  /**
+   * 'approved' → the transfer is cleared to send; 'paid' → the money left the
+   * bank, which is the only thing that moves the commissions out of the
+   * user's balance; 'cancelled'/'failed' → hand the money back so they can
+   * ask again. A settled payout can't be reopened.
+   */
+  async setStatus(id: string, status: 'approved' | 'paid' | 'cancelled' | 'failed', notes?: string): Promise<void> {
+    const { error } = await sb().rpc('admin_set_payout_status', {
+      p_id: id,
+      p_status: status,
+      p_notes: notes ?? null,
+    });
+    if (error) fail(error);
   },
 };
 

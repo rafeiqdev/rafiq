@@ -89,7 +89,6 @@ export function Wallet() {
   // Payout Modal state
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [payoutCurrency, setPayoutCurrency] = useState('USD');
-  const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'crypto'>('bank_transfer');
   const [accountHolder, setAccountHolder] = useState(user?.name || '');
   const [bankName, setBankName] = useState('');
@@ -138,7 +137,6 @@ export function Wallet() {
   const handleOpenPayoutModal = () => {
     setPayoutError(null);
     setPayoutSuccess(false);
-    setPayoutAmount(maxAvailableForCurrency > 0 ? String(maxAvailableForCurrency) : '');
     setIsPayoutModalOpen(true);
   };
 
@@ -151,8 +149,7 @@ export function Wallet() {
     e.preventDefault();
     setPayoutError(null);
 
-    const amt = parseFloat(payoutAmount);
-    if (isNaN(amt) || amt <= 0 || amt > maxAvailableForCurrency) {
+    if (maxAvailableForCurrency <= 0) {
       setPayoutError(t('wallet.payout.errorAmount'));
       return;
     }
@@ -165,7 +162,6 @@ export function Wallet() {
     setIsSubmitting(true);
     try {
       const res = await wallet.requestPayout({
-        amount: amt,
         currency: payoutCurrency,
         payoutMethod,
         payoutDetails: {
@@ -310,7 +306,7 @@ export function Wallet() {
               className="btn btn-primary text-xs sm:text-sm px-5 py-2.5 rounded-xl font-bold inline-flex items-center gap-2"
             >
               <LogIn className="h-4 w-4" />
-              <span>{t('auth.login')}</span>
+              <span>{t('common.signIn')}</span>
             </Link>
           )}
         </div>
@@ -338,7 +334,7 @@ export function Wallet() {
             className="btn btn-primary text-xs px-4 py-2 rounded-xl font-bold shrink-0 inline-flex items-center gap-1.5"
           >
             <LogIn className="h-3.5 w-3.5" />
-            <span>{t('auth.login')}</span>
+            <span>{t('common.signIn')}</span>
           </Link>
         </motion.div>
       )}
@@ -681,6 +677,13 @@ export function Wallet() {
                     </div>
                   )}
 
+                  {/*
+                    A withdrawal is always the WHOLE available balance of one
+                    currency — the server computes it from the ledger and
+                    attaches the exact commissions it settles. A typed amount
+                    would have to split a commission row across two payouts,
+                    which is how a hand-run ledger stops adding up.
+                  */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-navy mb-1">
@@ -688,11 +691,7 @@ export function Wallet() {
                       </label>
                       <select
                         value={payoutCurrency}
-                        onChange={(e) => {
-                          setPayoutCurrency(e.target.value);
-                          const max = summary.currencies[e.target.value]?.available ?? summary.available;
-                          setPayoutAmount(String(max));
-                        }}
+                        onChange={(e) => setPayoutCurrency(e.target.value)}
                         className="input w-full h-11 text-xs font-mono font-bold"
                       >
                         {Object.keys(summary.currencies).length > 0 ? (
@@ -711,25 +710,17 @@ export function Wallet() {
                       <label className="block text-xs font-bold text-navy mb-1">
                         {t('wallet.payout.amount')}
                       </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        max={maxAvailableForCurrency}
-                        value={payoutAmount}
-                        onChange={(e) => setPayoutAmount(e.target.value)}
-                        className="input w-full h-11 text-xs font-mono font-bold"
-                        placeholder="0.00"
-                        required
-                      />
+                      <div
+                        className="input w-full h-11 text-sm font-mono font-extrabold text-emerald-700 flex items-center bg-emerald-50/60 border-emerald-200"
+                        dir="ltr"
+                      >
+                        {formatCurrency(maxAvailableForCurrency, payoutCurrency)}
+                      </div>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-navy/60 font-medium">
-                    {t('wallet.payout.maxAvailable')}{' '}
-                    <strong className="text-emerald-700 font-mono" dir="ltr">
-                      {formatCurrency(maxAvailableForCurrency, payoutCurrency)}
-                    </strong>
+                    {t('wallet.payout.fullBalanceNote')}
                   </p>
 
                   <div>

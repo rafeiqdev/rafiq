@@ -935,7 +935,7 @@ export function UserHome() {
           </span>
           <div className="min-w-0">
             <h2 className="font-extrabold text-navy">{t('referrals.title')}</h2>
-            <p className="mt-1 text-sm text-navy/70">{t('referrals.subtitle')}</p>
+            <p className="mt-1 text-sm text-navy/70">{t('referrals.lead')}</p>
           </div>
         </div>
         <Link to="/referrals" className="btn-primary mt-4 min-h-[44px]">

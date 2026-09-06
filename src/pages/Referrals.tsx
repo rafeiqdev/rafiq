@@ -1,444 +1,225 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import {
-  Share2,
-  Copy,
-  Check,
-  Wallet,
-  ArrowUpRight,
-  Calculator,
-  ShieldCheck,
-  HelpCircle,
-  ChevronDown,
-  Users,
-  MousePointerClick,
-  Clock,
-  CheckCircle2,
-  DollarSign
-} from 'lucide-react';
+import { Share2, Copy, Check, Wallet, ArrowUpRight, LogIn } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { referrals } from '../lib/api';
 import type { ReferralStats } from '../lib/api';
 import { NumberTicker } from '../components/ui/NumberTicker';
 
-function formatCurrency(amount: number, currency: string = 'USD'): string {
-  const formatted = amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  if (currency === 'USD') return `$${formatted}`;
-  if (currency === 'EUR') return `€${formatted}`;
-  if (currency === 'TRY') return `${formatted} TL`;
-  return `${formatted} ${currency}`;
-}
+/**
+ * Invite & earn.
+ *
+ * This page used to be seven stacked blocks — a hero, a link box, five stat
+ * tiles, a five-step grid, a worked "5% of $50,000" table, a six-question FAQ
+ * accordion and a terms panel — all saying the same thing: share your link,
+ * get 5%. The one thing a visitor comes here to DO (copy the link) was the
+ * third block down, competing with a table of hypothetical earnings.
+ *
+ * Now: the link IS the hero, three numbers that matter, three steps, one line
+ * of small print. Everything that was cut was either a repeat of the headline
+ * or belongs on /wallet, which is one tap away.
+ *
+ * The signed-out state used to render the whole dashboard with zeros and a
+ * link ending in a bare "/r/" — the origin with an empty code, a dead URL
+ * which the copy button happily copied. There is no referral code before
+ * sign-in, so there is no link to show: it asks them to sign in instead.
+ */
 
-const containerVariants: Variants = {
+const container: Variants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.04,
-    },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.04 } },
 };
 
-const itemVariants: Variants = {
+const item: Variants = {
   hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 400,
-      damping: 30,
-    },
-  },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } },
+};
+
+function money(amount: number, currency: string): string {
+  const n = amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (currency === 'USD') return `$${n}`;
+  if (currency === 'EUR') return `€${n}`;
+  if (currency === 'TRY') return `${n} TL`;
+  return `${n} ${currency}`;
+}
+
+const EMPTY: ReferralStats = {
+  clicks: 0, signups: 0, code: '', totalCommissions: 0, pending: 0,
+  available: 0, paid: 0, primaryCurrency: 'USD', currencies: {}, earnedTl: 0,
 };
 
 export function Referrals() {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
-  const [stats, setStats] = useState<ReferralStats>({
-    clicks: 0,
-    signups: 0,
-    code: '',
-    totalCommissions: 0,
-    pending: 0,
-    available: 0,
-    paid: 0,
-    primaryCurrency: 'USD',
-    currencies: {},
-    earnedTl: 0,
-  });
+  const [stats, setStats] = useState<ReferralStats>(EMPTY);
   const [copied, setCopied] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const lang = (i18n.language || 'ar').split('-')[0];
   const isRtl = lang === 'ar' || lang === 'fa';
 
   useEffect(() => {
-    if (user) {
-      referrals.stats().then(setStats).catch(() => {});
-    }
+    if (user) referrals.stats().then(setStats).catch(() => {});
   }, [user]);
 
-  const referralCode = stats.code || user?.referralCode || '';
-  const link = referralCode ? `${window.location.origin}/r/${referralCode}` : `${window.location.origin}/r/`;
+  const code = stats.code || user?.referralCode || '';
+  const link = code ? `${window.location.origin}/r/${code}` : '';
 
-  const handleCopy = () => {
+  const copy = () => {
     if (!link) return;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: t('referrals.title'),
-      text: t('referrals.shareText'),
-      url: link,
-    };
+  const share = async () => {
+    if (!link) return;
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({ title: t('referrals.title'), text: t('referrals.shareText'), url: link });
+        return;
       } catch {
-        handleCopy();
+        /* dismissed — fall through to copying */
       }
-    } else {
-      handleCopy();
     }
+    copy();
   };
 
-  const toggleFaq = (index: number) => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
-
-  const steps = [
-    { title: t('referrals.how.step1') },
-    { title: t('referrals.how.step2') },
-    { title: t('referrals.how.step3') },
-    { title: t('referrals.how.step4') },
-    { title: t('referrals.how.step5') },
-  ];
-
-  const faqs = [
-    { q: t('referrals.faq.q1'), a: t('referrals.faq.a1') },
-    { q: t('referrals.faq.q2'), a: t('referrals.faq.a2') },
-    { q: t('referrals.faq.q3'), a: t('referrals.faq.a3') },
-    { q: t('referrals.faq.q4'), a: t('referrals.faq.a4') },
-    { q: t('referrals.faq.q5'), a: t('referrals.faq.a5') },
-    { q: t('referrals.faq.q6'), a: t('referrals.faq.a6') },
-  ];
+  const cur = stats.primaryCurrency;
 
   return (
     <motion.div
       initial="hidden"
       animate="visible"
-      variants={containerVariants}
-      className="mx-auto max-w-4xl px-4 py-6 sm:py-10"
+      variants={container}
+      className="mx-auto max-w-3xl px-4 py-6 sm:py-10"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      {/* ── Top Tabs: Referrals & Wallet Switcher ── */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between gap-4 mb-6">
-        <div className="inline-flex items-center p-1 bg-cream rounded-2xl border border-cream-dark shadow-2xs">
-          <Link
-            to="/referrals"
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-navy text-white shadow-xs transition-colors"
-          >
-            {t('referrals.tabReferrals')}
-          </Link>
-          <Link
-            to="/wallet"
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-navy/70 hover:text-navy hover:bg-white/60 transition-colors inline-flex items-center gap-1.5"
-          >
-            <Wallet className="h-3.5 w-3.5" />
-            <span>{t('referrals.tabWallet')}</span>
-          </Link>
-        </div>
+      {/* ── The offer, and the link that delivers it, in one block ── */}
+      <motion.section variants={item} className="rounded-3xl bg-navy p-6 sm:p-8 text-white shadow-md">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+          {t('referrals.title')}
+        </h1>
+        <p className="mt-2 text-sm text-white/75 leading-relaxed max-w-xl">{t('referrals.lead')}</p>
 
+        {link ? (
+          <div className="mt-6">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                readOnly
+                value={link}
+                dir="ltr"
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label={t('referrals.yourLink')}
+                className="flex-1 h-12 rounded-xl bg-white/10 border border-white/20 px-3 font-mono text-sm text-white select-all focus:outline-hidden focus:ring-2 focus:ring-white/40"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={copy}
+                  className={`h-12 px-5 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2 flex-1 sm:flex-initial transition-colors ${
+                    copied ? 'bg-emerald-500 text-white' : 'bg-white text-navy hover:bg-white/90'
+                  }`}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  <span>{copied ? t('referrals.copied') : t('referrals.copy')}</span>
+                </button>
+                <button
+                  onClick={share}
+                  aria-label={t('referrals.share')}
+                  className="h-12 px-4 rounded-xl font-bold text-sm bg-white/10 border border-white/20 text-white hover:bg-white/20 inline-flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('referrals.share')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* No code exists until they have an account — so no link is shown. */
+          <Link
+            to="/auth"
+            className="mt-6 inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-white text-navy font-bold text-sm hover:bg-white/90 transition-colors"
+          >
+            <LogIn className="h-4 w-4" />
+            {t('referrals.signedOutCta')}
+          </Link>
+        )}
+      </motion.section>
+
+      {/* ── Only the numbers that change behaviour; the rest lives in /wallet ── */}
+      {link && (
+        <motion.section variants={item} className="mt-4 grid grid-cols-3 gap-3">
+          <Stat label={t('referrals.signedUp')} value={<NumberTicker value={stats.signups} />} />
+          <Stat
+            label={t('referrals.pending')}
+            value={<span className="font-mono">{money(stats.pending, cur)}</span>}
+          />
+          <Stat
+            label={t('referrals.available')}
+            tone="emerald"
+            value={<span className="font-mono">{money(stats.available, cur)}</span>}
+          />
+        </motion.section>
+      )}
+
+      {/* ── Three steps, one line each ── */}
+      <motion.section variants={item} className="card mt-4 p-6">
+        <ol className="grid gap-4 sm:grid-cols-3">
+          {(['a', 'b', 'c'] as const).map((key, i) => (
+            <li key={key} className="flex gap-3 sm:flex-col sm:gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy text-white text-xs font-extrabold">
+                {i + 1}
+              </span>
+              <p className="text-sm text-navy/85 leading-relaxed">{t(`referrals.steps.${key}`)}</p>
+            </li>
+          ))}
+        </ol>
+      </motion.section>
+
+      {/* ── Where the money is actually managed ── */}
+      <motion.div variants={item} className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-navy/55 leading-relaxed max-w-md">{t('referrals.fine')}</p>
         <Link
           to="/wallet"
-          className="btn btn-secondary text-xs sm:text-sm px-4 py-2 rounded-xl font-bold inline-flex items-center gap-2"
+          className="btn-secondary text-sm px-4 py-2.5 rounded-xl font-bold inline-flex items-center gap-2 shrink-0"
         >
           <Wallet className="h-4 w-4" />
-          <span>{t('referrals.viewWallet')}</span>
+          {t('referrals.viewWallet')}
           <ArrowUpRight className="h-3.5 w-3.5 rtl:rotate-180" />
         </Link>
       </motion.div>
-
-      {/* ── Simple, Calm, Text-Focused Header ── */}
-      <motion.div
-        variants={itemVariants}
-        className="rounded-3xl bg-navy p-6 sm:p-8 text-white shadow-md"
-      >
-        <div className="max-w-2xl">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
-            {t('referrals.title')}
-          </h1>
-          <p className="mt-2 text-xs sm:text-sm leading-relaxed text-white/80">
-            {t('referrals.subtitle')}
-          </p>
-        </div>
-      </motion.div>
-
-      {/* ── Referral Link Sharing Box ── */}
-      <motion.div variants={itemVariants} className="card p-6 mt-6 shadow-sm border border-cream-dark">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-          <div>
-            <h2 className="text-base font-bold text-navy flex items-center gap-2">
-              <Share2 className="h-4 w-4 text-navy/70" />
-              <span>{t('referrals.yourLink')}</span>
-            </h2>
-            <p className="text-xs text-navy/60 mt-0.5">
-              {t('referrals.how.step1')}
-            </p>
-          </div>
-          {referralCode && (
-            <span className="text-xs font-mono font-bold bg-cream-dark/50 px-2.5 py-1 rounded-md text-navy self-start sm:self-auto border border-cream-dark">
-              ID: {referralCode}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2 mt-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              readOnly
-              value={link}
-              dir="ltr"
-              className="input w-full font-mono text-xs sm:text-sm h-11 bg-cream border-cream-dark text-navy select-all px-3"
-            />
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <button
-              onClick={handleCopy}
-              className={`btn flex-1 sm:flex-initial h-11 px-5 font-bold inline-flex items-center justify-center gap-2 rounded-xl transition-colors shadow-2xs ${
-                copied ? 'bg-green-600 text-white' : 'btn-primary'
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>{t('referrals.copied')}</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  <span>{t('referrals.copy')}</span>
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleShare}
-              className="btn btn-secondary h-11 px-4 font-bold inline-flex items-center justify-center gap-2 rounded-xl shadow-2xs"
-              title={t('referrals.share')}
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('referrals.share')}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── Key Statistics Cards ── */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="rounded-2xl bg-cream p-4 text-center border border-cream-dark/60 flex flex-col justify-center">
-            <div className="mx-auto w-8 h-8 rounded-full bg-navy/5 flex items-center justify-center mb-1 text-navy">
-              <MousePointerClick className="h-4 w-4" />
-            </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-navy font-mono" dir="ltr">
-              <NumberTicker value={stats.clicks} />
-            </p>
-            <p className="text-xs text-navy/60 font-medium mt-0.5">
-              {t('referrals.invited')}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-cream p-4 text-center border border-cream-dark/60 flex flex-col justify-center">
-            <div className="mx-auto w-8 h-8 rounded-full bg-navy/5 flex items-center justify-center mb-1 text-navy">
-              <Users className="h-4 w-4" />
-            </div>
-            <p className="text-xl sm:text-2xl font-extrabold text-navy font-mono" dir="ltr">
-              <NumberTicker value={stats.signups} />
-            </p>
-            <p className="text-xs text-navy/60 font-medium mt-0.5">
-              {t('referrals.signedUp')}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-cream p-4 text-center border border-cream-dark/60 flex flex-col justify-center">
-            <div className="mx-auto w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center mb-1 text-amber-700">
-              <Clock className="h-4 w-4" />
-            </div>
-            <p className="text-lg sm:text-xl font-extrabold text-navy font-mono" dir="ltr">
-              <NumberTicker
-                value={stats.pending}
-                prefix={stats.primaryCurrency === 'USD' ? '$' : stats.primaryCurrency === 'EUR' ? '€' : ''}
-                suffix={stats.primaryCurrency === 'TRY' ? ' TL' : ''}
-                decimalPlaces={stats.pending % 1 !== 0 ? 2 : 0}
-              />
-            </p>
-            <p className="text-xs text-navy/60 font-medium mt-0.5">
-              {t('referrals.pending')}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-emerald-50 p-4 text-center border border-emerald-200 flex flex-col justify-center">
-            <div className="mx-auto w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mb-1 text-emerald-700">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-            <p className="text-lg sm:text-xl font-extrabold text-emerald-800 font-mono" dir="ltr">
-              <NumberTicker
-                value={stats.available}
-                prefix={stats.primaryCurrency === 'USD' ? '$' : stats.primaryCurrency === 'EUR' ? '€' : ''}
-                suffix={stats.primaryCurrency === 'TRY' ? ' TL' : ''}
-                decimalPlaces={stats.available % 1 !== 0 ? 2 : 0}
-              />
-            </p>
-            <p className="text-xs text-emerald-700 font-medium mt-0.5">
-              {t('referrals.available')}
-            </p>
-          </div>
-
-          <div className="col-span-2 sm:col-span-1 rounded-2xl bg-cream p-4 text-center border border-cream-dark/60 flex flex-col justify-center">
-            <div className="mx-auto w-8 h-8 rounded-full bg-navy/10 flex items-center justify-center mb-1 text-navy">
-              <DollarSign className="h-4 w-4" />
-            </div>
-            <p className="text-lg sm:text-xl font-extrabold text-navy font-mono" dir="ltr">
-              <NumberTicker
-                value={stats.paid}
-                prefix={stats.primaryCurrency === 'USD' ? '$' : stats.primaryCurrency === 'EUR' ? '€' : ''}
-                suffix={stats.primaryCurrency === 'TRY' ? ' TL' : ''}
-                decimalPlaces={stats.paid % 1 !== 0 ? 2 : 0}
-              />
-            </p>
-            <p className="text-xs text-navy/60 font-medium mt-0.5">
-              {t('referrals.paid')}
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* ── 5-Step Workflow ── */}
-      <motion.div variants={itemVariants} className="card p-6 sm:p-8 mt-6 shadow-sm border border-cream-dark">
-        <h2 className="text-base font-extrabold text-navy flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy text-white text-[11px] font-bold">✓</span>
-          <span>{t('referrals.how.title')}</span>
-        </h2>
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-5 gap-3.5">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center text-center p-4 rounded-2xl bg-cream border border-cream-dark/50"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-white font-extrabold text-xs mb-2.5">
-                {index + 1}
-              </span>
-              <p className="text-xs font-semibold text-navy/90 leading-snug">
-                {step.title}
-              </p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* ── Commission Calculation Examples Card ── */}
-      <motion.div
-        variants={itemVariants}
-        className="card p-6 sm:p-8 mt-6 shadow-sm border border-cream-dark bg-white"
-      >
-        <div className="flex items-center gap-2.5">
-          <Calculator className="h-5 w-5 text-navy" />
-          <div>
-            <h2 className="text-base font-extrabold text-navy">
-              {t('referrals.calc.title')}
-            </h2>
-            <p className="text-xs text-navy/70 mt-0.5">
-              {t('referrals.calc.subtitle')}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 overflow-hidden rounded-2xl border border-cream-dark bg-white shadow-xs">
-          <table className="w-full text-start text-xs sm:text-sm">
-            <thead className="bg-navy text-white font-bold">
-              <tr>
-                <th className="p-3.5 text-start">{t('referrals.calc.colValue')}</th>
-                <th className="p-3.5 text-center">{t('referrals.calc.colCalc')}</th>
-                <th className="p-3.5 text-end text-sand">{t('referrals.calc.colEarn')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-cream-dark">
-              <tr className="hover:bg-cream/40 transition-colors">
-                <td className="p-3.5 font-bold text-navy font-mono" dir="ltr">{t('referrals.calc.ex1Value')}</td>
-                <td className="p-3.5 text-center text-navy/70 font-mono" dir="ltr">{t('referrals.calc.ex1Calc')}</td>
-                <td className="p-3.5 text-end font-extrabold text-green-700 font-mono text-sm sm:text-base" dir="ltr">{t('referrals.calc.ex1Earn')}</td>
-              </tr>
-              <tr className="hover:bg-cream/40 transition-colors bg-cream/20">
-                <td className="p-3.5 font-bold text-navy font-mono" dir="ltr">{t('referrals.calc.ex2Value')}</td>
-                <td className="p-3.5 text-center text-navy/70 font-mono" dir="ltr">{t('referrals.calc.ex2Calc')}</td>
-                <td className="p-3.5 text-end font-extrabold text-green-700 font-mono text-sm sm:text-base" dir="ltr">{t('referrals.calc.ex2Earn')}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
-
-      {/* ── FAQs Section ── */}
-      <motion.div variants={itemVariants} className="card p-6 sm:p-8 mt-6 shadow-sm border border-cream-dark">
-        <h2 className="text-base font-extrabold text-navy flex items-center gap-2 mb-4">
-          <HelpCircle className="h-5 w-5 text-navy/70" />
-          <span>{t('referrals.faq.title')}</span>
-        </h2>
-
-        <div className="space-y-2.5">
-          {faqs.map((faq, i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-cream-dark/80 bg-white overflow-hidden"
-            >
-              <button
-                type="button"
-                aria-expanded={openFaq === i}
-                onClick={() => toggleFaq(i)}
-                className="w-full p-4 text-start font-bold text-xs sm:text-sm text-navy flex items-center justify-between gap-3 hover:bg-cream/50 transition-colors focus:outline-hidden"
-              >
-                <span>{faq.q}</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-navy/60 transition-transform duration-200 ${
-                    openFaq === i ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              <AnimatePresence>
-                {openFaq === i && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="px-4 pb-4 pt-1 text-xs sm:text-sm text-navy/80 leading-relaxed border-t border-cream-dark/40 bg-cream/20 overflow-hidden"
-                  >
-                    {faq.a}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* ── Terms & Guidelines ── */}
-      <motion.div variants={itemVariants} className="card p-6 sm:p-8 mt-6 shadow-sm border border-cream-dark bg-cream/20">
-        <h2 className="text-sm font-bold text-navy flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-navy/70" />
-          <span>{t('referrals.terms.title')}</span>
-        </h2>
-        <p className="mt-2.5 text-xs text-navy/70 leading-relaxed whitespace-pre-line">
-          {t('referrals.terms.body')}
-        </p>
-      </motion.div>
     </motion.div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  tone = 'plain',
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: 'plain' | 'emerald';
+}) {
+  const emerald = tone === 'emerald';
+  return (
+    <div
+      className={`rounded-2xl border p-4 text-center ${
+        emerald ? 'bg-emerald-50 border-emerald-200' : 'bg-cream border-cream-dark/60'
+      }`}
+    >
+      <p
+        className={`text-lg sm:text-xl font-extrabold ${emerald ? 'text-emerald-800' : 'text-navy'}`}
+        dir="ltr"
+      >
+        {value}
+      </p>
+      <p className={`mt-0.5 text-xs font-medium ${emerald ? 'text-emerald-700' : 'text-navy/60'}`}>
+        {label}
+      </p>
+    </div>
   );
 }

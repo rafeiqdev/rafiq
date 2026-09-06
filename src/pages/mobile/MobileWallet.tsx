@@ -73,7 +73,6 @@ export function MobileWallet() {
   // Modal State
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [payoutCurrency, setPayoutCurrency] = useState('USD');
-  const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'crypto'>('bank_transfer');
   const [accountHolder, setAccountHolder] = useState(user?.name || '');
   const [bankName, setBankName] = useState('');
@@ -104,10 +103,6 @@ export function MobileWallet() {
       // Default payout currency
       if (sum.primaryCurrency) {
         setPayoutCurrency(sum.primaryCurrency);
-        const currData = sum.currencies[sum.primaryCurrency];
-        setPayoutAmount(currData?.available ? String(currData.available) : String(sum.available));
-      } else {
-        setPayoutAmount(String(sum.available));
       }
     } catch {
       setError(t('wallet.emptyStateBody'));
@@ -123,8 +118,6 @@ export function MobileWallet() {
   const handleOpenPayoutModal = () => {
     setPayoutError(null);
     setPayoutSuccess(false);
-    const availableForCurr = summary.currencies[payoutCurrency]?.available ?? summary.available;
-    setPayoutAmount(String(availableForCurr));
     setIsPayoutModalOpen(true);
   };
 
@@ -138,15 +131,13 @@ export function MobileWallet() {
     e.preventDefault();
     setPayoutError(null);
 
-    const amountNum = parseFloat(payoutAmount);
+    // The amount is whatever is available in this currency — the server reads
+    // it off the ledger and attaches the commissions it settles, so there is
+    // nothing for the browser to send or for the user to mistype.
     const maxAvailable = summary.currencies[payoutCurrency]?.available ?? summary.available;
 
-    if (isNaN(amountNum) || amountNum <= 0) {
+    if (maxAvailable <= 0) {
       setPayoutError(t('wallet.payout.validationAmount'));
-      return;
-    }
-    if (amountNum > maxAvailable) {
-      setPayoutError(t('wallet.payout.validationMax'));
       return;
     }
     if (!iban.trim()) {
@@ -157,7 +148,6 @@ export function MobileWallet() {
     setIsSubmitting(true);
     try {
       const res = await wallet.requestPayout({
-        amount: amountNum,
         currency: payoutCurrency,
         payoutMethod,
         payoutDetails: {
@@ -278,7 +268,7 @@ export function MobileWallet() {
                 className="btn btn-primary text-[10.5px] px-2.5 py-1 rounded-xl font-bold shrink-0 inline-flex items-center gap-1"
               >
                 <LogIn className="h-3 w-3" />
-                <span>{t('auth.login')}</span>
+                <span>{t('common.signIn')}</span>
               </Link>
             </div>
           )}
@@ -538,11 +528,7 @@ export function MobileWallet() {
                       </label>
                       <select
                         value={payoutCurrency}
-                        onChange={(e) => {
-                          setPayoutCurrency(e.target.value);
-                          const max = summary.currencies[e.target.value]?.available ?? summary.available;
-                          setPayoutAmount(String(max));
-                        }}
+                        onChange={(e) => setPayoutCurrency(e.target.value)}
                         className="input w-full h-8 text-[11px] font-mono font-bold"
                       >
                         {Object.keys(summary.currencies).length > 0 ? (
@@ -561,17 +547,13 @@ export function MobileWallet() {
                       <label className="block text-[10.5px] font-bold text-navy mb-1">
                         {t('wallet.payout.amount')}
                       </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        max={maxAvailableForCurrency}
-                        value={payoutAmount}
-                        onChange={(e) => setPayoutAmount(e.target.value)}
-                        className="input w-full h-8 text-[11px] font-mono font-bold"
-                        placeholder="0.00"
-                        required
-                      />
+                      {/* whole balance — the server decides the figure, see handleSubmitPayout */}
+                      <div
+                        className="input w-full h-8 text-[11px] font-mono font-extrabold text-emerald-700 flex items-center bg-emerald-50/60 border-emerald-200"
+                        dir="ltr"
+                      >
+                        {formatCurrency(maxAvailableForCurrency, payoutCurrency)}
+                      </div>
                     </div>
                   </div>
 
