@@ -44,8 +44,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // pure duplication — items flagged `inMobileTabBar` are dropped. Home used to
 // be kept deliberately, but that meant the lamp highlighted "Home" while
 // already sitting on the home page — a "you are here" pointing at itself, with
-// no way to actually leave via this row. Net phone set: Real Estate / Medical
-// Tourism / Map / Services. /map MUST stay because signed-in users lose it from
+// no way to actually leave via this row. Services is dropped for the same
+// reason (it's the bottom bar's second tab). Net phone set: Real Estate /
+// Medical Tourism / Map — three items, so the row is rendered `fill` (full
+// width, one equal share each, icon over label) instead of a short huddle of
+// tiny icons adrift in the empty white band. /map MUST stay because signed-in users lose it from
 // the bottom bar (that slot becomes "Requests"). The breakpoint is
 // useIsMobile()'s 768px, which is also where <NavBar> switches labels→icons.
 //
@@ -53,7 +56,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // home.quickLinks.* / nav.* copy so all four languages are covered.
 const QUICK_NAV: { to: string; icon: LucideIcon; labelKey: string; inMobileTabBar?: boolean }[] = [
   { to: '/', icon: Home, labelKey: 'nav.home', inMobileTabBar: true },
-  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices' },
+  { to: '/services', icon: Layers, labelKey: 'home.quickLinks.allServices', inMobileTabBar: true },
   { to: '/real-estate', icon: Building2, labelKey: 'home.quickLinks.realEstate' },
   { to: '/health-tourism', icon: HeartPulse, labelKey: 'home.quickLinks.health' },
   { to: '/map', icon: Map, labelKey: 'home.quickLinks.map' },
@@ -502,6 +505,7 @@ export function UserHome() {
       {isMobile && (
         <NavBar
           variant="inline"
+          fill
           className="mt-4"
           items={QUICK_NAV.filter((q) => !q.inMobileTabBar).map((q) => ({
             name: t(q.labelKey),

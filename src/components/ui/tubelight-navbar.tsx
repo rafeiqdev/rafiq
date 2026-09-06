@@ -37,12 +37,20 @@ interface NavBarProps {
    * positioning so the bar sits in normal page flow.
    */
   variant?: 'fixed' | 'inline';
+  /**
+   * Stretch the bar to the full width of its parent and give every item an
+   * equal share of it, with a bigger icon and its label underneath. The pill
+   * defaults to hugging its content, which on a phone left a short row of tiny
+   * icons floating in a wide band of empty white; `fill` is what the signed-in
+   * home uses so the row actually occupies the space it sits in.
+   */
+  fill?: boolean;
 }
 
 const isRouteActive = (pathname: string, url: string) =>
   url === '/' ? pathname === '/' : pathname.startsWith(url);
 
-export function NavBar({ items, className, variant = 'fixed' }: NavBarProps) {
+export function NavBar({ items, className, variant = 'fixed', fill = false }: NavBarProps) {
   const { pathname } = useLocation();
 
   // The lamp follows the ACTUAL route — it lights the item you're on, and
@@ -57,11 +65,18 @@ export function NavBar({ items, className, variant = 'fixed' }: NavBarProps) {
       className={cn(
         variant === 'fixed'
           ? 'fixed bottom-0 sm:top-0 left-1/2 -translate-x-1/2 z-50 mb-6 sm:pt-6'
-          : 'inline-flex max-w-full',
+          : fill
+            ? 'flex w-full'
+            : 'inline-flex max-w-full',
         className,
       )}
     >
-      <div className="flex items-center gap-1 sm:gap-2 bg-white/90 border border-cream-dark backdrop-blur-lg py-1 px-1 rounded-full shadow-card overflow-x-auto scrollbar-none">
+      <div
+        className={cn(
+          'flex items-center bg-white/90 border border-cream-dark backdrop-blur-lg rounded-full shadow-card scrollbar-none',
+          fill ? 'w-full gap-1 p-1.5' : 'gap-1 sm:gap-2 py-1 px-1 overflow-x-auto',
+        )}
+      >
         {items.map((item) => {
           const Icon = item.icon;
           const isActive = item.name === activeName;
@@ -71,14 +86,18 @@ export function NavBar({ items, className, variant = 'fixed' }: NavBarProps) {
               key={item.name}
               to={item.url}
               className={cn(
-                'relative cursor-pointer text-sm font-semibold px-4 sm:px-6 py-2 rounded-full transition-colors whitespace-nowrap',
+                'relative cursor-pointer text-sm font-semibold rounded-full transition-colors whitespace-nowrap',
+                fill
+                  ? 'flex-1 min-w-0 flex flex-col items-center justify-center gap-1.5 px-2 py-3'
+                  : 'px-4 sm:px-6 py-2',
                 'text-navy/70 hover:text-navy',
                 isActive && 'text-navy',
               )}
             >
-              <span className="hidden md:inline">{item.name}</span>
-              <span className="md:hidden">
-                <Icon size={18} strokeWidth={2.5} />
+              <span className={cn(fill ? 'hidden' : 'hidden md:inline')}>{item.name}</span>
+              <span className={cn(fill ? 'contents' : 'md:hidden')}>
+                <Icon size={fill ? 28 : 18} strokeWidth={2.5} />
+                {fill && <span className="max-w-full truncate text-[11px] font-bold leading-none">{item.name}</span>}
               </span>
               {isActive && (
                 <motion.div
