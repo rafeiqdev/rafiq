@@ -1,32 +1,21 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SITE_URL, DEFAULT_OG_IMAGE, SEO_LANGS } from '../lib/seo';
+import { SEO_LANGS } from '../lib/seo';
+import { buildOrganizationNode, buildWebsiteNode } from '../lib/organizationSchema';
 import type { Lang } from '../lib/types';
 
 const SCRIPT_ID = 'ld-organization';
 
-// The configured WhatsApp contact number is used only as a customer-service
-// contact point. It does not imply an in-person office or LocalBusiness.
-const WA = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
-const WA_CONFIGURED = !!WA && WA !== '905000000000';
-
-// Public profile URLs, not secrets — same reasoning as the Meta Pixel ID
-// default in index.html. sameAs is what lets search engines and AI systems
-// tie "Rafiq" together as one entity across platforms instead of treating
-// the website and these profiles as unrelated (see the GEO work this
-// supports — entity linking is a real citation signal, unlike this file's
-// deliberately absent LocalBusiness fields).
-const SAME_AS = [
-  'https://www.facebook.com/profile.php?id=61593278548147',
-  'https://www.instagram.com/rafiq.ist/',
-];
-
 /**
  * Organization + WebSite JSON-LD for the public home page.
  *
- * Rafiq is a digital platform, not a walk-in or service-area local business.
- * The markup therefore avoids LocalBusiness, a physical address, operating
- * hours, ratings, and any other information the site cannot substantiate.
+ * The node itself is built by src/lib/organizationSchema.ts, which /about and
+ * /contact share — the definition used to live inline here, and a contact
+ * detail that disagrees with itself across a site is worse than one that is
+ * missing. That module is also where the reasoning lives for why this stays
+ * `Organization` rather than `LocalBusiness`: Rafiq has no premises open to
+ * visitors, and `LocalBusiness` without a real `PostalAddress` would be both
+ * invalid markup and an implicit claim of an office that does not exist.
  */
 export function LocalBusinessSchema() {
   const { t, i18n } = useTranslation();
@@ -37,50 +26,9 @@ export function LocalBusinessSchema() {
   const lang = (SEO_LANGS as string[]).includes(i18n.language) ? (i18n.language as Lang) : 'ar';
 
   useEffect(() => {
-    const organization: Record<string, unknown> = {
-      '@type': 'Organization',
-      '@id': `${SITE_URL}/#organization`,
-      name: 'Rafiq Istanbul',
-      alternateName: ['Rafiq', 'رفيق إسطنبول', 'Рафик Стамбул', 'رفیق استانبول'],
-      description: t('common.tagline'),
-      url: SITE_URL,
-      logo: `${SITE_URL}/icon-512.png`,
-      image: DEFAULT_OG_IMAGE,
-      availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
-      sameAs: SAME_AS,
-    };
-
-    if (WA_CONFIGURED) {
-      organization.contactPoint = {
-        '@type': 'ContactPoint',
-        contactType: 'customer service',
-        telephone: `+${WA}`,
-        availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
-      };
-    }
-
     const data = {
       '@context': 'https://schema.org',
-      '@graph': [
-        organization,
-        {
-          '@type': 'WebSite',
-          '@id': `${SITE_URL}/#website`,
-          url: SITE_URL,
-          name: 'Rafiq Istanbul',
-          alternateName: ['Rafiq', 'رفيق إسطنبول'],
-          publisher: { '@id': `${SITE_URL}/#organization` },
-          inLanguage: ['ar', 'en', 'ru', 'fa'],
-          potentialAction: {
-            '@type': 'SearchAction',
-            target: {
-              '@type': 'EntryPoint',
-              urlTemplate: `${SITE_URL}/${lang}/services?q={search_term_string}`,
-            },
-            'query-input': 'required name=search_term_string',
-          },
-        },
-      ],
+      '@graph': [buildOrganizationNode(t('common.tagline')), buildWebsiteNode(lang)],
     };
 
     let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;

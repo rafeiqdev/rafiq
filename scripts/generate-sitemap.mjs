@@ -111,6 +111,12 @@ function lastmodFor(path, lang) {
   if (path === '/faq') {
     return gitLastModified(['src/data/faqHub.ts']);
   }
+  if (path === '/about') {
+    return gitLastModified(['src/data/aboutPage.ts']);
+  }
+  if (path === '/contact') {
+    return gitLastModified(['src/data/contactPage.ts', 'src/lib/contact.ts']);
+  }
   const serviceMatch = path.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) {
     return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
@@ -146,6 +152,11 @@ const STATIC_ROUTES = [
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8', isPriority: true },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7', isPriority: true },
   { path: '/faq', changefreq: 'monthly', priority: '0.8', isPriority: true },
+  // Identity pages. isPriority because "who runs this site and how do I reach
+  // them" is the question the whole domain could not answer before them — the
+  // gap the indexing audit identified as the ceiling on everything else.
+  { path: '/about', changefreq: 'monthly', priority: '0.7', isPriority: true },
+  { path: '/contact', changefreq: 'monthly', priority: '0.7', isPriority: true },
   { path: '/tricks', changefreq: 'monthly', priority: '0.6' },
   { path: '/referrals', changefreq: 'monthly', priority: '0.5' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },

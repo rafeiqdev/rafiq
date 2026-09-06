@@ -9,12 +9,20 @@ import type { Lang } from '../lib/types';
 import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
 import { COMPARISONS } from '../data/comparisons';
+import {
+  CONTACT_EMAIL,
+  HAS_EMAIL,
+  HAS_WHATSAPP,
+  WHATSAPP_DISPLAY,
+  WHATSAPP_E164,
+  WHATSAPP_NUMBER,
+} from '../lib/contact';
 
-// Same guard the floating WhatsApp button uses: hide the channel entirely
-// unless a real number is configured, so we never hand a customer off to an
-// empty or placeholder chat.
-const WA = String(import.meta.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
-const WA_CONFIGURED = !!WA && WA !== '905000000000';
+// Same guard as before, now shared with /contact and the Organization JSON-LD
+// via src/lib/contact.ts: hide a channel entirely unless it is really
+// configured, so we never hand a customer off to an empty or placeholder chat.
+const WA = WHATSAPP_NUMBER;
+const WA_CONFIGURED = HAS_WHATSAPP;
 
 type FooterGroup = { id: string; titleKey: string; icon: IconName; links: { to: string; key: string }[] };
 
@@ -39,6 +47,11 @@ const GROUPS: FooterGroup[] = [
     icon: 'compass',
     links: [
       { to: '/', key: 'nav.home' },
+      // /about and /contact sit here, in the footer on every page, because
+      // "who are you and how do I reach you" is the question the site could
+      // not answer anywhere before them — the reason both pages exist.
+      { to: '/about', key: 'nav.about' },
+      { to: '/contact', key: 'nav.contact' },
       { to: '/premium', key: 'nav.premium' },
       { to: '/map', key: 'nav.map' },
       { to: '/referrals', key: 'nav.referrals' },
@@ -147,6 +160,32 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
         <AppIcon name="info" className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>{t('footer.disclaimer')}</span>
       </p>
+
+      {/* Contact details as plain, selectable text on every page — not only
+          behind a button. This is the site-wide identity signal the SEO/GEO
+          audit found missing entirely, and the first thing a visitor deciding
+          whether to trust a service abroad looks for. Each channel renders
+          only when actually configured (src/lib/contact.ts). */}
+      {(HAS_WHATSAPP || HAS_EMAIL) && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-white/60">
+          <span className="flex items-center gap-1.5">
+            <AppIcon name="map-pin" className="w-3.5 h-3.5 shrink-0" />
+            {t('footer.locationLine')}
+          </span>
+          {HAS_WHATSAPP && (
+            <a href={`tel:${WHATSAPP_E164}`} dir="ltr" className="flex items-center gap-1.5 hover:text-white">
+              <AppIcon name="phone" className="w-3.5 h-3.5 shrink-0" />
+              {WHATSAPP_DISPLAY}
+            </a>
+          )}
+          {HAS_EMAIL && (
+            <a href={`mailto:${CONTACT_EMAIL}`} dir="ltr" className="flex items-center gap-1.5 hover:text-white">
+              <AppIcon name="mail" className="w-3.5 h-3.5 shrink-0" />
+              {CONTACT_EMAIL}
+            </a>
+          )}
+        </div>
+      )}
       <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-x-4 gap-y-2">
         <p className="text-[12px] text-white/55">
           © {new Date().getFullYear()} {t('common.appName')} — {t('footer.rights')}

@@ -3,33 +3,33 @@
 > Your companion for life in Istanbul — residency (İkamet), banking, housing, health and daily life in Istanbul, coordinated step by step for foreigners in Arabic, English, Russian and Farsi.
 
 ## Core pages
-- [Home](https://rafiq.ist/en): overview of every service Rafiq coordinates in Istanbul.
-- [All services](https://rafiq.ist/en/services): the full service catalog, browsable by category.
-- [Real estate](https://rafiq.ist/en/real-estate): property search, buying, and Turkish real-estate investment guidance.
-- [Health tourism](https://rafiq.ist/en/health-tourism): medical travel coordination — treatment, hospitals, and logistics in Istanbul.
-- [Practical guides](https://rafiq.ist/en/tricks): day-to-day tips for living in Istanbul as a foreigner.
+- [Home](https://rafiq-istanbul-ruddy.vercel.app/en): overview of every service Rafiq coordinates in Istanbul.
+- [All services](https://rafiq-istanbul-ruddy.vercel.app/en/services): the full service catalog, browsable by category.
+- [Real estate](https://rafiq-istanbul-ruddy.vercel.app/en/real-estate): property search, buying, and Turkish real-estate investment guidance.
+- [Health tourism](https://rafiq-istanbul-ruddy.vercel.app/en/health-tourism): medical travel coordination — treatment, hospitals, and logistics in Istanbul.
+- [Practical guides](https://rafiq-istanbul-ruddy.vercel.app/en/tricks): day-to-day tips for living in Istanbul as a foreigner.
 
 ## Guides
-- [Residency and Official Procedures in Istanbul, Türkiye — Rafiq Guide](https://rafiq.ist/en/guides/residency): Practical guidance for foreigners in Istanbul on residence, IDs, tax numbers, address registration and immigration coordination via Rafiq.
-- [Health support in Istanbul, Türkiye — Rafiq coordination guide](https://rafiq.ist/en/guides/health): Practical guide for foreigners in Istanbul on finding private hospitals, language support, appointments and medical‑tourism coordination via Rafiq and partners.
-- [Real estate help in Istanbul — renting, buying and property coordination](https://rafiq.ist/en/guides/realestate): Practical guide for foreigners in Istanbul on renting, buying, valuations, contracts and coordinating property services with Rafiq.
-- [Banking and Insurance support in Istanbul | Rafiq coordination](https://rafiq.ist/en/guides/banking): Practical guide for foreigners in Istanbul: bank visit escorts, insurance choices (family, residence, property, vehicle) and money-transfer guidance.
-- [Tourism and transport support in Istanbul — Rafiq coordination](https://rafiq.ist/en/guides/tourism): Practical guide for foreigners in Istanbul arranging airport transfers, drivers, tours, hotels, tickets and travel planning via Rafiq coordination.
+- [Residency and Official Procedures in Istanbul, Türkiye — Rafiq Guide](https://rafiq-istanbul-ruddy.vercel.app/en/guides/residency): Practical guidance for foreigners in Istanbul on residence, IDs, tax numbers, address registration and immigration coordination via Rafiq.
+- [Health support in Istanbul, Türkiye — Rafiq coordination guide](https://rafiq-istanbul-ruddy.vercel.app/en/guides/health): Practical guide for foreigners in Istanbul on finding private hospitals, language support, appointments and medical‑tourism coordination via Rafiq and partners.
+- [Real estate help in Istanbul — renting, buying and property coordination](https://rafiq-istanbul-ruddy.vercel.app/en/guides/realestate): Practical guide for foreigners in Istanbul on renting, buying, valuations, contracts and coordinating property services with Rafiq.
+- [Banking and Insurance support in Istanbul | Rafiq coordination](https://rafiq-istanbul-ruddy.vercel.app/en/guides/banking): Practical guide for foreigners in Istanbul: bank visit escorts, insurance choices (family, residence, property, vehicle) and money-transfer guidance.
+- [Tourism and transport support in Istanbul — Rafiq coordination](https://rafiq-istanbul-ruddy.vercel.app/en/guides/tourism): Practical guide for foreigners in Istanbul arranging airport transfers, drivers, tours, hotels, tickets and travel planning via Rafiq coordination.
 
 ## Key services
-- [Tourist Residence in Istanbul | Rafiq](https://rafiq.ist/en/services/res-tourist): Rafiq helps you prepare your tourist residence permit file and follows it through to a decision, with guidance on the required documents and conditions.
-- [Property-based residence permit for property owners](https://rafiq.ist/en/services/res-property): Assistance preparing a residence file based on property ownership, with guidance on the documents and requirements related to proving ownership.
-- [Residence renewal — renew all permit types](https://rafiq.ist/en/services/res-renew): Assistance preparing residence renewal files for all permit types, with guidance on the documents and booking appointments before expiry.
-- [Turkish citizenship services — file preparation & follow-up](https://rafiq.ist/en/services/res-citizenship): Assistance preparing and following Turkish citizenship application files, with guidance on documents and requirements — no guarantee of the outcome.
-- [Medical tourism: hair, dental, aesthetics](https://rafiq.ist/en/services/health-tourism): Connecting you with medical tourism facilities holding an official Turkish Health Ministry authorization for hair transplants, dental, and aesthetics.
-- [Buying and Selling Property in Istanbul](https://rafiq.ist/en/services/re-buy): Brokerage services and support for buying and selling property: organizing documents, arranging viewings, and ensuring a sound transfer of ownership.
-- [Bank visit escort and interpretation Istanbul](https://rafiq.ist/en/services/bank-account): Escort to the bank and interpretation during account-opening procedures, with guidance on general requirements — without promising approval.
+- [Tourist Residence in Istanbul | Rafiq](https://rafiq-istanbul-ruddy.vercel.app/en/services/res-tourist): Rafiq helps you prepare your tourist residence permit file and follows it through to a decision, with guidance on the required documents and conditions.
+- [Property-based residence permit for property owners](https://rafiq-istanbul-ruddy.vercel.app/en/services/res-property): Assistance preparing a residence file based on property ownership, with guidance on the documents and requirements related to proving ownership.
+- [Residence renewal — renew all permit types](https://rafiq-istanbul-ruddy.vercel.app/en/services/res-renew): Assistance preparing residence renewal files for all permit types, with guidance on the documents and booking appointments before expiry.
+- [Turkish citizenship services — file preparation & follow-up](https://rafiq-istanbul-ruddy.vercel.app/en/services/res-citizenship): Assistance preparing and following Turkish citizenship application files, with guidance on documents and requirements — no guarantee of the outcome.
+- [Medical tourism: hair, dental, aesthetics](https://rafiq-istanbul-ruddy.vercel.app/en/services/health-tourism): Connecting you with medical tourism facilities holding an official Turkish Health Ministry authorization for hair transplants, dental, and aesthetics.
+- [Buying and Selling Property in Istanbul](https://rafiq-istanbul-ruddy.vercel.app/en/services/re-buy): Brokerage services and support for buying and selling property: organizing documents, arranging viewings, and ensuring a sound transfer of ownership.
+- [Bank visit escort and interpretation Istanbul](https://rafiq-istanbul-ruddy.vercel.app/en/services/bank-account): Escort to the bank and interpretation during account-opening procedures, with guidance on general requirements — without promising approval.
 
 ## Full content
-- [llms-full.txt](https://rafiq.ist/llms-full.txt): every service page and guide in full (Arabic and English) as one Markdown document, with the official Turkish authority behind each topic.
+- [llms-full.txt](https://rafiq-istanbul-ruddy.vercel.app/llms-full.txt): every service page and guide in full (Arabic and English) as one Markdown document, with the official Turkish authority behind each topic.
 
 ## Languages
-Every page above is also published in Arabic (https://rafiq.ist/ar/...), Russian (https://rafiq.ist/ru/...) and Farsi (https://rafiq.ist/fa/...); Arabic is the default for the site's primary audience. Swap the leading /en/ segment for /ar/, /ru/ or /fa/ to reach the same page in another language.
+Every page above is also published in Arabic (https://rafiq-istanbul-ruddy.vercel.app/ar/...), Russian (https://rafiq-istanbul-ruddy.vercel.app/ru/...) and Farsi (https://rafiq-istanbul-ruddy.vercel.app/fa/...); Arabic is the default for the site's primary audience. Swap the leading /en/ segment for /ar/, /ru/ or /fa/ to reach the same page in another language.
 
 ## Contact
 Rafiq coordinates these services directly or through vetted local partners; every service page names which, and every page carries a request form to start a conversation about a specific need.

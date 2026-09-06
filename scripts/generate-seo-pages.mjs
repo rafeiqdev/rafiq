@@ -7,6 +7,12 @@
  * serves these files before the SPA rewrite; the React app then hydrates the
  * same #root element and keeps the existing client-side behavior.
  */
+// Loads .env so a local `npm run build` sees the same VITE_* values Vercel
+// supplies as real environment variables — generate-sitemap.mjs already did
+// this, and without it this script could not resolve VITE_BASE_URL locally at
+// all, nor read the contact details the /contact shell and the Organization
+// JSON-LD now depend on.
+import 'dotenv/config';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -224,6 +230,46 @@ const guideSections = readGuideSections();
 const comparisons = readComparisons();
 const faqHub = readFaqHub();
 
+/**
+ * src/data/aboutPage.ts and src/data/contactPage.ts have the same flat
+ * Record<Lang, Content> shape as FAQ_HUB, so they parse the same way — the
+ * language codes are the top-level keys. Generalised rather than copied a
+ * third time.
+ */
+function readFlatLangRecord(relativePath) {
+  const source = readFileSync(join(root, relativePath), 'utf8');
+  const records = {};
+  for (const langMatch of source.matchAll(/^ {2}"(ar|en|ru|fa)":\s*\{$/gm)) {
+    const openIndex = langMatch.index + langMatch[0].length - 1;
+    const closeIndex = findMatchingBrace(source, openIndex);
+    records[langMatch[1]] = JSON.parse(source.slice(openIndex, closeIndex + 1));
+  }
+  return records;
+}
+
+const aboutPage = readFlatLangRecord('src/data/aboutPage.ts');
+const contactPage = readFlatLangRecord('src/data/contactPage.ts');
+
+/**
+ * Contact details for the pre-rendered shell and the Organization JSON-LD.
+ *
+ * The runtime equivalent is src/lib/contact.ts; this is a plain .mjs build
+ * script with no TypeScript pipeline, so it reads the same env vars directly.
+ * Keep the two in sync — and keep the same rule: a channel that is not
+ * configured is omitted entirely, never emitted empty. Structured data must
+ * not assert a contact route that does not work, and a pre-rendered page must
+ * not show a phone number the hydrated page then removes.
+ */
+const WA_PLACEHOLDER = '905000000000';
+const RAW_WHATSAPP = String(process.env.VITE_WHATSAPP_NUMBER ?? '').replace(/\D/g, '');
+const WHATSAPP_NUMBER = RAW_WHATSAPP && RAW_WHATSAPP !== WA_PLACEHOLDER ? RAW_WHATSAPP : '';
+const WHATSAPP_E164 = WHATSAPP_NUMBER ? `+${WHATSAPP_NUMBER}` : '';
+const WHATSAPP_DISPLAY = WHATSAPP_NUMBER
+  ? WHATSAPP_NUMBER.replace(/^(\d{2})(\d{3})(\d{3})(\d{2})(\d{2})$/, '+$1 $2 $3 $4 $5')
+  : '';
+const CONTACT_EMAIL = String(process.env.VITE_CONTACT_EMAIL ?? '').trim();
+const OFFICE_ADDRESS = String(process.env.VITE_OFFICE_ADDRESS ?? '').trim();
+
 // Same category order as the live SiteFooter (src/components/SiteFooter.tsx's
 // useGuideLinks, sourced from SERVICE_CATEGORIES) and the same extraction
 // regex generate-sitemap.mjs already uses on this file.
@@ -422,6 +468,16 @@ const staticMeta = {
     description: faqHub[lang].metaDescription,
     content: faqHub[lang].intro,
   }),
+  '/about': (lang) => ({
+    title: aboutPage[lang].seoTitle,
+    description: aboutPage[lang].metaDescription,
+    content: aboutPage[lang].intro,
+  }),
+  '/contact': (lang) => ({
+    title: contactPage[lang].seoTitle,
+    description: contactPage[lang].metaDescription,
+    content: contactPage[lang].intro,
+  }),
 };
 
 function escapeHtml(value) {
@@ -522,7 +578,37 @@ function siteEntityJsonLd(lang) {
         logo: `${SITE_URL}/icon-512.png`,
         image: `${SITE_URL}/og-cover.png`,
         availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+        areaServed: { '@type': 'City', name: 'Istanbul', addressCountry: 'TR' },
         sameAs: SAME_AS,
+        // Conditional on being configured — see the WHATSAPP_NUMBER block
+        // above. Stays Organization rather than LocalBusiness: Rafiq has no
+        // premises open to visitors, and LocalBusiness without a real
+        // PostalAddress is invalid markup as well as an implied office that
+        // does not exist. src/lib/organizationSchema.ts is the runtime twin.
+        ...(WHATSAPP_E164 ? { telephone: WHATSAPP_E164 } : {}),
+        ...(CONTACT_EMAIL ? { email: CONTACT_EMAIL } : {}),
+        ...(OFFICE_ADDRESS
+          ? {
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: OFFICE_ADDRESS,
+                addressLocality: 'İstanbul',
+                addressCountry: 'TR',
+              },
+            }
+          : {}),
+        ...(WHATSAPP_E164 || CONTACT_EMAIL
+          ? {
+              contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer service',
+                availableLanguage: ['Arabic', 'English', 'Russian', 'Persian'],
+                areaServed: 'TR',
+                ...(WHATSAPP_E164 ? { telephone: WHATSAPP_E164 } : {}),
+                ...(CONTACT_EMAIL ? { email: CONTACT_EMAIL } : {}),
+              },
+            }
+          : {}),
       },
       {
         '@type': 'WebSite',
@@ -1044,6 +1130,24 @@ function buildHtml(template, lang, route, meta) {
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
   const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
   const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
+  // AboutPage / ContactPage — the schema.org types for identity pages. Neither
+  // produces a rich result on its own; their value is entity resolution, which
+  // is precisely what the indexing audit found the domain unable to establish.
+  // Runtime twin: src/components/AboutPageSchema.tsx.
+  const identityJsonLd = route === '/about' || route === '/contact'
+    ? escapeJsonForHtml({
+        '@context': 'https://schema.org',
+        '@type': route === '/about' ? 'AboutPage' : 'ContactPage',
+        '@id': `${url}#webpage`,
+        url,
+        name: meta.title,
+        description: meta.description,
+        inLanguage: lang,
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        about: { '@id': `${SITE_URL}/#organization` },
+        mainEntity: { '@id': `${SITE_URL}/#organization` },
+      })
+    : '';
   const dateModified = dateModifiedFor(lang, route);
   const serviceJsonLd = serviceMatch && serviceSeo[lang][serviceMatch[1]]
     ? escapeJsonForHtml({
@@ -1122,6 +1226,75 @@ function buildHtml(template, lang, route, meta) {
       <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
       ${priorityLinksHtml}
     </main>`;
+  } else if (route === '/about') {
+    const sectionHtml = aboutPage[lang].sections.map((section) => `
+        <section>
+          <h2>${escapeHtml(section.heading)}</h2>
+          <p>${escapeHtml(section.body)}</p>
+        </section>`).join('');
+    staticMain = `
+    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(aboutPage[lang].title)}</h1>
+        <p>${escapeHtml(aboutPage[lang].intro)}</p>${sectionHtml}
+        <section>
+          <h2>${escapeHtml(aboutPage[lang].ctaHeading)}</h2>
+          <p>${escapeHtml(aboutPage[lang].ctaBody)}</p>
+          <p><a href="/${lang}/contact">${escapeHtml(aboutPage[lang].ctaLabel)}</a></p>
+        </section>
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
+    </main>`;
+  } else if (route === '/contact') {
+    const c = contactPage[lang];
+    // Real, crawlable contact details in the pre-rendered HTML — not only in
+    // the hydrated app. A crawler or AI answer engine that does not run
+    // JavaScript is exactly the reader this page needs to convince, and the
+    // whole point of the page is that these values are findable.
+    const channelsHtml = [
+      WHATSAPP_NUMBER
+        ? `
+        <section>
+          <h2>${escapeHtml(c.whatsappLabel)}</h2>
+          <p>${escapeHtml(c.whatsappBody)}</p>
+          <p><a href="https://wa.me/${WHATSAPP_NUMBER}" rel="noreferrer">${escapeHtml(WHATSAPP_DISPLAY)}</a></p>
+        </section>`
+        : '',
+      CONTACT_EMAIL
+        ? `
+        <section>
+          <h2>${escapeHtml(c.emailLabel)}</h2>
+          <p>${escapeHtml(c.emailBody)}</p>
+          <p><a href="mailto:${escapeHtml(CONTACT_EMAIL)}">${escapeHtml(CONTACT_EMAIL)}</a></p>
+        </section>`
+        : '',
+    ].join('');
+    const factsHtml = [
+      { heading: c.areaLabel, body: c.area },
+      { heading: c.languagesLabel, body: c.languages },
+      { heading: c.availabilityLabel, body: c.availability },
+      { heading: c.costLabel, body: c.costNote },
+    ].map((fact) => `
+        <section>
+          <h2>${escapeHtml(fact.heading)}</h2>
+          <p>${escapeHtml(fact.body)}</p>
+        </section>`).join('');
+    const tipsHtml = `
+        <section>
+          <h2>${escapeHtml(c.tipsHeading)}</h2>
+          <p>${escapeHtml(c.tipsIntro)}</p>
+          <ul>${c.tips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join('')}</ul>
+        </section>`;
+    staticMain = `
+    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(c.title)}</h1>
+        <p>${escapeHtml(c.intro)}</p>${channelsHtml}${factsHtml}${tipsHtml}
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
+    </main>`;
   } else {
     const extraSectionsHtml = route === '/health-tourism'
       ? renderHealthTourismSections(lang)
@@ -1187,7 +1360,8 @@ function buildHtml(template, lang, route, meta) {
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}" />`);
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
-    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    ${comparisonJsonLd ? `<script id="ld-comparison" type="application/ld+json">${comparisonJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+    ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    ${comparisonJsonLd ? `<script id="ld-comparison" type="application/ld+json">${comparisonJsonLd}</script>` : ''}
+    ${identityJsonLd ? `<script id="ld-identity" type="application/ld+json">${identityJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
   // The footer must live INSIDE <main id="seo-fallback">: that id carries the
   // visually-hidden rule in index.html, and a sibling footer outside it paints
   // as raw visible text at the top of every page until React hydrates.

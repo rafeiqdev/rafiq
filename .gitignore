@@ -14,3 +14,7 @@ server/uploads/
 
 __pycache__/
 *.pyc
+
+# Local SEO/GEO audit run — the written reports are committed, the 35 MB of
+# screenshots that produced them are not.
+rafiq.ist-audit/screenshots/

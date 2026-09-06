@@ -72,6 +72,7 @@
   },
   "nav": {
     "home": "Home",
+    "about": "About us",
     "contact": "Contact us",
     "premium": "AI Assistant",
     "map": "Map",
@@ -2100,7 +2101,8 @@
     "helpTitle": "Didn't find what you need?",
     "helpBody": "The AI assistant and our team are ready to answer your questions about residency, housing, healthcare and daily life in Istanbul.",
     "helpAi": "Ask the AI assistant",
-    "helpWhatsapp": "Chat on WhatsApp"
+    "helpWhatsapp": "Chat on WhatsApp",
+    "locationLine": "Istanbul, Türkiye"
   },
   "tricksApps": {
     "eyebrow": "Daily tools",

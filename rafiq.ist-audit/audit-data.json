@@ -1,0 +1,330 @@
+{
+  "summary": {
+    "health_score": 64,
+    "business_type": "Local / professional service (paid concierge & coordination for foreigners in Istanbul)",
+    "domain": "rafiq.ist",
+    "audit_date": "2026-09-06",
+    "top_findings": [
+      "364 of 444 URLs sit in 'Discovered - currently not indexed'; only 40 are indexed",
+      "No business identity published anywhere: no address, phone, email, About page or Contact page",
+      "Zero backlink profile - domain absent from the Common Crawl web graph",
+      "Soft 404s: every invalid URL returns HTTP 200 with the app shell, canonicalised to the homepage",
+      "All 262 impressions in 3 months came from English accounting queries; zero Arabic core-service queries"
+    ],
+    "quick_wins": [
+      "Publish an About page and a Contact page with real Istanbul address, phone and email",
+      "Return a real HTTP 404 for unknown routes",
+      "Add address/telephone/email/contactPoint/areaServed to Organization schema and retype as ProfessionalService",
+      "Create and verify a Google Business Profile",
+      "Stop restamping lastmod and dateModified on every page on every deploy",
+      "Add www.rafiq.ist as a Vercel domain redirecting to the apex"
+    ]
+  },
+  "categories": [
+    {
+      "name": "Technical SEO",
+      "score": 68,
+      "what_works": [
+        "All 10 tested routes serve fully pre-rendered content in raw HTML - no JavaScript required",
+        "Self-referential canonicals correct on every route and language",
+        "Complete hreflang set ar/en/ru/fa plus x-default on every page",
+        "Sitemaps valid and on the correct host: 444/444 URLs on rafiq.ist, zero leftover vercel.app",
+        "TTFB 0.28-0.60s across all routes",
+        "robots.txt permits all crawlers and declares the sitemap"
+      ],
+      "findings": [
+        {
+          "title": "Soft 404s - every invalid URL returns HTTP 200",
+          "severity": "Critical",
+          "description": "/ar/services/does-not-exist, /ar/guides/nope, /ar/random-string-xyz, /ar/about and /ar/contact all return 200 with the generic app shell, title 'Rafiq Istanbul', canonical to https://rafiq.ist, and no noindex.",
+          "recommendation": "Return a genuine 404 status for unmatched routes - a server-side check against the known route list before falling through to the SPA shell."
+        },
+        {
+          "title": "www.rafiq.ist fails over HTTPS",
+          "severity": "High",
+          "description": "https://www.rafiq.ist/ returns a connection failure (curl status 000). www is not registered as a Vercel domain so no TLS certificate exists, though DNS points there.",
+          "recommendation": "Vercel Settings > Domains > Add www.rafiq.ist, redirect to apex (308). Requires owner approval - it is an account settings change."
+        },
+        {
+          "title": "lastmod is a build timestamp, not a modification date",
+          "severity": "High",
+          "description": "All 444 sitemap URLs carry the identical <lastmod>2026-09-06</lastmod>. Schema dateModified behaves the same way.",
+          "recommendation": "Derive lastmod and dateModified from the content source's real change date (git history or a per-item updatedAt field), not from build time."
+        },
+        {
+          "title": "444 URLs is over-extended for the domain's current standing",
+          "severity": "Medium",
+          "description": "111 unique pages x 4 languages. 336 service URLs, 48 guide URLs, 16 compare URLs, 44 top-level. Russian and Farsi double the URL count with no impressions in Search Console.",
+          "recommendation": "Keep ar+en full; reduce ru/fa to the ~15 highest-intent pages until the Arabic tree is indexed and ranking, then expand."
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "score": 55,
+      "what_works": [
+        "Service pages run 632-1067 words (median 793) - not thin",
+        "Average pairwise similarity across 15 service pages is only 12.0%, so pages are genuinely individually written",
+        "Boilerplate shared across 80%+ of pages is just 19.7%",
+        "The four /compare/ pages (residency-diy, bank-account-alone, citizenship-consultancy, health-tourism-direct) correctly address the 'should I do this myself' intent within the owner's content rules"
+      ],
+      "findings": [
+        {
+          "title": "No E-E-A-T signals at all",
+          "severity": "Critical",
+          "description": "No About page, no Contact page, no physical address, no phone, no email, no named human authors, no company registration, no reviews, no citations of official Turkish sources. Homepage HTML contains no tel:, no mailto:, no +90 number and no street address. This is YMYL content (immigration, banking, property, medical).",
+          "recommendation": "Publish an About page and Contact page with real company name, Istanbul address, phone, email and registration details. Highest return of any item in this audit."
+        },
+        {
+          "title": "Guide pages are the weakest layer and are the entry point",
+          "severity": "High",
+          "description": "/ar/guides/residency consists largely of meta-language about Rafiq's own process with almost no concrete facts, numbers or named authorities, while /ar/services/res-tourist is dense and citable. The layer that gets found is weaker than the layer that converts.",
+          "recommendation": "Rebuild guide pages around concrete facts, eligibility criteria, risks and official-source references."
+        },
+        {
+          "title": "Two genuinely thin pages",
+          "severity": "Medium",
+          "description": "/ar/tricks is 156 words and /ar/real-estate is 204 words. The latter is a money page for a high-value service.",
+          "recommendation": "Expand both with substantive content, especially /ar/real-estate."
+        },
+        {
+          "title": "No dates or sources on YMYL guides",
+          "severity": "Medium",
+          "description": "No datePublished, no named reviewer, no citation of the governing Turkish authority per topic.",
+          "recommendation": "Add a real reviewed-on date and link the governing authority: Goc Idaresi (residency), Tapu ve Kadastro (property), Saglik Bakanligi (health tourism), e-Devlet (records). Breaks neither the no-DIY nor the no-prices rule."
+        }
+      ]
+    },
+    {
+      "name": "On-Page SEO",
+      "score": 85,
+      "what_works": [
+        "Unique, descriptive, keyword-bearing title on every page in every language",
+        "Unique human-written meta description per page per language",
+        "Exactly one H1 per page, matching intent",
+        "Correct localisation of titles across ar/en/ru/fa"
+      ],
+      "findings": [
+        {
+          "title": "Homepage titles lead with the brand name",
+          "severity": "Low",
+          "description": "On a domain with no brand recognition, leading with the brand spends the limited impressions the site gets.",
+          "recommendation": "Lead with the service, e.g. 'خدمات الإقامة والمعاملات في إسطنبول - رفيق'."
+        }
+      ]
+    },
+    {
+      "name": "Schema / Structured Data",
+      "score": 65,
+      "what_works": [
+        "JSON-LD ships in the raw HTML on every page, not injected after hydration",
+        "@graph with Organization + WebSite (SearchAction) sitewide",
+        "Service on /services/<id>, FAQPage on homepages and guides, BreadcrumbList on nested routes",
+        "alternateName covers all four scripts"
+      ],
+      "findings": [
+        {
+          "title": "Organization is missing every contact and location property",
+          "severity": "High",
+          "description": "No address, telephone, email, contactPoint, areaServed, priceRange, foundingDate or openingHoursSpecification. sameAs lists only Facebook (numeric profile.php ID URL) and Instagram.",
+          "recommendation": "Add all contact and location properties; replace the numeric Facebook URL with a named page URL."
+        },
+        {
+          "title": "Not typed as a local or professional service",
+          "severity": "High",
+          "description": "The business physically operates across Istanbul but is typed as generic Organization.",
+          "recommendation": "Retype as ProfessionalService with areaServed set to Istanbul. Do not add AggregateRating or Review markup until real verifiable reviews exist."
+        }
+      ]
+    },
+    {
+      "name": "Performance (CWV)",
+      "score": 50,
+      "what_works": [
+        "TTFB 0.28-0.60s across all tested routes"
+      ],
+      "findings": [
+        {
+          "title": "Very large, barely split JavaScript bundle",
+          "severity": "High",
+          "description": "index-D9mHIkRm.js is 814 KB brotli / 3,125 KB uncompressed. Total JS+CSS transferred is 948 KB brotli / 3,716 KB uncompressed across only 5 chunks - effectively no route-level code splitting. Every visitor downloads the admin control centre, real-estate module, medical-tourism flow and chat to read one service page.",
+          "recommendation": "Route-level React.lazy() splitting; move admin out of the public bundle; lazy-load Supabase; audit the main chunk for large dependencies."
+        },
+        {
+          "title": "First-visit path to readable content is long",
+          "severity": "Medium",
+          "description": "A boot-loader overlay plus a cookie-consent panel occupying roughly the bottom quarter of the mobile viewport, on top of a 3.1 MB bundle.",
+          "recommendation": "Reduce bundle first, then reconsider the loader and the consent panel's mobile footprint."
+        },
+        {
+          "title": "Lighthouse and CrUX data not obtained",
+          "severity": "Info",
+          "description": "PageSpeed Insights returned 'PSI rate limit exceeded' on every attempt. Core Web Vitals were inferred from measured bundle sizes and TTFB, not measured directly.",
+          "recommendation": "Re-run PageSpeed Insights after the bundle split to get real numbers."
+        }
+      ]
+    },
+    {
+      "name": "AI Search Readiness",
+      "score": 60,
+      "what_works": [
+        "Content fully readable without executing JavaScript - verified on all 10 routes, the single biggest GEO prerequisite and most SPA sites fail it",
+        "All AI crawlers permitted: wildcard Allow plus explicit OAI-SearchBot; GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot and Applebot are all unblocked",
+        "Structured data present in raw HTML",
+        "llms.txt published, valid, on the correct host",
+        "Multilingual entity naming via alternateName"
+      ],
+      "findings": [
+        {
+          "title": "The brand cannot be resolved as an entity",
+          "severity": "Critical",
+          "description": "No address, phone or email; no About or Contact page; sameAs limited to Facebook and Instagram; absent from the Common Crawl web graph so no third-party page corroborates the business exists. An AI engine has nothing to ground a recommendation in.",
+          "recommendation": "Publish identity (About, Contact, NAP), add contact properties to schema, and earn the first third-party mentions."
+        },
+        {
+          "title": "llms-full.txt is 861 KB",
+          "severity": "High",
+          "description": "A monolithic ~60k-word dump that RAG pipelines are likely to truncate or cap, defeating the point of a curated index.",
+          "recommendation": "Split into per-topic files under ~50 KB each, indexed from llms.txt, or drop it."
+        },
+        {
+          "title": "Freshness signals are self-defeating",
+          "severity": "High",
+          "description": "Every page reports dateModified equal to the build date, restamped on every deploy.",
+          "recommendation": "Use real content modification dates."
+        },
+        {
+          "title": "No official-source citations",
+          "severity": "High",
+          "description": "No links to Goc Idaresi, Tapu ve Kadastro, Saglik Bakanligi or e-Devlet anywhere in schema or visible content.",
+          "recommendation": "Cite the governing Turkish authority per topic - not a DIY step and not a price, so it breaks no content rule."
+        },
+        {
+          "title": "Passages are too short to be cited",
+          "severity": "Medium",
+          "description": "Extracted passages measure roughly 30-70 words against a practical target of ~134-167 words for a self-contained citable answer.",
+          "recommendation": "Consolidate atomised fragments into self-contained answer passages."
+        },
+        {
+          "title": "Inconsistent Arabic register",
+          "severity": "Low",
+          "description": "/ar/faq is colloquial while guides and service pages are Modern Standard Arabic.",
+          "recommendation": "Align register across the site."
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "score": 40,
+      "what_works": [
+        "og-cover.png serves correctly at 53 KB - social previews are fine"
+      ],
+      "findings": [
+        {
+          "title": "Zero <img> tags in the pre-rendered HTML",
+          "severity": "High",
+          "description": "Across all 10 pre-rendered pages the raw HTML contains no img elements. Every image including the homepage hero is injected after hydration or applied as a CSS background. No alt text exists for crawlers, Google Images is entirely unclaimed, and the LCP element is JavaScript-dependent.",
+          "recommendation": "Extend the pre-rendering script to emit hero and key content images with real Arabic alt text, explicit width/height, and fetchpriority=high on the hero."
+        },
+        {
+          "title": "PNG only",
+          "severity": "Medium",
+          "description": "Pre-rendered HTML references .png 120 times and .webp/.avif zero times, despite logo-rafiq.webp existing in public/.",
+          "recommendation": "Serve WebP/AVIF with PNG fallback."
+        }
+      ]
+    },
+    {
+      "name": "Local SEO",
+      "score": 20,
+      "what_works": [],
+      "findings": [
+        {
+          "title": "No local presence of any kind",
+          "severity": "Critical",
+          "description": "No NAP on site, no Google Business Profile found, generic Organization schema instead of LocalBusiness/ProfessionalService, no areaServed, no district pages, no local citations, no reviews - for a business that physically operates across Istanbul.",
+          "recommendation": "Create and verify a Google Business Profile. Requires the owner's Google account and a verifiable Istanbul address; cannot be done from the codebase."
+        }
+      ]
+    },
+    {
+      "name": "Backlinks & Authority",
+      "score": 5,
+      "what_works": [],
+      "findings": [
+        {
+          "title": "Zero measurable backlink profile",
+          "severity": "Critical",
+          "description": "rafiq.ist is absent from the Common Crawl web graph (cc-main-2026-jan-feb-mar) - no PageRank, no harmonic centrality, no host count. The previous domain rafeiq.dev is dead so any historic equity is lost. Moz API not configured, so DA/PA unavailable.",
+          "recommendation": "Start with partner links (hospitals, real-estate agencies, law offices already worked with), then Turkish business directories, Arabic expat communities via genuine participation, embassy/consulate resource pages, and student groups. No paid links or PBNs - manual action risk on a YMYL site."
+        }
+      ]
+    }
+  ],
+  "action_plan": {
+    "phases": [
+      {
+        "name": "Phase 1: Critical Fixes - make the business real to Google",
+        "timeframe": "Week 1",
+        "items": [
+          "Publish an About page with company name, Istanbul address, phone, email, team and registration (owner supplies facts)",
+          "Publish a Contact page with phone, WhatsApp, email and address as real text",
+          "Put NAP in the site footer on every page",
+          "Create and verify a Google Business Profile (owner only)",
+          "Return real HTTP 404 for unknown routes",
+          "Add www.rafiq.ist in Vercel redirecting to apex (owner approval)"
+        ]
+      },
+      {
+        "name": "Phase 2: High-Impact Improvements",
+        "timeframe": "Weeks 2-3",
+        "items": [
+          "Upgrade Organization to ProfessionalService with address, telephone, email, contactPoint, areaServed",
+          "Derive lastmod and dateModified from real content change dates",
+          "Split the JavaScript bundle by route; remove admin from the public bundle; lazy-load Supabase",
+          "Emit hero and key images as real <img> in pre-rendered HTML with Arabic alt text and dimensions",
+          "Add datePublished, a named reviewer and official Turkish source citations to guides",
+          "Serve WebP/AVIF with PNG fallback"
+        ]
+      },
+      {
+        "name": "Phase 3: Content & Authority - change format, not page count",
+        "timeframe": "Month 2",
+        "items": [
+          "Build residency risk pages: 'أسباب رفض طلب الإقامة في تركيا' and 'أخطاء شائعة عند التقدم للإقامة' - a gap no competitor owns",
+          "Build a bank-by-bank comparison for foreigners, without an account-opening walkthrough",
+          "Build property-based residency content bridging real estate and residency",
+          "Build a real-estate buyer-safety advisory page, not a listings page",
+          "Redirect medical-tourism content to 'كيف تختار عيادة زراعة شعر آمنة في اسطنبول' rather than attacking the broad hair-transplant term",
+          "Add anonymised client case studies",
+          "Layer FAQPage schema built from real client questions onto service pages"
+        ]
+      },
+      {
+        "name": "Phase 4: Monitoring & Iteration",
+        "timeframe": "Ongoing",
+        "items": [
+          "Weekly: Search Console indexing - watch 'Discovered - currently not indexed' fall below 364 and indexed rise above 40",
+          "Weekly: Search Console performance filtered to Arabic queries - any Arabic core-service query appearing at all is the success signal",
+          "Monthly: average position below 46.4",
+          "After bundle split: re-run PageSpeed Insights for real Core Web Vitals",
+          "Monthly: Google Business Profile insights - calls, direction requests, profile views"
+        ]
+      }
+    ]
+  },
+  "do_not": [
+    "Do not publish more pages - the constraint is trust, not inventory",
+    "Do not translate more content into Russian or Farsi until Arabic is indexed and ranking",
+    "Do not add DIY step-by-step procedure content",
+    "Do not publish exact government fees",
+    "Do not add review or rating schema until real reviews exist",
+    "Do not gate any content behind login"
+  ],
+  "artifacts": {
+    "findings_dir": "findings/",
+    "screenshots_dir": "screenshots/",
+    "report": "FULL-AUDIT-REPORT.md",
+    "action_plan": "ACTION-PLAN.md"
+  }
+}

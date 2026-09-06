@@ -14,7 +14,10 @@ const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].m
 // stale (400) as services were added to the catalog — see STATIC_ROUTES in
 // generate-sitemap.mjs for where the "10" static routes below comes from.
 const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
-const STATIC_ROUTE_COUNT = 11;
+// Keep in step with STATIC_ROUTES in generate-sitemap.mjs: home, services,
+// news, real-estate, health-tourism, faq, about, contact, tricks, referrals,
+// terms, privacy, refund.
+const STATIC_ROUTE_COUNT = 13;
 // Same hand-maintained list as generate-sitemap.mjs's COMPARISON_IDS —
 // src/data/comparisons.ts is hand-written, not catalog-generated.
 const COMPARISON_IDS = ['residency-diy', 'citizenship-consultancy', 'health-tourism-direct', 'bank-account-alone'];

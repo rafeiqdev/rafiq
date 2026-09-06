@@ -33,6 +33,8 @@ const ServiceDetail = lazyPage(() => import('./pages/ServiceDetail').then((m) =>
 const CategoryGuide = lazyPage(() => import('./pages/CategoryGuide').then((m) => ({ default: m.CategoryGuide })));
 const Comparison = lazyPage(() => import('./pages/Comparison').then((m) => ({ default: m.Comparison })));
 const Faq = lazyPage(() => import('./pages/Faq').then((m) => ({ default: m.Faq })));
+const About = lazyPage(() => import('./pages/About').then((m) => ({ default: m.About })));
+const Contact = lazyPage(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
 const MapPage = lazyPage(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 const MobileMapPage = lazyPage(() => import('./pages/mobile/MobileMapPage').then((m) => ({ default: m.MobileMapPage })));
 const Referrals = lazyPage(() => import('./pages/Referrals').then((m) => ({ default: m.Referrals })));
@@ -115,6 +117,8 @@ registerRoutePreloads([
   { path: '/guides/:id', desktop: [CategoryGuide] },
   { path: '/compare/:id', desktop: [Comparison] },
   { path: '/faq', desktop: [Faq] },
+  { path: '/about', desktop: [About] },
+  { path: '/contact', desktop: [Contact] },
   { path: '/map', desktop: [MapPage], mobile: [MobileMapPage] },
   { path: '/referrals', desktop: [Referrals], mobile: [MobileReferrals] },
   { path: '/wallet', desktop: [Wallet], mobile: [MobileWallet] },
@@ -287,6 +291,8 @@ function Shell() {
             <Route path="/guides/:id" element={<CategoryGuide />} />
             <Route path="/compare/:id" element={<Comparison />} />
             <Route path="/faq" element={<Faq />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/map" element={isMobile ? <MobileMapPage /> : <MapPage />} />
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
             <Route path="/wallet" element={isMobile ? <MobileWallet /> : <Wallet />} />
