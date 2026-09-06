@@ -52,6 +52,17 @@ const EMPTY_SHEET: SheetFilters = {
 const FAV_KEY = 'rafiq_favs';
 const RECENT_KEY = 'rafiq_recent';
 
+/**
+ * How many list cards get the staggered entry animation.
+ *
+ * The animation is `fill: both`, so an animated card sits at opacity 0 until
+ * its turn comes — fine for the handful a visitor can actually see on opening,
+ * wrong for the rest of a nineteen-card list, which was starting invisible and
+ * putting seventy simultaneous animations on the compositor. Cards past the
+ * first screenful now render at rest and are simply there when scrolled to.
+ */
+const ENTER_ANIMATED = 6;
+
 /** Extra Turkish → Arabic district names beyond src/data/istanbulAreas. */
 const EXTRA_AR: Record<string, string> = {
   Arnavutköy: 'أرناؤوطكوي',
@@ -110,7 +121,12 @@ export function MobileRealEstate() {
   const [leaving, setLeaving] = useState(false);
   const [galIdx, setGalIdx] = useState(0);
   const [favTick, setFavTick] = useState(0);
+  // Gallery photos whose URL 404s. Held in state rather than removed from the
+  // DOM by hand: these <img> are React's to own, and pulling one out from
+  // under it makes React throw the next time it reconciles that list.
+  const [brokenImages, setBrokenImages] = useState<string[]>([]);
   const closeTimer = useRef<number | null>(null);
+  const searchInput = useRef<HTMLInputElement | null>(null);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -157,6 +173,22 @@ export function MobileRealEstate() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [sheetOpen]);
+
+  // Tapping the search pill opens a full screen whose only purpose is typing,
+  // so put the caret in the field and raise the keyboard rather than making
+  // the visitor tap a second time. The overlay is revealed by swapping
+  // `display`, and focus() on a display:none input silently does nothing, so
+  // read a layout property first to force the style flush. Deliberately not
+  // deferred to requestAnimationFrame: that never fires while the tab isn't
+  // painting, which would leave the field unfocused exactly when the visitor
+  // returns to it.
+  useEffect(() => {
+    if (!searchOpen) return;
+    const el = searchInput.current;
+    if (!el) return;
+    void el.offsetWidth;
+    el.focus();
+  }, [searchOpen]);
 
   const filtered = useMemo(() => {
     let l = [...all];
@@ -231,8 +263,14 @@ export function MobileRealEstate() {
   const detailImages = useMemo(() => {
     if (!detail) return [];
     const imgs = detail.images && detail.images.length ? detail.images : detail.image ? [detail.image] : [];
-    return imgs.filter(Boolean) as string[];
-  }, [detail]);
+    // Dropping the dead URLs here rather than in the DOM keeps "3 / 12" honest:
+    // the counter reads off this list, so a photo that never loaded must not
+    // still be counted.
+    return (imgs.filter(Boolean) as string[]).filter((src) => !brokenImages.includes(src));
+  }, [detail, brokenImages]);
+  // A photo dropping out of the gallery shortens the track under the reader's
+  // finger, so the index the counter shows is clamped to what is still there.
+  const shownIdx = Math.min(galIdx, Math.max(0, detailImages.length - 1));
   const favs = useMemo(() => readIds(FAV_KEY), [favTick, detailId]);
   const isFav = detail !== null && favs.includes(detail.id);
 
@@ -337,6 +375,17 @@ export function MobileRealEstate() {
     window.scrollTo({ top: 0 });
   };
 
+  /**
+   * Everything back to the full catalogue. Reachable from the empty state so a
+   * visitor who filtered themselves into nothing is not left with the filter
+   * controls scrolled far above them and no way back down here.
+   */
+  const resetAll = (): void => {
+    setF({ ...EMPTY_SHEET });
+    setMode('all');
+  };
+  const hasAnyFilter = activeCount > 0 || mode !== 'all';
+
   const toggleRoom = (r: string): void =>
     setF((prev) => ({ ...prev, rooms: prev.rooms.includes(r) ? prev.rooms.filter((x) => x !== r) : [...prev.rooms, r] }));
 
@@ -361,7 +410,7 @@ export function MobileRealEstate() {
         {investments.slice(0, 6).map((o) => (
           <Link key={o.slug} to={`/real-estate/investments/${o.slug}`} className={styles.ivcard}>
             <div className={styles['iv-img']}>
-              <InvestmentPhoto opp={o} />
+              <InvestmentPhoto opp={o} sizes="290px" />
             </div>
             <div className={styles['iv-body']}>
               <h3 className={styles['iv-name']}>{L(o.name)}</h3>
@@ -451,14 +500,17 @@ export function MobileRealEstate() {
           </div>
         ) : (
           <>
+            {/* No results is said once, by the list below. Repeating it here put
+                the same sentence twice on one screen, and the copy inside a
+                horizontal rail is squeezed into a ~124px column where it breaks
+                mid-word, so the rail simply steps aside when it has nothing. */}
+            {preview.length > 0 && (
             <section className={styles.sec}>
               <h2>
                 {t('realEstate.mx.bestTitle')} <span className={styles.cnt}>({preview.length})</span>
               </h2>
               <div className={styles.hscroll}>
-                {preview.length === 0 ? (
-                  <div className={styles.empty}>{t('realEstate.mx.noResults')}</div>
-                ) : (
+                {
                   preview.map((d, i) => (
                     <button
                       key={d.id}
@@ -470,7 +522,10 @@ export function MobileRealEstate() {
                       <div style={{ position: 'relative' }}>
                         {(d.image || d.images?.[0]) && (
                           <img
+                            width={640}
+                            height={400}
                             loading="lazy"
+                            decoding="async"
                             referrerPolicy="no-referrer"
                             src={d.image || (d.images as string[])[0]}
                             alt={dName(d.district)}
@@ -506,9 +561,10 @@ export function MobileRealEstate() {
                       </div>
                     </button>
                   ))
-                )}
+                }
               </div>
             </section>
+            )}
 
             {investSection}
 
@@ -519,19 +575,29 @@ export function MobileRealEstate() {
               </h2>
               <div className={styles.vlist}>
                 {filtered.length === 0 ? (
-                  <div className={styles.empty}>{t('realEstate.mx.noResults')}</div>
+                  <div className={styles.empty}>
+                    {t('realEstate.mx.noResults')}
+                    {hasAnyFilter && (
+                      <button type="button" className={styles['empty-reset']} onClick={resetAll}>
+                        {t('realEstate.mx.showAll')}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   filtered.map((d, i) => (
                     <div key={d.id}>
                       <button
                         type="button"
-                        className={`${styles.vcard} ${styles.enter}`}
-                        style={{ '--i': Math.min(i, 11) } as CSSProperties}
+                        className={`${styles.vcard}${i < ENTER_ANIMATED ? ` ${styles.enter}` : ''}`}
+                        style={{ '--i': i } as CSSProperties}
                         onClick={() => openDetail(d.id)}
                       >
                         {(d.image || d.images?.[0]) && (
                           <img
+                            width={128}
+                            height={128}
                             loading="lazy"
+                            decoding="async"
                             referrerPolicy="no-referrer"
                             src={d.image || (d.images as string[])[0]}
                             alt={dName(d.district)}
@@ -613,10 +679,13 @@ export function MobileRealEstate() {
                   <img
                     key={src}
                     src={src}
+                    width={800}
+                    height={640}
                     loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     alt={dName(detail.district)}
-                    onError={(e) => (e.currentTarget as HTMLImageElement).remove()}
+                    onError={() => setBrokenImages((prev) => (prev.includes(src) ? prev : [...prev, src]))}
                   />
                 ))}
               </div>
@@ -625,19 +694,21 @@ export function MobileRealEstate() {
                   <span
                     key={src}
                     className={
-                      i === Math.round(galIdx * (Math.min(detailImages.length, 9) - 1) / Math.max(1, detailImages.length - 1))
+                      i === Math.round(shownIdx * (Math.min(detailImages.length, 9) - 1) / Math.max(1, detailImages.length - 1))
                         ? styles.on
                         : ''
                     }
                   />
                 ))}
               </div>
-              <div className={styles.gcount}>
-                <AppIcon name="camera" className="w-[14px] h-[14px]" />
-                <span>
-                  {galIdx + 1} / {detailImages.length}
-                </span>
-              </div>
+              {detailImages.length > 0 && (
+                <div className={styles.gcount}>
+                  <AppIcon name="camera" className="w-[14px] h-[14px]" />
+                  <span>
+                    {shownIdx + 1} / {detailImages.length}
+                  </span>
+                </div>
+              )}
             </div>
             <div className={styles.dbody}>
               <div className={styles.dtype}>
@@ -995,8 +1066,10 @@ export function MobileRealEstate() {
           <div className={styles['s-inp']}>
             <AppIcon name="search" className={`${styles['s-inpic']} w-[18px] h-[18px]`} />
             <input
+              ref={searchInput}
               placeholder={t('realEstate.mx.searchPh')}
               autoComplete="off"
+              enterKeyHint="search"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
             />

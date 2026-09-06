@@ -119,11 +119,30 @@ describe('MobileRealEstate', () => {
     expect(screen.getByText('realEstate.mx.descTitle')).toBeInTheDocument();
   });
 
-  it('an empty catalogue renders invitations, not a blank page', async () => {
+  it('an empty catalogue says so once, not twice', async () => {
     rows = [];
     mount();
+    // The preview rail used to repeat the same sentence in a ~124px column
+    // where it broke mid-word; with nothing to show it steps aside entirely.
     await waitFor(() => {
-      expect(screen.getAllByText('realEstate.mx.noResults').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('realEstate.mx.noResults')).toHaveLength(1);
     });
+    expect(screen.queryByText('realEstate.mx.bestTitle')).toBeNull();
+  });
+
+  it('filtering down to nothing offers a way back to the full catalogue', async () => {
+    mount();
+    await screen.findByText('realEstate.title');
+    fireEvent.click(screen.getByText('realEstate.mx.chipCit'));
+    // Bağcılar is the only eligible row, so narrow again on an area with none.
+    fireEvent.change(screen.getByDisplayValue('realEstate.filters.allDistricts'), {
+      target: { value: 'Fatih' },
+    });
+    const reset = await screen.findByText('realEstate.mx.showAll');
+    fireEvent.click(reset);
+    await waitFor(() => {
+      expect(screen.queryByText('realEstate.mx.noResults')).toBeNull();
+    });
+    expect(screen.getAllByText('$99,000').length).toBeGreaterThan(0);
   });
 });

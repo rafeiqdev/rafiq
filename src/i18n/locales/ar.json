@@ -1189,6 +1189,7 @@
       "allTitle": "جميع العقارات",
       "ofTotal": "({{shown}} من {{total}})",
       "noResults": "لا توجد نتائج مطابقة",
+      "showAll": "عرض كل العقارات",
       "sheetAll": "الكل",
       "matchCount": "{{count}} عقار مطابق",
       "unknownShort": "غير مؤهل / غير معروف",

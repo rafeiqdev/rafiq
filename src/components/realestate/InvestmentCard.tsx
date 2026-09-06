@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../AppIcon';
 import { LISTING_PHOTOS } from '../../lib/images';
+import { INVESTMENT_PHOTO_VARIANTS } from '../../data/investmentPhotoVariants';
 import {
   type Eligibility,
   citizenshipEligibility,
@@ -26,26 +27,50 @@ export function useLocalized() {
  * neutral Istanbul photo carrying an explicit "illustrative image" label. That
  * label is not decoration — showing a stand-in photo unlabelled next to a real
  * project name is a misrepresentation a buyer could reasonably rely on.
+ *
+ * The packs arrive at print size (1920px is typical, 3000px happens) while
+ * every surface showing them is small — the mobile card renders 287x150 CSS px
+ * — so `scripts/resize-investment-photos.mjs` writes narrow variants beside
+ * each source and this offers them through a srcset. Only variants recorded in
+ * the generated manifest are offered: a photo dropped in later without running
+ * that script is served whole rather than pointed at a file that never existed.
  */
 export function InvestmentPhoto({
   opp,
   index = 0,
   className = '',
+  sizes = '(max-width: 640px) 90vw, 400px',
 }: {
   opp: InvestmentRecord;
   index?: number;
   className?: string;
+  /** Rendered width, so the browser can pick the cheapest variant that fits. */
+  sizes?: string;
 }) {
   const { t } = useTranslation();
-  const primary = opp.images[index] ? `/img/investments/${opp.slug}/${opp.images[index]}` : null;
+  const file = opp.images[index];
+  const primary = file ? `/img/investments/${opp.slug}/${file}` : null;
   const fallback = LISTING_PHOTOS[index % LISTING_PHOTOS.length];
   const [failed, setFailed] = useState(!primary);
   const src = failed ? fallback : (primary as string);
+
+  const variants = !failed && file ? INVESTMENT_PHOTO_VARIANTS[opp.slug]?.[file] : undefined;
+  const srcSet = variants
+    ? [
+        ...variants.v.map(
+          (w) => `/img/investments/${opp.slug}/${(file as string).replace(/\.\w+$/, '')}-${w}w.webp ${w}w`,
+        ),
+        // The untouched source closes the set for anything wider than a variant.
+        `${primary as string} ${variants.w}w`,
+      ].join(', ')
+    : undefined;
 
   return (
     <>
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={srcSet ? sizes : undefined}
         alt=""
         loading="lazy"
         decoding="async"

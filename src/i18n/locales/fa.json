@@ -1189,6 +1189,7 @@
       "allTitle": "همه املاک",
       "ofTotal": "({{shown}} از {{total}})",
       "noResults": "نتیجه‌ای پیدا نشد",
+      "showAll": "نمایش همه املاک",
       "sheetAll": "همه",
       "matchCount": "{{count}} ملک مطابق",
       "unknownShort": "واجد نیست / نامشخص",

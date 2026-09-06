@@ -1189,6 +1189,7 @@
       "allTitle": "All properties",
       "ofTotal": "({{shown}} of {{total}})",
       "noResults": "No matching results",
+      "showAll": "Show all properties",
       "sheetAll": "All",
       "matchCount": "{{count}} matching properties",
       "unknownShort": "Not eligible / unknown",

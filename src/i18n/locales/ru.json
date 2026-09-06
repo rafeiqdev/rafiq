@@ -1189,6 +1189,7 @@
       "allTitle": "Все объекты",
       "ofTotal": "({{shown}} из {{total}})",
       "noResults": "Ничего не найдено",
+      "showAll": "Показать все объекты",
       "sheetAll": "Все",
       "matchCount": "Подходит: {{count}}",
       "unknownShort": "Не подходит / неизвестно",
