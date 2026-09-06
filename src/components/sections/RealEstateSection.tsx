@@ -136,7 +136,13 @@ export function RealEstateSection({
           version stacked an icon badge, a paragraph, three pills and a legal
           note on top of the image and read as clutter — citizenship filters
           and investments live on /real-estate itself. */}
-      <div className="relative overflow-hidden rounded-card text-white shadow-card" style={{ background: '#12305c' }}>
+      {/* Full-bleed: the banner escapes the page gutters (the root clips
+          horizontal overflow, so 100vw cannot create a sideways scroll) so it
+          reads as a band across the page, not a boxed card. */}
+      <div
+        className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden text-white"
+        style={{ background: '#12305c' }}
+      >
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
           <defs>
             <clipPath id="homeRealEstateCurve" clipPathUnits="objectBoundingBox">
@@ -166,7 +172,7 @@ export function RealEstateSection({
         <div className="relative flex justify-center px-5 pb-6 sm:px-7">
           <Link
             to="/real-estate"
-            className="flex h-11 w-full max-w-xs items-center justify-center gap-1.5 rounded-btn bg-white font-bold text-navy transition-transform hover:-translate-y-0.5"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white px-5 text-sm font-bold text-navy transition-transform hover:-translate-y-0.5"
           >
             {t('realEstate.home.cta')}
             <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
