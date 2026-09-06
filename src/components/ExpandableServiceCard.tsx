@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -40,16 +40,22 @@ export function ExpandableServiceCard({
   service,
   index,
   categoryTitle,
+  autoOpen = false,
 }: {
   service: ServiceItem;
   /** position within the list this card renders in — becomes the "01" index */
   index: number;
   categoryTitle: string;
+  /** arrive with this card's panel already up (`/services?open=<id>`) */
+  autoOpen?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('compact');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const autoOpened = useRef(false);
+  const scrollBack = useRef(false);
   const [showRequest, setShowRequest] = useState(false);
   const isOpen = mode !== 'compact';
 
@@ -64,6 +70,12 @@ export function ExpandableServiceCard({
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', onKeyDown);
+      // Only after the page can scroll again — the panel locks body scrolling
+      // while it is up, so anything asked for earlier just clamps to the top.
+      if (scrollBack.current) {
+        scrollBack.current = false;
+        rootRef.current?.scrollIntoView({ block: 'center' });
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -80,6 +92,12 @@ export function ExpandableServiceCard({
   const closeCard = () => {
     setMode('compact');
     setShowRequest(false);
+    // A panel that opened itself leaves the page parked at the top, so on the
+    // way out put its own card back under the reader's eyes rather than
+    // dropping them at the head of the catalogue. Flagged here rather than
+    // done here (and never on unmount, which would yank the page the reader is
+    // leaving for) — the scroll itself waits for the unlock effect above.
+    if (autoOpened.current) scrollBack.current = true;
   };
   const openChoices = () => {
     track('service_click', { target: service.id, meta: { category: service.category } });
@@ -93,8 +111,22 @@ export function ExpandableServiceCard({
     setShowRequest(true);
   };
 
+  /**
+   * Deep link (`/services?open=<id>`): the dashboard's "افتح الخدمة" lands on
+   * the whole catalogue with this one card's panel already open on top of it,
+   * so the reader gets the step's service AND everything else behind it —
+   * rather than a bare list they have to hunt through, or a single-service
+   * page with nothing around it. Opens once, so closing it stays closed.
+   */
+  useEffect(() => {
+    if (!autoOpen || autoOpened.current) return;
+    autoOpened.current = true;
+    openCard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+
   return (
-    <div className="esc-scope h-full">
+    <div ref={rootRef} className="esc-scope h-full">
       <button type="button" onClick={openCard} className="esc-compact-card" aria-haspopup="dialog">
         <span className="esc-compact-visual">
           {service.image ? <img src={service.image} alt={title} /> : <AppIcon name={service.icon} />}

@@ -36,6 +36,8 @@ vi.mock('../hooks/useJourney', () => ({
   useJourney: () => journeyState,
   journeyTitle: (_t: unknown, i: JourneyItem) => i.titleAr,
   journeyDesc: (_t: unknown, i: JourneyItem) => i.descriptionAr ?? '',
+  journeyServiceRoute: (i: JourneyItem) =>
+    i.relatedServiceId ? `/services?open=${i.relatedServiceId}` : i.relatedRoute || '/journey',
 }));
 
 vi.mock('../context/AppContext', () => ({ useApp: () => appState }));

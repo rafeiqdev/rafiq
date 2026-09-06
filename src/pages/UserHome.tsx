@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { useJourney, journeyDesc, journeyTitle } from '../hooks/useJourney';
+import { useJourney, journeyDesc, journeyServiceRoute, journeyTitle } from '../hooks/useJourney';
 import { errorMessageKey } from '../lib/errors';
 import { shortSummary } from '../lib/bookingSummary';
 import { bookings as bookingsApi, notifications as notificationsApi, documents as documentsApi } from '../lib/api';
@@ -478,9 +478,10 @@ export function UserHome() {
   // The city-aware "before you sign a lease" tip points at one specific
   // service (notarized rental contracts), not the whole catalogue.
   const rentalContractService = catalogServices.find((s) => s.id === 're-contracts');
-  const cityTipHref = rentalContractService
-    ? `/services?q=${encodeURIComponent(pickText(rentalContractService.title, lang))}`
-    : '/services';
+  // Same "open the card, keep the catalogue" deep link the journey steps use —
+  // a `?q=` title search used to land the reader on every service sharing a
+  // word with this one.
+  const cityTipHref = rentalContractService ? `/services?open=${rentalContractService.id}` : '/services';
 
   // Which services to feature. The answer-driven matcher (serviceRecommend.ts)
   // is preferred whenever it has an opinion — a student, today — because it maps
@@ -625,8 +626,11 @@ export function UserHome() {
               wrap to a second row. Both read as "too big / too much empty
               space" from the same root cause. */}
           <div className="mt-4 flex gap-2">
+            {/* The whole catalogue with this step's own card already open on
+                top of it — not a bare list the reader has to search, and not a
+                lone service page with nothing around it. */}
             <Link
-              to={next.relatedRoute || '/journey'}
+              to={journeyServiceRoute(next)}
               className="btn h-auto min-h-[44px] flex-1 whitespace-normal px-3 text-center bg-white text-navy hover:bg-brand-blue"
             >
               {t('journeyPage.openService')}

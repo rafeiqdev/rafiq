@@ -43,6 +43,16 @@ export function MobileServices() {
     description: t('services.subtitle'),
   });
 
+  // ?open=<serviceId> — a deep link that opens ONE card's panel while the rest
+  // of the catalogue stays underneath it (the dashboard's "افتح الخدمة" uses
+  // it). It never filters the list: the whole catalogue is deliberately
+  // revealed, since the step's own service may sit in a category the trimmed
+  // landing view hides.
+  const openId = params.get('open') ?? '';
+  useEffect(() => {
+    if (openId) setShowAllCategories(true);
+  }, [openId]);
+
   const langCode = (lang || 'en').split('-')[0];
   const isRTL = langCode === 'ar' || langCode === 'fa';
   const mc = mobileCopy[langCode] ?? mobileCopy.en;
@@ -195,7 +205,13 @@ export function MobileServices() {
                     </div>
                     <div className="mt-3.5 flex flex-col gap-3">
                       {items.map((s, i) => (
-                        <ExpandableServiceCard key={s.id} service={s} index={i} categoryTitle={pickText(c.title, lang)} />
+                        <ExpandableServiceCard
+                          key={s.id}
+                          service={s}
+                          index={i}
+                          categoryTitle={pickText(c.title, lang)}
+                          autoOpen={s.id === openId}
+                        />
                       ))}
                     </div>
                   </section>

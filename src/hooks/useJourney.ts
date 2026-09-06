@@ -24,13 +24,29 @@ function categoryOf(e: unknown): ErrorCategory {
   return classifyError(e);
 }
 
-/** Where each default task sends the user (mirrors the seeded rows). */
-const LOCAL_TASK_ROUTE: Record<string, string> = {
-  turkishPhone: '/services',
-  taxNumber: '/services',
-  residencePermit: '/services',
-  bankAccount: '/services',
+/** The catalogue card each default task is about (mirrors related_service_id
+ *  on the seeded rows, so the fallback and the server rows open the same one). */
+const LOCAL_TASK_SERVICE: Record<string, string> = {
+  turkishPhone: 'tel-sim',
+  taxNumber: 'res-tax',
+  residencePermit: 'res-tourist',
+  bankAccount: 'bank-account',
 };
+
+/**
+ * Where a step's "افتح الخدمة" button goes: the full services page with THIS
+ * step's own card already open on top of it. It used to hand over a bare
+ * `/services` (or a `?q=` title search), which dropped the reader into a list
+ * and made them hunt for the service the step had just named.
+ *
+ * Falls back to whatever route the row carries, then to the journey page, so a
+ * step with no service attached still has somewhere to go.
+ */
+export function journeyServiceRoute(item: JourneyItem): string {
+  const serviceId = item.relatedServiceId || LOCAL_TASK_SERVICE[item.taskKey];
+  if (serviceId) return `/services?open=${encodeURIComponent(serviceId)}`;
+  return item.relatedRoute || '/journey';
+}
 
 const LOCAL_ID_PREFIX = 'local-';
 
@@ -47,7 +63,8 @@ function localItems(profile: Profile): JourneyItem[] {
     titleAr: '',
     status: profile.has[key] ? ('done' as const) : ('todo' as const),
     sort: i,
-    relatedRoute: LOCAL_TASK_ROUTE[key],
+    relatedServiceId: LOCAL_TASK_SERVICE[key] ?? null,
+    relatedRoute: '/services',
   }));
 }
 

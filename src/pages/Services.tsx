@@ -53,6 +53,16 @@ export function Services() {
     description: t('services.metaDescription'),
   });
 
+  // ?open=<serviceId> — a deep link that opens ONE card's panel while the rest
+  // of the catalogue stays underneath it (the dashboard's "افتح الخدمة" uses
+  // it). It never filters the list: the whole catalogue is deliberately
+  // revealed, since the step's own service may sit in a category the trimmed
+  // landing view hides.
+  const openId = params.get('open') ?? '';
+  useEffect(() => {
+    if (openId) setShowAllCategories(true);
+  }, [openId]);
+
   const matches = useMemo(() => {
     const nq = normalizeSearch(query);
     const tokens = nq.split(' ').filter((tk) => tk.length >= 2);
@@ -248,7 +258,13 @@ export function Services() {
                 </div>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
                   {items.map((s, i) => (
-                    <ExpandableServiceCard key={s.id} service={s} index={i} categoryTitle={pickText(c.title, lang)} />
+                    <ExpandableServiceCard
+                      key={s.id}
+                      service={s}
+                      index={i}
+                      categoryTitle={pickText(c.title, lang)}
+                      autoOpen={s.id === openId}
+                    />
                   ))}
                 </div>
               </section>
