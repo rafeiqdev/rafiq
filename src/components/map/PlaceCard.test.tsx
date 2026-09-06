@@ -114,7 +114,9 @@ describe('place details', () => {
     show(undefined);
 
     expect(screen.getByText('Beyoğlu, İstanbul')).toBeInTheDocument();
-    expect(screen.getByText('4.4 (210)')).toBeInTheDocument();
+    // rating and review count are separate cells now (count goes through i18n)
+    expect(screen.getByText('4.4')).toBeInTheDocument();
+    expect(screen.getByText('map.card.reviewsCount')).toBeInTheDocument();
     expect(screen.getByText('0212 000 00 00')).toBeInTheDocument();
     expect(screen.getByText('الاثنين: 09:00–22:00')).toBeInTheDocument();
     expect(screen.getByText('map.openNow')).toBeInTheDocument();

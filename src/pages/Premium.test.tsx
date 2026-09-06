@@ -50,6 +50,8 @@ function setup() {
     user: { id: 'u1', name: 'Test', phone: '+905551112233', isAdmin: false },
     authLoading: false,
     tier: 'pro', // lifts the topic quota so it can't interfere
+    // the empty chat offers situation-tailored openers — no situation, no chips
+    profile: { situation: null },
   });
   return render(
     <MemoryRouter>

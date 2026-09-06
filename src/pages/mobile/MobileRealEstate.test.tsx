@@ -71,7 +71,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('../../components/MobileTabBar', () => ({ MobileTabBar: () => <div /> }));
-vi.mock('../../lib/seo', () => ({ usePageMeta: () => {}, SITE_URL: 'https://rafiq.ist', BANNERS: {} }));
+vi.mock('../../lib/seo', () => ({ usePageMeta: () => {}, SITE_URL: 'https://test.invalid', BANNERS: {} }));
 
 import { MobileRealEstate } from './MobileRealEstate';
 

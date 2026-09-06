@@ -52,12 +52,26 @@ vi.mock('../../lib/api', () => ({
       getZoom() {
         return 12;
       }
+      // the map-mode effect switches base layers and tilt on mount
+      setMapTypeId() {}
+      setTilt() {}
+      setZoom() {}
+      panTo() {}
+      fitBounds() {}
       // The map searches as soon as it opens, and that reads the camera centre.
       getCenter() {
         return { lat: () => 41.0151, lng: () => 28.9795 };
       }
     },
     event: { addListenerOnce: () => ({ remove() {} }), trigger: () => {} },
+    // the transit/traffic overlays are created on mount and attached only in
+    // their own map mode — inert here
+    TransitLayer: class {
+      setMap() {}
+    },
+    TrafficLayer: class {
+      setMap() {}
+    },
   },
 };
 
