@@ -241,21 +241,58 @@ export function useChatAssistant() {
     setInputState(value);
   };
 
+  /** Live recognition session, so a second tap on the mic stops it. */
+  const recognitionRef = useRef<any>(null);
+
+  const stopVoice = () => {
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    setListening(false);
+    if (!recognition) return;
+    try {
+      recognition.stop();
+    } catch {
+      /* already ended */
+    }
+  };
+
   const startVoice = () => {
-    if (!SR || listening || inputLocked || speaking) return;
+    // Tapping the mic while it is already listening stops it, rather than
+    // leaving the button stuck red with no way back.
+    if (listening) {
+      stopVoice();
+      return;
+    }
+    if (!SR || inputLocked || speaking) return;
     stopSpeaking();
     setError(null);
     const recognition = new SR();
     recognition.lang = SPEECH_LANG[i18n.language] ?? 'en-US';
     recognition.interimResults = false;
     recognition.onresult = (event: any) => setInputState(event.results[0][0].transcript);
-    recognition.onend = () => setListening(false);
-    recognition.onerror = (event: any) => {
+    recognition.onend = () => {
+      recognitionRef.current = null;
       setListening(false);
+    };
+    recognition.onerror = (event: any) => {
+      recognitionRef.current = null;
+      setListening(false);
+      // 'aborted' is the user stopping it themselves, and 'no-speech' just
+      // means they said nothing — neither is a failure worth an error banner.
+      if (event?.error === 'aborted' || event?.error === 'no-speech') return;
       setError(event?.error === 'not-allowed' ? 'chat.voiceErrorPermission' : 'chat.voiceErrorGeneric');
     };
+    // start() throws synchronously when the browser refuses outright (blocked
+    // by policy, insecure origin, a session already running) — without this the
+    // button would latch on "listening" forever.
+    try {
+      recognition.start();
+    } catch {
+      setError('chat.voiceErrorGeneric');
+      return;
+    }
+    recognitionRef.current = recognition;
     setListening(true);
-    recognition.start();
   };
 
   const persistMedia = (next: BookingMedia[]) => {
