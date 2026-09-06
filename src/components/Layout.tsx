@@ -1,13 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import { hardScrollToTop } from './ScrollToTop';
+import { hardScrollToTop, ScrollToTop } from './ScrollToTop';
+import { RafiqLoaderScreen } from './RafiqLoader';
 
 /**
  * Second line of defence for "the next page opens scrolled to the bottom".
  *
- * <ScrollToTop/> (in App.tsx) resets the offset when the URL changes, but on a
+ * <ScrollToTop/> (rendered below) resets the offset when the route changes, but on a
  * first visit to a lazy page that moment is the Suspense fallback, not the
  * page: the real content commits later, and a phone can carry the previous
  * page's offset into it. This sits INSIDE the route wrapper that is keyed by
@@ -251,7 +252,9 @@ export function Layout() {
     bookings.newCount().then(setNewBookings).catch(() => {});
     serviceRequests.newCount().then(setNewRequests).catch(() => {});
     leads.newCount().then(setNewLeads).catch(() => {});
-  }, [user]);
+    // re-counted on every navigation, so the badge stays fresh while the admin
+    // moves around the site (Layout no longer remounts per route)
+  }, [user, location.pathname]);
 
   // P3-6: generic, per-language document title + meta description — the
   // fallback for any route that doesn't set its own via usePageMeta() (or one
@@ -286,9 +289,13 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Inside the route tree on purpose: the page transition holds the
+          rendered route a beat behind the URL while the next chunk loads, and
+          the scroll reset must follow the rendered page, not the URL. */}
+      <ScrollToTop />
       {!hideChrome && <TopRatesBar />}
       {!hideChrome && (
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-cream-dark">
+      <header className="site-header sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-cream-dark">
         <div className="mx-auto max-w-6xl px-4 h-16 flex items-center gap-2 sm:gap-4">
           <Link to="/" className="flex items-center shrink-0" aria-label={t('common.appName')}>
             <Logo size={30} />
@@ -470,12 +477,19 @@ export function Layout() {
       </header>
       )}
 
-      <main className="flex-1">
-        {/* keyed by pathname so the entrance animation replays on every navigation */}
-        <div key={location.pathname} className="route-fade">
-          <RouteScrollReset />
-          <Outlet />
-        </div>
+      {/* site-main / site-header: the page transition (PageTransitionRoutes +
+          the ::view-transition rules in index.css) slides <main> and keeps the
+          header still. The Suspense boundary sits INSIDE the chrome so a page
+          whose code is still downloading shows the loader in the content area
+          with the header and footer in place, not a blank full-screen swap. */}
+      <main className="site-main flex-1">
+        <Suspense fallback={<RafiqLoaderScreen />}>
+          {/* keyed by pathname so the entrance animation replays on every navigation */}
+          <div key={location.pathname} className="route-fade">
+            <RouteScrollReset />
+            <Outlet />
+          </div>
+        </Suspense>
       </main>
 
 

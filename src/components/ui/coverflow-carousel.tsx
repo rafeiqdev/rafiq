@@ -16,7 +16,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { GradientBackground } from "@/components/ui/oceanic-glow";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { routePathFromHref } from "@/lib/routePreload";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 export interface ServiceSlide {
@@ -102,6 +104,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   ...props
 }) => {
   const { language, dir, isRtl, t } = useLanguage();
+  const navigate = useNavigate();
 
   const activeSlides: ServiceSlide[] = useMemo(() => {
     if (customSlides && customSlides.length > 0) return customSlides;
@@ -537,7 +540,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                           e.stopPropagation();
                           if (isDraggingRef.current || dragDistanceRef.current > 6) return;
                           e.preventDefault();
-                          window.location.href = slide.href;
+                          // through the router (same page transition as every
+                          // <Link>) — a full reload flashed white and re-fetched
+                          // the whole app; href stays as the keyboard fallback
+                          const internal = routePathFromHref(slide.href);
+                          if (internal) navigate(internal.path + internal.url.search + internal.url.hash);
+                          else window.location.href = slide.href;
                         }}
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`${t.common.requestService}: ${slide.title}`}

@@ -362,6 +362,140 @@ html[dir='rtl'] li {
   animation: routeIn 0.35s ease both;
 }
 
+/* ── Cross-page transitions (View Transitions API) ──
+   Driven by src/components/PageTransitionRoutes.tsx: it fetches the next
+   page's code, then swaps the route inside document.startViewTransition().
+   The browser animates SNAPSHOTS in its own top layer — never the live DOM —
+   so, unlike .route-fade above, a transform here can never become the
+   containing block of a page's position:fixed bars. Three named groups:
+     rafiq-page   <main>          slides + fades (direction-aware)
+     rafiq-header site header     stays perfectly still
+     rafiq-tabbar mobile tab bar  stays perfectly still
+   Everything else (footer, banners) gets the browser's plain cross-fade.
+   Browsers without the API keep the .route-fade entrance; with it, that
+   entrance is switched off (html.vt) so nothing animates twice. */
+.site-main {
+  view-transition-name: rafiq-page;
+}
+.site-header {
+  view-transition-name: rafiq-header;
+}
+[data-mobile-tabbar] {
+  view-transition-name: rafiq-tabbar;
+}
+html.vt .route-fade {
+  animation: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+}
+
+/* Chrome that exists on both pages must not cross-fade with itself: the new
+   snapshot simply sits on top of the old one, opaque, for the whole transition. */
+::view-transition-old(rafiq-header),
+::view-transition-new(rafiq-header),
+::view-transition-old(rafiq-tabbar),
+::view-transition-new(rafiq-tabbar) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(rafiq-page) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-old(rafiq-page),
+::view-transition-new(rafiq-page) {
+  mix-blend-mode: normal;
+}
+::view-transition-old(rafiq-page) {
+  animation: rafiqPageOut 0.16s cubic-bezier(0.4, 0, 1, 1) both;
+}
+::view-transition-new(rafiq-page) {
+  animation: rafiqPageIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* Back / forward reverse the drift so the page feels like it returns. */
+html[data-nav-direction='back'] ::view-transition-old(rafiq-page) {
+  animation-name: rafiqPageOutBack;
+}
+html[data-nav-direction='back'] ::view-transition-new(rafiq-page) {
+  animation-name: rafiqPageInBack;
+}
+@keyframes rafiqPageOut {
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+@keyframes rafiqPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+@keyframes rafiqPageOutBack {
+  to {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes rafiqPageInBack {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* ── Navigation progress bar (src/components/NavProgress.tsx) ──
+   Only appears when the next page's code takes longer than a blink to arrive. */
+.nav-progress {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  inset-inline: 0;
+  height: 3px;
+  z-index: 80;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--navy), var(--navy-light));
+  box-shadow: 0 0 10px rgba(26, 58, 107, 0.45);
+}
+[dir='rtl'] .nav-progress {
+  transform-origin: 100% 50%;
+}
+.nav-progress--loading {
+  animation: navProgressCreep 1.8s cubic-bezier(0.1, 0.7, 0.25, 1) both;
+}
+.nav-progress--done {
+  animation: navProgressDone 0.5s ease-out both;
+}
+@keyframes navProgressCreep {
+  from {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(0.65);
+  }
+  to {
+    transform: scaleX(0.9);
+  }
+}
+@keyframes navProgressDone {
+  from {
+    transform: scaleX(0.9);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
 /* ---- deep-link spotlight ----
    Arriving from a link like /profile#locker: the section that was asked for
    stays sharp and gets a ring, everything around it blurs back for a few
@@ -804,6 +938,12 @@ html[dir='rtl'] li {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* page transitions: the swap happens, nothing moves */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
   .animate-fade-up,
   .animate-fade-in,
   .stagger > *,
