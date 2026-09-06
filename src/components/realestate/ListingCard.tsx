@@ -44,28 +44,21 @@ export function ListingPhoto({ listing, index, className = 'h-44' }: { listing: 
 }
 
 /**
- * The citizenship badge. There are only two states on purpose — "meets the
- * threshold" and "unverified". We never render a negative "not eligible"
- * badge: the underlying data is scraped, so a false there means nobody
- * checked, and telling a buyer a property is ineligible on that basis would
- * be a claim we cannot stand behind.
- *
- * Trust-first colors: a verified listing gets a confident green "go" signal,
- * while an unchecked one gets a neutral white badge that invites Rafiq to
- * verify it — never an alarming red or a dark "unknown" stamp.
+ * The citizenship badge — a single positive state. A listing that meets the
+ * threshold gets a green "go" signal; an unverified one gets no badge at all.
+ * We never render a negative "not eligible" badge (the underlying data is
+ * scraped, so a false there means nobody checked), and the old neutral
+ * "unknown" badge stamped that non-answer onto every other photo for no gain
+ * — the citizenship row on the detail sheet still states it.
  */
 export function CitizenshipBadge({ listing, small = false }: { listing: Listing; small?: boolean }) {
   const { t } = useTranslation();
   const size = small ? 'text-[10px] px-2 py-0.5' : 'text-[11px] px-2.5 py-1';
-  return listing.citizenship ? (
+  if (!listing.citizenship) return null;
+  return (
     <span className={`inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white font-bold shadow-soft ${size}`}>
       <AppIcon name="check" className="w-3 h-3" />
       {t('realEstate.citizenshipBadge')}
-    </span>
-  ) : (
-    <span className={`inline-flex items-center gap-1 rounded-full bg-white/95 text-navy font-bold shadow-soft ${size}`}>
-      <AppIcon name="shield-check" className="w-3 h-3" />
-      {t('realEstate.citizenshipUnknown')}
     </span>
   );
 }
