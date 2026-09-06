@@ -5,8 +5,10 @@ import { LANGS } from '../lib/types';
 import type { Lang } from '../lib/types';
 import { AppIcon } from './AppIcon';
 
-/** Header language switcher with listbox semantics, outside-click and Escape close. */
-export function LangSwitcher({ dropUp = false }: { dropUp?: boolean }) {
+/** Header language switcher with listbox semantics, outside-click and Escape close.
+ *  `chipSize` swaps the labelled pill for a square icon chip of that edge length —
+ *  the shape NotificationBell draws, so the two sit side by side as siblings. */
+export function LangSwitcher({ dropUp = false, chipSize }: { dropUp?: boolean; chipSize?: number }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -26,17 +28,24 @@ export function LangSwitcher({ dropUp = false }: { dropUp?: boolean }) {
     };
   }, [open]);
 
+  const chip = typeof chipSize === 'number';
+
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="btn-secondary h-9 px-3 text-xs"
+        className={
+          chip
+            ? 'inline-flex shrink-0 items-center justify-center bg-navy-50 text-navy hover:bg-navy-100 transition-transform active:scale-95'
+            : 'btn-secondary h-9 px-3 text-xs'
+        }
+        style={chip ? { width: chipSize, height: chipSize, borderRadius: chipSize / 3 } : undefined}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t('common.language')}
       >
-        <AppIcon name="globe" className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{current.native}</span>
+        <AppIcon name="globe" className={chip ? 'w-[18px] h-[18px]' : 'w-3.5 h-3.5'} />
+        {!chip && <span className="hidden sm:inline">{current.native}</span>}
       </button>
       {open && (
         <ul

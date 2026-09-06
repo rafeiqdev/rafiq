@@ -21,6 +21,7 @@ import { MobileTabBar } from '../components/MobileTabBar';
 import { NewsSection } from '../components/sections/NewsSection';
 import { RealEstateSection } from '../components/sections/RealEstateSection';
 import { NotificationBell } from '../components/NotificationBell';
+import { LangSwitcher } from '../components/LangSwitcher';
 import { RafiqLoaderScreen } from '../components/RafiqLoader';
 import { useIsMobile } from '../hooks/useIsMobile';
 import type { AppNotification, Booking, JourneyItem, JourneyTaskKey, StoredDocument } from '../lib/types';
@@ -547,6 +548,10 @@ export function UserHome() {
             header (Layout) already carries a NotificationBell there, so a second
             one here was a visible duplicate. On phones the Layout header is
             hidden for '/', so this stays the ONLY bell — hence isMobile-gated. */}
+        {/* The language chip rides next to the bell (phones only, same reason:
+            the Layout header that carries a switcher is hidden for '/'). Drawn
+            at the bell's exact size/radius so the two read as one pair. */}
+        {isMobile && <LangSwitcher chipSize={38} />}
         {isMobile && <NotificationBell size={38} className="shrink-0" />}
       </header>
 
