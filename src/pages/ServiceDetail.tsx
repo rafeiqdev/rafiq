@@ -10,6 +10,7 @@ import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
 import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
 import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
+import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
 import { usePageMeta } from '../lib/seo';
 
 function copyFor(language: string) {
@@ -96,22 +97,6 @@ function copyFor(language: string) {
     readLess: 'عرض أقل',
   };
 }
-
-/**
- * Fallback hero photo per category, used only when a service has no admin-set
- * image of its own. Each service normally shows its OWN photo (`service.image`,
- * set per service in the admin panel); this map just keeps the header looking
- * intentional for the few services/categories that don't have one yet. A
- * category absent here simply falls back to the plain blue gradient.
- */
-const CATEGORY_HERO_IMAGE: Record<string, string> = {
-  residency: '/images/services/official/residence.webp',
-  realestate: '/images/services/official/real-estate.webp',
-  tourism: '/images/services/official/tourism.webp',
-  translation: '/images/services/official/translation.webp',
-  banking: '/images/services/official/banking.webp',
-  health: '/images/services/official/health.webp',
-};
 
 /** Renders "**bold**" spans within a line; everything else passes through as-is. */
 function renderInline(text: string) {
