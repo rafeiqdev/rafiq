@@ -132,15 +132,11 @@ export function RealEstateSection({
 
   return (
     <section className={className ?? `mx-auto max-w-6xl px-4 ${compact ? 'py-8' : 'py-14'}`}>
-      {/* Deliberately quiet: one photo, one line, one button. The earlier
-          version stacked an icon badge, a paragraph, three pills and a legal
-          note on top of the image and read as clutter — citizenship filters
-          and investments live on /real-estate itself. */}
-      {/* Full-bleed: symmetric negative inline margins pull the banner out to
-          the viewport edges (the root clips horizontal overflow, so this can
-          never create a sideways scroll). `left`/`translate` centring was
-          tried first and drifted off-centre under RTL — margins stay
-          direction-agnostic. */}
+      {/* One photo band, wearing the /services hero curve on BOTH edges (the
+          bottom curve mirrored along the top). Full-bleed via symmetric
+          negative inline margins — the root clips horizontal overflow, so
+          100vw can never create a sideways scroll, and margins stay correct
+          under RTL where `left`/`translate` centring drifted off-centre. */}
       <div
         className="relative overflow-hidden text-white"
         style={{
@@ -151,40 +147,27 @@ export function RealEstateSection({
       >
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
           <defs>
-            <clipPath id="homeRealEstateCurve" clipPathUnits="objectBoundingBox">
-              <path d="M0,0 H1 V0.86 C0.77,0.86 0.63,1 0.46,1 C0.29,1 0.17,0.88 0,0.86 Z" />
-            </clipPath>
-            {/* The band itself is a shallow parallelogram — top and bottom
-                edges both tilt by the same amount, so it sits on the page at
-                a slight angle instead of as a flat rectangle. */}
             <clipPath id="homeRealEstateBand" clipPathUnits="objectBoundingBox">
-              <path d="M0,0.035 L1,0 L1,0.965 L0,1 Z" />
+              <path d="M0,0.07 C0.17,0.06 0.29,0 0.46,0 C0.63,0 0.77,0.07 1,0.07 V0.93 C0.77,0.93 0.63,1 0.46,1 C0.29,1 0.17,0.94 0,0.93 Z" />
             </clipPath>
           </defs>
         </svg>
 
-        {/* Photo band with the same curved bottom edge as /services and the
-            investments index. */}
-        <div className="relative" style={{ clipPath: 'url(#homeRealEstateCurve)' }}>
-          <img
-            src={BANNERS.realEstate}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-          />
-          <span className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/25" />
-          <div className="relative px-5 sm:px-7 pt-12 sm:pt-16 pb-14 sm:pb-20 text-center">
-            <span className="block text-2xl sm:text-3xl font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">
-              {t('realEstate.home.title')}
-            </span>
-          </div>
-        </div>
-
-        <div className="relative flex justify-center px-5 pb-6 sm:px-7">
+        <img
+          src={BANNERS.realEstate}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+        <span className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/40" />
+        <div className="relative px-5 sm:px-7 pt-14 sm:pt-20 pb-14 sm:pb-20 text-center">
+          <span className="block text-2xl sm:text-3xl font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+            {t('realEstate.home.title')}
+          </span>
           <Link
             to="/real-estate"
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white px-5 text-sm font-bold text-navy transition-transform hover:-translate-y-0.5"
+            className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white px-5 text-sm font-bold text-navy transition-transform hover:-translate-y-0.5"
           >
             {t('realEstate.home.cta')}
             <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
