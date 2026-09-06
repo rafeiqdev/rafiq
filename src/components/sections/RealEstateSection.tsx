@@ -132,14 +132,11 @@ export function RealEstateSection({
 
   return (
     <section className={className ?? `mx-auto max-w-6xl px-4 ${compact ? 'py-8' : 'py-14'}`}>
-      {/* Trust-first banner: a plain container (not one big link) so the three
-          shortcut pills below are real, tappable links to real destinations.
-          The previous version rendered them as dead spans — visitors tapped
-          and nothing happened. */}
-      <div
-        className="relative overflow-hidden rounded-card text-white shadow-card"
-        style={{ background: 'linear-gradient(135deg,#12305c,#1a3a6b)' }}
-      >
+      {/* Deliberately quiet: one photo, one line, one button. The earlier
+          version stacked an icon badge, a paragraph, three pills and a legal
+          note on top of the image and read as clutter — citizenship filters
+          and investments live on /real-estate itself. */}
+      <div className="relative overflow-hidden rounded-card text-white shadow-card" style={{ background: '#12305c' }}>
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
           <defs>
             <clipPath id="homeRealEstateCurve" clipPathUnits="objectBoundingBox">
@@ -148,9 +145,8 @@ export function RealEstateSection({
           </defs>
         </svg>
 
-        {/* Photo band with the same curved bottom edge as the /services and
-            /real-estate/investments heroes — title and body sit on the photo,
-            everything actionable sits on the navy below it. */}
+        {/* Photo band with the same curved bottom edge as /services and the
+            investments index. */}
         <div className="relative" style={{ clipPath: 'url(#homeRealEstateCurve)' }}>
           <img
             src={BANNERS.realEstate}
@@ -159,54 +155,18 @@ export function RealEstateSection({
             className="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
           />
-          <span className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/55 to-black/30" />
-          <div className="relative px-5 sm:px-7 pt-8 sm:pt-10 pb-14 sm:pb-16 text-center">
-            <span
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur"
-              aria-hidden="true"
-            >
-              <AppIcon name="shield-check" className="w-5 h-5" />
-            </span>
-            <span className="mt-3 block text-xl sm:text-2xl font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">
+          <span className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/45 to-black/25" />
+          <div className="relative px-5 sm:px-7 pt-12 sm:pt-16 pb-14 sm:pb-20 text-center">
+            <span className="block text-2xl sm:text-3xl font-extrabold drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]">
               {t('realEstate.home.title')}
-            </span>
-            <span className="mx-auto mt-2 block max-w-xl text-sm text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
-              {t('realEstate.home.body')}
             </span>
           </div>
         </div>
 
-        <div className="relative px-5 sm:px-7 pb-5">
-          <nav className="flex flex-wrap justify-center gap-2" aria-label={t('realEstate.home.title')}>
-            <Link
-              to="/real-estate"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
-            >
-              <AppIcon name="shield-check" className="w-3.5 h-3.5" />
-              {t('realEstate.home.tag.citizenship')}
-            </Link>
-            <Link
-              to="/real-estate/investments"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
-            >
-              <AppIcon name="trending-up" className="w-3.5 h-3.5" />
-              {t('realEstate.home.tag.invest')}
-            </Link>
-            <Link
-              to="/real-estate"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/25"
-            >
-              <AppIcon name="sliders-horizontal" className="w-3.5 h-3.5" />
-              {t('realEstate.home.tag.filters')}
-            </Link>
-          </nav>
-          <p className="mx-auto mt-3 flex max-w-2xl items-start justify-center gap-1.5 text-center text-xs leading-snug text-white/75">
-            <AppIcon name="lock" className="w-3.5 h-3.5 mt-px shrink-0" />
-            {t('realEstate.trustNote')}
-          </p>
+        <div className="relative flex justify-center px-5 pb-6 sm:px-7">
           <Link
             to="/real-estate"
-            className="mx-auto mt-4 flex h-11 w-full max-w-xs items-center justify-center gap-1.5 rounded-btn bg-white font-bold text-navy transition-transform hover:-translate-y-0.5"
+            className="flex h-11 w-full max-w-xs items-center justify-center gap-1.5 rounded-btn bg-white font-bold text-navy transition-transform hover:-translate-y-0.5"
           >
             {t('realEstate.home.cta')}
             <AppIcon name="arrow-right" className="w-4 h-4 dir-arrow" />
