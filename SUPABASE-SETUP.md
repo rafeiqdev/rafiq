@@ -57,14 +57,19 @@ BOTH, in order, in SQL Editor:
 2. **`supabase/migrations/20260728_news_telegram_sync.sql`** — adds the sync columns
    (`tg_id` unique, `image_url`, `source`).
 
-Then in **/admin → the news card**: paste the PUBLIC channel link (`https://t.me/<name>`) and
-save — the server function (`api/cron/telegram-sync.ts`) immediately pulls the latest 5 posts
-(photo + text, with the channel's own links scrubbed out of the text) and re-syncs daily at
-06:35 UTC via Vercel cron. "Sync now" re-runs it on demand. Requirements: the channel must be
-**public** (private channels have no readable web page), and Vercel must have
-`SUPABASE_SERVICE_ROLE_KEY` (already required by the FX cron) — `CRON_SECRET` protects the
-scheduled runs. Until the migrations run, the home section stays hidden and the admin card
-shows a load error.
+Both migrations are still the right ones after the move off Telegram: the RSS sync reuses
+`tg_id` as its idempotency key (`rss:<host>:<hash>`) and `source` (now `'rss'`), so **no new
+migration is needed**.
+
+The news card in **/admin** lists the feeds the sync reads; an empty list means the built-in
+Turkish tourism sources. The server function (`api/cron/news-sync.ts`) fetches them, has Gemini
+drop every story that isn't useful travel/living news for an Arabic-speaking visitor, translates
+what survives into ar/en/ru/fa, and files it **unpublished** — the owner publishes each item.
+It runs daily at 06:35 UTC via Vercel cron; "Sync now" re-runs it on demand. Requirements:
+Vercel must have `SUPABASE_SERVICE_ROLE_KEY` (already required by the FX cron) and
+`GEMINI_API_KEY` (already required by the chat) — without the latter the sync refuses to run
+rather than importing unscreened headlines. `CRON_SECRET` protects the scheduled runs. Until
+the migrations run, the home section stays hidden and the admin card shows a load error.
 
 ### CRITICAL — run now: close the free-upgrade hole
 Card checkout used an RPC `checkout_card_demo` that activated Pro/Elite **with no payment and no

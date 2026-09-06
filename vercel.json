@@ -26,7 +26,7 @@
   ],
   "crons": [
     { "path": "/api/cron/rates-sync", "schedule": "5 6 * * *" },
-    { "path": "/api/cron/telegram-sync", "schedule": "35 6 * * *" }
+    { "path": "/api/cron/news-sync", "schedule": "35 6 * * *" }
   ],
   "headers": [
     {
@@ -46,7 +46,7 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com https://*.ggpht.com https://www.google-analytics.com https://*.cdn-telegram.org https://*.telesco.pe https://i0.shbdn.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://maps.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com https://*.ggpht.com https://www.google-analytics.com https://*.cdn-telegram.org https://*.telesco.pe https://i0.shbdn.com https://image.hurimg.com https://cdnuploads.aa.com.tr https://www.turizmgunlugu.com https://www.turizmajansi.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://maps.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
     }

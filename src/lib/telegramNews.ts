@@ -1,30 +1,22 @@
 /**
- * Parsing + scrubbing for the Telegram channel sync (pure functions, no I/O —
- * the Vercel function api/cron/telegram-sync.ts does the fetching/writing,
- * telegramNews.test.ts pins the behaviour here).
+ * Parsing + scrubbing for the retired Telegram channel mirror (pure
+ * functions, no I/O — telegramNews.test.ts pins the behaviour here).
  *
- * Source: the public web preview at https://t.me/s/<channel>. Telegram has no
- * supported feed API for browsers, but every PUBLIC channel serves this HTML
- * page with its recent posts — text, photo, permalink, timestamp. Private
- * channels have no such page and cannot be synced this way.
+ * News now comes from api/cron/news-sync.ts, which reads tourism feeds
+ * instead of a channel. This file stays because the posts that mirror left
+ * behind are still in news_posts: postRef()/parsePostPhotoUrl() are what
+ * /api/news-photo re-resolves their (expiring) photos with, and the pages
+ * call postRef() to route those older cards' images through it.
+ *
+ * Source was the public web preview at https://t.me/s/<channel>. Telegram has
+ * no supported feed API for browsers, but every PUBLIC channel serves that
+ * HTML page with its recent posts — text, photo, permalink, timestamp.
  *
  * The scrubbing exists because channels sign their posts with their own
  * links ("t.me/channel", "@channel", "join us: …"). Those must not appear on
  * the site: trailing signature lines are dropped entirely, and any Telegram
  * link or @mention that still remains mid-text is removed.
  */
-
-export interface TgPost {
-  /** "channel/123" — stable id used for idempotent upserts. */
-  tgId: string;
-  /** Scrubbed plain text (may be empty for photo-only posts). */
-  text: string;
-  imageUrl: string | null;
-  /** Permalink to the original post. */
-  url: string;
-  /** ISO timestamp of the post. */
-  createdAt: string | null;
-}
 
 /** Minimal HTML-entity decode for the subset t.me actually emits. */
 function decodeEntities(s: string): string {
@@ -37,17 +29,6 @@ function decodeEntities(s: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&#039;|&apos;/g, "'")
     .replace(/&nbsp;/g, ' ');
-}
-
-/** Message text HTML -> plain text with newlines. */
-function htmlToText(html: string): string {
-  return decodeEntities(
-    html
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, ''),
-  )
-    .replace(/\r/g, '')
-    .trim();
 }
 
 const TG_LINK = /(?:https?:\/\/)?(?:t\.me|telegram\.me|telegram\.org)\/[\w+/-]+/gi;
@@ -106,46 +87,6 @@ export function scrubText(raw: string): string {
     .trim();
 }
 
-/** First line becomes the card title (bounded), the rest the body. */
-export function splitTitleBody(text: string): { title: string; body: string | null } {
-  const [first = '', ...rest] = text.split('\n').filter((l) => l.trim() !== '');
-  const title = first.length > 140 ? `${first.slice(0, 139).trimEnd()}…` : first;
-  const body = rest.join('\n').trim();
-  return { title, body: body || null };
-}
-
-/**
- * Extract the messages from a t.me/s/<channel> page, oldest first (the page
- * lists them oldest-to-newest already). Regex-based on purpose: the edge
- * runtime has no DOM parser, and the four fields used here have been stable
- * in Telegram's markup for years. A markup change degrades to "no posts
- * parsed", which the caller reports loudly rather than writing garbage.
- */
-export function parseChannelPage(html: string): TgPost[] {
-  const posts: TgPost[] = [];
-  const anchors = [...html.matchAll(/data-post="([^"]+)"/g)];
-  for (let i = 0; i < anchors.length; i++) {
-    const tgId = anchors[i][1];
-    const start = anchors[i].index ?? 0;
-    const end = i + 1 < anchors.length ? (anchors[i + 1].index ?? html.length) : html.length;
-    const block = html.slice(start, end);
-
-    const textMatch = /class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/.exec(block);
-    const photoMatch = /class="tgme_widget_message_photo_wrap[^"]*"[^>]*background-image:url\('([^']+)'\)/.exec(block);
-    const timeMatch = /<time[^>]*datetime="([^"]+)"/.exec(block);
-
-    posts.push({
-      tgId,
-      text: textMatch ? scrubText(htmlToText(textMatch[1])) : '',
-      imageUrl: photoMatch ? decodeEntities(photoMatch[1]) : null,
-      url: `https://t.me/${tgId}`,
-      createdAt: timeMatch ? timeMatch[1] : null,
-    });
-  }
-  // service messages (joins, pins) have neither text nor photo — skip them
-  return posts.filter((p) => p.text !== '' || p.imageUrl !== null);
-}
-
 /**
  * "https://t.me/akhbarturkiye/50202" -> "akhbarturkiye/50202".
  *
@@ -178,11 +119,4 @@ export function parsePostPhotoUrl(html: string): string | null {
   if (!m) return null;
   const url = decodeEntities(m[1]);
   return TG_CDN_HOST.test(url) ? url : null;
-}
-
-/** "https://t.me/rafiq_ist" | "t.me/s/rafiq_ist" | "@rafiq_ist" -> "rafiq_ist" */
-export function channelSlug(channelUrl: string): string | null {
-  const m = /^(?:https?:\/\/)?(?:t\.me|telegram\.me)\/(?:s\/)?([A-Za-z]\w{3,31})\/?$/.exec(channelUrl.trim()) ??
-    /^@([A-Za-z]\w{3,31})$/.exec(channelUrl.trim());
-  return m ? m[1] : null;
 }

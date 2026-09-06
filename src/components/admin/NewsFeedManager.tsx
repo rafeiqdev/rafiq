@@ -1,30 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiError, news } from '../../lib/api';
+import { normalizeFeedUrl } from '../../lib/rssNews';
 import { AppIcon } from '../AppIcon';
 import { SectionState } from '../SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
 import { ConfirmActionModal } from './ConfirmActionModal';
 
 /**
- * The sync endpoint reports WHY it failed (no channel saved, Telegram down,
- * channel private, server env missing, wrong account, or — in local dev —
- * the Vercel function simply not existing behind Vite's /api proxy). A
- * generic "something went wrong" hid all of that from the owner; map each
- * failure to its own instruction instead.
+ * The sync endpoint reports WHY it failed (sources down, nothing readable in
+ * them, the screening model unavailable, server env missing, wrong account,
+ * or — in local dev — the Vercel function simply not existing behind Vite's
+ * /api proxy). A generic "something went wrong" hid all of that from the
+ * owner; map each failure to its own instruction instead.
  */
 function syncErrorKey(e: unknown): string {
   if (e instanceof ApiError) {
     // Vite proxies /api to the legacy Express server, which has no
-    // cron/telegram-sync route — the function only exists on Vercel.
+    // cron/news-sync route — the function only exists on Vercel.
     if (e.status === 404 || e.status === 405) return 'admin.newsFeed.errors.devOnly';
     switch (e.code) {
-      case 'no_channel':
-        return 'admin.newsFeed.errors.noChannel';
-      case 'telegram_unreachable':
+      case 'feeds_unreachable':
         return 'admin.newsFeed.errors.unreachable';
-      case 'no_posts_parsed':
+      case 'no_items_parsed':
         return 'admin.newsFeed.errors.noPosts';
+      case 'ai_unavailable':
+        return 'admin.newsFeed.errors.aiUnavailable';
       case 'not_configured':
         return 'admin.newsFeed.errors.notConfigured';
       case 'db_error':
@@ -40,17 +41,20 @@ function syncErrorKey(e: unknown): string {
 
 /**
  * The PUBLIC news feed on the home page (distinct from the bell broadcasts,
- * which reach signed-in users only). Paste the PUBLIC channel's link and the
- * server pulls its latest posts — picture and text, with the channel's own
- * links scrubbed out — immediately on save/"sync now" and again daily by
- * cron. The manual form below stays for one-off items with no Telegram post.
+ * which reach signed-in users only). The server reads the tourism sources
+ * listed here, has a model throw out anything that isn't useful travel/living
+ * news for an Arabic-speaking visitor, translates what survives into all four
+ * site languages, and files it as a DRAFT — nothing appears on the home page
+ * until it is published below. Empty list = the built-in sources. The manual
+ * form stays for one-off items with no article behind them.
  */
 export function NewsFeedManager() {
   const { t, i18n } = useTranslation();
   const postsSec = useAsyncSection(() => news.adminList(), []);
 
-  const [channel, setChannel] = useState('');
-  const [channelSaved, setChannelSaved] = useState(false);
+  const [sources, setSources] = useState<string[]>([]);
+  const [newSource, setNewSource] = useState('');
+  const [sourcesSaved, setSourcesSaved] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [url, setUrl] = useState('');
@@ -76,7 +80,7 @@ export function NewsFeedManager() {
   };
 
   useEffect(() => {
-    news.telegramChannel().then((c) => setChannel(c ?? ''), () => {});
+    news.sources().then(setSources, () => {});
   }, []);
 
   const sync = async () => {
@@ -92,14 +96,31 @@ export function NewsFeedManager() {
     }
   };
 
-  const saveChannel = async () => {
+  const addSource = () => {
+    const url = normalizeFeedUrl(newSource);
+    if (!url) {
+      setError('admin.newsFeed.errors.badFeed');
+      return;
+    }
     setError(null);
-    setChannelSaved(false);
+    setSourcesSaved(false);
+    setSources((list) => (list.includes(url) ? list : [...list, url]));
+    setNewSource('');
+  };
+
+  const removeSource = (url: string) => {
+    setSourcesSaved(false);
+    setSources((list) => list.filter((s) => s !== url));
+  };
+
+  const saveSources = async () => {
+    setError(null);
+    setSourcesSaved(false);
     try {
-      await news.setTelegramChannel(channel);
-      setChannelSaved(true);
-      // a fresh link should show results immediately, not tomorrow at cron time
-      if (channel.trim()) await sync();
+      await news.setSources(sources);
+      setSourcesSaved(true);
+      // a changed list should show results immediately, not tomorrow at cron time
+      await sync();
     } catch {
       setError('common.error');
     }
@@ -153,40 +174,66 @@ export function NewsFeedManager() {
       </h2>
       <p className="mt-1 text-xs text-gray-500">{t('admin.newsFeed.hint')}</p>
 
-      {/* the channel behind the "follow us on Telegram" button */}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <label htmlFor="news-channel" className="text-xs font-semibold text-navy/85">
-          {t('admin.newsFeed.channel')}
-        </label>
-        <input
-          id="news-channel"
-          className="input flex-1 min-w-[220px]"
-          dir="ltr"
-          placeholder="https://t.me/your_channel"
-          value={channel}
-          onChange={(e) => {
-            setChannel(e.target.value);
-            setChannelSaved(false);
-          }}
-        />
-        <button onClick={saveChannel} className="btn-secondary h-10 px-4 text-xs">
-          <AppIcon name="save" className="w-3.5 h-3.5" />
-          {t('common.save')}
-        </button>
-        <button onClick={() => setConfirmSync(true)} disabled={syncState === 'busy'} className="btn-primary h-10 px-4 text-xs disabled:opacity-60">
-          <AppIcon name="send" className="w-3.5 h-3.5" />
-          {t('admin.newsFeed.sync')}
-        </button>
-        {channelSaved && (
-          <span role="status" className="text-xs font-semibold text-emerald-700">
-            {t('admin.newsFeed.channelSaved')}
-          </span>
+      {/* the sources api/cron/news-sync.ts reads */}
+      <div className="mt-4">
+        <p className="text-xs font-semibold text-navy/85">{t('admin.newsFeed.sources')}</p>
+        {sources.length === 0 ? (
+          <p className="mt-1 text-xs text-gray-500">{t('admin.newsFeed.sourcesDefault')}</p>
+        ) : (
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {sources.map((url) => (
+              <li key={url} className="flex items-center gap-2 rounded-xl bg-cream px-3 py-2">
+                <AppIcon name="newspaper" className="w-3.5 h-3.5 shrink-0 text-navy/70" />
+                <span dir="ltr" className="flex-1 min-w-0 break-all text-xs text-navy">{url}</span>
+                <button
+                  onClick={() => removeSource(url)}
+                  aria-label={t('common.delete')}
+                  className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-brand-red hover:bg-brand-red/10"
+                >
+                  <AppIcon name="trash" className="w-3.5 h-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
-        {typeof syncState === 'number' && (
-          <span role="status" className="text-xs font-semibold text-emerald-700">
-            {t('admin.newsFeed.synced', { count: syncState })}
-          </span>
-        )}
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            id="news-source"
+            className="input flex-1 min-w-[220px]"
+            dir="ltr"
+            placeholder="https://www.turizmgunlugu.com/rss"
+            value={newSource}
+            onChange={(e) => setNewSource(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addSource();
+              }
+            }}
+          />
+          <button onClick={addSource} disabled={!newSource.trim()} className="btn-secondary h-10 px-4 text-xs disabled:opacity-60">
+            <AppIcon name="plus" className="w-3.5 h-3.5" />
+            {t('admin.newsFeed.addSource')}
+          </button>
+          <button onClick={saveSources} className="btn-secondary h-10 px-4 text-xs">
+            <AppIcon name="save" className="w-3.5 h-3.5" />
+            {t('common.save')}
+          </button>
+          <button onClick={() => setConfirmSync(true)} disabled={syncState === 'busy'} className="btn-primary h-10 px-4 text-xs disabled:opacity-60">
+            <AppIcon name="send" className="w-3.5 h-3.5" />
+            {t('admin.newsFeed.sync')}
+          </button>
+          {sourcesSaved && (
+            <span role="status" className="text-xs font-semibold text-emerald-700">
+              {t('admin.newsFeed.saved')}
+            </span>
+          )}
+          {typeof syncState === 'number' && (
+            <span role="status" className="text-xs font-semibold text-emerald-700">
+              {t('admin.newsFeed.synced', { count: syncState })}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* new post */}

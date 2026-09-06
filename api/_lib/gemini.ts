@@ -1,6 +1,6 @@
 /**
  * Shared Gemini call helpers for the Vercel edge functions (api/ai-chat.ts,
- * api/cron/telegram-sync.ts). One `generateContent` request shape, one model
+ * api/cron/news-sync.ts). One `generateContent` request shape, one model
  * fallback chain — kept in one place so both endpoints degrade the same way
  * when a model is rate-limited (429) or retired (404).
  */

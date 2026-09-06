@@ -1,21 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  channelSlug,
-  parseChannelPage,
-  parsePostPhotoUrl,
-  postRef,
-  scrubText,
-  splitTitleBody,
-} from './telegramNews';
+import { parsePostPhotoUrl, postRef, scrubText } from './telegramNews';
 
 /**
- * The sync's contract with the owner:
- *  - the channel's self-promo ("t.me/…", "@channel", trailing signature
- *    lines) must NEVER reach the site,
- *  - real content — including links to official non-Telegram sites the post
- *    body mentions mid-text — survives,
- *  - a markup change on t.me degrades to zero parsed posts, not garbage.
+ * What survives of the retired channel mirror: the posts it left in
+ * news_posts still render, and /api/news-photo still re-resolves their
+ * photos. scrubText also cleans those stored bodies on read (newsBody.ts):
+ * the channel's self-promo ("t.me/…", "@channel", trailing signature lines)
+ * must NEVER reach the site, while real content — including links to
+ * official non-Telegram sites mentioned mid-text — survives.
  */
 
 describe('scrubText', () => {
@@ -49,77 +42,6 @@ describe('scrubText', () => {
     const raw = 'الخبر المهم هنا\nسجل عبر الموقع الرسمي https://e-ikamet.goc.gov.tr قبل الجمعة';
     // the last line has real words around its URL — it is content, not signature
     expect(scrubText(raw).split('\n')).toHaveLength(2);
-  });
-});
-
-describe('splitTitleBody', () => {
-  it('first line is the title, the rest the body', () => {
-    expect(splitTitleBody('عنوان\nسطر ١\nسطر ٢')).toEqual({ title: 'عنوان', body: 'سطر ١\nسطر ٢' });
-  });
-  it('bounds a run-on first line at 140 chars', () => {
-    const { title } = splitTitleBody('ا'.repeat(200));
-    expect(title.length).toBeLessThanOrEqual(140);
-    expect(title.endsWith('…')).toBe(true);
-  });
-});
-
-describe('channelSlug', () => {
-  it.each([
-    ['https://t.me/rafiq_ist', 'rafiq_ist'],
-    ['https://t.me/s/rafiq_ist', 'rafiq_ist'],
-    ['t.me/rafiq_ist/', 'rafiq_ist'],
-    ['@rafiq_ist', 'rafiq_ist'],
-  ])('%s -> %s', (input, slug) => {
-    expect(channelSlug(input)).toBe(slug);
-  });
-  it('rejects garbage and private invite links', () => {
-    expect(channelSlug('https://evil.example/rafiq')).toBeNull();
-    expect(channelSlug('https://t.me/+AbCdEf123')).toBeNull();
-  });
-});
-
-describe('parseChannelPage', () => {
-  const page = `
-    <div class="tgme_widget_message_wrap">
-      <div class="tgme_widget_message" data-post="rafiq_ist/41">
-        <a class="tgme_widget_message_photo_wrap blah" href="https://t.me/rafiq_ist/41"
-           style="width:100%;background-image:url('https://cdn4.cdn-telegram.org/file/abc123.jpg')"></a>
-        <div class="tgme_widget_message_text js-message_text" dir="rtl">
-          &#1602;&#1585;&#1575;&#1585; &#1580;&#1583;&#1610;&#1583;<br/>التفاصيل داخل المنشور&amp; المزيد<br/><br/>@rafiq_ist
-        </div>
-        <time datetime="2026-07-27T09:00:00+00:00">09:00</time>
-      </div>
-    </div>
-    <div class="tgme_widget_message_wrap">
-      <div class="tgme_widget_message service_message" data-post="rafiq_ist/42">
-        <time datetime="2026-07-27T10:00:00+00:00">10:00</time>
-      </div>
-    </div>
-    <div class="tgme_widget_message_wrap">
-      <div class="tgme_widget_message" data-post="rafiq_ist/43">
-        <div class="tgme_widget_message_text js-message_text" dir="rtl">خبر نصي فقط بدون صورة</div>
-        <time datetime="2026-07-28T12:30:00+00:00">12:30</time>
-      </div>
-    </div>`;
-
-  it('extracts id, scrubbed text, photo, permalink and timestamp; skips service messages', () => {
-    const posts = parseChannelPage(page);
-    expect(posts.map((p) => p.tgId)).toEqual(['rafiq_ist/41', 'rafiq_ist/43']);
-
-    const [withPhoto, textOnly] = posts;
-    expect(withPhoto.imageUrl).toBe('https://cdn4.cdn-telegram.org/file/abc123.jpg');
-    expect(withPhoto.text).toContain('قرار جديد');
-    expect(withPhoto.text).toContain('المزيد');
-    expect(withPhoto.text).not.toContain('@rafiq_ist');
-    expect(withPhoto.url).toBe('https://t.me/rafiq_ist/41');
-    expect(withPhoto.createdAt).toBe('2026-07-27T09:00:00+00:00');
-
-    expect(textOnly.imageUrl).toBeNull();
-    expect(textOnly.text).toBe('خبر نصي فقط بدون صورة');
-  });
-
-  it('returns [] for unrecognized markup instead of inventing posts', () => {
-    expect(parseChannelPage('<html><body>totally different page</body></html>')).toEqual([]);
   });
 });
 

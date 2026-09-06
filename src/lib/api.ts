@@ -1377,8 +1377,9 @@ export interface NewsPost {
   url: string | null;
   /** The post's photo (Telegram CDN URL for synced posts). */
   imageUrl: string | null;
-  /** 'telegram' when written by the channel sync, 'manual' from the form. */
-  source: 'manual' | 'telegram';
+  /** 'rss' when written by the feed sync, 'telegram' by the retired channel
+      mirror (older rows), 'manual' from the admin form. */
+  source: 'manual' | 'telegram' | 'rss';
   published: boolean;
   createdAt: string;
   /** Machine translations keyed by language code (e.g. 'en', 'ru', 'fa'). The
@@ -1396,7 +1397,8 @@ const NEWS_COLS = 'id,title,body,url,image_url,source,published,created_at,trans
 
 const toNewsPost = (r: NewsRow): NewsPost => ({
   id: r.id, title: r.title, body: r.body, url: r.url, imageUrl: r.image_url,
-  source: r.source === 'telegram' ? 'telegram' : 'manual', published: r.published, createdAt: r.created_at,
+  source: r.source === 'telegram' || r.source === 'rss' ? r.source : 'manual',
+  published: r.published, createdAt: r.created_at,
   translations: r.translations ?? {},
 });
 
@@ -1411,10 +1413,10 @@ export function localizeNewsPost(post: NewsPost, lang: string): { title: string;
 }
 
 /**
- * Telegram offers no supported way for a browser to read a channel's history,
- * so the feed is authored in /admin (the owner posts to Telegram, then adds
- * the same item here) and the channel URL — stored under the public-readable
- * settings key 'telegram' — powers the "follow us" button.
+ * The news strip is filled by api/cron/news-sync.ts from the tourism feeds
+ * listed under the public-readable settings key 'news_sources', plus one-off
+ * items typed into /admin. Every synced story lands unpublished and waits for
+ * the owner to approve it.
  */
 export const news = {
   /** Latest published posts, newest first — the public home section. */
@@ -1441,11 +1443,15 @@ export const news = {
     return data ? toNewsPost(data as NewsRow) : null;
   },
 
-  /** The channel URL, validated to actually be a Telegram link, or null. */
-  async telegramChannel(): Promise<string | null> {
-    const { data } = await sb().from('settings').select('value').eq('key', 'telegram').maybeSingle();
-    const url = (data?.value as { channel?: string } | null)?.channel ?? null;
-    return url && /^https:\/\/(t\.me|telegram\.me)\/[A-Za-z0-9_+/-]+$/.test(url) ? url : null;
+  /**
+   * The feed addresses the sync reads, or [] when the owner has never edited
+   * the list — the server then falls back to its own defaults, so an empty
+   * list here means "the built-in sources", not "no news".
+   */
+  async sources(): Promise<string[]> {
+    const { data } = await sb().from('settings').select('value').eq('key', 'news_sources').maybeSingle();
+    const feeds = (data?.value as { feeds?: unknown } | null)?.feeds;
+    return Array.isArray(feeds) ? feeds.filter((f): f is string => typeof f === 'string') : [];
   },
 
   // ---- admin ----
@@ -1460,15 +1466,15 @@ export const news = {
   },
 
   /**
-   * Ask the server to pull the channel's latest posts right now (the daily
-   * cron does the same on schedule). Sends the admin's own session token;
-   * the function verifies it against profiles.role before touching anything.
+   * Ask the server to read the news sources right now (the daily cron does the
+   * same on schedule). Sends the admin's own session token; the function
+   * verifies it against profiles.role before touching anything.
    */
   async syncNow(): Promise<{ synced: number }> {
     const { data } = await sb().auth.getSession();
     const token = data.session?.access_token;
     if (!token) throw new ApiError('not_authenticated', 401);
-    const res = await fetch('/api/cron/telegram-sync', {
+    const res = await fetch('/api/cron/news-sync', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -1520,9 +1526,12 @@ export const news = {
     return { count: ids.length };
   },
 
-  async setTelegramChannel(url: string): Promise<{ ok: true }> {
-    const value = url.trim() ? { channel: url.trim() } : {};
-    const { error } = await sb().from('settings').upsert({ key: 'telegram', value }, { onConflict: 'key' });
+  /** Save the feed list. Saving an empty list restores the built-in sources. */
+  async setSources(feeds: string[]): Promise<{ ok: true }> {
+    const clean = feeds.map((f) => f.trim()).filter(Boolean);
+    const { error } = await sb()
+      .from('settings')
+      .upsert({ key: 'news_sources', value: { feeds: clean } }, { onConflict: 'key' });
     if (error) fail(error);
     return { ok: true };
   },

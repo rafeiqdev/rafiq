@@ -10,7 +10,7 @@
  *    (only the 3 non-source languages are present; the source is echoed
  *    back by the client, not by this endpoint)
  *
- * Same Gemini provider + fallback chain as api/cron/telegram-sync.ts's post
+ * Same Gemini provider + fallback chain as api/cron/news-sync.ts's post
  * translation, and the same "admin's own JWT, checked against profiles.role"
  * auth shape — extended here to medical_coordinator, since that's who
  * actually uses this CMS.

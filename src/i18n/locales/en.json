@@ -1632,15 +1632,13 @@
       "confirmDelete": "Delete this place?"
     },
     "newsFeed": {
-      "title": "Home-page news (Telegram mirror)",
-      "hint": "Paste your PUBLIC channel's link and save — the site pulls its latest 5 posts (picture and text), removes the channel's own links from the text, and keeps syncing daily. Use the form below only for one-off items without a Telegram post.",
+      "title": "Home-page news",
+      "hint": "The site reads the tourism sources below every day, throws out anything about accidents, crime, politics or sport, translates what is left into all four site languages, and files it as a draft — no visitor sees it until you press Publish. Leave the list empty to use the built-in sources. The form below is for an item you write yourself.",
       "sync": "Sync now",
       "synced": "Synced {{count}} posts",
-      "channel": "Telegram channel",
-      "channelSaved": "Saved",
       "postTitle": "Post title",
       "postBody": "Text (optional)",
-      "postLink": "Link to the Telegram post (optional)",
+      "postLink": "Link to the article (optional)",
       "publish": "Publish",
       "draft": "Draft",
       "published": "Published",
@@ -1651,14 +1649,19 @@
       "unpublish": "Unpublish",
       "empty": "No news posts yet.",
       "errors": {
-        "devOnly": "Telegram sync runs on the deployed site only — open /admin on your live domain and press Sync there.",
-        "noChannel": "Add your Telegram channel link and press Save first.",
-        "unreachable": "Telegram didn't respond. Try again in a minute.",
-        "noPosts": "No posts found — make sure the channel is PUBLIC and has at least one post.",
+        "devOnly": "The sync runs on the deployed site only — open /admin on your live domain and press Sync there.",
+        "unreachable": "The sources didn't respond. Try again in a minute.",
+        "noPosts": "The sources answered with no stories — check that the links are right.",
         "notConfigured": "The server is missing its Supabase keys — add SUPABASE_SERVICE_ROLE_KEY in Vercel → Settings → Environment Variables and redeploy.",
         "dbError": "The news table is missing in the database — run supabase/migrations/20260728_news_posts.sql and 20260728_news_telegram_sync.sql in the Supabase SQL Editor.",
-        "forbidden": "This account isn't allowed to sync — sign in with the admin account."
-      }
+        "forbidden": "This account isn't allowed to sync — sign in with the admin account.",
+        "badFeed": "That isn't a valid address — paste a news feed (RSS) link starting with https://",
+        "aiUnavailable": "The screening and translation service is unavailable, so nothing was added. That is deliberate: without the filter, unsuitable stories could slip through. Try again later."
+      },
+      "sources": "News sources",
+      "sourcesDefault": "No custom sources — the site uses its built-in Turkish tourism feeds.",
+      "addSource": "Add",
+      "saved": "Saved"
     },
     "payments": {
       "title": "Payment verification",

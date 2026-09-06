@@ -136,7 +136,7 @@ Vercel function endpoints: `/api/ai-chat`, `/api/places-search`,
 `/api/place-photo`, `/api/news-photo`, `/api/payments/webhook`,
 `/api/payments/service-pay`, `/api/payments/service-webhook`,
 `/api/payments/medical-pay`, `/api/payments/medical-webhook`,
-`/api/cron/rates-sync`, `/api/cron/telegram-sync`, `/api/admin/medical-translate`.
+`/api/cron/rates-sync`, `/api/cron/news-sync`, `/api/admin/medical-translate`.
 
 **Every new RPC introduced by this project will be a new function with a new
 name** (e.g. `cc_*`), never an in-place edit of the above.
