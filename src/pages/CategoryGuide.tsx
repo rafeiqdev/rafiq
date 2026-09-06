@@ -79,17 +79,21 @@ function headlineFrom(seoTitle: string): string {
 }
 
 /**
- * Each guide section arrives as one long block of text. A 700-character
- * paragraph is what made these pages read as a wall of text on a phone, so
- * split on sentence ends and re-group in pairs. This is purely visual: no word
- * is added, removed or reordered, so the page still says what was reviewed.
+ * Each guide section arrives as one long block of text — up to 615 characters,
+ * which is what made these pages read as a wall of text on a phone. Split it on
+ * sentence ends and re-group into two or three readable paragraphs. Purely
+ * visual: no word is added, removed or reordered, so the page still says
+ * exactly what was reviewed.
  */
 function paragraphsFrom(body: string): string[] {
   const sentences = body.match(/[^.!?؟۔]+[.!?؟۔]+\s*|[^.!?؟۔]+$/g);
-  if (!sentences || sentences.length < 3) return [body];
+  if (!sentences || sentences.length < 2 || body.length < 320) return [body];
+  // Aim for paragraphs of roughly 250 characters, and never break a sentence.
+  const wanted = Math.min(sentences.length, Math.max(2, Math.ceil(body.length / 250)));
+  const perParagraph = Math.ceil(sentences.length / wanted);
   const out: string[] = [];
-  for (let i = 0; i < sentences.length; i += 2) {
-    out.push(sentences.slice(i, i + 2).join('').trim());
+  for (let i = 0; i < sentences.length; i += perParagraph) {
+    out.push(sentences.slice(i, i + perParagraph).join('').trim());
   }
   return out.filter(Boolean);
 }
