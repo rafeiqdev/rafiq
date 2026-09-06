@@ -143,12 +143,22 @@ export function RealEstateSection({
           direction-agnostic. */}
       <div
         className="relative overflow-hidden text-white"
-        style={{ background: '#12305c', marginInline: 'calc(50% - 50vw)' }}
+        style={{
+          background: '#12305c',
+          marginInline: 'calc(50% - 50vw)',
+          clipPath: 'url(#homeRealEstateBand)',
+        }}
       >
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
           <defs>
             <clipPath id="homeRealEstateCurve" clipPathUnits="objectBoundingBox">
               <path d="M0,0 H1 V0.86 C0.77,0.86 0.63,1 0.46,1 C0.29,1 0.17,0.88 0,0.86 Z" />
+            </clipPath>
+            {/* The band itself is a shallow parallelogram — top and bottom
+                edges both tilt by the same amount, so it sits on the page at
+                a slight angle instead of as a flat rectangle. */}
+            <clipPath id="homeRealEstateBand" clipPathUnits="objectBoundingBox">
+              <path d="M0,0.035 L1,0 L1,0.965 L0,1 Z" />
             </clipPath>
           </defs>
         </svg>
