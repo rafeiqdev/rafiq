@@ -2549,6 +2549,8 @@
     "cityTitle": "You are in {{city}}",
     "cityBody": "Before signing any rental contract, check that your district is open for new residence registrations — closed districts are what delays newcomers most.",
     "cityCta": "How to check your district",
+    "citySummary": "Check your district is open for new registrations",
+    "nowTitle": "What matters now",
     "whatNowTitle": "What happens now",
     "whatNow": {
       "soon": {

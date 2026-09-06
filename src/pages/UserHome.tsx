@@ -276,6 +276,55 @@ function RoadRow({
   );
 }
 
+/**
+ * One folded line of the "what matters now" card: an icon, its own headline
+ * fact, and the full section it stands for opening underneath. Collapsed it is
+ * a single 44px-tall row, which is the whole reason the card exists — three
+ * sections that each had a card, a heading and a border now cost three lines
+ * until the reader asks for one of them.
+ */
+function SummaryRow({
+  icon,
+  title,
+  value,
+  valueTone = '',
+  open,
+  onToggle,
+  children,
+}: {
+  icon: IconName;
+  title: string;
+  value: string;
+  valueTone?: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="border-t border-cream-dark first:border-t-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 py-3 text-start min-h-[44px]"
+      >
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-cream-dark text-navy/70 shrink-0">
+          <AppIcon name={icon} className="w-5 h-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold text-navy truncate">{title}</span>
+          <span className={`block text-xs text-gray-500 truncate ${valueTone}`}>{value}</span>
+        </span>
+        <AppIcon
+          name="chevron-down"
+          className={`w-4 h-4 shrink-0 text-navy/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && <div className="pb-4">{children}</div>}
+    </li>
+  );
+}
+
 export function UserHome() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -291,7 +340,10 @@ export function UserHome() {
   const [notifs, setNotifs] = useState<AppNotification[]>([]);
   const [docs, setDocs] = useState<StoredDocument[] | null>(null);
   const [showAllRecap, setShowAllRecap] = useState(false);
-  const [roadExpanded, setRoadExpanded] = useState(false);
+  // Which of the three summary rows is open, if any. One at a time: the whole
+  // point of the card is that the dashboard stays short, and two open rows
+  // already put it back past a phone screen.
+  const [openRow, setOpenRow] = useState<'road' | 'renewals' | 'city' | null>(null);
 
   usePageMeta({
     title: `${t('dash.journeyTitle')} — ${t('common.appName')}`,
@@ -454,6 +506,7 @@ export function UserHome() {
     .filter((r): r is { key: (typeof RENEWAL_KEYS)[number]; date: string } => Boolean(r.date))
     .map((r) => ({ ...r, days: Math.ceil((new Date(r.date).getTime() - Date.now()) / DAY_MS) }))
     .sort((a, b) => a.days - b.days);
+  const nextRenewal = renewals[0] ?? null;
 
   const started = progress.done > 0;
   const roadComplete = progress.total > 0 && progress.done === progress.total;
@@ -640,149 +693,144 @@ export function UserHome() {
         </div>
       )}
 
-      {/* ── city-aware note: we know where they live, so use it ── */}
-      {cityLabel && (
-        <Panel className="mt-4">
-          <div className="flex items-start gap-3">
-            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-cream-dark text-navy/70 shrink-0">
-              <AppIcon name="map-pin" className="w-5 h-5" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="font-extrabold text-navy">{t('dash.cityTitle', { city: cityLabel })}</h2>
-              <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.cityBody')}</p>
-            </div>
-          </div>
-          {/* Was a generic /services link — landed on the full unfiltered
-              catalogue instead of the notarized-rental-contract service the
-              "before you sign a lease" copy above is actually about. Services
-              is searched by title text (see Services.tsx), same pattern the
-              relatedServices block below already uses. */}
-          <Link to={cityTipHref} className="btn-ghost mt-4 min-h-[44px]">
-            {t('dash.cityCta')}
-            <DirArrow />
-          </Link>
-        </Panel>
-      )}
+      {/* ── one card, three lines ──
+          The district tip, the road and the renewals used to be three tall
+          cards stacked back to back: three headings, three borders, close to
+          three phone screens — for what is really one line of news each. They
+          are now rows in a single "what matters now" card. Each row states its
+          own headline fact (steps left, the nearest renewal, the district
+          warning) and opens in place for exactly the content its card used to
+          hold, one row at a time, so nothing was dropped — only folded. The
+          completed-road flat-lay photo is the one thing that did go: a row 44px
+          tall has nowhere to put a photo. */}
+      <Panel className="mt-4">
+        <h2 className="flex items-center gap-1.5 text-[15px] font-bold text-navy">
+          <AppIcon name="sparkles" className="w-4 h-4 text-navy/40" />
+          {t('dash.nowTitle')}
+        </h2>
+        <ul className="mt-1 flex flex-col">
+          {/* the road */}
+          <SummaryRow
+            icon="navigation"
+            title={t('dash.roadTitle')}
+            // What is LEFT, not the progress figure: the header bar above
+            // already reports done-of-total, and repeating it here would be
+            // the same sentence twice on one screen.
+            value={
+              roadComplete
+                ? t('dash.roadAllDone', { count: progress.total })
+                : t('dash.remaining', { count: progress.remaining })
+            }
+            valueTone={roadComplete ? 'text-emerald-700 font-semibold' : ''}
+            open={openRow === 'road'}
+            onToggle={() => setOpenRow((v) => (v === 'road' ? null : 'road'))}
+          >
+            <p className="text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
+            <ul className="mt-2 flex flex-col">
+              {items.map((item, i) => (
+                <RoadRow
+                  key={item.id}
+                  item={item}
+                  index={i}
+                  isNext={next?.id === item.id}
+                  fromAnswers={isFromAnswers(item)}
+                />
+              ))}
+            </ul>
+            <Link to="/journey" className="btn-ghost mt-3 w-full min-h-[44px]">
+              {t('dash.viewAll')}
+              <DirArrow />
+            </Link>
+          </SummaryRow>
 
-      {/* ── the whole road, not a 3-item preview — except once every step is
-          done, the full list is just a wall of checkmarks nobody needs to
-          re-scan. Collapse to a one-line summary behind "show details", styled
-          as a compact banner with a "N steps" badge and the trip flat-lay
-          photo. The section stays flat-colored (no gradient) on purpose: the
-          photo itself carries a baked-in alpha fade on both edges (see the
-          journey-complete-flatlay generation), so it blends into whatever's
-          behind it with no separate color to keep in sync — a gradient
-          section background previously drifted out of step with a flat CSS
-          fade overlay and showed as a visible seam. ── */}
-      <section className="card relative mt-4 overflow-hidden bg-cream p-4">
-        <Link
-          to="/journey"
-          className="absolute top-3 end-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-navy/70 shadow-sm hover:bg-white hover:text-navy"
-        >
-          {t('dash.stepsCount', { count: progress.total })}
-        </Link>
-        <div className={roadComplete && !roadExpanded ? 'max-w-[60%] sm:max-w-[55%]' : 'pe-16'}>
-          <h2 className="font-extrabold text-navy">{t('dash.roadTitle')}</h2>
-          {roadComplete && !roadExpanded ? (
-            <>
-              <p className="mt-1.5 text-sm font-bold text-emerald-700">
-                {t('dash.roadAllDone', { count: progress.total })}
-              </p>
-              <button
-                type="button"
-                onClick={() => setRoadExpanded(true)}
-                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
-              >
-                {t('dash.roadShowDetails')}
-                <AppIcon name="chevron-down" className="w-3.5 h-3.5" />
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.roadBody')}</p>
-              <ul className="mt-3 flex flex-col">
-                {items.map((item, i) => (
-                  <RoadRow
-                    key={item.id}
-                    item={item}
-                    index={i}
-                    isNext={next?.id === item.id}
-                    fromAnswers={isFromAnswers(item)}
-                  />
-                ))}
-              </ul>
-              {roadComplete && (
-                <button
-                  type="button"
-                  onClick={() => setRoadExpanded(false)}
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-navy/60 hover:text-navy"
-                >
-                  {t('dash.roadShowLess')}
-                  <AppIcon name="chevron-down" className="w-3.5 h-3.5 rotate-180" />
-                </button>
-              )}
-            </>
+          {/* upcoming renewals, or the invitation to set them */}
+          <SummaryRow
+            icon={nextRenewal && nextRenewal.days <= 30 ? 'alert-triangle' : 'calendar'}
+            title={t('dash.renewalsTitle')}
+            value={
+              nextRenewal
+                ? `${t(`dash.renewalLabels.${nextRenewal.key}`)} · ${
+                    nextRenewal.days <= 0
+                      ? t('dash.renewalOverdue')
+                      : t('dash.renewalIn', { count: nextRenewal.days })
+                  }`
+                : t('dash.noDatesTitle')
+            }
+            valueTone={
+              nextRenewal && nextRenewal.days <= 0
+                ? 'text-brand-red font-semibold'
+                : nextRenewal && nextRenewal.days <= 30
+                  ? 'text-amber-700 font-semibold'
+                  : ''
+            }
+            open={openRow === 'renewals'}
+            onToggle={() => setOpenRow((v) => (v === 'renewals' ? null : 'renewals'))}
+          >
+            {renewals.length > 0 ? (
+              <>
+                <ul className="flex flex-col gap-2">
+                  {renewals.map((r) => (
+                    <li
+                      key={r.key}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${
+                        r.days <= 0
+                          ? 'border-brand-red/40 bg-brand-red/5'
+                          : r.days <= 30
+                            ? 'border-amber-300 bg-amber-50'
+                            : 'border-cream-dark bg-white'
+                      }`}
+                    >
+                      <AppIcon
+                        name={r.days <= 30 ? 'alert-triangle' : 'calendar'}
+                        className="w-4 h-4 shrink-0 text-navy/60"
+                      />
+                      <span className="flex-1 min-w-0 text-sm font-semibold text-navy break-words">
+                        {t(`dash.renewalLabels.${r.key}`)}
+                      </span>
+                      <span className={`text-xs font-bold shrink-0 ${r.days <= 0 ? 'text-brand-red' : 'text-navy/60'}`}>
+                        {r.days <= 0 ? t('dash.renewalOverdue') : t('dash.renewalIn', { count: r.days })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/profile#renewals" className="btn-ghost w-full mt-3 min-h-[44px]">
+                  {t('dash.renewalsManage')}
+                </Link>
+              </>
+            ) : (
+              // Same invitation the dashed InvitePanel used to make as a card
+              // of its own — decorative glyph included — just folded into the
+              // row it belongs to.
+              <div className="relative overflow-hidden rounded-xl border border-dashed border-navy/25 bg-white/50 p-4">
+                <DateReminderGlyph />
+                <p className="pe-24 text-sm text-gray-500 leading-relaxed">{t('dash.noDatesBody')}</p>
+                <Link to="/profile#renewals" className="btn-ghost w-full mt-3 min-h-[44px]">
+                  {t('dash.noDatesCta')}
+                </Link>
+              </div>
+            )}
+          </SummaryRow>
+
+          {/* city-aware note: we know where they live, so use it */}
+          {cityLabel && (
+            <SummaryRow
+              icon="map-pin"
+              title={t('dash.cityTitle', { city: cityLabel })}
+              value={t('dash.citySummary')}
+              open={openRow === 'city'}
+              onToggle={() => setOpenRow((v) => (v === 'city' ? null : 'city'))}
+            >
+              <p className="text-sm text-gray-500 leading-relaxed">{t('dash.cityBody')}</p>
+              {/* Not a generic /services link — the "before you sign a lease"
+                  copy is about the notarized rental contract service. */}
+              <Link to={cityTipHref} className="btn-ghost mt-3 w-full min-h-[44px]">
+                {t('dash.cityCta')}
+                <DirArrow />
+              </Link>
+            </SummaryRow>
           )}
-        </div>
-        {roadComplete && !roadExpanded && (
-          // Plain <img>, not <SiteImage>: that component's wrapper always
-          // paints a bg-navy/5 loading placeholder behind the photo, which
-          // bled through this photo's baked-in alpha fade and reintroduced
-          // the color-mismatch seam we were trying to remove. The photo's
-          // own fade degrades fine without SiteImage's fallback machinery.
-          <div className="pointer-events-none absolute end-0 top-0 h-full w-[42%] sm:w-[38%] overflow-hidden">
-            <img
-              src="/img/journey-complete-flatlay.webp"
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover"
-            />
-          </div>
-        )}
-      </section>
-
-      {/* ── upcoming renewals, or the invitation to set them ── */}
-      {renewals.length > 0 ? (
-        <Panel className="mt-4">
-          <h2 className="font-extrabold text-navy">{t('dash.renewalsTitle')}</h2>
-          <ul className="mt-3 flex flex-col gap-2">
-            {renewals.map((r) => (
-              <li
-                key={r.key}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${
-                  r.days <= 0
-                    ? 'border-brand-red/40 bg-brand-red/5'
-                    : r.days <= 30
-                      ? 'border-amber-300 bg-amber-50'
-                      : 'border-cream-dark bg-white'
-                }`}
-              >
-                <AppIcon name={r.days <= 30 ? 'alert-triangle' : 'calendar'} className="w-4 h-4 shrink-0 text-navy/60" />
-                <span className="flex-1 min-w-0 text-sm font-semibold text-navy break-words">
-                  {t(`dash.renewalLabels.${r.key}`)}
-                </span>
-                <span className={`text-xs font-bold shrink-0 ${r.days <= 0 ? 'text-brand-red' : 'text-navy/60'}`}>
-                  {r.days <= 0 ? t('dash.renewalOverdue') : t('dash.renewalIn', { count: r.days })}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <Link to="/profile#renewals" className="btn-ghost w-full mt-4 min-h-[44px]">
-            {t('dash.renewalsManage')}
-          </Link>
-        </Panel>
-      ) : (
-        <InvitePanel
-          className="mt-4"
-          icon="calendar"
-          title={t('dash.noDatesTitle')}
-          body={t('dash.noDatesBody')}
-          ctaLabel={t('dash.noDatesCta')}
-          ctaTo="/profile#renewals"
-          decoration={<DateReminderGlyph />}
-        />
-      )}
+        </ul>
+      </Panel>
 
       {/* ── document locker: real count, or the invitation to start it ── */}
       {docs !== null &&

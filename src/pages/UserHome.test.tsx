@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { EMPTY_PROFILE } from '../lib/types';
 import type { JourneyItem, Profile, User } from '../lib/types';
@@ -148,7 +148,10 @@ describe('UserHome — first visit after onboarding', () => {
     expect(screen.getByText('dash.recapTitle')).toBeInTheDocument();
     expect(screen.getByText('situationStatus.student')).toBeInTheDocument();
 
-    // both seeded steps are credited to the answers, not silently pre-checked
+    // both seeded steps are credited to the answers, not silently pre-checked.
+    // The roadmap now lives folded inside the "what matters now" card, so open
+    // that row first — the three sections it merged were three tall cards.
+    fireEvent.click(screen.getByRole('button', { name: /dash\.roadTitle/ }));
     expect(screen.getAllByText('dash.fromAnswers')).toHaveLength(2);
 
     // progress is reported as real work done, never as "steps waiting"
@@ -179,6 +182,11 @@ describe('UserHome — first visit after onboarding', () => {
     journeyState.progress = { total: 7, done: 0, remaining: 7, percent: 0 };
 
     mount();
+
+    // collapsed, the row reports what is left rather than listing anything
+    expect(screen.getByText(/dash\.remaining/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /dash\.roadTitle/ }));
 
     // every step is on the page (the first one twice: anchor block + roadmap)
     many.forEach((s) => expect(screen.getAllByText(s.titleAr).length).toBeGreaterThan(0));
