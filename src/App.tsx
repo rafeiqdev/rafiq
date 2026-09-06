@@ -1,12 +1,14 @@
-import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { Suspense, useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
 import { RequireAuth, RequireOnboarded } from './components/Gates';
 import { ChatRedirect } from './components/LegacyRedirects';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ScrollToTop } from './components/ScrollToTop';
+import { PageTransitionRoutes } from './components/PageTransitionRoutes';
+import { lazyPage } from './lib/lazyPage';
+import { registerRoutePreloads } from './lib/routePreload';
 import { RafiqLoaderScreen } from './components/RafiqLoader';
 import { referrals } from './lib/api';
 import { popPostAuthRedirect } from './lib/authRedirect';
@@ -14,41 +16,6 @@ import { isControlCenterEnabled } from './admin-control-center/flag';
 import { DEFAULT_LANG, langFromPath, applyDir, loadLocale } from './i18n';
 import { Home } from './pages/Home';
 import { useIsMobile } from './hooks/useIsMobile';
-
-/**
- * lazy() with stale-deploy recovery.
- *
- * Every deployment renames the hashed JS chunks. A tab opened before a deploy
- * still holds the OLD manifest, so navigating to a not-yet-visited page
- * requests a chunk that no longer exists — "تعذّر تحميل الصفحة" on every
- * navigation until the user thinks to refresh. With several deploys a day this
- * hit users constantly.
- *
- * Recovery: reload the page ONCE (fetching the new manifest). The
- * sessionStorage guard stops a reload loop when the failure is real (offline);
- * a successful load clears it so the next deploy gets its own single retry.
- */
-const CHUNK_RELOAD_KEY = 'rafiq_chunk_reloaded';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors React.lazy's own constraint
-function lazyPage<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
-  return lazy(() =>
-    factory().then(
-      (m) => {
-        sessionStorage.removeItem(CHUNK_RELOAD_KEY);
-        return m;
-      },
-      (e: unknown) => {
-        if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
-          sessionStorage.setItem(CHUNK_RELOAD_KEY, '1');
-          window.location.reload();
-          // never resolves — the reload replaces the document
-          return new Promise<{ default: T }>(() => {});
-        }
-        throw e;
-      },
-    ),
-  );
-}
 
 // P3-7: secondary routes are lazy-loaded to keep the initial bundle small
 const Auth = lazyPage(() => import('./pages/Auth').then((m) => ({ default: m.Auth })));
@@ -117,6 +84,75 @@ const NewsArticle = lazyPage(() => import('./pages/NewsArticle').then((m) => ({ 
 const MobileNewsArticle = lazyPage(() => import('./pages/mobile/MobileNewsArticle').then((m) => ({ default: m.MobileNewsArticle })));
 const Legal = lazyPage(() => import('./pages/Legal').then((m) => ({ default: m.Legal })));
 const NotFound = lazyPage(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
+
+/** A signed-in visitor exists in this tab — "/" will render the dashboard, not the marketing page. */
+function hasStoredSession(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) return true;
+    }
+  } catch {
+    /* storage blocked — assume guest */
+  }
+  return false;
+}
+
+// Which chunk each URL needs — mirrors the <Route> tree below, so the page
+// transition can fetch the code BEFORE swapping pages and links can prefetch
+// on hover/touch (see PageTransitionRoutes). `redirect` routes only bounce
+// somewhere else and get an instant, unanimated switch.
+registerRoutePreloads([
+  { path: '/', desktop: [UserHome], when: hasStoredSession },
+  { path: '/r/:code', redirect: true },
+  { path: '/auth', desktop: [Auth], mobile: [MobileAuth] },
+  { path: '/reset-password', desktop: [ResetPassword] },
+  { path: '/premium', desktop: [Premium], mobile: [MobilePremium] },
+  { path: '/chat', redirect: true },
+  { path: '/help', desktop: [HelpRequest], mobile: [MobileHelpRequest] },
+  { path: '/services', desktop: [Services], mobile: [MobileServices] },
+  { path: '/services/:id', desktop: [ServiceDetail] },
+  { path: '/guides/:id', desktop: [CategoryGuide] },
+  { path: '/compare/:id', desktop: [Comparison] },
+  { path: '/faq', desktop: [Faq] },
+  { path: '/map', desktop: [MapPage], mobile: [MobileMapPage] },
+  { path: '/referrals', desktop: [Referrals], mobile: [MobileReferrals] },
+  { path: '/wallet', desktop: [Wallet], mobile: [MobileWallet] },
+  { path: '/real-estate', desktop: [RealEstate], mobile: [MobileRealEstate] },
+  { path: '/real-estate/investments', desktop: [RealEstateInvestments] },
+  { path: '/real-estate/investments/:slug', desktop: [InvestmentDetail] },
+  { path: '/real-estate/:id', desktop: [RealEstateDetail], mobile: [MobileRealEstateDetail] },
+  { path: '/real-estate/:id/services', desktop: [RealEstateDetail], mobile: [MobileListingServices] },
+  { path: '/health-tourism', desktop: [HealthTourism], mobile: [MobileHealthTourism] },
+  { path: '/medical-request', desktop: [MedicalRequest] },
+  { path: '/tricks', desktop: [Tricks], mobile: [MobileTricks] },
+  { path: '/tricks/:id', desktop: [TrickDetail], mobile: [MobileTrickDetail] },
+  { path: '/news', desktop: [News], mobile: [MobileNews] },
+  { path: '/news/:id', desktop: [NewsArticle], mobile: [MobileNewsArticle] },
+  { path: '/profile', desktop: [ProfilePage], mobile: [MobileProfilePage] },
+  { path: '/onboarding', desktop: [Onboarding] },
+  { path: '/home', desktop: [UserHome] },
+  { path: '/journey', desktop: [Journey] },
+  { path: '/account', redirect: true },
+  { path: '/requests', desktop: [MyRequests], mobile: [MobileMyRequests] },
+  { path: '/requests/:id', desktop: [OfferPage] },
+  { path: '/requests/:id/offer', desktop: [OfferPage] },
+  { path: '/offers/:id', desktop: [OfferPage] },
+  { path: '/companies/:id', desktop: [CompanyPublic] },
+  { path: '/company', desktop: [CompanyDashboard] },
+  { path: '/company/register', desktop: [CompanyRegister] },
+  { path: '/company/profile', desktop: [CompanyProfileEdit] },
+  { path: '/company/billing', desktop: [CompanyBilling] },
+  { path: '/notifications', desktop: [Notifications], mobile: [MobileNotifications] },
+  { path: '/admin', desktop: [Admin] },
+  { path: '/admin/bookings', redirect: true },
+  { path: '/admin/medical', desktop: [AdminMedical] },
+  { path: '/admin/control-center', desktop: [ControlCenter] },
+  { path: '/terms', desktop: [Legal] },
+  { path: '/privacy', desktop: [Legal] },
+  { path: '/refund', desktop: [Legal] },
+  { path: '*', desktop: [NotFound] },
+]);
 
 /**
  * The app-wide waiting state: route chunks, the session gate, /r/:code.
@@ -236,7 +272,7 @@ function Shell() {
     <>
       <ReferralQueryCapture />
       <Suspense fallback={<Spinner />}>
-        <Routes location={location} key={location.pathname}>
+        <PageTransitionRoutes>
           <Route path="/r/:code" element={<ReferralLanding />} />
           <Route element={<Layout />}>
             <Route path="/" element={<HomeGate />} />
@@ -311,7 +347,7 @@ function Shell() {
             <Route path="/refund" element={<Legal doc="refund" />} />
             <Route path="*" element={<NotFound />} />
           </Route>
-        </Routes>
+        </PageTransitionRoutes>
       </Suspense>
     </>
   );
@@ -328,7 +364,6 @@ export default function App() {
     <ErrorBoundary>
       <AppProvider>
         <BrowserRouter basename={`/${lang}`}>
-          <ScrollToTop />
           <Shell />
         </BrowserRouter>
       </AppProvider>
