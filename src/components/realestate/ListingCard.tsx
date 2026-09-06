@@ -112,16 +112,14 @@ export function ListingCard({ listing, index, to }: { listing: Listing; index: n
             </span>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
-          {listing.buildStatus ? <span className={CHIP}>{t(`realEstate.build.${listing.buildStatus}`)}</span> : null}
-        </div>
-        {/* trust reassurance: every card reminds the visitor the legal check
-            is included — the line that turns browsing into contacting us */}
-        <p className="mt-1.5 flex items-start gap-1.5 text-[11px] font-semibold leading-snug text-navy/55">
-          <AppIcon name="shield-check" className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-          <span className="line-clamp-2">{t('realEstate.note')}</span>
-        </p>
+        {/* only render the chip row when there is a chip to show — an empty
+            row used to leave a stray gap under the specs */}
+        {listing.furnished || listing.buildStatus ? (
+          <div className="flex flex-wrap gap-1.5">
+            {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
+            {listing.buildStatus ? <span className={CHIP}>{t(`realEstate.build.${listing.buildStatus}`)}</span> : null}
+          </div>
+        ) : null}
         <div className="flex-1" />
         <span className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-btn bg-navy text-sm font-bold text-white">
           {t('realEstate.viewDetails')}
