@@ -443,10 +443,14 @@ const staticMeta = {
     description: text(lang, 'tricks.subtitle'),
     content: text(lang, 'tricks.subtitle'),
   }),
+  // `referrals.lead`, not `referrals.subtitle`: the key was renamed when the
+  // invite page was rewritten, and nothing here followed it — so /referrals
+  // shipped with an EMPTY meta description in all four languages and Google
+  // had to invent its own snippet. check-seo-build.mjs catches this now.
   '/referrals': (lang) => ({
     title: `${text(lang, 'referrals.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'referrals.subtitle'),
-    content: text(lang, 'referrals.subtitle'),
+    description: text(lang, 'referrals.lead'),
+    content: text(lang, 'referrals.lead'),
   }),
   '/terms': (lang) => ({
     title: `${text(lang, 'legal.terms.title')} — ${text(lang, 'common.appName')}`,
@@ -660,20 +664,26 @@ function breadcrumbJsonLd(lang, route, meta) {
   // on at least one page — so every entry, including the last, carries its
   // own URL. Cheap and unambiguously valid either way.
   const here = pageUrl(lang, route);
+  // The last crumb's name used to be meta.title — the full SEO title, brand
+  // suffix and all ("إقامة سياحية في إسطنبول | رفيق"). A breadcrumb is the one
+  // block here that still earns a real Google rich result, and it is shown to
+  // a human reading the SERP, so it needs the short label, not the title tag.
+  // Trim at the first separator and fall back to the whole string.
+  const crumbLabel = String(meta.title ?? '').split(/\s+[|—–-]\s+/)[0].trim() || meta.title;
   const items = [{ '@type': 'ListItem', position: 1, name: text(lang, 'nav.home'), item: pageUrl(lang, '/') }];
   const guideMatch = route.match(/^\/guides\/([^/]+)$/);
   const serviceMatch = route.match(/^\/services\/([^/]+)$/);
 
   if (serviceMatch) {
     items.push({ '@type': 'ListItem', position: 2, name: text(lang, 'nav.allServices'), item: pageUrl(lang, '/services') });
-    items.push({ '@type': 'ListItem', position: 3, name: meta.title, item: here });
+    items.push({ '@type': 'ListItem', position: 3, name: crumbLabel, item: here });
   } else if (guideMatch) {
     // No standalone "/guides" hub route exists — /tricks is the closest
     // practical-guides listing page, so the middle crumb points there.
     items.push({ '@type': 'ListItem', position: 2, name: GUIDES_LABEL[lang], item: pageUrl(lang, '/tricks') });
-    items.push({ '@type': 'ListItem', position: 3, name: meta.title, item: here });
+    items.push({ '@type': 'ListItem', position: 3, name: crumbLabel, item: here });
   } else {
-    items.push({ '@type': 'ListItem', position: 2, name: meta.title, item: here });
+    items.push({ '@type': 'ListItem', position: 2, name: crumbLabel, item: here });
   }
 
   return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items };
@@ -1096,15 +1106,34 @@ function buildHtml(template, lang, route, meta) {
   const alternateTags = LANGS.map((alternate) =>
     `    <link rel="alternate" hreflang="${alternate}" href="${escapeHtml(pageUrl(alternate, route))}" />`,
   ).join('\n') + `\n    <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl('ar', route))}" />`;
-  const nav = [
+  // Two rows, and the second one is not decorative: the live header nav is a
+  // JS-only menu and the pre-rendered footer carries guide links alone, so
+  // before this row existed /about, /contact, /faq, /news, /referrals and the
+  // three legal pages had NO crawlable internal link anywhere — 32 URLs across
+  // the four languages reachable only from the sitemap, with no internal link
+  // strength flowing in. That included the About and Contact pages the whole
+  // identity fix depends on. Every route that ships in the sitemap now has at
+  // least one <a href> pointing at it from every other page.
+  const navLink = ([path, label]) =>
+    `<a href="${escapeHtml(`/${lang}${path === '/' ? '' : path}`)}">${escapeHtml(label)}</a>`;
+  const primaryNav = [
     ['/', text(lang, 'nav.home')],
     ['/services', text(lang, 'nav.allServices')],
     ['/real-estate', text(lang, 'nav.realEstate')],
     ['/health-tourism', text(lang, 'nav.health')],
     ['/tricks', text(lang, 'nav.tricks')],
-  ]
-    .map(([path, label]) => `<a href="${escapeHtml(`/${lang}${path === '/' ? '' : path}`)}">${escapeHtml(label)}</a>`)
-    .join(' · ');
+  ].map(navLink).join(' · ');
+  const secondaryNav = [
+    ['/about', text(lang, 'nav.about')],
+    ['/contact', text(lang, 'nav.contact')],
+    ['/faq', text(lang, 'nav.faq')],
+    ['/news', text(lang, 'nav.news')],
+    ['/referrals', text(lang, 'nav.referrals')],
+    ['/terms', text(lang, 'nav.terms')],
+    ['/privacy', text(lang, 'nav.privacy')],
+    ['/refund', text(lang, 'nav.refund')],
+  ].map(navLink).join(' · ');
+  const nav = `${primaryNav}<br />${secondaryNav}`;
   const priorityLinksHtml = route === '/' || route === '/services' ? renderPriorityLinks(lang) : '';
   const keywords = meta.keywords?.slice(0, 8).join(', ') ?? '';
   const keywordTag = keywords ? `<meta name="keywords" content="${escapeHtml(keywords)}" />` : '';
@@ -1133,21 +1162,20 @@ function buildHtml(template, lang, route, meta) {
   // AboutPage / ContactPage — the schema.org types for identity pages. Neither
   // produces a rich result on its own; their value is entity resolution, which
   // is precisely what the indexing audit found the domain unable to establish.
-  // Runtime twin: src/components/AboutPageSchema.tsx.
-  const identityJsonLd = route === '/about' || route === '/contact'
-    ? escapeJsonForHtml({
-        '@context': 'https://schema.org',
-        '@type': route === '/about' ? 'AboutPage' : 'ContactPage',
-        '@id': `${url}#webpage`,
-        url,
-        name: meta.title,
-        description: meta.description,
-        inLanguage: lang,
-        isPartOf: { '@id': `${SITE_URL}/#website` },
-        about: { '@id': `${SITE_URL}/#organization` },
-        mainEntity: { '@id': `${SITE_URL}/#organization` },
-      })
-    : '';
+  //
+  // These used to ship as a SEPARATE block that reused `#webpage` — the same
+  // @id the generic WebPage node below already claims. Two different nodes
+  // asserting one @id is an ambiguous graph, and it is the page's own identity
+  // node that gets muddied. The type now rides on the single WebPage node
+  // instead (AboutPage and ContactPage are both subtypes of WebPage, so this
+  // is strictly more specific, not a second entity), and `pageJsonLdType` /
+  // `identityRefs` below are what carry it. Runtime twin:
+  // src/components/AboutPageSchema.tsx, which uses its own distinct @id.
+  const isIdentityPage = route === '/about' || route === '/contact';
+  const pageJsonLdType = route === '/about' ? 'AboutPage' : route === '/contact' ? 'ContactPage' : 'WebPage';
+  const identityRefs = isIdentityPage
+    ? { about: { '@id': `${SITE_URL}/#organization` }, mainEntity: { '@id': `${SITE_URL}/#organization` } }
+    : {};
   const dateModified = dateModifiedFor(lang, route);
   const serviceJsonLd = serviceMatch && serviceSeo[lang][serviceMatch[1]]
     ? escapeJsonForHtml({
@@ -1333,13 +1361,14 @@ function buildHtml(template, lang, route, meta) {
 
   const jsonLd = escapeJsonForHtml({
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
+    '@type': pageJsonLdType,
     '@id': `${url}#webpage`,
     name: meta.title,
     description: meta.description,
     url,
     inLanguage: lang,
     dateModified,
+    ...identityRefs,
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#organization` },
     author: { '@id': `${SITE_URL}/#organization` },
@@ -1361,7 +1390,7 @@ function buildHtml(template, lang, route, meta) {
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
     ${faqJsonLd ? `<script id="ld-faq" type="application/ld+json">${faqJsonLd}</script>` : ''}\n    ${breadcrumbSchemaJsonLd ? `<script id="ld-breadcrumb" type="application/ld+json">${breadcrumbSchemaJsonLd}</script>` : ''}\n    ${comparisonJsonLd ? `<script id="ld-comparison" type="application/ld+json">${comparisonJsonLd}</script>` : ''}
-    ${identityJsonLd ? `<script id="ld-identity" type="application/ld+json">${identityJsonLd}</script>` : ''}\n    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
+    <script type="application/ld+json">${jsonLd}</script>\n  </head>`);
   // The footer must live INSIDE <main id="seo-fallback">: that id carries the
   // visually-hidden rule in index.html, and a sibling footer outside it paints
   // as raw visible text at the top of every page until React hydrates.

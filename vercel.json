@@ -3,10 +3,47 @@
   "framework": "vite",
   "outputDirectory": "dist",
   "redirects": [
-    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^en.*" }], "destination": "/en", "permanent": false },
-    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^ru.*" }], "destination": "/ru", "permanent": false },
-    { "source": "/", "has": [{ "type": "header", "key": "accept-language", "value": "^fa.*" }], "destination": "/fa", "permanent": false },
-    { "source": "/", "destination": "/ar", "permanent": false },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "^en.*"
+        }
+      ],
+      "destination": "/en",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "^ru.*"
+        }
+      ],
+      "destination": "/ru",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "^fa.*"
+        }
+      ],
+      "destination": "/fa",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "destination": "/ar",
+      "permanent": false
+    },
     {
       "source": "/((?!api/|assets/|scene/|ar(?:/|$)|en(?:/|$)|ru(?:/|$)|fa(?:/|$)|.*\\..*).*)",
       "destination": "/ar/$1",
@@ -22,31 +59,72 @@
       "source": "/:lang(ar|en|ru|fa)/news/:id([0-9a-fA-F-]{36})",
       "destination": "/api/render/news-article?lang=:lang&id=:id"
     },
-    { "source": "/((?!api/|assets/|scene/|.*\\..*).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!api/|assets/|scene/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ],
   "crons": [
-    { "path": "/api/cron/rates-sync", "schedule": "5 6 * * *" },
-    { "path": "/api/cron/news-sync", "schedule": "35 6 * * *" }
+    {
+      "path": "/api/cron/rates-sync",
+      "schedule": "5 6 * * *"
+    },
+    {
+      "path": "/api/cron/news-sync",
+      "schedule": "35 6 * * *"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "^(?!(rafiq\\.ist|www\\.rafiq\\.ist)$).*$" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "^(?!(rafiq\\.ist|www\\.rafiq\\.ist)$).*$"
+        }
+      ],
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "geolocation=(self), camera=(), microphone=(self)" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(self), camera=(), microphone=(self)"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
         {
           "key": "Content-Security-Policy-Report-Only",
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://maps.googleapis.com https://maps.gstatic.com https://*.ggpht.com https://www.google-analytics.com https://*.cdn-telegram.org https://*.telesco.pe https://i0.shbdn.com https://image.hurimg.com https://cdnuploads.aa.com.tr https://www.turizmgunlugu.com https://www.turizmajansi.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://maps.googleapis.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }

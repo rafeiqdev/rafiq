@@ -61,7 +61,12 @@ function useIdentityPageSchema(
       buildWebsiteNode(lang),
       {
         '@type': pageType,
-        '@id': `${url}#webpage`,
+        // NOT `#webpage`: the pre-rendered document already defines a node at
+        // that @id (typed AboutPage/ContactPage on these two routes — see
+        // scripts/generate-seo-pages.mjs). Both scripts sit in <head> together
+        // after a client-side navigation, and two nodes claiming one @id is an
+        // ambiguous graph, so this one takes an @id of its own.
+        '@id': `${url}#${pageType === 'AboutPage' ? 'aboutpage' : 'contactpage'}`,
         url,
         name: title,
         description,
