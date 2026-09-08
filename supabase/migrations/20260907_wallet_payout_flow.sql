@@ -65,7 +65,7 @@ begin
     and available_at <= now()
     and (p_user is null or referrer_id = p_user);
 
-  get diagnostics v_count = row count;
+  get diagnostics v_count = row_count;
   return v_count;
 end;
 $$;
