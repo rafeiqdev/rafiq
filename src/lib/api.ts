@@ -1472,6 +1472,23 @@ export function localizeNewsPost(post: NewsPost, lang: string): { title: string;
  * items typed into /admin. Every synced story lands unpublished and waits for
  * the owner to approve it.
  */
+/**
+ * Rows the retired Telegram mirror left behind are NOT served to visitors.
+ *
+ * That mirror copied another channel's posts wholesale, and 176 of them were
+ * still the entire public news section: every one linking out to
+ * t.me/<that channel> as its "read more", 162 still ending in that channel's
+ * own "🔵 … || اشترك بقناة التليغرام" sign-off, and 65 carrying no headline at
+ * all — just "🇹🇷 خبر عاجل 🇹🇷" repeated down the page. Rafiq's news section was
+ * advertising someone else's channel and handing them the traffic.
+ *
+ * Excluded here rather than by unpublishing them in SQL, because a code filter
+ * takes effect on deploy and cannot be half-applied. The rows stay in the
+ * table and stay visible in /admin, so they can be reviewed or deleted later.
+ * `source` is NOT NULL DEFAULT 'manual', so no row is dropped by this test.
+ */
+const RETIRED_NEWS_SOURCE = 'telegram';
+
 export const news = {
   /** Latest published posts, newest first — the public home section. */
   async latest(limit = 5): Promise<NewsPost[]> {
@@ -1479,6 +1496,7 @@ export const news = {
       .from('news_posts')
       .select(NEWS_COLS)
       .eq('published', true)
+      .neq('source', RETIRED_NEWS_SOURCE)
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) fail(error);
@@ -1492,6 +1510,7 @@ export const news = {
       .select(NEWS_COLS)
       .eq('id', id)
       .eq('published', true)
+      .neq('source', RETIRED_NEWS_SOURCE)
       .maybeSingle();
     if (error) fail(error);
     return data ? toNewsPost(data as NewsRow) : null;
