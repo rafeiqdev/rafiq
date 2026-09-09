@@ -28,8 +28,22 @@ function fetchCalls() {
   return (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
 }
 
+/**
+ * Only the calls that POST events.
+ *
+ * track() also asks /api/geo once per visit for the country code, and that is
+ * a fetch too — so a bare `expect(fetch).toHaveBeenCalledTimes(n)` would now
+ * be counting two different things and drift with every unrelated change. The
+ * assertions below are about the EVENT SINK, so they filter to it. (The
+ * consent tests deliberately keep asserting on `fetch` itself: before consent
+ * NOTHING may go out, the country lookup included.)
+ */
+function sinkCalls() {
+  return fetchCalls().filter((c) => String(c[0]).includes('/rest/v1/events'));
+}
+
 function lastBody(): Array<Record<string, unknown>> {
-  const calls = fetchCalls();
+  const calls = sinkCalls();
   const init = calls[calls.length - 1][1] as RequestInit;
   return JSON.parse(init.body as string);
 }
@@ -79,7 +93,7 @@ describe('consent gating', () => {
     track('service_click', { target: 'residency' });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
     expect(lastBody()[0]).toMatchObject({ event_type: 'service_click', target: 'residency' });
   });
 });
@@ -106,7 +120,8 @@ describe('batching', () => {
 
     track('page_view');
 
-    expect(fetch).not.toHaveBeenCalled();
+    // The country lookup may already have gone out; the EVENT SINK must not have.
+    expect(sinkCalls()).toHaveLength(0);
   });
 
   it('batches multiple events into one request on the interval', async () => {
@@ -118,7 +133,7 @@ describe('batching', () => {
     track('service_click', { target: 'b' });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
     const body = lastBody();
     expect(body).toHaveLength(2);
     // same page load -> same session
@@ -132,7 +147,7 @@ describe('batching', () => {
     // flush(), not on the interval timer at all.
     for (let i = 0; i < 20; i++) track('page_view');
 
-    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(sinkCalls()).toHaveLength(1));
     expect(lastBody()).toHaveLength(20);
   });
 });
@@ -202,7 +217,7 @@ describe('PII rejection — the hard rule', () => {
     track('search_performed', { meta: { query_len: 12, result_count: 4, broadcast: true, tier: 'pro' } });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
     expect(lastBody()[0].meta).toEqual({ query_len: 12, result_count: 4, broadcast: true, tier: 'pro' });
   });
 });
@@ -228,7 +243,7 @@ describe('search_performed carries real query text (the one documented meta exce
     track('search_performed', { meta: { query: normalizeSearchQuery('  Residency Permit  '), result_count: 3 } });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
     expect(lastBody()[0].meta).toEqual({ query: 'residency permit', result_count: 3 });
   });
 
@@ -310,7 +325,8 @@ describe('flush on hide (pagehide / visibilitychange)', () => {
     await flush('unload');
 
     expect(beacon).toHaveBeenCalledTimes(1);
-    expect(fetch).not.toHaveBeenCalled();
+    // sendBeacon carried the batch — nothing was posted to the sink with fetch.
+    expect(sinkCalls()).toHaveLength(0);
     const [url] = beacon.mock.calls[0];
     expect(url).toContain('apikey=anon-test-key');
     const rows = JSON.parse(capturedParts![0] as string);
@@ -325,8 +341,8 @@ describe('flush on hide (pagehide / visibilitychange)', () => {
     track('page_view');
     await flush('unload');
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    const init = fetchCalls()[0][1] as RequestInit;
+    expect(sinkCalls()).toHaveLength(1);
+    const init = sinkCalls()[0][1] as RequestInit;
     expect(init.keepalive).toBe(true);
     expect(JSON.parse(init.body as string)[0].user_id).toBe('user-7');
   });
@@ -346,7 +362,7 @@ describe('page_view auto-capture on route change', () => {
     renderHook(() => useTrackPageViews(), { wrapper });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
     expect(lastBody()[0]).toMatchObject({ event_type: 'page_view', path: '/services' });
   });
 });
@@ -400,13 +416,13 @@ describe('missing events table', () => {
 
     track('page_view');
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
 
     // Everything after the 404 is dropped before it reaches the network.
     for (let i = 0; i < 30; i++) track('service_click', { target: 'x' });
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS * 5);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
   });
 
   it('does NOT give up on 401/403 — those are RLS or key faults, not a missing table', async () => {
@@ -420,7 +436,7 @@ describe('missing events table', () => {
     track('page_view');
     await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(sinkCalls()).toHaveLength(2);
   });
 
   it('resets on the next page load, so creating the table needs no redeploy', async () => {
@@ -430,7 +446,7 @@ describe('missing events table', () => {
     vi.useFakeTimers();
     first.track('page_view');
     await vi.advanceTimersByTimeAsync(first.FLUSH_INTERVAL_MS);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
 
     // A fresh module instance is what a new page load looks like.
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true, status: 201 }) as unknown as Promise<Response>));
@@ -439,6 +455,179 @@ describe('missing events table', () => {
     second.track('page_view');
     await vi.advanceTimersByTimeAsync(second.FLUSH_INTERVAL_MS);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(sinkCalls()).toHaveLength(1);
+  });
+});
+
+/**
+ * Visitor country.
+ *
+ * The column it lands in is added by a migration the owner pastes into the SQL
+ * Editor by hand, so a deploy that sends `country` can and will run against a
+ * database that does not have the column yet. The rule these tests hold: that
+ * gap costs a country code, never a visit.
+ */
+describe('visitor country', () => {
+  type SinkReply = { ok: boolean; status: number; text?: string };
+  type SinkStub = (rows: Array<Record<string, unknown>>) => SinkReply;
+
+  /** Answers /api/geo with `country`, and the event sink with `sink(rows)`. */
+  function stubFetch(opts: {
+    country?: string | null;
+    /** Called per sink POST with the parsed rows; defaults to accepting them. */
+    sink?: SinkStub;
+  }) {
+    const sink: SinkStub = opts.sink ?? (() => ({ ok: true, status: 201 }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (String(url).includes('/api/geo')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ country: opts.country ?? null }),
+          } as unknown as Response);
+        }
+        const rows = JSON.parse((init?.body as string) ?? '[]');
+        const r = sink(rows);
+        return Promise.resolve({
+          ok: r.ok,
+          status: r.status,
+          text: () => Promise.resolve(r.text ?? ''),
+        } as unknown as Response);
+      }),
+    );
+  }
+
+  it('stamps the country the edge resolved onto every row in the batch', async () => {
+    stubFetch({ country: 'TR' });
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    track('service_click', { target: 'residency' });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    const rows = lastBody();
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.country === 'TR')).toBe(true);
+  });
+
+  it('asks the edge once per visit, not once per event', async () => {
+    stubFetch({ country: 'DE' });
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    track('page_view');
+    track('service_click', { target: 'residency' });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(fetchCalls().filter((c) => String(c[0]).includes('/api/geo'))).toHaveLength(1);
+  });
+
+  it('records the visit with no country when the edge cannot resolve one', async () => {
+    stubFetch({ country: null });
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    // The visit is still recorded; the field is simply absent, never guessed.
+    expect(sinkCalls()).toHaveLength(1);
+    expect(lastBody()[0]).not.toHaveProperty('country');
+  });
+
+  it('re-sends the batch without country when the column does not exist yet', async () => {
+    const seen: Array<Array<Record<string, unknown>>> = [];
+    stubFetch({
+      country: 'TR',
+      sink: (rows) => {
+        seen.push(rows);
+        return 'country' in rows[0]
+          ? { ok: false, status: 400, text: `{"code":"PGRST204","message":"Could not find the 'country' column of 'events' in the schema cache"}` }
+          : { ok: true, status: 201 };
+      },
+    });
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    // Rejected once with the column, accepted immediately without it — the
+    // visit is NOT lost while the migration is still un-applied.
+    expect(seen).toHaveLength(2);
+    expect(seen[0][0]).toHaveProperty('country', 'TR');
+    expect(seen[1][0]).not.toHaveProperty('country');
+
+    // ...and it stops trying for the rest of the page load, so every later
+    // batch costs one request rather than two.
+    seen.length = 0;
+    track('service_click', { target: 'residency' });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+    expect(seen).toHaveLength(1);
+    expect(seen[0][0]).not.toHaveProperty('country');
+  });
+
+  it('does not mistake an unrelated rejection for a missing column', async () => {
+    const seen: Array<Array<Record<string, unknown>>> = [];
+    stubFetch({
+      country: 'TR',
+      sink: (rows) => {
+        seen.push(rows);
+        return { ok: false, status: 400, text: `{"code":"P0001","message":"events_rate_limit"}` };
+      },
+    });
+    const { track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    // One attempt, no retry, and country stays switched on for the next batch.
+    expect(seen).toHaveLength(1);
+    seen.length = 0;
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+    expect(seen[0][0]).toHaveProperty('country', 'TR');
+  });
+
+  it('keeps country off the unload beacon until a normal flush has proven the column exists', async () => {
+    let capturedParts: BlobPart[] | undefined;
+    class CapturingBlob {
+      constructor(parts: BlobPart[]) {
+        capturedParts = parts;
+      }
+    }
+    vi.stubGlobal('Blob', CapturingBlob as unknown as typeof Blob);
+    stubFetch({ country: 'TR' });
+
+    const { track, setConsent, flush, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    Object.defineProperty(navigator, 'sendBeacon', { value: vi.fn(() => true), configurable: true });
+    vi.useFakeTimers();
+
+    // A beacon fired before any successful insert: no country, because a
+    // beacon's response can never be read and a rejection would lose the
+    // whole batch with no retry.
+    track('page_view');
+    await flush('unload');
+    expect(JSON.parse(capturedParts![0] as string)[0]).not.toHaveProperty('country');
+
+    // A normal flush proves the column is there...
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+    expect(lastBody()[0]).toHaveProperty('country', 'TR');
+
+    // ...so from then on the final batch of the visit carries it too.
+    track('page_view');
+    await flush('unload');
+    expect(JSON.parse(capturedParts![0] as string)[0]).toHaveProperty('country', 'TR');
   });
 });

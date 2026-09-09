@@ -28,6 +28,30 @@ function TopList({ title, rows, icon }: { title: string; rows: [string, number][
   );
 }
 
+/** The '(unknown)' bucket the API emits for events with no country recorded. */
+const UNKNOWN_COUNTRY = '(unknown)';
+
+/**
+ * A country code as a flag. Built from the two regional-indicator code points
+ * rather than an image set: no asset to ship, no flag to keep up to date, and
+ * it inherits the surrounding text size automatically.
+ */
+function flagEmoji(code: string): string {
+  if (!/^[A-Z]{2}$/.test(code)) return '';
+  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+/** "TR" -> "تركيا" / "Turkey", in the admin's own language. */
+function countryName(code: string, lang: string): string {
+  try {
+    return new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? code;
+  } catch {
+    // Intl.DisplayNames is missing or the code is not a region — the raw code
+    // is still true, just less readable.
+    return code;
+  }
+}
+
 /**
  * Visits per day as columns.
  *
@@ -106,6 +130,11 @@ function VisitorRow({ v, lang }: { v: VisitorSession; lang: string }) {
           {v.device}
         </span>
         <span className="text-xs text-navy/50">{v.locale}</span>
+        {v.country && (
+          <span className="text-xs text-navy/60" title={countryName(v.country, lang)}>
+            {flagEmoji(v.country)} {v.country}
+          </span>
+        )}
         <span className="min-w-0 truncate text-xs text-navy/50" dir="ltr" title={v.referrer ?? undefined}>
           {v.referrer ?? cc('an.direct')}
         </span>
@@ -200,6 +229,38 @@ export function Analytics() {
               <Card title={cc('an.trend')} icon="trending-up">
                 <p className="mt-1 text-xs text-navy/50">{cc('an.trendHint')}</p>
                 <Trend points={d.daily} lang={lang} />
+              </Card>
+
+              {/* Countries. The "not switched on yet" branch matters: the
+                  column arrives via a migration pasted in by hand, and an
+                  empty chart would read as "no visitors anywhere". */}
+              <Card title={cc('an.countries')} icon="globe">
+                {!d.hasCountryColumn ? (
+                  <p className="mt-2 flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-900">
+                    <AppIcon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
+                    {cc('an.countryNotEnabled')}
+                  </p>
+                ) : d.byCountry.length === 0 ? (
+                  <p className="mt-2 text-sm text-navy/50">{cc('state.empty')}</p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-xs text-navy/50">{cc('an.countriesHint')}</p>
+                    <div className="mt-3 flex flex-col gap-2">
+                      {d.byCountry.map(([code, count]) => (
+                        <Bar
+                          key={code}
+                          label={
+                            code === UNKNOWN_COUNTRY
+                              ? cc('an.countryUnknown')
+                              : `${flagEmoji(code)} ${countryName(code, lang)}`
+                          }
+                          value={count}
+                          max={d.byCountry[0][1]}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </Card>
 
               {/* "Who came" — the visit list. */}

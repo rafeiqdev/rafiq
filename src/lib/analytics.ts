@@ -1,13 +1,19 @@
 /**
  * Event-tracking client — batches to public.events (see the
- * 20260727_events_tracking.sql migration for schema, RLS and taxonomy docs).
+ * 20260727_events_tracking.sql migration for schema, RLS and taxonomy docs,
+ * and 20260909_events_country.sql for the country column).
  *
  * Hard rules, enforced here (see analytics.test.ts):
  *  - track() never throws and never awaits anything the caller can see —
  *    every call site fires-and-forgets.
  *  - Nothing is collected before explicit consent (getConsent() === 'granted'),
  *    not even page_view, and nothing is collected at all when the browser
- *    sends Do Not Track.
+ *    sends Do Not Track. That includes the country lookup below, which is a
+ *    network request and therefore does not happen either.
+ *  - The visitor's country is a two-letter code resolved at the CDN edge
+ *    (api/geo.ts). No IP address is ever received by this module, sent to the
+ *    events table, or stored anywhere; an unresolved country is recorded as
+ *    unknown rather than inferred from the locale or timezone.
  *  - `target` and every value in `meta` are screened for anything shaped like
  *    an email or a phone number and the WHOLE event is dropped if one is
  *    found. meta must hold identifiers/enums only (flat, no nested
@@ -82,6 +88,7 @@ const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 const SESSION_KEY = 'rafiq_analytics_sid';
 const CONSENT_KEY = 'rafiq_analytics_consent';
+const COUNTRY_KEY = 'rafiq_analytics_country';
 /** Exported for tests — not meant to be tuned from call sites. */
 export const FLUSH_INTERVAL_MS = 10_000;
 const MAX_BATCH = 20;
@@ -182,6 +189,83 @@ function getSessionId(): string {
 /** Called by AppContext whenever the signed-in user changes (including sign-out -> null). */
 export function setAnalyticsUser(userId: string | null): void {
   currentUserId = userId;
+}
+
+// ── visitor country ───────────────────────────────────────────────────────
+//
+// The browser cannot name its own country without a location prompt or handing
+// the visitor's IP to a third party. api/geo.ts reads it off the CDN edge
+// (which already resolved it for this very request) and returns ONLY the
+// two-letter code — no IP is returned, logged or stored, here or in the events
+// table.
+//
+// Resolved once per session and cached in sessionStorage: one extra request per
+// visit, not one per event. Never resolved before consent — track() is what
+// kicks it off.
+
+/** '' in the cache means "we asked and the answer was unknown" — do not re-ask. */
+let countryValue: string | null = null;
+let countryLookup: Promise<void> | null = null;
+
+/**
+ * Set once an insert is rejected specifically because `events.country` does not
+ * exist — i.e. the 20260909 migration has not been pasted into the SQL Editor
+ * yet. Migrations here are applied by hand, so the deploy and the column can
+ * legitimately be days apart in either order, and collection must not break in
+ * the gap. Module state, not persisted: it re-tests itself on the next page
+ * load, so applying the migration starts filling the column with no redeploy.
+ */
+let countryColumnMissing = false;
+
+/**
+ * Set after an insert carrying `country` is accepted. Until then the unload
+ * path (sendBeacon, whose response we can never read) omits the country, so a
+ * batch sent before we know the column exists can't be silently rejected in
+ * full. Losing a country is nothing; losing a visit is not.
+ */
+let countryConfirmed = false;
+
+function cachedCountry(): string | null | undefined {
+  try {
+    const v = sessionStorage.getItem(COUNTRY_KEY);
+    if (v === null) return undefined; // never asked
+    return v === '' ? null : v;
+  } catch {
+    return undefined;
+  }
+}
+
+function rememberCountry(code: string | null): void {
+  countryValue = code;
+  try {
+    sessionStorage.setItem(COUNTRY_KEY, code ?? '');
+  } catch {
+    /* private mode — the in-memory value still serves this page load */
+  }
+}
+
+/** Fire-and-forget; at most one lookup per page load. Never throws. */
+function ensureCountry(): void {
+  if (countryLookup) return;
+  const cached = cachedCountry();
+  if (cached !== undefined) {
+    countryValue = cached;
+    countryLookup = Promise.resolve();
+    return;
+  }
+  countryLookup = (async () => {
+    try {
+      const res = await fetch('/api/geo', { headers: { accept: 'application/json' } });
+      const body = (await res.json()) as { country?: unknown };
+      const code = typeof body.country === 'string' && /^[A-Z]{2}$/.test(body.country) ? body.country : null;
+      rememberCountry(code);
+    } catch {
+      // No edge (local dev), offline, or a non-JSON response. "Unknown" is a
+      // legitimate answer; it is never guessed from the locale or timezone,
+      // which say where a device is CONFIGURED, not where it is.
+      rememberCountry(null);
+    }
+  })();
 }
 
 // ── context helpers ──────────────────────────────────────────────────────
@@ -362,6 +446,21 @@ async function sessionToken(): Promise<string> {
  * real pagehide/visibilitychange DOM events (which, across a test file's many
  * module reloads, would pile up stale listeners on jsdom's single shared
  * window). Call sites should not call this directly — track() schedules it. */
+/** The batch as it goes on the wire, with the country stamped on if we have one. */
+function withCountry(batch: QueuedEvent[]): unknown[] {
+  const code = countryColumnMissing ? null : countryValue;
+  return code ? batch.map((r) => ({ ...r, country: code })) : batch;
+}
+
+/** PostgREST's complaint about an unknown column names the column. */
+async function rejectedTheCountryColumn(res: Response): Promise<boolean> {
+  try {
+    return /country/i.test(await res.text());
+  } catch {
+    return false;
+  }
+}
+
 export async function flush(reason: 'interval' | 'unload'): Promise<void> {
   if (sinkMissing) {
     queue = [];
@@ -380,7 +479,12 @@ export async function flush(reason: 'interval' | 'unload'): Promise<void> {
 
   if (reason === 'unload' && typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
     try {
-      const anonRows = batch.map((r) => ({ ...r, user_id: null }));
+      // countryConfirmed, not countryValue: a beacon's response can never be
+      // read, so a batch rejected over a column that does not exist yet would
+      // vanish with no retry. Until a normal flush has proven the column is
+      // there, this path sends what it always sent. See countryConfirmed.
+      const rows = (countryConfirmed ? withCountry(batch) : batch) as QueuedEvent[];
+      const anonRows = rows.map((r) => ({ ...r, user_id: null }));
       const blob = new Blob([JSON.stringify(anonRows)], { type: 'application/json' });
       if (navigator.sendBeacon(`${url}?apikey=${encodeURIComponent(ANON_KEY)}`, blob)) return;
     } catch {
@@ -390,17 +494,38 @@ export async function flush(reason: 'interval' | 'unload'): Promise<void> {
 
   try {
     const token = await sessionToken();
-    const res = await fetch(url, {
-      method: 'POST',
-      keepalive: true,
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: ANON_KEY,
-        Authorization: `Bearer ${token}`,
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify(batch),
-    });
+    const post = (body: unknown[]) =>
+      fetch(url, {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${token}`,
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(body),
+      });
+
+    const rows = withCountry(batch);
+    const carriedCountry = rows !== (batch as unknown[]);
+    let res = await post(rows);
+
+    // The country column is added by a migration the owner pastes in by hand,
+    // so a deploy can legitimately run against a database that does not have
+    // it yet. Recognise that one rejection and re-send WITHOUT the field, so
+    // the visit is still recorded — then stop sending it for this page load.
+    if (carriedCountry && res.status === 400 && (await rejectedTheCountryColumn(res))) {
+      countryColumnMissing = true;
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.warn('[analytics] events.country does not exist yet — resent without it (apply 20260909_events_country.sql)');
+      }
+      res = await post(batch);
+    } else if (carriedCountry && res.ok) {
+      countryConfirmed = true;
+    }
+
     if (isMissingTable(res.status)) {
       sinkMissing = true;
       queue = [];
@@ -581,6 +706,11 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
     sendMetaEvent(eventType, { target, meta: meta ?? undefined });
 
     if (sinkMissing) return; // Skip only the unavailable first-party queue.
+
+    // Country is resolved once per visit and stamped on at flush time, not
+    // here: the lookup is a network round-trip and track() must stay
+    // synchronous and instant for its callers.
+    ensureCountry();
 
     enqueue({
       event_type: eventType,

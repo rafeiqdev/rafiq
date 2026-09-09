@@ -87,6 +87,26 @@ describe('buildVisitorSessions', () => {
     expect(byId.s2.userId).toBeNull();
   });
 
+  it('takes the country from whichever event in the visit carried one', () => {
+    // The first events of a visit are often flushed before the edge lookup
+    // answers, so the country arrives partway through — it still describes the
+    // whole visit.
+    const rows = asReturnedByPostgrest([
+      ev({ session_id: 's1', created_at: '2026-09-01T10:00:00.000Z', country: null }),
+      ev({ session_id: 's1', created_at: '2026-09-01T10:01:00.000Z', country: 'TR' }),
+      ev({ session_id: 's1', created_at: '2026-09-01T10:02:00.000Z', country: 'TR' }),
+    ]);
+
+    expect(buildVisitorSessions(rows)[0].country).toBe('TR');
+  });
+
+  it('leaves the country null when nothing in the visit recorded one', () => {
+    // Every event from before the country migration looks like this. "Unknown"
+    // must stay unknown rather than borrowing another visit's country.
+    const rows = [ev({ session_id: 's1', created_at: '2026-09-01T10:00:00.000Z' })];
+    expect(buildVisitorSessions(rows)[0].country).toBeNull();
+  });
+
   it('lists the most recent visit first', () => {
     const rows = [
       ev({ session_id: 'older', created_at: '2026-09-01T10:00:00.000Z' }),

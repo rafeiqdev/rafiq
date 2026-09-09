@@ -124,6 +124,10 @@ const ar: Dict = {
 
   // analytics
   'an.knownVisitors': 'أشخاص معروفون (سجّلوا الدخول)',
+  'an.countries': 'الدول التي جاء منها الزوّار',
+  'an.countriesHint': 'عدد الزيارات من كل دولة. الدولة تُعرف من شبكة التوزيع لحظة الزيارة — لا نحفظ عنوان IP ولا المدينة.',
+  'an.countryUnknown': 'دولة غير معروفة',
+  'an.countryNotEnabled': 'ميزة الدول جاهزة في الموقع لكنها لم تُفعَّل بعد في قاعدة البيانات. الصق ملف قاعدة البيانات المرسل لك (20260909_events_country.sql) في محرر SQL، وستبدأ الدول بالظهور خلال دقائق — الزيارات القديمة ستبقى «غير معروفة» لأنه لا يوجد ما يدلّ على مكانها.',
   'an.trend': 'الزيارات يوماً بيوم',
   'an.trendHint': 'كل عمود = عدد الزيارات في ذلك اليوم. اليوم الفارغ يعني صفر زيارة، لا انقطاعاً في القياس.',
   'an.who': 'من زار الموقع',
@@ -344,6 +348,10 @@ const en: Dict = {
 
   // analytics
   'an.knownVisitors': 'Known people (signed in)',
+  'an.countries': 'Countries visitors came from',
+  'an.countriesHint': 'Visits per country. The country is resolved by the CDN at the moment of the visit — no IP address and no city is stored.',
+  'an.countryUnknown': 'Country unknown',
+  'an.countryNotEnabled': 'Countries are ready in the site but not switched on in the database yet. Paste the migration you were sent (20260909_events_country.sql) into the SQL Editor and countries start appearing within minutes — older visits stay "unknown", because nothing in them records where they were.',
   'an.trend': 'Visits per day',
   'an.trendHint': 'Each column is one day’s visits. An empty day means zero visits, not a gap in measurement.',
   'an.who': 'Who visited',

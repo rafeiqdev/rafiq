@@ -8,9 +8,11 @@
  * complete.
  *
  * Nothing here invents a number. A metric that cannot be derived from the rows
- * is absent, not estimated. In particular there is NO country/city breakdown:
- * the collector never stores an IP or a location, so any map of "where the
- * visitors are" would be fabricated.
+ * is absent, not estimated. The country breakdown is the two-letter code the
+ * CDN edge resolved at collection time (see 20260909_events_country.sql); there
+ * is no city, and no IP was ever stored to derive one from. Events recorded
+ * before that migration have no country at all and are reported as unknown
+ * rather than folded into a neighbouring bucket.
  *
  * A second, small query joins profiles for the signed-in visitors that appear
  * in the session list — that is the only way "who visited" can be answered
@@ -43,6 +45,8 @@ interface EventRow {
   referrer: string | null;
   user_id: string | null;
   created_at: string;
+  /** Absent (undefined) when the column does not exist yet; null when unknown. */
+  country?: string | null;
 }
 
 /** One point on the "visits per day" trend. Empty days are present, with 0. */
@@ -68,6 +72,8 @@ export interface VisitorSession {
   lastAt: string;
   device: string;
   locale: string;
+  /** ISO-2, from whichever event in the visit carried one. null = not known. */
+  country: string | null;
   referrer: string | null;
   /** The first page of the visit — where they landed. */
   landingPath: string;
@@ -98,6 +104,14 @@ export interface AnalyticsSnapshot {
   topReferrers: [string, number][];
   byDevice: [string, number][];
   byLocale: [string, number][];
+  /** Visits per country. '(unknown)' is a real bucket, never dropped. */
+  byCountry: [string, number][];
+  /**
+   * False when public.events has no `country` column yet — the migration is
+   * pasted in by hand, so the UI must be able to say "not switched on yet"
+   * instead of showing an empty chart that reads as "no visitors anywhere".
+   */
+  hasCountryColumn: boolean;
   topServices: [string, number][];
   funnel: { step: string; count: number }[];
 }
@@ -173,6 +187,7 @@ export function buildVisitorSessions(rows: EventRow[]): VisitorSession[] {
           lastAt: r.created_at,
           device: r.device,
           locale: r.locale,
+          country: null,
           referrer: r.referrer,
           landingPath: r.path,
           pageViews: 0,
@@ -187,6 +202,9 @@ export function buildVisitorSessions(rows: EventRow[]): VisitorSession[] {
     // A visit starts anonymous and gains a user_id at sign-in; the identity,
     // once known, belongs to the whole visit.
     if (r.user_id) s.userId = r.user_id;
+    // Likewise the country: the first events of a visit can be flushed before
+    // the edge lookup answers, so take it from whichever event carries one.
+    if (!s.country && r.country) s.country = r.country;
     if (r.event_type === 'page_view') {
       s.pageViews += 1;
       if (s.paths[s.paths.length - 1] !== r.path) s.paths.push(r.path);
@@ -222,16 +240,38 @@ async function attachIdentities(visitors: VisitorSession[]): Promise<void> {
   }
 }
 
-export async function fetchAnalytics(range: Range): Promise<AnalyticsSnapshot> {
-  const rows = orThrow(
-    await ccSb()
+const BASE_COLUMNS = 'session_id,event_type,path,target,locale,device,referrer,user_id,created_at';
+
+/**
+ * Read the period's events, asking for `country` but surviving its absence.
+ *
+ * Migrations here are pasted into the SQL Editor by hand, so a deploy that
+ * knows about the column can run for days against a database that does not
+ * have it. Selecting a column that does not exist is a hard 400 from
+ * PostgREST — which would take the ENTIRE traffic screen down, not just the
+ * country card. So: ask for it, and on that one specific complaint ask again
+ * without it. Any other error still throws, so a genuine failure is never
+ * disguised as "country not enabled".
+ */
+async function readEvents(range: Range): Promise<{ rows: EventRow[]; hasCountryColumn: boolean }> {
+  const query = (columns: string) =>
+    ccSb()
       .from('events')
-      .select('session_id,event_type,path,target,locale,device,referrer,user_id,created_at')
+      .select(columns)
       .gte('created_at', iso(range.from))
       .lt('created_at', iso(range.to))
       .order('created_at', { ascending: false })
-      .limit(ROW_CAP),
-  ) as EventRow[];
+      .limit(ROW_CAP);
+
+  const withCountry = await query(`${BASE_COLUMNS},country`);
+  if (!withCountry.error) return { rows: (withCountry.data ?? []) as unknown as EventRow[], hasCountryColumn: true };
+  if (!/country/i.test(withCountry.error.message ?? '')) throw new Error(withCountry.error.message ?? 'query_failed');
+
+  return { rows: orThrow(await query(BASE_COLUMNS)) as unknown as EventRow[], hasCountryColumn: false };
+}
+
+export async function fetchAnalytics(range: Range): Promise<AnalyticsSnapshot> {
+  const { rows, hasCountryColumn } = await readEvents(range);
 
   const sessions = new Set<string>();
   const signedIn = new Set<string>();
@@ -279,6 +319,10 @@ export async function fetchAnalytics(range: Range): Promise<AnalyticsSnapshot> {
     topReferrers: tallyTop(rows, (r) => r.referrer ?? '(direct)', 8),
     byDevice: tallyTop(rows, (r) => r.device, 4),
     byLocale: tallyTop(rows, (r) => r.locale, 6),
+    // '(unknown)' is kept rather than dropped: hiding it would make the
+    // remaining countries look like 100% of traffic when they are not.
+    byCountry: hasCountryColumn ? tallyTop(rows, (r) => r.country ?? '(unknown)', 12) : [],
+    hasCountryColumn,
     topServices: tallyTop(
       rows.filter((r) => r.event_type === 'service_view' || r.event_type === 'service_click'),
       (r) => r.target,
