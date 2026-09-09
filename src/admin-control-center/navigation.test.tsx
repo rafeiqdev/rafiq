@@ -29,12 +29,34 @@ vi.mock('../components/Gates', () => ({
 
 vi.mock('./api/analytics', () => ({
   ROW_CAP: 5000,
+  VISITOR_CAP: 200,
   fetchAnalytics: vi.fn().mockResolvedValue({
     capped: false,
     totalEvents: 120,
     uniqueSessions: 40,
     signedInSessions: 12,
     pageViews: 90,
+    knownVisitors: 5,
+    daily: [{ day: '2026-09-03', sessions: 28, pageViews: 60 }],
+    visitorsTotal: 1,
+    visitors: [
+      {
+        sessionId: 's1',
+        userId: null,
+        name: null,
+        email: null,
+        firstAt: '2026-09-03T09:00:00.000Z',
+        lastAt: '2026-09-03T09:12:00.000Z',
+        device: 'mobile',
+        locale: 'ar',
+        referrer: null,
+        landingPath: '/',
+        pageViews: 3,
+        events: 5,
+        paths: ['/', '/services'],
+        actions: ['service_click'],
+      },
+    ],
     byType: [['page_view', 90]],
     topPaths: [['/services', 30]],
     topReferrers: [['(direct)', 25]],
@@ -116,6 +138,7 @@ const T = (key: string) => ccTranslate('ar', key);
 /** One marker string per section, proving its actual page content rendered. */
 const SECTION_MARKER: Record<string, string> = {
   today: T('today.needsAction'),
+  visitors: T('an.who'),
   orders: T('ops.total'),
   customers: T('overview.kpi.totalUsers'),
   content: T('ct.news'),
@@ -141,7 +164,7 @@ describe('Control Center navigation', () => {
       </MemoryRouter>,
     );
     const sidebar = await screen.findByRole('navigation', { name: T('title') });
-    // Below `md`: a horizontally-scrolling row (all 7 items reachable on a
+    // Below `md`: a horizontally-scrolling row (every item reachable on a
     // narrow phone screen without a hidden overflow menu). At `md` and up:
     // a sticky single column, so the section list stays in view while a
     // long page (e.g. Today's accordions) scrolls underneath it.
@@ -162,8 +185,8 @@ describe('Control Center navigation', () => {
     // isn't actually display:none in jsdom (no UA stylesheet for
     // `details:not([open])`, unlike a real browser), so an unscoped query
     // can also match a same-labelled control buried in a closed accordion
-    // (e.g. the "اليوم" period-picker option inside Today's Analytics
-    // accordion) — scoping to the sidebar avoids that false ambiguity.
+    // (e.g. an "اليوم" period-picker option) — scoping to the sidebar avoids
+    // that false ambiguity.
     const sidebar = await screen.findByRole('navigation', { name: T('title') });
     const label = T(section.labelKey);
     const button = within(sidebar).getByRole('button', { name: (accessibleName) => accessibleName.includes(label) });

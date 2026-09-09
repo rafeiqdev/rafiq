@@ -2,11 +2,15 @@ import type { IconName } from '../components/AppIcon';
 
 /**
  * The Control Center section registry — reshaped for a single owner running
- * everything himself. Seven groups instead of the original eleven flat
+ * everything himself. Eight groups instead of the original eleven flat
  * sections: rarely-touched detail (system health, document metadata,
- * notification history, onboarding funnel, referral payouts, traffic
- * analytics) now lives inside an accordion on its parent page instead of
- * being its own top-level nav item.
+ * notification history, onboarding funnel, referral payouts) now lives inside
+ * an accordion on its parent page instead of being its own top-level nav item.
+ *
+ * Traffic analytics is the one that came back OUT of an accordion: it sat
+ * collapsed at the bottom of Today, where the owner never found it. "Who
+ * visited the site" is a question he asks directly, so it gets its own nav
+ * item.
  */
 export interface CCSectionDef {
   id: string;
@@ -17,6 +21,7 @@ export interface CCSectionDef {
 
 export const CC_SECTIONS: CCSectionDef[] = [
   { id: 'today', labelKey: 'section.today', icon: 'alarm-clock', implemented: true },
+  { id: 'visitors', labelKey: 'section.visitors', icon: 'bar-chart-2', implemented: true },
   { id: 'orders', labelKey: 'section.orders', icon: 'inbox', implemented: true },
   { id: 'customers', labelKey: 'section.customers', icon: 'users', implemented: true },
   { id: 'content', labelKey: 'section.content', icon: 'newspaper', implemented: true },
@@ -40,7 +45,7 @@ export function isCCSection(v: string | null): boolean {
  */
 export const LEGACY_SECTION_MAP: Record<string, string> = {
   overview: 'today',
-  analytics: 'today',
+  analytics: 'visitors',
   operations: 'orders',
   crm: 'customers',
   journey: 'customers',

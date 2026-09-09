@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { RequireAdmin } from '../components/Gates';
 import { CCShell } from './components/CCShell';
 import { Today } from './pages/Today';
+import { Analytics } from './pages/Analytics';
 import { Orders } from './pages/Orders';
 import { Customers } from './pages/Customers';
 import { Money } from './pages/Money';
@@ -20,6 +21,7 @@ import { CC_DEFAULT_SECTION, CC_SECTIONS, resolveSectionId } from './sections';
  */
 const SECTION_PAGES: Record<string, () => ReactNode> = {
   today: () => <Today />,
+  visitors: () => <Analytics />,
   orders: () => <Orders />,
   customers: () => <Customers />,
   content: () => <Content />,

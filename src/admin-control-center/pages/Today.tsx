@@ -5,13 +5,11 @@ import { useAsyncSection } from '../../hooks/useAsyncSection';
 import { maskEmail } from '../../lib/format';
 import { useCC } from '../i18n';
 import { CCState } from '../components/CCState';
-import { Accordion } from '../components/Accordion';
 import { Kpi, StatusChip, num } from '../components/CCKit';
 import { overviewApi } from '../api/overview';
 import { fetchOperations, summarizeOperations } from '../api/operations';
 import { rangeFor } from '../period';
 import { readMetric } from '../../lib/metrics/service';
-import { Analytics } from './Analytics';
 
 /** A card with a heading, an optional "view details" link, and body content — same shell as the old Overview page. */
 function Card({ title, to, children }: { title: string; to?: string; children: ReactNode }) {
@@ -36,8 +34,8 @@ function Card({ title, to, children }: { title: string; to?: string; children: R
  * Today — the default landing screen for a single owner. Leads with what
  * needs attention right now (overdue requests/bookings/leads, pending
  * payments) instead of a generic numbers dashboard, then recent activity.
- * Traffic analytics is real data too, but it's not a daily decision — it
- * lives in a collapsed accordion at the bottom.
+ * Traffic analytics is real data too, but it's not a daily decision — it has
+ * its own nav section, linked from the bottom of this page.
  */
 export function Today() {
   const { cc, lang } = useCC();
@@ -171,9 +169,12 @@ export function Today() {
         </CCState>
       </Card>
 
-      <Accordion title={cc('accordion.analytics')} icon="bar-chart-2">
-        <Analytics />
-      </Accordion>
+      {/* Traffic used to live here in a collapsed accordion, which meant it
+          also ran its (large) events query on every visit to this page. It is
+          now the "visitors" nav section; this is just the way in. */}
+      <Card title={cc('accordion.analytics')} to="/admin/control-center?section=visitors">
+        <p className="mt-2 text-sm text-navy/60">{cc('today.visitorsHint')}</p>
+      </Card>
     </div>
   );
 }
