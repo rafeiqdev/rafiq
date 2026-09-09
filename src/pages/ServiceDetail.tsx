@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
@@ -12,6 +12,8 @@ import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
 import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
 import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
 import { usePageMeta } from '../lib/seo';
+import { track } from '../lib/analytics';
+import { HAS_WHATSAPP, whatsappHref } from '../lib/contact';
 
 function copyFor(language: string) {
   if (language === 'en') {
@@ -33,6 +35,10 @@ function copyFor(language: string) {
       returnButton: 'Return to all services',
       readMore: 'Read more',
       readLess: 'Show less',
+      whatsappButton: 'Ask on WhatsApp',
+      independence: 'Rafiq is an independent coordination platform — not a government authority, a bank, a law firm or a hospital. Official decisions rest with the competent authority or provider.',
+      privacy: 'Privacy policy',
+      terms: 'Terms of use',
     };
   }
   if (language === 'ru') {
@@ -54,6 +60,10 @@ function copyFor(language: string) {
       returnButton: 'Вернуться ко всем услугам',
       readMore: 'Читать далее',
       readLess: 'Свернуть',
+      whatsappButton: 'Спросить в WhatsApp',
+      independence: 'Rafiq — независимая платформа координации, а не государственный орган, банк, юридическая фирма или больница. Официальные решения принимает компетентный орган или поставщик услуг.',
+      privacy: 'Политика конфиденциальности',
+      terms: 'Условия использования',
     };
   }
   if (language === 'fa') {
@@ -75,6 +85,10 @@ function copyFor(language: string) {
       returnButton: 'بازگشت به همه خدمات',
       readMore: 'ادامه مطلب',
       readLess: 'نمایش کمتر',
+      whatsappButton: 'پرسش در واتساپ',
+      independence: 'Rafiq یک پلتفرم هماهنگی مستقل است — نه نهاد دولتی، نه بانک، نه دفتر حقوقی و نه بیمارستان. تصمیم‌های رسمی بر عهده مرجع یا ارائه‌کننده صلاحیت‌دار است.',
+      privacy: 'سیاست حریم خصوصی',
+      terms: 'شرایط استفاده',
     };
   }
   return {
@@ -95,6 +109,10 @@ function copyFor(language: string) {
     returnButton: 'العودة إلى كل الخدمات',
     readMore: 'قراءة المزيد',
     readLess: 'عرض أقل',
+    whatsappButton: 'اسأل عبر واتساب',
+    independence: 'رفيق منصة تنسيق مستقلة — ليست جهة حكومية ولا بنكاً ولا مكتب محاماة ولا مستشفى. القرارات الرسمية تعود للجهة المختصة أو لمقدّم الخدمة.',
+    privacy: 'سياسة الخصوصية',
+    terms: 'شروط الاستخدام',
   };
 }
 
@@ -248,6 +266,7 @@ export function ServiceDetail() {
     ? services.filter((item) => item.category === service.category && item.id !== service.id).slice(0, 4)
     : [];
   const serviceMode = service?.type as ServiceType;
+  const waHref = whatsappHref(title ? `${title} — ${categoryTitle}` : '');
   // Each service shows its own admin-set photo; the curated category photo is
   // only a fallback when a service has none.
   const heroImage = service ? (service.image ?? CATEGORY_HERO_IMAGE[service.category]) : undefined;
@@ -259,6 +278,17 @@ export function ServiceDetail() {
   // hook count between renders and crashed with React error #300 whenever
   // that happened (e.g. tour-vip while overrides were loading/hiding it).
   usePageMeta({ title: seoTitle, description: seoDescription, noindex: !service });
+
+  // This page is where paid traffic lands, so opening it is the ViewContent
+  // that campaigns build audiences from. It fires once per service, after the
+  // catalog has resolved — `service` starts undefined while admin overrides
+  // load, and a view of a service we cannot name is not a view of anything.
+  const serviceId = service?.id;
+  const serviceCategory = service?.category;
+  useEffect(() => {
+    if (!serviceId) return;
+    track('guide_viewed', { target: serviceId, meta: { category: serviceCategory ?? '' } });
+  }, [serviceId, serviceCategory]);
 
   if (!service) return <ServiceNotFound />;
 
@@ -385,12 +415,50 @@ export function ServiceDetail() {
         <aside className="card h-fit p-5 lg:sticky lg:top-24">
           <h2 className="text-lg font-extrabold text-navy">{copy.requestHeading}</h2>
           <p className="mt-2 text-sm leading-6 text-gray-600">{copy.requestText}</p>
-          <button type="button" className="btn-primary mt-5 w-full" onClick={() => setShowRequest(true)}>
+          <button
+            type="button"
+            className="btn-primary mt-5 w-full"
+            onClick={() => {
+              track('request_started', { target: service.id, meta: { category: service.category } });
+              setShowRequest(true);
+            }}
+          >
             {copy.requestButton}
           </button>
-          <Link to="/services" className="btn-secondary mt-3 w-full text-center">
+          {/* An ad lands a stranger here. Some of them will fill in a form;
+              many more will only ever tap a WhatsApp button, and until now this
+              page offered them nothing but the floating bubble in the corner. */}
+          {HAS_WHATSAPP && waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => track('whatsapp_clicked', { target: 'service_page_sidebar' })}
+              className="btn-secondary mt-3 flex w-full items-center justify-center gap-2"
+            >
+              <AppIcon name="message-circle" className="h-4 w-4" />
+              {copy.whatsappButton}
+            </a>
+          )}
+          <Link to="/services" className="mt-3 block text-center text-sm font-semibold text-navy/70 hover:text-navy hover:underline">
             {copy.returnButton}
           </Link>
+
+          {/* Who Rafiq is and is not. A visitor arriving from an ad for a
+              residency or health service has no other context, and mistaking a
+              private coordinator for a government office is the single most
+              damaging misunderstanding this site can allow. */}
+          <p className="mt-5 border-t border-cream-dark pt-4 text-xs leading-6 text-gray-600">
+            {copy.independence}
+          </p>
+          <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+            <Link to="/privacy" className="text-navy/70 underline underline-offset-2 hover:text-navy">
+              {copy.privacy}
+            </Link>
+            <Link to="/terms" className="text-navy/70 underline underline-offset-2 hover:text-navy">
+              {copy.terms}
+            </Link>
+          </p>
         </aside>
       </div>
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 
 /**
@@ -629,5 +629,219 @@ describe('visitor country', () => {
     track('page_view');
     await flush('unload');
     expect(JSON.parse(capturedParts![0] as string)[0]).toHaveProperty('country', 'TR');
+  });
+});
+
+/**
+ * Meta pixel — the ad platform is the one destination where a mistake cannot be
+ * taken back: an event sent there is not recallable, and the audiences built
+ * from it persist. So the guarantees are asserted directly here rather than
+ * inferred from the shared track() path.
+ */
+describe('Meta pixel', () => {
+  function withFbq() {
+    const fbq = vi.fn();
+    (window as unknown as { fbq: unknown }).fbq = fbq;
+    return fbq;
+  }
+
+  afterEach(() => {
+    delete (window as unknown as { fbq?: unknown }).fbq;
+  });
+
+  it('sends nothing before a consent decision, and nothing after a decline', async () => {
+    const { track, setConsent, trackMetaEvent } = await freshAnalytics();
+    const fbq = withFbq();
+
+    track('request_submitted', { target: 'ikamet', meta: { category: 'residency' } });
+    trackMetaEvent('Lead');
+    expect(fbq).not.toHaveBeenCalled();
+
+    setConsent('declined');
+    track('request_submitted', { target: 'ikamet', meta: { category: 'residency' } });
+    expect(fbq).not.toHaveBeenCalled();
+  });
+
+  it('sends nothing while Do Not Track is on', async () => {
+    Object.defineProperty(navigator, 'doNotTrack', { value: '1', configurable: true });
+    const { setConsent, trackMetaEvent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    trackMetaEvent('Contact', { content_name: 'WhatsApp Contact' });
+
+    expect(fbq).not.toHaveBeenCalled();
+  });
+
+  it('maps a submitted request to Lead, and a WhatsApp tap to Contact', async () => {
+    const { track, setConsent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    track('request_submitted', { target: 'ikamet-renewal', meta: { category: 'residency', request_id: 'req-1' } });
+    track('whatsapp_clicked', { target: 'service_page_sidebar' });
+
+    expect(fbq).toHaveBeenCalledWith('track', 'Lead', {
+      content_name: 'ikamet-renewal',
+      content_ids: ['ikamet-renewal'],
+      content_category: 'residency',
+    });
+    expect(fbq).toHaveBeenCalledWith('track', 'Contact', {
+      content_name: 'WhatsApp Contact',
+      content_category: 'Rafiq Services',
+      placement: 'service_page_sidebar',
+    });
+  });
+
+  it('counts one Lead per accepted request, however often the success screen re-renders', async () => {
+    const { track, setConsent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    track('request_submitted', { target: 'ikamet', meta: { category: 'residency', request_id: 'req-7' } });
+    track('request_submitted', { target: 'ikamet', meta: { category: 'residency', request_id: 'req-7' } });
+
+    expect(fbq.mock.calls.filter((c) => c[1] === 'Lead')).toHaveLength(1);
+  });
+
+  it('drops the whole event rather than let a phone number or email reach Meta', async () => {
+    const { setConsent, trackMetaEvent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    trackMetaEvent('Lead', { content_name: 'ikamet', note: '+90 552 458 88 80' });
+    trackMetaEvent('Lead', { content_name: 'ikamet', note: 'ahmet@example.com' });
+    trackMetaEvent('Lead', { content_ids: ['+905524588880'] });
+
+    expect(fbq).not.toHaveBeenCalled();
+  });
+
+  it('never forwards a product-analytics event that has no advertising meaning', async () => {
+    const { track, setConsent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    track('chat_message_sent', { meta: { message_count: 3 } });
+    track('search_performed', { meta: { query: 'ikamet randevu', result_count: 4 } });
+    track('lang_changed', { target: 'en', meta: { from: 'ar' } });
+
+    expect(fbq).not.toHaveBeenCalled();
+  });
+
+  it('sends a custom event under trackCustom so Events Manager does not swallow it', async () => {
+    const { setConsent, trackMetaEvent } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+
+    trackMetaEvent('ServiceRequestStarted', { content_name: 'ikamet' });
+
+    expect(fbq).toHaveBeenCalledWith('trackCustom', 'ServiceRequestStarted', { content_name: 'ikamet' });
+  });
+
+  it('does not repeat the landing PageView the bootstrap already sent, but sends one per route change', async () => {
+    const { setConsent, useTrackPageViews } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+    window.history.pushState({}, '', '/ar/services');
+
+    const wrapper = ({ children }: { children: ReactNode }) => <BrowserRouter>{children}</BrowserRouter>;
+    renderHook(() => useTrackPageViews(), { wrapper });
+
+    // The landing route: index.html already counted it.
+    expect(fbq.mock.calls.filter((c) => c[1] === 'PageView')).toHaveLength(0);
+
+    // A real in-app navigation. pushState alone would not do it — BrowserRouter
+    // only re-renders when the history it listens to says the location moved.
+    act(() => {
+      window.history.pushState({}, '', '/ar/services/ikamet');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    expect(fbq.mock.calls.filter((c) => c[1] === 'PageView')).toHaveLength(1);
+
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('reports a phone tap to the ad platforms without touching the first-party sink', async () => {
+    const { setConsent, trackPhoneContact, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    const fbq = withFbq();
+    vi.useFakeTimers();
+
+    trackPhoneContact('footer');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    // The events table's CHECK constraint has no phone-click type, and one
+    // rejected row would take the whole batch with it — see trackPhoneContact.
+    expect(fbq).toHaveBeenCalledWith('track', 'Contact', {
+      content_name: 'Phone Contact',
+      content_category: 'Rafiq Services',
+      placement: 'footer',
+    });
+    expect(sinkCalls()).toHaveLength(0);
+  });
+});
+
+/**
+ * UTM capture. The campaign that paid for a visit is in the URL for exactly one
+ * page load; without this, a request submitted three taps later cannot be
+ * traced back to the ad that produced it.
+ */
+describe('campaign attribution', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('keeps the landing campaign on later events, after the query string is gone', async () => {
+    const { captureAttribution, track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    window.history.pushState({}, '', '/ar?utm_source=facebook&utm_medium=paid&utm_campaign=ikamet-ar-sep');
+    captureAttribution();
+
+    // The visitor navigates: react-router drops the query string entirely.
+    window.history.pushState({}, '', '/ar/services/ikamet');
+    captureAttribution();
+    vi.useFakeTimers();
+
+    track('request_submitted', { target: 'ikamet', meta: { category: 'residency' } });
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(lastBody()[0].meta).toMatchObject({
+      category: 'residency',
+      utm_source: 'facebook',
+      utm_medium: 'paid',
+      utm_campaign: 'ikamet-ar-sep',
+    });
+  });
+
+  it('leaves events that are not about commercial intent alone', async () => {
+    const { captureAttribution, track, setConsent, FLUSH_INTERVAL_MS } = await freshAnalytics();
+    setConsent('granted');
+    window.history.pushState({}, '', '/ar?utm_source=facebook');
+    captureAttribution();
+    vi.useFakeTimers();
+
+    track('page_view');
+    await vi.advanceTimersByTimeAsync(FLUSH_INTERVAL_MS);
+
+    expect(lastBody()[0].meta).toBeNull();
+  });
+
+  it('refuses a UTM value that is free text or looks like a phone number', async () => {
+    const { sanitizeUtmValue } = await freshAnalytics();
+
+    expect(sanitizeUtmValue('IKamet AR Sep')).toBe('ikamet-ar-sep');
+    expect(sanitizeUtmValue('+905524588880')).toBeNull();
+    expect(sanitizeUtmValue('ahmet@example.com')).toBeNull();
+    expect(sanitizeUtmValue('  ')).toBeNull();
+    expect(sanitizeUtmValue('a'.repeat(200))).toHaveLength(60);
+  });
+
+  it('does not persist a campaign for a visitor who has not consented', async () => {
+    const { captureAttribution } = await freshAnalytics();
+    window.history.pushState({}, '', '/ar?utm_source=facebook&utm_campaign=ikamet-ar-sep');
+
+    captureAttribution();
+
+    expect(sessionStorage.getItem('rafiq_attribution')).toBeNull();
   });
 });

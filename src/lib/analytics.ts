@@ -49,6 +49,7 @@ declare global {
 export type AnalyticsEventType =
   | 'page_view'
   | 'service_view'
+  | 'guide_viewed'
   | 'service_click'
   | 'request_started'
   | 'request_submitted'
@@ -153,6 +154,46 @@ export function setConsent(state: 'granted' | 'declined'): void {
       clearTimeout(flushTimer);
       flushTimer = null;
     }
+  }
+}
+
+/**
+ * Fired when the visitor asks to revisit their cookie choice, so the banner can
+ * come back from anywhere on the site (the footer link is nowhere near it in
+ * the tree, and a shared store for one boolean would be heavier than an event).
+ */
+export const CONSENT_REOPEN_EVENT = 'rafiq:consent-reopen';
+
+/**
+ * Puts the choice back in front of the visitor. Clearing the stored answer is
+ * what actually stops collection: track() refuses to enqueue while the answer
+ * is null, and the ad pixel is asked to stand down too.
+ *
+ * NOTE the one thing this cannot do — once fbevents.js has been fetched there
+ * is no call that unloads it, so a visitor switching from "accept" to
+ * "decline" is given a fresh page load by ConsentBanner rather than a promise
+ * we cannot keep.
+ */
+export function reopenConsentChoice(): void {
+  try {
+    localStorage.removeItem(CONSENT_KEY);
+  } catch {
+    /* storage unavailable — the banner still reopens for this page load */
+  }
+  try {
+    window.rafiqGoogleAnalytics?.setConsent('declined');
+  } catch {
+    /* analytics must never affect the product experience */
+  }
+  queue = [];
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(CONSENT_REOPEN_EVENT));
+  } catch {
+    /* nothing to do — the next page load shows the banner anyway */
   }
 }
 
@@ -366,6 +407,123 @@ function isSafePayload(target: string | null, meta: Record<string, MetaValue> | 
   }
   return true;
 }
+
+// ── campaign attribution (UTM) ────────────────────────────────────────────
+//
+// Paid traffic arrives with ?utm_source=... on the LANDING url only. The
+// instant the visitor taps anything, react-router rewrites the address bar and
+// the campaign that paid for the visit is gone — so a request submitted three
+// screens later can no longer be traced to the ad that produced it. The five
+// parameters are therefore read once, kept for the rest of the visit, and
+// stamped onto the events that represent commercial intent.
+//
+// These are OUR labels (we name the campaigns), never anything the visitor
+// typed, and they pass the same PII screen as every other field: lowercased,
+// capped at 60 characters, and rejected outright if they contain anything but
+// slug punctuation. Nothing from a UTM parameter is ever forwarded to Meta —
+// the ad platform attributes its own clicks; this is for our own reporting.
+//
+// Held in memory always (a route change must not lose it) but mirrored into
+// sessionStorage only once consent is granted: persisting an advertising
+// identifier for a visitor who declined is exactly what the banner promises
+// not to do.
+
+const ATTRIBUTION_KEY = 'rafiq_attribution';
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const;
+export type UtmKey = (typeof UTM_KEYS)[number];
+export type Attribution = Partial<Record<UtmKey, string>>;
+const MAX_UTM_LEN = 60;
+
+let attribution: Attribution | null = null;
+let attributionHydrated = false;
+let attributionPersisted = false;
+
+/** null = not a value we are willing to store, let alone report on. */
+export function sanitizeUtmValue(raw: string): string | null {
+  const v = raw.trim().toLowerCase().replace(/\s+/g, '-').slice(0, MAX_UTM_LEN);
+  if (!v) return null;
+  if (!/^[a-z0-9._~+|-]+$/.test(v)) return null; // slug punctuation only — not free text
+  if (looksLikePii(v)) return null;
+  return v;
+}
+
+function persistAttribution(value: Attribution): void {
+  if (getConsent() !== 'granted') return;
+  try {
+    sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(value));
+    attributionPersisted = true;
+  } catch {
+    /* private mode — the in-memory copy still serves this page load */
+  }
+}
+
+/**
+ * Reads the current URL's UTM parameters, keeping the LAST campaign seen: a
+ * second ad click inside one visit is a new touch, not a duplicate of the
+ * first. Safe to call on every route change — a URL with no utm_* parameters
+ * leaves the stored set untouched, which is the whole point.
+ */
+export function captureAttribution(): Attribution {
+  if (!attributionHydrated) {
+    attributionHydrated = true;
+    try {
+      const raw = sessionStorage.getItem(ATTRIBUTION_KEY);
+      const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
+      if (parsed) {
+        const restored: Attribution = {};
+        for (const key of UTM_KEYS) {
+          const value = parsed[key];
+          const clean = typeof value === 'string' ? sanitizeUtmValue(value) : null;
+          if (clean) restored[key] = clean;
+        }
+        if (Object.keys(restored).length > 0) attribution = restored;
+      }
+    } catch {
+      /* nothing stored, unreadable, or storage unavailable */
+    }
+  }
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fresh: Attribution = {};
+    for (const key of UTM_KEYS) {
+      const raw = params.get(key);
+      const clean = raw === null ? null : sanitizeUtmValue(raw);
+      if (clean) fresh[key] = clean;
+    }
+    if (Object.keys(fresh).length > 0) {
+      attribution = fresh;
+      attributionPersisted = false;
+      persistAttribution(fresh);
+    }
+  } catch {
+    /* attribution is optional and must never affect the page */
+  }
+
+  // The usual ad visit arrives with the campaign in the URL and the banner not
+  // yet answered, so the capture above happens BEFORE there is consent to store
+  // anything. Writing it here, on the next route change, is what keeps the
+  // campaign attached to a visitor who accepts and then reloads — without it,
+  // consenting a second later quietly cost us the attribution.
+  if (attribution && !attributionPersisted) persistAttribution(attribution);
+
+  return attribution ? { ...attribution } : {};
+}
+
+/** What this visit is attributed to; `{}` when the visitor arrived directly. */
+export function getAttribution(): Attribution {
+  return attribution ? { ...attribution } : {};
+}
+
+/** The events where knowing the campaign is worth the extra fields. */
+const ATTRIBUTED_EVENTS = new Set<AnalyticsEventType>([
+  'request_started',
+  'request_submitted',
+  'whatsapp_clicked',
+  'signup',
+  'checkout_opened',
+  'payment_submitted',
+]);
 
 // ── queue + flush ─────────────────────────────────────────────────────────
 
@@ -592,6 +750,9 @@ function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): voi
       case 'service_view':
         gtag('event', 'view_service', { service_id: target, service_category: category });
         return;
+      case 'guide_viewed':
+        gtag('event', 'view_service_guide', { service_id: target, service_category: category });
+        return;
       case 'service_click':
         gtag('event', 'select_service', { service_id: target, service_category: category });
         return;
@@ -612,7 +773,7 @@ function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): voi
         gtag('event', 'contact', { method: 'whatsapp', placement: target ?? 'unknown' });
         return;
       case 'signup':
-        gtag('event', 'sign_up', { method: typeof meta.method === 'string' ? meta.method : 'website' });
+        gtag('event', 'sign_up', { method: typeof meta.method === 'string' ? meta.method : (target ?? 'website') });
         return;
       case 'login':
         gtag('event', 'login', { method: typeof meta.method === 'string' ? meta.method : 'website' });
@@ -633,52 +794,157 @@ function sendGoogleEvent(eventType: AnalyticsEventType, opts: TrackOptions): voi
 // ── Meta (Facebook/Instagram) Pixel ─────────────────────────────
 
 /**
- * Meta pixel bridge. Campaigns optimise against these events, so only the
- * handful that represent real commercial intent are forwarded, under Meta's
- * standard-event names — everything else stays in GA4 and the first-party
- * table. Runs behind the same privacy guard as sendGoogleEvent(): flat,
- * non-identifying values only, after explicit consent.
- *
- * `contact` (a WhatsApp click) is the event a "send us a message" campaign
- * should be told to optimise for, and `Lead` is the submitted service
- * request — keep those two names stable, or in-flight campaigns lose their
- * optimisation history.
+ * Meta's standard event names. Anything not on this list is sent as a custom
+ * event instead, because `track` with an unknown name is silently ignored by
+ * Events Manager — the worst possible failure mode for a conversion signal.
  */
-function sendMetaEvent(eventType: AnalyticsEventType, opts: TrackOptions): void {
+const META_STANDARD_EVENTS = new Set([
+  'PageView', 'ViewContent', 'Search', 'Lead', 'Contact', 'CompleteRegistration',
+  'InitiateCheckout', 'AddToCart', 'AddPaymentInfo', 'Purchase', 'Subscribe',
+  'StartTrial', 'SubmitApplication', 'Schedule', 'FindLocation', 'CustomizeProduct',
+  'AddToWishlist', 'Donate',
+]);
+
+type MetaEventData = Record<string, MetaValue | string[] | undefined>;
+
+/** Keys already sent, for events that must not be counted twice. */
+const metaFiredOnce = new Set<string>();
+
+/**
+ * The ONE way anything reaches the Meta pixel. Every promise this site makes
+ * about ad measurement is kept here rather than at twenty call sites:
+ *
+ *  - nothing is sent without granted consent, or while Do Not Track is on;
+ *  - nothing is sent when fbevents.js never loaded — a declined visitor, a
+ *    content blocker, or a non-production host. A missing `fbq` is the normal
+ *    case, not an error;
+ *  - every value is screened for anything email- or phone-shaped and the WHOLE
+ *    event is dropped when one is found, so a passport or ikamet number, a
+ *    medical detail, a legal case description or a chat message cannot reach
+ *    an ad platform through a careless call site. Nested objects are refused
+ *    for the same reason: they are where free text hides;
+ *  - `once` collapses repeats, so a re-render cannot inflate a conversion;
+ *  - it never throws. Ad measurement is not allowed to break the product.
+ */
+export function trackMetaEvent(
+  eventName: string,
+  eventData: MetaEventData = {},
+  options: { once?: string } = {},
+): void {
   try {
     if (typeof window === 'undefined') return;
+    if (isDoNotTrackEnabled()) return;
+    if (getConsent() !== 'granted') return;
     const fbq = window.fbq;
-    if (!fbq) return;
+    if (typeof fbq !== 'function') return;
 
-    const target = opts.target ?? undefined;
-    const meta = opts.meta ?? {};
-    const category = typeof meta.category === 'string' ? meta.category : undefined;
-
-    switch (eventType) {
-      case 'service_view':
-        fbq('track', 'ViewContent', { content_ids: target ? [target] : [], content_category: category });
+    const payload: Record<string, MetaValue | string[]> = {};
+    for (const [key, value] of Object.entries(eventData)) {
+      if (value === undefined || value === null) continue;
+      if (Array.isArray(value)) {
+        if (value.length === 0) continue;
+        if (value.some((entry) => typeof entry !== 'string' || looksLikePii(entry))) return;
+      } else if (typeof value === 'object') {
+        return; // flat identifiers and enums only
+      } else if (typeof value === 'string' && looksLikePii(value)) {
         return;
-      case 'request_started':
-        fbq('track', 'InitiateCheckout', { content_ids: target ? [target] : [], content_category: category });
-        return;
-      case 'request_submitted':
-        fbq('track', 'Lead', { content_ids: target ? [target] : [], content_category: category });
-        return;
-      case 'whatsapp_clicked':
-        fbq('track', 'Contact', { placement: target ?? 'unknown' });
-        return;
-      case 'signup':
-        fbq('track', 'CompleteRegistration', {
-          method: typeof meta.method === 'string' ? meta.method : 'website',
-        });
-        return;
-      default:
-        // page_view is already sent by the pixel bootstrap, and the rest of the
-        // taxonomy is product analytics with no advertising meaning.
-        return;
+      }
+      payload[key] = value;
     }
+
+    if (options.once) {
+      if (metaFiredOnce.has(options.once)) return;
+      metaFiredOnce.add(options.once);
+    }
+
+    fbq(META_STANDARD_EVENTS.has(eventName) ? 'track' : 'trackCustom', eventName, payload);
   } catch {
-    /* Analytics must remain best-effort. */
+    /* Ad measurement must never affect the product experience. */
+  }
+}
+
+/**
+ * A tap on Rafiq's own phone number, forwarded to the ad platforms only.
+ *
+ * Deliberately NOT a track() event: the first-party events table accepts a
+ * fixed list of event types (a CHECK constraint in 20260727_events_tracking.sql)
+ * and migrations here are pasted into the SQL editor by hand, so a new type
+ * would be rejected by the live database — and because inserts are batched,
+ * one rejected row takes up to nineteen unrelated events down with it. The ad
+ * platforms need this signal now; the first-party table can gain it the next
+ * time a migration is applied.
+ */
+export function trackPhoneContact(placement: string): void {
+  try {
+    trackMetaEvent('Contact', {
+      content_name: 'Phone Contact',
+      content_category: 'Rafiq Services',
+      placement,
+    });
+    if (typeof window === 'undefined') return;
+    if (isDoNotTrackEnabled() || getConsent() !== 'granted') return;
+    window.gtag?.('event', 'contact', { method: 'phone', placement });
+  } catch {
+    /* never let analytics break a phone link */
+  }
+}
+
+/**
+ * Meta pixel bridge for the first-party taxonomy. Campaigns optimise against
+ * these events, so only the handful that represent real commercial intent are
+ * forwarded, under Meta's standard-event names — everything else stays in GA4
+ * and the first-party table.
+ *
+ * `Contact` (a WhatsApp or phone tap) is what a "send us a message" campaign
+ * should optimise for, and `Lead` is the submitted service request — keep
+ * those two names stable, or in-flight campaigns lose their optimisation
+ * history.
+ *
+ * content_name carries the service ID, not its translated title: it is stable
+ * across the four languages (so one campaign does not report as four things),
+ * readable in Events Manager, and cannot contain anything a visitor typed.
+ */
+function sendMetaEvent(eventType: AnalyticsEventType, opts: TrackOptions): void {
+  const target = opts.target ?? undefined;
+  const meta = opts.meta ?? {};
+  const category = typeof meta.category === 'string' ? meta.category : undefined;
+  const content: MetaEventData = {
+    content_name: target,
+    content_ids: target ? [target] : undefined,
+    content_category: category,
+  };
+
+  switch (eventType) {
+    case 'service_view':
+    case 'guide_viewed':
+      trackMetaEvent('ViewContent', content);
+      return;
+    case 'request_started':
+      trackMetaEvent('InitiateCheckout', content);
+      return;
+    case 'request_submitted': {
+      // One Lead per request that the database actually accepted, even if the
+      // success screen re-renders or the visitor navigates back to it.
+      const requestId = typeof meta.request_id === 'string' ? meta.request_id : null;
+      trackMetaEvent('Lead', content, requestId ? { once: `lead:${requestId}` } : {});
+      return;
+    }
+    case 'whatsapp_clicked':
+      trackMetaEvent('Contact', {
+        content_name: 'WhatsApp Contact',
+        content_category: 'Rafiq Services',
+        placement: target ?? 'unknown',
+      });
+      return;
+    case 'signup':
+      trackMetaEvent('CompleteRegistration', {
+        method: typeof meta.method === 'string' ? meta.method : (target ?? 'website'),
+      });
+      return;
+    default:
+      // PageView is handled by the bootstrap and useTrackPageViews; the rest of
+      // the taxonomy is product analytics with no advertising meaning.
+      return;
   }
 }
 
@@ -700,10 +966,17 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
       return;
     }
 
+    // Stamp the campaign onto the events that answer "which ad produced this".
+    // Added AFTER the PII screen above so a caller can never smuggle a value
+    // past it, and only for the commercial-intent events — a page_view does not
+    // need five extra fields to be useful.
+    const campaign = ATTRIBUTED_EVENTS.has(eventType) ? getAttribution() : {};
+    const enrichedMeta = Object.keys(campaign).length > 0 ? { ...(meta ?? {}), ...campaign } : meta;
+
     // GA4 remains useful even if the optional first-party event table is not
     // deployed. Its delivery must not depend on the Supabase event sink.
-    sendGoogleEvent(eventType, { target, meta: meta ?? undefined });
-    sendMetaEvent(eventType, { target, meta: meta ?? undefined });
+    sendGoogleEvent(eventType, { target, meta: enrichedMeta ?? undefined });
+    sendMetaEvent(eventType, { target, meta: enrichedMeta ?? undefined });
 
     if (sinkMissing) return; // Skip only the unavailable first-party queue.
 
@@ -716,7 +989,7 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
       event_type: eventType,
       path: safePath(),
       target,
-      meta,
+      meta: enrichedMeta,
       locale: currentLocale(),
       device: detectDevice(),
       referrer: referrerOrigin(),
@@ -729,13 +1002,28 @@ export function track(eventType: AnalyticsEventType, opts: TrackOptions = {}): v
   }
 }
 
+/** False until the landing route has been seen — see the comment inside. */
+let metaLandingPageViewCounted = false;
+
 /** Call once near the root (inside <Layout>, which wraps every routed page —
  *  desktop and the mobile variants alike) to auto-capture page_view on every
  *  route change. */
 export function useTrackPageViews(): void {
   const location = useLocation();
   useEffect(() => {
+    // Before track(), so the very first event of an ad visit already carries
+    // the campaign that paid for it.
+    captureAttribution();
     track('page_view');
+
+    // The pixel bootstrap in index.html already sent PageView for the URL the
+    // browser actually loaded (and sends one the moment consent is granted
+    // mid-visit), so counting the landing route here would double every
+    // landing. From the second route onward there is no other sender — this is
+    // a single-page app, the browser never navigates again — so each in-app
+    // route change has to send its own.
+    if (metaLandingPageViewCounted) trackMetaEvent('PageView');
+    else metaLandingPageViewCounted = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 }

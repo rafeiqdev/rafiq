@@ -1840,7 +1840,7 @@
     },
     "privacy": {
       "title": "Privacy Policy (KVKK)",
-      "body": "This Privacy Policy explains how Rafiq Istanbul collects and uses your information, in line with the Turkish Personal Data Protection Law (KVKK No. 6698).\n\n1. Data we collect. Account details (name, email), the answers you give during onboarding, your service requests and bookings, documents you choose to upload, and basic usage data needed to operate the service.\n\n2. Why we use it. To provide and personalize our services, prepare and follow up your requests, communicate with you, and improve the platform. We do not sell your personal data.\n\n3. Sharing. We share only what is necessary with the vetted partner handling your specific request (for example, a translation office or insurance provider). Our infrastructure is hosted on secure cloud providers.\n\n4. Storage and security. Your data is stored on protected servers with access controls. Uploaded documents stay private to your account and are accessible to our team only to deliver the service you requested.\n\n5. Your rights (KVKK). You may request access to, correction of, or deletion of your personal data, and you may withdraw consent at any time, by contacting us.\n\n6. Retention. We keep your data only as long as needed to provide the service and meet legal obligations, then delete or anonymize it.\n\n7. Contact. For privacy requests, contact our team through the app."
+      "body": "This Privacy Policy explains how Rafiq Istanbul collects and uses your information, in line with the Turkish Personal Data Protection Law (KVKK No. 6698).\n\n1. Data we collect. Account details (name, email), the answers you give during onboarding, your service requests and bookings, documents you choose to upload, and basic usage data needed to operate the service.\n\n2. Why we use it. To provide and personalize our services, prepare and follow up your requests, communicate with you, and improve the platform. We do not sell your personal data.\n\n3. Sharing. We share only what is necessary with the vetted partner handling your specific request (for example, a translation office or insurance provider). Our infrastructure is hosted on secure cloud providers.\n\n4. Storage and security. Your data is stored on protected servers with access controls. Uploaded documents stay private to your account and are accessible to our team only to deliver the service you requested.\n\n5. Your rights (KVKK). You may request access to, correction of, or deletion of your personal data, and you may withdraw consent at any time, by contacting us.\n\n6. Retention. We keep your data only as long as needed to provide the service and meet legal obligations, then delete or anonymize it.\n\n7. Cookies, measurement and advertising. Only after you accept the cookie banner do we load two tools: Google Analytics, to see which pages are useful, and the Meta Pixel (Facebook/Instagram), to measure our ad results and show our ads to people who visited the site. They receive general events only — opening a service page, tapping WhatsApp or the phone number, submitting a request — never your name, phone, email, uploaded documents, health or legal case details, or the text of your chats. If you decline, neither tool is loaded at all and the site works in full. You can change your choice at any time from the \"Privacy choices\" link at the bottom of every page.\n\n8. Contact. For privacy requests, contact our team through the app."
     },
     "refund": {
       "title": "Refund and Return Policy",
@@ -1849,10 +1849,11 @@
     "updated": "Last updated: June 2026"
   },
   "consent": {
-    "title": "Cookies & analytics",
-    "body": "We track anonymous visits to see which pages and services help people most, so we can improve them. We never store your name, phone, email, or anything you type in chat.",
+    "title": "Cookies and measurement",
+    "body": "We use measurement tools (Google Analytics and the Meta Pixel) to see which pages and services actually help visitors, and to measure the results of our ads on Facebook and Instagram. We never send your name, phone, email, documents, or anything you type in the chat. Choose \"No thanks\" and none of them load — the site works exactly the same.",
     "accept": "Allow",
-    "decline": "No thanks"
+    "decline": "No thanks",
+    "manage": "Privacy choices"
   },
   "leads": {
     "kind": {

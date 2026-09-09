@@ -17,6 +17,7 @@ import {
   WHATSAPP_E164,
   WHATSAPP_NUMBER,
 } from '../lib/contact';
+import { reopenConsentChoice, track, trackPhoneContact } from '../lib/analytics';
 
 // Same guard as before, now shared with /contact and the Organization JSON-LD
 // via src/lib/contact.ts: hide a channel entirely unless it is really
@@ -104,6 +105,7 @@ function HelpCard({ compact }: { compact?: boolean }) {
             href={waHref}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track('whatsapp_clicked', { target: 'footer_help_card' })}
             className="inline-flex items-center justify-center gap-2 rounded-btn border border-white/25 text-white font-semibold text-[13px] px-4 min-h-[44px] hover:bg-white/10"
           >
             <AppIcon name="phone" className="w-4 h-4" />
@@ -173,7 +175,12 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
             {t('footer.locationLine')}
           </span>
           {HAS_WHATSAPP && (
-            <a href={`tel:${WHATSAPP_E164}`} dir="ltr" className="flex items-center gap-1.5 hover:text-white">
+            <a
+              href={`tel:${WHATSAPP_E164}`}
+              dir="ltr"
+              onClick={() => trackPhoneContact('footer')}
+              className="flex items-center gap-1.5 hover:text-white"
+            >
               <AppIcon name="phone" className="w-3.5 h-3.5 shrink-0" />
               {WHATSAPP_DISPLAY}
             </a>
@@ -196,6 +203,16 @@ function LegalStrip({ mobile }: { mobile?: boolean }) {
               {t(l.key)}
             </Link>
           ))}
+          {/* Consent has to be withdrawable as easily as it was given. Without
+              this the banner appeared exactly once, ever, and a visitor who
+              accepted had no way back — which is not a choice, it is a gate. */}
+          <button
+            type="button"
+            onClick={reopenConsentChoice}
+            className="text-white/70 underline-offset-4 hover:text-white hover:underline"
+          >
+            {t('consent.manage')}
+          </button>
         </nav>
       </div>
     </div>

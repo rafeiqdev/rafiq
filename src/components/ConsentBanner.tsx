@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getConsent, setConsent } from '../lib/analytics';
+import { CONSENT_REOPEN_EVENT, getConsent, setConsent } from '../lib/analytics';
 import { AppIcon } from './AppIcon';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -28,6 +28,15 @@ export function ConsentBanner() {
   // In case consent was already decided in another tab while this one was open.
   useEffect(() => {
     if (getConsent() !== null) setVisible(false);
+  }, []);
+
+  // The footer's "privacy choices" link clears the stored answer and fires
+  // this, so the same strip serves both the first visit and every later change
+  // of mind — the choice is never one-way.
+  useEffect(() => {
+    const reopen = () => setVisible(true);
+    window.addEventListener(CONSENT_REOPEN_EVENT, reopen);
+    return () => window.removeEventListener(CONSENT_REOPEN_EVENT, reopen);
   }, []);
 
   // MEASURE the bottom tab bar; never assume it is there.
@@ -66,8 +75,23 @@ export function ConsentBanner() {
   if (!visible) return null;
 
   const choose = (state: 'granted' | 'declined') => {
+    const previous = getConsent();
     setConsent(state);
     setVisible(false);
+
+    // Withdrawing consent has to be real. Google's tag accepts a consent
+    // update, but Meta's fbevents.js has no unload call — once it is running,
+    // the only way to stop it is to stop running it. So a granted -> declined
+    // switch reloads the page, which starts it clean with the pixel never
+    // fetched. Any other outcome would be the banner promising something the
+    // page does not actually do.
+    if (previous === 'granted' && state === 'declined') {
+      try {
+        window.location.reload();
+      } catch {
+        /* reload blocked — the stored answer already stops everything new */
+      }
+    }
   };
 
   return (

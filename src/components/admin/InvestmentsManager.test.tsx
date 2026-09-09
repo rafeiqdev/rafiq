@@ -36,9 +36,17 @@ describe('investment contact details never reach a public page', () => {
 
   it.each(PUBLIC_FILES)('%s renders no contact field name', (file) => {
     const src = read(file);
-    for (const field of ['salesEmail', 'salesPhone', 'whatsapp', 'sales_email', 'sales_phone']) {
+    for (const field of ['salesEmail', 'salesPhone', 'sales_email', 'sales_phone']) {
       expect(src, `${file} mentions ${field}`).not.toContain(field);
     }
+
+    // `whatsapp` is checked by shape rather than as a bare substring: it is
+    // both an InvestmentContact field AND an ordinary English word these pages
+    // legitimately use (the analytics event for a WhatsApp tap, a CSS class, a
+    // translation key). A leak always reads the field off the object, so that
+    // is what is forbidden — `contact.whatsapp`, or the key in an object
+    // literal. A false failure here would push someone to delete real code.
+    expect(src, `${file} reads a whatsapp contact field`).not.toMatch(/\.whatsapp|whatsapp\s*:/);
   });
 
   it('keeps the contacts table out of the public read path in the API layer', () => {

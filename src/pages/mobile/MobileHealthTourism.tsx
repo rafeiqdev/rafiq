@@ -11,6 +11,7 @@ import { BEFORE_AFTER_IMAGES } from '../healthTourism/beforeAfterSlides';
 import { pickLocalized } from '../healthTourism/pickLocalized';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
 import { medicalContent } from '../../lib/api';
+import { track } from '../../lib/analytics';
 
 /**
  * /health-tourism landing page — phone viewport. Structure and copy are a
@@ -488,6 +489,7 @@ export function MobileHealthTourism() {
               href={`https://wa.me/${(import.meta.env.VITE_WHATSAPP_NUMBER as string).replace(/\D/g, '')}`}
               target="_blank"
               rel="noreferrer"
+              onClick={() => track('whatsapp_clicked', { target: 'medical_floating_button' })}
               className="w-12 h-12 rounded-full bg-emerald-600 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
             >
               <AppIcon name="message-circle" className="w-6 h-6" />
@@ -521,7 +523,10 @@ export function MobileHealthTourism() {
                   href={form.waHref}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => form.setSuccessOpen(false)}
+                  onClick={() => {
+                    track('whatsapp_clicked', { target: 'medical_success_mobile' });
+                    form.setSuccessOpen(false);
+                  }}
                   className="w-full py-3.5 rounded-2xl bg-navy hover:bg-navy-light active:scale-95 text-white font-bold text-sm text-center shadow-lg transition-all block"
                 >
                   {t(`${M}.successModal.cta`)}

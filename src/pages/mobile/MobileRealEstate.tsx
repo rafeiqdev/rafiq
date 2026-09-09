@@ -11,6 +11,7 @@ import { InvestmentStripCard } from '../../components/realestate/InvestmentStrip
 import { ISTANBUL_AREAS } from '../../data/istanbulAreas';
 import { useInvestments } from '../../hooks/useInvestments';
 import { BANNERS } from '../../lib/images';
+import { track } from '../../lib/analytics';
 import { SITE_URL, usePageMeta } from '../../lib/seo';
 import styles from './MobileRealEstate.module.css';
 
@@ -867,7 +868,13 @@ export function MobileRealEstate() {
             </div>
             {WA && (
               <div className={styles['dcta-w']}>
-                <a className={styles.dcta} href={detailWa} target="_blank" rel="noopener">
+                <a
+                  className={styles.dcta}
+                  href={detailWa}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => track('whatsapp_clicked', { target: 'listing_detail' })}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2zm5.8 14.16c-.24.68-1.42 1.31-1.95 1.35-.5.05-1.13.24-3.65-.76-3.07-1.21-5.04-4.33-5.2-4.53-.15-.2-1.24-1.65-1.24-3.15s.79-2.24 1.07-2.54c.28-.3.61-.38.81-.38.2 0 .41 0 .58.01.19.01.44-.07.69.53.24.6.83 2.07.9 2.22.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.18-.31.4-.44.53-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.02 1.12.99 2.06 1.3 2.36 1.45.3.15.47.13.64-.08.17-.2.74-.86.94-1.16.2-.3.4-.25.67-.15.27.1 1.72.81 2.02.96.3.15.5.22.57.35.07.13.07.73-.17 1.41z" />
                   </svg>

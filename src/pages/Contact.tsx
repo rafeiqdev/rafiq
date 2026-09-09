@@ -12,6 +12,7 @@ import {
   emailHref,
   whatsappHref,
 } from '../lib/contact';
+import { track } from '../lib/analytics';
 
 /**
  * /contact — the channels that actually reach Rafiq.
@@ -33,6 +34,7 @@ function Channel({
   value,
   href,
   cta,
+  onOpen,
 }: {
   icon: IconName;
   label: string;
@@ -40,6 +42,8 @@ function Channel({
   value: string;
   href: string;
   cta?: string;
+  /** Fires for BOTH the value link and the button — the same intent either way. */
+  onOpen?: () => void;
 }) {
   return (
     <section className="card p-5 sm:p-6">
@@ -53,6 +57,7 @@ function Channel({
         target="_blank"
         rel="noreferrer"
         dir="ltr"
+        onClick={onOpen}
         className="mt-3 block text-[15px] font-bold text-navy underline underline-offset-4"
       >
         {value}
@@ -62,6 +67,7 @@ function Channel({
           href={href}
           target="_blank"
           rel="noreferrer"
+          onClick={onOpen}
           className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-btn bg-navy px-5 text-[14px] font-bold text-white"
         >
           {cta}
@@ -113,6 +119,7 @@ export function Contact() {
             value={WHATSAPP_DISPLAY}
             href={waHref}
             cta={content.whatsappCta}
+            onOpen={() => track('whatsapp_clicked', { target: 'contact_page' })}
           />
         )}
 

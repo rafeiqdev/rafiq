@@ -10,6 +10,7 @@ import { BEFORE_AFTER_IMAGES } from './healthTourism/beforeAfterSlides';
 import { pickLocalized } from './healthTourism/pickLocalized';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import { medicalContent } from '../lib/api';
+import { track } from '../lib/analytics';
 
 /**
  * /health-tourism landing page — desktop. Structure, copy and layout are a
@@ -594,7 +595,10 @@ export function HealthTourism() {
                   href={form.waHref}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => form.setSuccessOpen(false)}
+                  onClick={() => {
+                    track('whatsapp_clicked', { target: 'medical_success_desktop' });
+                    form.setSuccessOpen(false);
+                  }}
                   className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs text-center transition shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <AppIcon name="message-circle" className="w-5 h-5" />
