@@ -544,6 +544,13 @@
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
 }
 
+/* The rotating headline wrapper ships with overflow-hidden, which clips the
+   slide/blur travel (more visible now that the type is bigger) and makes the
+   animation look flat. Let it breathe — the box below reserves the space. */
+.headline > span {
+  overflow: visible;
+}
+
 .supportingText {
   margin: 0;
   font-size: clamp(1.12rem, 1.45vw, 1.35rem);
@@ -815,10 +822,24 @@
     font-size: clamp(2.2rem, 3.6vw, 3.4rem);
     line-height: 1.28;
     letter-spacing: -0.02em;
+    /* Rotating phrases wrap to 1 or 2 lines — without a reserved box the
+       supporting text jumps up and down ("climbing" onto the headline).
+       Fix the box at two lines and pin the text to its bottom edge, so the
+       gap to the supporting text stays constant. Extra-long phrases grow
+       upward into the top padding instead of pushing content down. */
+    min-height: 2.62em;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .headline > span {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .heroRoot[dir="rtl"] .headline {
     line-height: 1.6;
+    min-height: 3.26em;
   }
 
   .supportingText {

@@ -33,9 +33,9 @@ export function WordRotate({
   words,
   duration = 2400,
   framerProps = {
-    initial: { opacity: 0, y: 16, filter: "blur(6px)" },
+    initial: { opacity: 0, y: 22, filter: "blur(8px)" },
     animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-    exit: { opacity: 0, y: -16, filter: "blur(6px)" },
+    exit: { opacity: 0, y: -22, filter: "blur(8px)" },
     transition: { type: "spring", stiffness: 280, damping: 24, mass: 0.8 },
   },
   className,
