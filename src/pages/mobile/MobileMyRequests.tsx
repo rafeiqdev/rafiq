@@ -13,7 +13,7 @@ import { MedicalRequestsPanel } from '../../components/medical/MedicalRequestsPa
 import { Modal } from '../../components/Modal';
 import { ReviewStars, StarRatingInput } from '../../components/ReviewStars';
 import { SiteImage } from '../../components/SiteImage';
-import { EXPLORE_PHOTOS } from '../../lib/images';
+import { SERVICES_HERO } from '../../lib/images';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { RequestStatusPill } from '../../components/RequestStatusPill';
 import { SectionState } from '../../components/SectionState';
@@ -163,6 +163,7 @@ function MobileRequestOffers({ req }: { req: CustomerRequest }) {
   const { t } = useTranslation();
   const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
   const [messageExpanded, setMessageExpanded] = useState(false);
+  const [chooseError, setChooseError] = useState(false);
   const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
   const adminOffers = useAsyncSection(
     () => Promise.all([serviceOffers.listForRequest(req.id), servicePayments.forRequest(req.id)]),
@@ -170,8 +171,15 @@ function MobileRequestOffers({ req }: { req: CustomerRequest }) {
   );
 
   const choose = async (responseId: string) => {
-    await customerRequests.choose(responseId);
-    offers.reload();
+    setChooseError(false);
+    try {
+      await customerRequests.choose(responseId);
+      offers.reload();
+    } catch {
+      // Same silent-failure fix as the desktop page: a dropped promise left the
+      // customer tapping a button that appeared to do nothing.
+      setChooseError(true);
+    }
   };
 
   const msg = req.message ? humanMessage(req.message) : null;
@@ -222,6 +230,12 @@ function MobileRequestOffers({ req }: { req: CustomerRequest }) {
                 {t('requests.responsesTitle', { count: responses.length })}
               </p>
               <p className="mb-3 mt-0.5 text-[11.5px] text-navy/50">{t('requests.capped')}</p>
+              {chooseError && (
+                <p role="alert" className="amber-note mb-3 flex items-center gap-2 text-[12px]">
+                  <AppIcon name="alert-triangle" className="h-4 w-4 shrink-0" />
+                  {t('requests.chooseError')}
+                </p>
+              )}
               <div className="flex flex-col gap-3">
                 {responses.map((r) => (
                   <div
@@ -307,7 +321,7 @@ function MobileMyRequestsInner() {
         <header className="relative animate-fade-in overflow-hidden rounded-b-[28px] px-5 pb-6 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
           {/* SiteImage's root is already `relative` — position it with a wrapper. */}
           <div className="absolute inset-0">
-            <SiteImage src={EXPLORE_PHOTOS['/referrals']} alt="" className="h-full w-full" />
+            <SiteImage src={SERVICES_HERO} alt="" className="h-full w-full" />
           </div>
           <div className="absolute inset-0 bg-navy/85" aria-hidden />
           <span

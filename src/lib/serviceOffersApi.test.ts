@@ -121,18 +121,37 @@ describe('adminServiceOffers.resolvePayment() — the only staff write path, and
 });
 
 describe('adminServiceOffers.createOffer() — requires an authenticated admin session', () => {
-  it('rejects instead of inserting when no session is present', async () => {
+  it('rejects instead of calling the RPC when no session is present', async () => {
     hasSession = false;
     await expect(
       adminServiceOffers.createOffer('req1', { price: 1500, currency: 'TL', details: '', imagePaths: [] }),
     ).rejects.toMatchObject({ code: 'not_authenticated' });
-    expect(capturedInserts).toHaveLength(0);
+    expect(rpcCalls).toHaveLength(0);
   });
 
-  it('inserts the exact admin-supplied price — the client trusts itself here, RLS gates who may call it at all', async () => {
+  it('goes through admin_create_service_offer (which supersedes the old live offer), never a raw insert', async () => {
+    rpcResponse = { data: 'offer1', error: null };
     await adminServiceOffers.createOffer('req1', { price: 2500, currency: 'TL', details: 'note', imagePaths: ['a.jpg'] });
-    expect(capturedInserts).toHaveLength(1);
-    expect(capturedInserts[0].table).toBe('service_offers');
-    expect(capturedInserts[0].row).toMatchObject({ request_id: 'req1', price: 2500, status: 'sent', created_by: 'u1' });
+    expect(capturedInserts).toHaveLength(0);
+    expect(rpcCalls).toEqual([
+      {
+        fn: 'admin_create_service_offer',
+        args: {
+          p_request_id: 'req1',
+          p_price: 2500,
+          p_currency: 'TL',
+          p_details: 'note',
+          p_image_paths: ['a.jpg'],
+          p_expires_at: null,
+        },
+      },
+    ]);
+  });
+
+  it('surfaces a live-payment refusal as an ApiError instead of silently failing', async () => {
+    rpcResponse = { data: null, error: { message: 'offer_payment_in_progress' } };
+    await expect(
+      adminServiceOffers.createOffer('req1', { price: 2500, currency: 'TL', details: '', imagePaths: [] }),
+    ).rejects.toMatchObject({ code: 'offer_payment_in_progress' });
   });
 });

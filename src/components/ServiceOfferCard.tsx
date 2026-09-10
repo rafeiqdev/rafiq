@@ -126,6 +126,13 @@ export function ServiceOfferCard({
   const returnPath = typeof window !== 'undefined' ? window.location.pathname : '/requests';
   const resumeUrl = payment ? servicePayments.resumeUrl(payment, returnPath) : null;
 
+  // Same split as OfferPage: the lightbox is for photos only, PDFs open as
+  // documents. Rendering a PDF URL inside the photo lightbox showed a broken
+  // image and gave photo indices that didn't match the full attachment list.
+  const isOfferPdf = (u: string) => /\.pdf(\?.*)?$/i.test(u) || u.toLowerCase().includes('/pdf');
+  const photoFiles = offer.imagePaths.filter((u) => !isOfferPdf(u));
+  const docFiles = offer.imagePaths.filter((u) => isOfferPdf(u));
+
   const startPayment = async () => {
     setBusy(true);
     setError(false);
@@ -173,13 +180,33 @@ export function ServiceOfferCard({
         </div>
       )}
 
-      {offer.imagePaths.length > 0 && (
+      {photoFiles.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
-          {offer.imagePaths.map((url, idx) => (
+          {photoFiles.map((url, idx) => (
             <button key={idx} type="button" onClick={() => setLightboxIndex(idx)} className="shrink-0">
               <img src={url} alt="" className="h-16 w-16 rounded-lg object-cover border border-cream-dark" />
             </button>
           ))}
+        </div>
+      )}
+
+      {docFiles.length > 0 && (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {docFiles.map((url, idx) => {
+            const cleanName = url.split('/').pop()?.split('?')[0] || `Document-${idx + 1}.pdf`;
+            return (
+              <a
+                key={idx}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-xs font-bold text-navy hover:underline break-anywhere"
+              >
+                <AppIcon name="file-text" className="w-3.5 h-3.5 shrink-0" />
+                {decodeURIComponent(cleanName)}
+              </a>
+            );
+          })}
         </div>
       )}
 
@@ -245,7 +272,7 @@ export function ServiceOfferCard({
 
       {lightboxIndex != null && (
         <OfferPhotoLightbox
-          photos={offer.imagePaths}
+          photos={photoFiles}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
         />

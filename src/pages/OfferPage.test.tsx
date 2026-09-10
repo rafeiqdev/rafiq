@@ -64,7 +64,9 @@ function mockOffer(over: Partial<ServiceOffer> = {}): ServiceOffer {
     currency: 'TRY',
     details: 'يشمل العرض ترجمة معتمدة لـ 3 صفحات مع التصديق من كاتب العدل (النوتر).',
     imagePaths: ['https://example.com/doc1.jpg', 'https://example.com/doc2.jpg'],
-    expiresAt: '2026-09-10T00:00:00Z',
+    // Far-future so this fixture is never "already expired" — a fixed date here
+    // was a time bomb that turned the pay-CTA test red the day that date passed.
+    expiresAt: '2999-12-31T00:00:00Z',
     status: 'sent',
     createdAt: '2026-08-31T12:00:00Z',
     ...over,
@@ -199,6 +201,52 @@ describe('OfferPage', () => {
     await waitFor(() => {
       expect(screen.getByText('serviceOffer.youRejected')).toBeInTheDocument();
       expect(screen.queryByText('serviceOffer.payCta')).not.toBeInTheDocument();
+    });
+  });
+
+  it('acts on the still-sent offer when a newer one was already rejected', async () => {
+    byIdMock.mockResolvedValue(mockReq());
+    // Newest first: a rejected replacement above the still-actionable sent one.
+    // Taking offers[0] blindly removed every pay/reject control from the page.
+    listForRequestMock.mockResolvedValue([
+      mockOffer({ id: 'off-new', status: 'rejected', createdAt: '2026-09-05T12:00:00Z' }),
+      mockOffer({ id: 'off-old', status: 'sent', createdAt: '2026-08-31T12:00:00Z' }),
+    ]);
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('serviceOffer.payCta').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/1,500/).length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('a failed payment attempt shows a banner over the page, not a full error screen', async () => {
+    byIdMock.mockResolvedValue(mockReq());
+    listForRequestMock.mockResolvedValue([mockOffer()]);
+    createSessionMock.mockRejectedValue(new Error('gateway down'));
+
+    renderPage();
+    const pay = await screen.findAllByText('serviceOffer.payCta');
+    pay[0].click();
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('serviceOffer.error');
+      // The request context is still on screen — the page did not blank out.
+      expect(screen.getAllByText('ترجمة نانسي').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('offerPage.yourRequest')).toBeInTheDocument();
+    });
+  });
+
+  it('reports partner-quotes load failures instead of rendering an empty section', async () => {
+    byIdMock.mockResolvedValue(mockReq());
+    listForRequestMock.mockResolvedValue([]);
+    responsesMock.mockRejectedValue(new Error('network'));
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('offerPage.responsesError')).toBeInTheDocument();
     });
   });
 });

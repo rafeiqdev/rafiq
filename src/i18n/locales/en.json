@@ -2251,6 +2251,7 @@
     "responsesTitle": "Offers ({{count}})",
     "capped": "Showing the top 5 offers, ranked by rating.",
     "choose": "Choose this offer",
+    "chooseError": "Could not select this offer. Check your connection and try again.",
     "chosen": "Chosen",
     "quote": "Quote",
     "noQuote": "Quote on request",
@@ -3521,6 +3522,7 @@
       "uploading": "Uploading...",
       "removeImage": "Remove photo",
       "paymentLabel": "Payment",
+      "paymentInProgress": "A payment is in progress on this request. Complete it or mark it failed before sending a new offer.",
       "markFailed": "Mark failed",
       "offerStatus": {
         "sent": "Sent",
@@ -3564,6 +3566,7 @@
     "trustDesc": "100% secure escrow payment and verified service standards.",
     "notFound": "Sorry, this request could not be found.",
     "partnerResponses": "Additional Verified Partner Quotes ({{count}})",
+    "responsesError": "Could not load partner quotes. Some may be missing.",
     "viewPhoto": "View full size"
   }
 }

@@ -98,7 +98,7 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
   const [images, setImages] = useState<string[]>([]);
   const [expires, setExpires] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const detail = useAsyncSection(() => adminServiceOffers.detail(requestId), [requestId]);
@@ -106,7 +106,7 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
   const send = async () => {
     if (!price || Number(price) <= 0) return;
     setBusy(true);
-    setError(false);
+    setError(null);
     try {
       await adminServiceOffers.createOffer(requestId, {
         price: Number(price), currency, details: details.trim(), imagePaths: images,
@@ -115,8 +115,13 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
       setPrice(''); setDetails(''); setImages([]); setExpires('');
       detail.reload();
       onSent();
-    } catch {
-      setError(true);
+    } catch (e) {
+      // The one refusal an admin can act on: the request still has a live
+      // checkout, so the new offer would strand it. Say so, rather than a
+      // generic "something went wrong" that invites an unproductive retry.
+      setError((e as { code?: string })?.code === 'offer_payment_in_progress'
+        ? t('serviceOffer.admin.paymentInProgress')
+        : t('common.error'));
     } finally {
       setBusy(false);
     }
@@ -124,12 +129,12 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
 
   const resolvePayment = async (id: string) => {
     setResolvingId(id);
-    setError(false);
+    setError(null);
     try {
       await adminServiceOffers.resolvePayment(id);
       detail.reload();
     } catch {
-      setError(true);
+      setError(t('common.error'));
     } finally {
       setResolvingId(null);
     }
@@ -184,7 +189,7 @@ function OfferPanel({ requestId, onSent }: { requestId: string; onSent: () => vo
         <button onClick={send} disabled={busy || !price} className="btn-primary !h-9 text-xs sm:col-span-2 disabled:opacity-50">
           {busy ? t('serviceOffer.admin.sending') : t('serviceOffer.admin.send')}
         </button>
-        {error && <p className="sm:col-span-2 text-xs text-brand-red">{t('common.error')}</p>}
+        {error && <p className="sm:col-span-2 text-xs text-brand-red">{error}</p>}
       </div>
     </div>
   );

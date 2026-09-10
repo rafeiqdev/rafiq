@@ -279,7 +279,14 @@ export function OfferPageInner() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Load failure and an action failure (pay/reject) are different things. They
+  // used to share one `error`, and the load branch below returns early on it —
+  // so a failed payment attempt replaced the entire page with an error screen
+  // and threw away the request's context. `loadError` blanks the page (there is
+  // nothing to show); `actionError` is a banner over the still-valid page.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [responsesError, setResponsesError] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
   useEffect(() => {
@@ -289,13 +296,23 @@ export function OfferPageInner() {
   const loadData = async () => {
     if (!id) return;
     setLoading(true);
-    setError(null);
+    setLoadError(null);
+    setActionError(null);
+    setResponsesError(false);
     try {
       const [reqData, offerList, paymentList, respList] = await Promise.all([
         customerRequests.byId(id),
         serviceOffers.listForRequest(id),
         servicePayments.forRequest(id),
-        customerRequests.responses(id).catch(() => [] as CompanyResponse[]),
+        customerRequests.responses(id).catch(() => {
+          // Unlike the other three, a failed responses fetch must not blank the
+          // page — the request and its offer are still valid. But it must not
+          // silently render as "no partner quotes" either (the same "an error
+          // is never an empty list" rule the requests page enforces). The
+          // banner below reports it.
+          setResponsesError(true);
+          return [] as CompanyResponse[];
+        }),
       ]);
       setRequest(reqData);
       setOffers(offerList);
@@ -303,7 +320,7 @@ export function OfferPageInner() {
       setResponses(respList);
     } catch (e: unknown) {
       console.error('[OfferPage loadData error]:', e);
-      setError(e instanceof Error ? e.message : 'Error loading offer details');
+      setLoadError(e instanceof Error ? e.message : 'Error loading offer details');
     } finally {
       setLoading(false);
     }
@@ -335,7 +352,7 @@ export function OfferPageInner() {
     );
   }
 
-  if (error || !request) {
+  if (loadError || !request) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
         <div className="mx-auto w-full max-w-lg card p-8 shadow-card text-center">
@@ -343,7 +360,7 @@ export function OfferPageInner() {
             <AppIcon name="alert-triangle" className="w-7 h-7" />
           </div>
           <h1 className="text-xl font-extrabold text-navy">{request ? t('serviceOffer.error') : t('offerPage.notFound')}</h1>
-          <p className="mt-2 text-sm text-navy/60">{error ?? t('offerPage.notFound')}</p>
+          <p className="mt-2 text-sm text-navy/60">{loadError ?? t('offerPage.notFound')}</p>
           <div className="mt-6 flex justify-center gap-3">
             <Link to="/requests" className="btn-secondary">
               <BackArrow className="w-4 h-4" />
@@ -359,10 +376,17 @@ export function OfferPageInner() {
     );
   }
 
-  const primaryOffer = offers[0] as ServiceOffer | undefined;
+  // The offer the customer actually has a decision to make about: a 'sent',
+  // non-expired one (the server now guarantees at most one), otherwise the
+  // newest offer rendered read-only as history. Taking offers[0] blindly meant
+  // a newer rejected/expired offer could hide an older still-actionable one and
+  // remove every pay/reject control from the page. List is newest-first.
+  const isOfferExpired = (o: ServiceOffer) => (o.expiresAt ? new Date(o.expiresAt) < new Date() : false);
+  const primaryOffer =
+    offers.find((o) => o.status === 'sent' && !isOfferExpired(o)) ?? (offers[0] as ServiceOffer | undefined);
   const primaryPayment = primaryOffer ? payments.find((p) => p.offerId === primaryOffer.id) : undefined;
   const isVerified = primaryPayment?.status === 'verified';
-  const isExpired = primaryOffer?.expiresAt ? new Date(primaryOffer.expiresAt) < new Date() : false;
+  const isExpired = primaryOffer ? isOfferExpired(primaryOffer) : false;
   const returnPath = typeof window !== 'undefined' ? window.location.pathname : `/requests/${id}/offer`;
   const resumeUrl = primaryPayment ? servicePayments.resumeUrl(primaryPayment, returnPath) : null;
 
@@ -384,11 +408,12 @@ export function OfferPageInner() {
   const startPayment = async () => {
     if (!primaryOffer) return;
     setBusy(true);
+    setActionError(null);
     try {
       const res = await servicePayments.createSession(primaryOffer.id);
       window.location.href = `${res.payUrl}&return=${encodeURIComponent(returnPath)}`;
     } catch {
-      setError(t('serviceOffer.error'));
+      setActionError(t('serviceOffer.error'));
       setBusy(false);
     }
   };
@@ -396,11 +421,12 @@ export function OfferPageInner() {
   const rejectOffer = async () => {
     if (!primaryOffer) return;
     setBusy(true);
+    setActionError(null);
     try {
       await serviceOffers.reject(primaryOffer.id);
       await loadData();
     } catch {
-      setError(t('serviceOffer.error'));
+      setActionError(t('serviceOffer.error'));
     } finally {
       setBusy(false);
       setRejecting(false);
@@ -413,7 +439,10 @@ export function OfferPageInner() {
     ? new Date(request.createdAt).getTime()
     : now;
   const elapsedHours = (now - requestCreatedAtMs) / (1000 * 60 * 60);
-  const isOverdue = !primaryOffer && elapsedHours >= 2 && request.status !== 'done' && request.status !== 'cancelled';
+  // 'cancelled' is not a status service_requests can hold (its check constraint
+  // is new/pending/accepted/done/rejected — 20260719_service_requests.sql), and
+  // even a rejected request is no longer waiting on anyone.
+  const isOverdue = !primaryOffer && elapsedHours >= 2 && request.status !== 'done' && request.status !== 'rejected';
 
   // Dynamic SLA Card Content based on state (Pending < 2h vs Overdue >= 2h vs Offer Ready)
   const getSlaContent = () => {
@@ -539,6 +568,15 @@ export function OfferPageInner() {
             <RequestStatusPill status={request.status} />
           </div>
         </div>
+
+        {/* A pay/reject attempt that failed: reported over the still-valid
+            page instead of replacing it with a full error screen. */}
+        {actionError && (
+          <div role="alert" className="mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3.5 flex items-start gap-2 text-sm font-semibold text-amber-900">
+            <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{actionError}</span>
+          </div>
+        )}
 
         {/* Navy Hero Banner with Integrated Real Service Photo (Matching View Details exactly) */}
         <motion.div
@@ -923,6 +961,17 @@ export function OfferPageInner() {
             </motion.div>
 
             {/* Additional Marketplace Quotes / Responses if available */}
+            {responsesError && (
+              <div role="alert" className="card p-4 shadow-card border border-amber-200 bg-amber-50">
+                <p className="text-xs font-bold text-amber-900 flex items-center gap-2">
+                  <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
+                  {t('offerPage.responsesError')}
+                </p>
+                <button onClick={loadData} className="btn-secondary mt-3 !h-9 px-4 text-xs">
+                  {t('common.retry')}
+                </button>
+              </div>
+            )}
             {responses.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}

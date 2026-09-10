@@ -19,12 +19,13 @@ import type { CustomerRequest } from '../lib/types';
 
 const allMineMock = vi.fn();
 const responsesMock = vi.fn();
+const chooseMock = vi.fn();
 
 vi.mock('../lib/api', () => ({
   customerRequests: {
     allMine: () => allMineMock(),
     responses: (id: string) => responsesMock(id),
-    choose: vi.fn(),
+    choose: (id: string) => chooseMock(id),
   },
   reviews: { create: vi.fn() },
   // MedicalRequestsPanel mounts alongside the generic requests list; these
@@ -82,6 +83,7 @@ beforeEach(() => {
   vi.resetModules();
   allMineMock.mockReset();
   responsesMock.mockReset().mockResolvedValue([]);
+  chooseMock.mockReset().mockResolvedValue({ ok: true });
 });
 
 describe('a customer sees every request they own', () => {
@@ -201,5 +203,20 @@ describe('a failed fetch is never an empty state', () => {
     (await screen.findByText('استخراج الرقم الضريبي')).closest('button')!.click();
 
     expect(await screen.findByRole('button', { name: 'chat.retry' })).toBeInTheDocument();
+  });
+
+  it('surfaces a failed offer choice instead of dropping the promise', async () => {
+    allMineMock.mockResolvedValue([BROADCAST]);
+    responsesMock.mockResolvedValue([
+      { id: 'resp1', companyId: 'c1', companyName: 'شركة', quote: 100, message: '', chosen: false, rating: 5, reviews: 1 },
+    ]);
+    chooseMock.mockRejectedValue(new Error('rpc failed'));
+
+    await renderPage();
+    (await screen.findByText('استخراج الرقم الضريبي')).closest('button')!.click();
+
+    (await screen.findByText('requests.choose')).click();
+
+    expect(await screen.findByText('requests.chooseError')).toBeInTheDocument();
   });
 });

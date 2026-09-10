@@ -170,6 +170,7 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
   const { t } = useTranslation();
   const [reviewing, setReviewing] = useState<{ companyId: string; companyName: string } | null>(null);
   const [messageExpanded, setMessageExpanded] = useState(false);
+  const [chooseError, setChooseError] = useState(false);
   const offers = useAsyncSection<CompanyResponse[]>(() => customerRequests.responses(req.id), [req.id]);
   const adminOffers = useAsyncSection(
     () => Promise.all([serviceOffers.listForRequest(req.id), servicePayments.forRequest(req.id)]),
@@ -177,8 +178,16 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
   );
 
   const choose = async (responseId: string) => {
-    await customerRequests.choose(responseId);
-    offers.reload();
+    setChooseError(false);
+    try {
+      await customerRequests.choose(responseId);
+      offers.reload();
+    } catch {
+      // Previously the rejected promise was dropped by `onClick={() => choose()}`
+      // and nothing happened on screen — the customer pressed the button and
+      // could not tell whether it worked. Now a failed pick says so.
+      setChooseError(true);
+    }
   };
 
   const msg = req.message ? humanMessage(req.message) : null;
@@ -231,6 +240,12 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
             <>
               <p className="text-xs font-bold text-navy/60 mb-2">{t('requests.responsesTitle', { count: responses.length })}</p>
               <p className="text-[11px] text-navy/40 mb-3">{t('requests.capped')}</p>
+              {chooseError && (
+                <p role="alert" className="amber-note mb-3 flex items-center gap-2 text-xs">
+                  <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
+                  {t('requests.chooseError')}
+                </p>
+              )}
               <ul className="flex flex-col gap-3">
                 {responses.map((r) => (
                   <li key={r.id} className={`rounded-xl border px-4 py-3 ${r.chosen ? 'border-navy bg-brand-blue/40' : 'border-cream-dark bg-cream'}`}>

@@ -150,6 +150,11 @@ function fail(error: { message?: string } | null, fallback = 'server_error', sta
   // The recovery session expired before the new password was submitted.
   if (msg.includes('auth session missing')) throw new ApiError('reset_expired', 401);
   if (msg.includes('not_admin')) throw new ApiError('forbidden', 403);
+  // admin_create_service_offer() refuses while a live checkout is attached to
+  // the current offer, so the admin can retry after resolving that payment.
+  if (msg.includes('offer_payment_in_progress')) throw new ApiError('offer_payment_in_progress', 409);
+  if (msg.includes('invalid_price')) throw new ApiError('invalid_price', 400);
+  if (msg.includes('request_not_found')) throw new ApiError('not_found', 404);
   if (msg.includes('not_authenticated') || msg.includes('jwt') || msg.includes('token is expired') || msg.includes('expired')) {
     throw new ApiError('not_authenticated', 401);
   }
@@ -3061,16 +3066,27 @@ export const adminServiceOffers = {
     };
   },
 
+  /**
+   * Sends a new price offer. Goes through admin_create_service_offer()
+   * (20260911_service_offer_supersede.sql), which atomically supersedes the
+   * request's previous 'sent' offer and refuses if a live payment is attached
+   * to it. The old direct INSERT left earlier offers actionable, so a customer
+   * could be shown two pay buttons — and pay twice — for the same work.
+   */
   async createOffer(requestId: string, input: {
     price: number; currency: string; details: string; imagePaths: string[]; expiresAt?: string | null;
   }): Promise<{ id: string }> {
-    const uid = await requireUid();
-    const { data, error } = await sb().from('service_offers').insert({
-      request_id: requestId, price: input.price, currency: input.currency, details: input.details,
-      image_paths: input.imagePaths, expires_at: input.expiresAt ?? null, status: 'sent', created_by: uid,
-    }).select('id').single();
+    await requireUid();
+    const { data, error } = await sb().rpc('admin_create_service_offer', {
+      p_request_id: requestId,
+      p_price: input.price,
+      p_currency: input.currency,
+      p_details: input.details,
+      p_image_paths: input.imagePaths,
+      p_expires_at: input.expiresAt ?? null,
+    });
     if (error) fail(error);
-    return { id: data!.id };
+    return { id: data as string };
   },
 
   /** Admin: upload an offer photo to the public 'service-offer-media' bucket → public URL. */
