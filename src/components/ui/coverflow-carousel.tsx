@@ -1,15 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-  useSpring,
-  useVelocity,
-  animate,
-  type MotionValue,
-} from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   FileCheck2,
@@ -91,260 +82,73 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
   health: <HeartPulse className="h-4 w-4" aria-hidden="true" />,
 };
 
-// One shared buttery spring for every positional change (slide change, snap).
-// stiffness/damping tuned to settle in ~0.6s with no bounce — Apple-style easeOutExpo feel.
-const BUTTER_SPRING = { type: "spring", stiffness: 210, damping: 30, mass: 0.9 } as const;
-const DRAG_RELEASE_SPRING = { type: "spring", stiffness: 420, damping: 38, mass: 0.8 } as const;
-const EASE_OUT_EXPO: [number, number, number, number] = [0.22, 1, 0.36, 1];
+// The ONLY transition in the carousel: transform + opacity (both GPU-composited,
+// zero main-thread work per frame). Deliberately no spring library, no infinite
+// animations, no animated blurs — those kept low-end phones janky.
+const SLOT_TRANSITION =
+  "transform 0.65s cubic-bezier(0.22,1,0.36,1), opacity 0.65s ease";
+
+/** Everything paintCards needs — captured once at pointerdown so drag frames
+ *  never read stale closures and never trigger React renders. */
+interface GestureSnap {
+  index: number;
+  spacing: number;
+  isRtl: boolean;
+  total: number;
+  loop: boolean;
+  startX: number;
+  pointerId: number;
+}
+
+function diffFor(i: number, index: number, total: number, loop: boolean): number {
+  let d = i - index;
+  if (loop) {
+    if (d > total / 2) d -= total;
+    if (d < -total / 2) d += total;
+  }
+  return d;
+}
+
+type PaintMode = "animated" | "instant" | "drag";
 
 /**
- * Single coverflow card.
- *
- * Two nested motion layers so finger-drag and slide-change never fight:
- * - OUTER layer: springs to its slot (x / rotateY / scale / opacity) when
- *   `currentIndex` changes. Pure transform+opacity, GPU-composited.
- * - INNER layer: follows the finger 1:1 via the shared `dragX` MotionValue —
- *   updates hit the compositor directly with ZERO React re-renders, which is
- *   what makes the drag feel glued to the finger instead of laggy.
+ * Writes slot transforms STRAIGHT to the DOM (no setState, no re-render).
+ * Called from rAF during drags and from an effect on index change.
+ * `animated` clears the inline transition so the CSS value from render takes
+ * over; `instant`/`drag` pin it to none.
  */
-const CoverflowSlide = React.memo(function CoverflowSlide({
-  slide,
-  stepNumber,
-  isCenter,
-  isNear,
-  isRtl,
-  baseX,
-  translateZ,
-  rotateY,
-  rotateZ,
-  scale,
-  opacity,
-  zIndex,
-  dragX,
-  tilt,
-  reducedMotion,
-  goToSlide,
-  index,
-  onRequestService,
-  requestServiceLabel,
-}: {
-  slide: ServiceSlide;
-  stepNumber: string;
-  isCenter: boolean;
-  isNear: boolean;
-  isRtl: boolean;
-  baseX: number;
-  translateZ: number;
-  rotateY: number;
-  rotateZ: number;
-  scale: number;
-  opacity: number;
-  zIndex: number;
-  dragX: MotionValue<number>;
-  tilt: MotionValue<number>;
-  reducedMotion: boolean;
-  goToSlide: (index: number) => void;
-  index: number;
-  onRequestService: (slide: ServiceSlide) => void;
-  requestServiceLabel: string;
-}) {
-  // Live finger offset — no re-render, compositor only.
-  const dragShift = useTransform(dragX, (v) => (reducedMotion ? 0 : v * 0.9));
-  // Subtle image parallax for depth while swiping.
-  const imgShift = useTransform(dragX, (v) =>
-    reducedMotion ? 0 : Math.max(-14, Math.min(14, v * -0.05))
-  );
-
-  return (
-    <motion.div
-      aria-hidden={!isCenter}
-      className="absolute flex items-center justify-center"
-      style={{
-        zIndex,
-        transformStyle: "preserve-3d",
-        backfaceVisibility: "hidden",
-        // Only the visible cards get their own GPU layer — permanent
-        // will-change on every card wastes memory and hurts scrolling.
-        willChange: isNear ? "transform" : "auto",
-        pointerEvents: isNear ? "auto" : "none",
-      }}
-      initial={false}
-      animate={{
-        x: baseX,
-        z: reducedMotion ? 0 : translateZ,
-        rotateY: reducedMotion ? 0 : rotateY,
-        rotateZ: reducedMotion ? 0 : rotateZ,
-        scale,
-        opacity,
-      }}
-      transition={BUTTER_SPRING}
-    >
-      {/* Finger-follow layer */}
-      <motion.div style={reducedMotion ? undefined : { x: dragShift, rotate: isCenter ? tilt : 0 }} className="relative">
-        {/* Soft glow that breathes behind the centered card */}
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-[radial-gradient(closest-side,rgba(96,165,250,0.35),transparent)] blur-2xl"
-          initial={false}
-          animate={{ opacity: isCenter && !reducedMotion ? 1 : 0, scale: isCenter ? 1 : 0.85 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-        {/* Official Rafiq Service Card.
-            A plain div, not an <a>: the "Request Service" pill below is
-            its own real, independent link so it always navigates,
-            centered or not — see its onPointerUp below for why
-            navigation happens there instead of via a plain href click.
-            Interaction here uses onPointerUp, not onClick, for the same
-            reason: this card sits inside a `perspective` + `transform-
-            style: preserve-3d` stack (for the coverflow 3D effect), and
-            in that setup the browser's synthesized `click` event can
-            resolve its target to the wrong element in the 3D stack
-            (verified: it was landing on the outer scroll container,
-            several ancestors up, so neither this card's nor the link's
-            onClick ever ran). pointerup hit-tests correctly regardless. */}
-        <motion.div
-          role="group"
-          aria-label={`Service ${slide.title}: ${slide.description}`}
-          onPointerUp={() => {
-            // A real drag just ended — don't steal it as a "pick this card" tap.
-            if (Math.abs(dragX.get()) > 6) return;
-            if (!isCenter) goToSlide(index);
-          }}
-          className={cn(
-            "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl",
-            isRtl ? "text-right" : "text-left",
-            "w-[290px] sm:w-[330px] md:w-[360px] lg:w-[320px] p-5 sm:p-6 lg:p-5",
-            isCenter
-              ? "border-[#1A3A6B]/50 shadow-2xl shadow-[#12294D]/25 ring-2 ring-[#1A3A6B]/30"
-              : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30",
-            // Shadow/border fade only (transform is owned by framer-motion,
-            // so no Tailwind translate here — it would be dead code).
-            "transition-[box-shadow,border-color] duration-300 ease-out"
-          )}
-          // Gentle infinite float on the centered card only.
-          animate={isCenter && !reducedMotion ? { y: [0, -7, 0] } : { y: 0 }}
-          transition={
-            isCenter && !reducedMotion
-              ? { duration: 5, repeat: Infinity, ease: "easeInOut" }
-              : { duration: 0.35, ease: "easeOut" }
-          }
-        >
-          <div>
-            {/* Top Header: Step Number & Verified Badge */}
-            <div className="mb-3.5 flex items-center justify-between">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E8F0FB] border border-[#C2D9F5] text-xs font-black text-[#1A3A6B] shadow-sm">
-                {stepNumber}
-              </span>
-
-              <div
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-sm",
-                  slide.badgeType === "direct"
-                    ? "bg-gradient-to-r from-[#E8F0FB] to-[#FAF8F0] text-[#1A3A6B] border-[#C2D9F5]"
-                    : "bg-gradient-to-r from-sky-50 to-[#FAF8F0] text-[#0284c7] border-sky-200"
-                )}
-              >
-                {slide.badgeType === "direct" ? (
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#1A3A6B]" aria-hidden="true" />
-                ) : (
-                  <VerifiedBadge variant="shimmer" size={15} />
-                )}
-                <span>{slide.badge}</span>
-              </div>
-            </div>
-
-            {/* Expansive Full-Bleed Image Container with parallax + shine sweep.
-                Parallax lives on a wrapper so the <img> keeps its pure-CSS
-                hover zoom (framer's inline transform would override it). */}
-            <div className="relative mb-4 h-44 sm:h-52 w-full overflow-hidden rounded-2xl bg-[#1A3A6B]/5 border border-[#EFEADB]">
-              <motion.div style={reducedMotion ? undefined : { x: imgShift }} className="h-full w-full">
-                <img
-                  src={slide.src}
-                  alt={slide.alt}
-                  loading={isNear ? "eager" : "lazy"}
-                  decoding="async"
-                  draggable={false}
-                  className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-108"
-                />
-              </motion.div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#12294D]/15 via-transparent to-transparent pointer-events-none" />
-              {/* Shine sweep across the centered card */}
-              {!reducedMotion && isCenter && (
-                <motion.div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent"
-                  initial={{ x: "-120%" }}
-                  animate={{ x: ["-120%", "420%"] }}
-                  transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 4.2, ease: "easeInOut" }}
-                />
-              )}
-            </div>
-
-            {/* Category Label */}
-            <div className="mb-2 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#1A3A6B] bg-[#E8F0FB]/70 px-2.5 py-0.5 rounded-md border border-[#D0E0F5]">
-              {slide.icon && <span>{slide.icon}</span>}
-              <span>{slide.category}</span>
-            </div>
-
-            {/* Service Title */}
-            <h3 className="mb-2 text-xl sm:text-2xl lg:text-xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
-              {slide.title}
-            </h3>
-
-            {/* Description */}
-            <p className="text-xs sm:text-sm text-[#3A4F6D] font-medium leading-relaxed line-clamp-2">
-              {slide.description}
-            </p>
-          </div>
-
-          {/* Action Button inside card — a real, independent link so it
-              always navigates, whether or not this card is centered.
-              Navigates on pointerup (not the native href click — see
-              the card comment above for why) so it's reliable inside
-              the 3D coverflow stack; href/onClick stay as the fallback
-              for keyboard activation (Enter/Space), where no pointer
-              event fires and the browser's click targets this link
-              correctly on its own. */}
-          <div className="mt-5 border-t border-[#EFEADB] pt-3.5">
-            <a
-              href={slide.href}
-              onPointerUp={(e) => {
-                // A drag ending here is a swipe, not a tap: let it bubble to
-                // the container so the slide still advances — only real taps
-                // navigate. (Stopping propagation unconditionally used to eat
-                // swipes that started on the button: no slide change AND no
-                // navigation — a dead gesture.)
-                if (Math.abs(dragX.get()) > 6) return;
-                e.stopPropagation();
-                onRequestService(slide);
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              aria-label={`${requestServiceLabel}: ${slide.title}`}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-[background-color,box-shadow,transform] duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-2"
-            >
-              <span>{requestServiceLabel}</span>
-              {isRtl ? (
-                <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" aria-hidden="true" />
-              ) : (
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
-              )}
-            </a>
-          </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-});
+function paintCards(
+  els: Array<HTMLDivElement | null>,
+  snap: Pick<GestureSnap, "index" | "spacing" | "isRtl" | "total" | "loop">,
+  mode: PaintMode,
+  drag = 0,
+) {
+  for (let i = 0; i < els.length; i++) {
+    const el = els[i];
+    if (!el) continue;
+    const diff = diffFor(i, snap.index, snap.total, snap.loop);
+    const ad = Math.abs(diff);
+    const center = diff === 0;
+    const baseX = snap.isRtl ? -diff * snap.spacing : diff * snap.spacing;
+    const x = baseX + (mode === "drag" ? drag * 0.9 : 0);
+    const s = center ? 1 : Math.max(0.82, 1 - ad * 0.11);
+    const rY = center ? 0 : snap.isRtl ? (diff > 0 ? 24 : -24) : diff > 0 ? -24 : 24;
+    const rZ = center ? 0 : snap.isRtl ? (diff > 0 ? -1.5 : 1.5) : diff > 0 ? 1.5 : -1.5;
+    el.style.transition = mode === "animated" ? "" : "none";
+    el.style.transform = `translateX(${x}px) scale(${s}) rotateY(${rY}deg) rotateZ(${rZ}deg)`;
+  }
+}
 
 /**
  * 3D Coverflow Carousel for Rafiq Services with Oceanic Glow Gradient Background
- * Dynamically adapts 3D physics, gestures, and typography for Arabic, English, Persian, and Russian.
+ * Dynamically adapts gestures and typography for Arabic, English, Persian, and Russian.
  *
- * Motion model (buttery rewrite): slide positions spring with shared physics,
- * finger drag writes straight into a MotionValue (no React re-render per pixel),
- * release snaps back with a spring and flick velocity can skip slides.
+ * LITE motion model (rewrite 2026-09-11): the previous spring-physics version
+ * ran per-frame JS + infinite animations + animated blurs and janked on
+ * low-end phones. Now slide motion is one CSS transform transition
+ * (compositor thread, zero JS per frame), drags write transforms straight to
+ * the DOM via rAF, and there are no looping animations or animated blurs
+ * anywhere in the section.
  */
 export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   slides: customSlides,
@@ -381,31 +185,25 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
+  const [revealed, setRevealed] = useState<boolean>(false);
   const [viewportW, setViewportW] = useState<number>(
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const startXRef = useRef<number>(0);
-  const isDraggingRef = useRef<boolean>(false);
-  const isPointerDownRef = useRef<boolean>(false);
-  const dragDistanceRef = useRef<number>(0);
-  const rafRef = useRef<number>(0);
+  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const gestureRef = useRef<GestureSnap | null>(null);
   const latestXRef = useRef<number>(0);
+  const dragDeltaRef = useRef<number>(0);
+  const isDraggingRef = useRef<boolean>(false);
   const samplesRef = useRef<Array<{ x: number; t: number }>>([]);
   const lastInteractRef = useRef<number>(0);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number>(0);
+  const mountedRef = useRef<boolean>(false);
 
   const totalSlides = activeSlides.length;
-
-  // Shared finger-drag value: updated per-frame WITHOUT React re-renders.
-  const dragX = useMotionValue(0);
-  const dragVelocity = useVelocity(dragX);
-  const smoothVelocity = useSpring(dragVelocity, { stiffness: 300, damping: 40 });
-  // Bank the centered card slightly into fast swipes (clamped ±4deg).
-  const tilt = useTransform(smoothVelocity, [-1400, 0, 1400], [4, 0, -4]);
-
   const spacing = viewportW < 640 ? 150 : 230;
 
   // Check prefers-reduced-motion
@@ -416,6 +214,26 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
+
+  // One-shot scroll reveal (a single state flip, then pure CSS).
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setRevealed(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((en) => en.isIntersecting)) {
+          setRevealed(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -60px 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   // Track viewport width for card spacing (mobile vs desktop).
@@ -448,20 +266,13 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     goToSlide(currentIndex - 1);
   }, [goToSlide, currentIndex]);
 
-  // "Request Service" navigation through the router (same page transition as
-  // every <Link>) — a full reload flashed white and re-fetched the whole app;
-  // href stays as the keyboard fallback. Ignores drags so a swipe that ends
-  // on the button never navigates by accident.
-  const handleRequestService = useCallback(
-    (slide: ServiceSlide) => {
-      if (isDraggingRef.current || dragDistanceRef.current > 6) return;
-      lastInteractRef.current = Date.now();
-      const internal = routePathFromHref(slide.href);
-      if (internal) navigate(internal.path + internal.url.search + internal.url.hash);
-      else window.location.href = slide.href;
-    },
-    [navigate]
-  );
+  // Paint slot transforms after every index/spacing change. First paint is
+  // instant (no fly-in on page load); everything after glides via CSS.
+  useEffect(() => {
+    const snap = { index: currentIndex, spacing, isRtl, total: totalSlides, loop };
+    paintCards(cardRefs.current, snap, mountedRef.current ? "animated" : "instant");
+    mountedRef.current = true;
+  }, [currentIndex, spacing, isRtl, totalSlides, loop, activeSlides.length]);
 
   // Smart Auto-Scroll: pauses on hover/focus/drag, for a cooldown after any
   // manual interaction, and while the tab is hidden.
@@ -491,6 +302,21 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     };
   }, []);
 
+  // "Request Service" navigation through the router (same page transition as
+  // every <Link>) — a full reload flashed white and re-fetched the whole app;
+  // href stays as the keyboard fallback. Ignores drags so a swipe that ends
+  // on the button never navigates by accident.
+  const handleRequestService = useCallback(
+    (slide: ServiceSlide) => {
+      if (isDraggingRef.current || Math.abs(dragDeltaRef.current) > 6) return;
+      lastInteractRef.current = Date.now();
+      const internal = routePathFromHref(slide.href);
+      if (internal) navigate(internal.path + internal.url.search + internal.url.hash);
+      else window.location.href = slide.href;
+    },
+    [navigate]
+  );
+
   // Keyboard navigation adapted to direction
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -515,75 +341,20 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     [isRtl, nextSlide, prevSlide]
   );
 
-  // Pointer Drag adapted to direction.
-  //
-  // PERFORMANCE: pointermove only records the latest X and schedules ONE
-  // requestAnimationFrame that writes into the `dragX` MotionValue. Motion
-  // values update the compositor directly — no setState, no React re-render
-  // per pixel — so the cards stay glued to the finger at 60fps.
-  //
-  // Pointer capture is deliberately NOT taken here on pointerdown. Capturing
-  // immediately (the original behavior) makes Chromium retarget the click
-  // that follows pointerup to the CAPTURING element (this container div)
-  // instead of whatever was actually under the cursor — so a plain click on
-  // "Request Service" never reached the <a> at all, it silently landed on
-  // this wrapper div instead. Capture is taken only once real dragging is
-  // confirmed (past the 6px threshold), so a simple click never captures
-  // the pointer and the native click reaches the real link.
-  const handlePointerDown = (e: React.PointerEvent) => {
-    isPointerDownRef.current = true;
-    setIsPointerDown(true);
-    setIsPaused(true);
-    startXRef.current = e.clientX;
-    latestXRef.current = e.clientX;
-    isDraggingRef.current = false;
-    dragDistanceRef.current = 0;
-    samplesRef.current = [{ x: e.clientX, t: performance.now() }];
-    dragX.stop();
-    dragX.set(0);
-  };
+  const endGesturePause = useCallback(() => {
+    // Brief cooldown before autoplay resumes — no instant yank after a drag.
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => setIsPaused(false), 1200);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
+  }, []);
 
-  const applyDragFrame = useCallback(
-    (pointerId: number) => {
-      rafRef.current = 0;
-      const deltaX = latestXRef.current - startXRef.current;
-      dragDistanceRef.current = Math.abs(deltaX);
-
-      const now = performance.now();
-      const samples = samplesRef.current;
-      samples.push({ x: latestXRef.current, t: now });
-      if (samples.length > 6) samples.shift();
-
-      if (dragDistanceRef.current > 6) {
-        if (!isDraggingRef.current && containerRef.current) {
-          try {
-            if (!containerRef.current.hasPointerCapture(pointerId)) {
-              containerRef.current.setPointerCapture(pointerId);
-            }
-          } catch {
-            /* noop — capture unsupported, drag still works */
-          }
-        }
-        isDraggingRef.current = true;
-      }
-
-      dragX.set(deltaX);
-    },
-    [dragX]
-  );
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isPointerDownRef.current) return;
-    latestXRef.current = e.clientX;
-    if (rafRef.current) return;
-    const pointerId = e.pointerId;
-    rafRef.current = requestAnimationFrame(() => applyDragFrame(pointerId));
-  };
-
-  const finishDrag = useCallback(
+  const finishGesture = useCallback(
     (pointerId: number | null) => {
-      if (!isPointerDownRef.current) return;
-      isPointerDownRef.current = false;
+      const snap = gestureRef.current;
+      if (!snap) return;
+      gestureRef.current = null;
       setIsPointerDown(false);
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
@@ -600,7 +371,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         }
       }
 
-      const deltaX = latestXRef.current - startXRef.current;
+      const deltaX = latestXRef.current - snap.startX;
 
       // Flick velocity from the last samples (px/ms), fell back to 0.
       let velocity = 0;
@@ -614,44 +385,107 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 
       const threshold = 45;
       // Positive `forward` always means "go to next".
-      const forward = isRtl ? deltaX : -deltaX;
-      const forwardVelocity = isRtl ? velocity : -velocity;
+      const forward = snap.isRtl ? deltaX : -deltaX;
+      const forwardVelocity = snap.isRtl ? velocity : -velocity;
 
       let jump = 0;
       if (forward > threshold || forwardVelocity > 0.45) jump = 1;
       else if (forward < -threshold || forwardVelocity < -0.45) jump = -1;
       // A long hard fling skips two cards — feels physical, not sticky.
-      if (Math.abs(forward) > spacing * 1.4 && Math.abs(forwardVelocity) > 0.3) {
+      if (Math.abs(forward) > snap.spacing * 1.4 && Math.abs(forwardVelocity) > 0.3) {
         jump = (forward > 0 ? 1 : -1) * 2;
       }
 
-      // Spring the finger layer back to rest, then advance the slot so the
-      // card glides (instead of jumping) to its new position.
-      animate(dragX, 0, DRAG_RELEASE_SPRING);
       if (jump !== 0) {
-        goToSlide(currentIndex + jump);
+        goToSlide(snap.index + jump);
       } else {
         lastInteractRef.current = Date.now();
+        // No index change → no re-render → glide back manually.
+        paintCards(cardRefs.current, snap, "animated");
       }
 
-      // Brief cooldown before autoplay resumes — no instant yank after a drag.
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = setTimeout(() => setIsPaused(false), 1200);
-
-      setTimeout(() => {
-        isDraggingRef.current = false;
-      }, 50);
+      endGesturePause();
     },
-    [currentIndex, dragX, goToSlide, isRtl, spacing]
+    [goToSlide, endGesturePause]
   );
 
+  // Pointer Drag adapted to direction.
+  //
+  // PERFORMANCE: pointermove only records the latest X and schedules ONE
+  // requestAnimationFrame that writes transforms straight to the DOM.
+  // No setState, no React re-render, no JS animation library per pixel —
+  // the cards stay glued to the finger on the compositor thread alone.
+  //
+  // Pointer capture is deliberately NOT taken here on pointerdown. Capturing
+  // immediately (the original behavior) makes Chromium retarget the click
+  // that follows pointerup to the CAPTURING element (this container div)
+  // instead of whatever was actually under the cursor — so a plain click on
+  // "Request Service" never reached the <a> at all, it silently landed on
+  // this wrapper div instead. Capture is taken only once real dragging is
+  // confirmed (past the 6px threshold), so a simple click never captures
+  // the pointer and the native click reaches the real link.
+  const handlePointerDown = (e: React.PointerEvent) => {
+    gestureRef.current = {
+      index: currentIndex,
+      spacing,
+      isRtl,
+      total: totalSlides,
+      loop,
+      startX: e.clientX,
+      pointerId: e.pointerId,
+    };
+    latestXRef.current = e.clientX;
+    dragDeltaRef.current = 0;
+    isDraggingRef.current = false;
+    samplesRef.current = [{ x: e.clientX, t: performance.now() }];
+    setIsPointerDown(true);
+    setIsPaused(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const snap = gestureRef.current;
+    if (!snap) return;
+    latestXRef.current = e.clientX;
+    // Synchronous mirror so tap guards stay exact even if a rAF is pending.
+    dragDeltaRef.current = e.clientX - snap.startX;
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      const s = gestureRef.current;
+      if (!s) return;
+      const delta = latestXRef.current - s.startX;
+
+      const now = performance.now();
+      const samples = samplesRef.current;
+      samples.push({ x: latestXRef.current, t: now });
+      if (samples.length > 6) samples.shift();
+
+      if (Math.abs(delta) > 6) {
+        if (!isDraggingRef.current && containerRef.current) {
+          try {
+            if (!containerRef.current.hasPointerCapture(s.pointerId)) {
+              containerRef.current.setPointerCapture(s.pointerId);
+            }
+          } catch {
+            /* noop — capture unsupported, drag still works */
+          }
+        }
+        isDraggingRef.current = true;
+      }
+
+      paintCards(cardRefs.current, s, "drag", delta);
+    });
+  };
+
   const handlePointerUp = (e: React.PointerEvent) => {
-    finishDrag(e.pointerId);
+    finishGesture(e.pointerId);
   };
 
   const handlePointerCancel = () => {
-    finishDrag(null);
+    finishGesture(null);
   };
+
+  const showContent = revealed || reducedMotion;
 
   return (
     <section
@@ -665,7 +499,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => { if (!isPointerDownRef.current) setIsPaused(false); }}
+      onMouseLeave={() => { if (!gestureRef.current) setIsPaused(false); }}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
       className={cn(
@@ -674,7 +508,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       )}
       {...props}
     >
-      {/* Static gradient in its own composited layer: GPU-cached once, never
+      {/* Static gradient in its own composited layer: painted once, never
           repainted while cards animate above it. */}
       <div className="absolute inset-0 z-0 [transform:translateZ(0)]">
         <GradientBackground className="absolute inset-0" />
@@ -694,13 +528,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       </div>
 
       <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header — soft rise-in on scroll into view */}
-        <motion.div
-          initial={reducedMotion ? false : { opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-          className="mx-auto mb-8 sm:mb-18 max-w-4xl text-center pointer-events-auto"
+        {/* Section Header — one-shot CSS rise-in on scroll into view */}
+        <div
+          className={cn(
+            "mx-auto mb-8 sm:mb-18 max-w-4xl text-center pointer-events-auto transition-[opacity,transform] duration-700 ease-out",
+            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-7"
+          )}
         >
           <div className="mb-3.5 inline-flex items-center gap-2.5">
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
@@ -719,24 +552,21 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
               {description || t.servicesCarousel.description}
             </span>
           </div>
-        </motion.div>
+        </div>
 
         {/* 3D Coverflow Container */}
-        <motion.div
-          initial={reducedMotion ? false : { opacity: 0, y: 40, scale: 0.98 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.8, delay: 0.12, ease: EASE_OUT_EXPO }}
-          className="relative w-full max-w-5xl mx-auto"
+        <div
+          className={cn(
+            "relative w-full max-w-5xl mx-auto transition-[opacity,transform] duration-700 ease-out delay-150",
+            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          )}
         >
-          {/* Floating Navigation Controls */}
+          {/* Floating Navigation Controls (solid fill — no backdrop-blur here:
+              blur regions above animating cards re-blur every frame) */}
           <div className="pointer-events-none absolute -inset-x-3 sm:-inset-x-8 inset-y-0 flex items-center justify-between z-40">
             {/* First Button (Left side of screen) */}
-            <motion.button
+            <button
               type="button"
-              whileHover={reducedMotion ? undefined : { scale: 1.08 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (isRtl) {
@@ -746,17 +576,14 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                 }
               }}
               aria-label={isRtl ? "Next service" : "Previous service"}
-              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl backdrop-blur-md transition-colors duration-200 hover:shadow-2xl cursor-pointer"
+              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[transform,background-color,box-shadow] duration-200 hover:scale-105 hover:shadow-2xl active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
-            </motion.button>
+            </button>
 
             {/* Second Button (Right side of screen) */}
-            <motion.button
+            <button
               type="button"
-              whileHover={reducedMotion ? undefined : { scale: 1.08 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (isRtl) {
@@ -766,10 +593,10 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                 }
               }}
               aria-label={isRtl ? "Previous service" : "Next service"}
-              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl backdrop-blur-md transition-colors duration-200 hover:shadow-2xl cursor-pointer"
+              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[transform,background-color,box-shadow] duration-200 hover:scale-105 hover:shadow-2xl active:scale-90 cursor-pointer"
             >
               <ChevronRight className="h-6 w-6 stroke-[2.5]" />
-            </motion.button>
+            </button>
           </div>
 
           <div
@@ -783,85 +610,179 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
               isPointerDown ? "cursor-grabbing" : "cursor-grab"
             )}
             style={{
+              // Flat per-card 3D (cheap) — deliberately NO preserve-3d scene,
+              // which forced costly 3D compositing and flickered on some GPUs.
               perspective: "1200px",
               perspectiveOrigin: "center center",
             }}
           >
             {activeSlides.map((slide, index) => {
-              let diff = index - currentIndex;
-              if (loop) {
-                if (diff > totalSlides / 2) diff -= totalSlides;
-                if (diff < -totalSlides / 2) diff += totalSlides;
-              }
+              const diff = diffFor(index, currentIndex, totalSlides, loop);
 
               const isCenter = diff === 0;
               const isNear = Math.abs(diff) <= 1;
 
-              // Slot position for this card — the outer layer springs here.
-              const baseX = isRtl ? -diff * spacing : diff * spacing;
-              const translateZ = isCenter ? 0 : -130 * Math.abs(diff);
-
-              const rotateY = isCenter
-                ? 0
-                : isRtl
-                  ? diff > 0 ? 24 : -24
-                  : diff > 0 ? -24 : 24;
-
-              const rotateZ = isCenter
-                ? 0
-                : isRtl
-                  ? diff > 0 ? -1.5 : 1.5
-                  : diff > 0 ? 1.5 : -1.5;
-
-              const scale = isCenter ? 1 : Math.max(0.82, 1 - Math.abs(diff) * 0.11);
               const opacity = isCenter ? 1 : Math.max(0.48, 0.88 - Math.abs(diff) * 0.2);
               const zIndex = isCenter ? 30 : 20 - Math.abs(diff);
 
               const stepNumber = String(index + 1).padStart(2, "0");
 
               return (
-                <CoverflowSlide
+                <div
                   key={slide.id}
-                  slide={slide}
-                  index={index}
-                  stepNumber={stepNumber}
-                  isCenter={isCenter}
-                  isNear={isNear}
-                  isRtl={isRtl}
-                  baseX={baseX}
-                  translateZ={translateZ}
-                  rotateY={rotateY}
-                  rotateZ={rotateZ}
-                  scale={scale}
-                  opacity={opacity}
-                  zIndex={zIndex}
-                  dragX={dragX}
-                  tilt={tilt}
-                  reducedMotion={reducedMotion}
-                  goToSlide={goToSlide}
-                  onRequestService={handleRequestService}
-                  requestServiceLabel={t.common.requestService}
-                />
+                  ref={(el) => {
+                    cardRefs.current[index] = el;
+                  }}
+                  aria-hidden={!isCenter}
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    zIndex,
+                    opacity,
+                    pointerEvents: isNear ? "auto" : "none",
+                    transition: reducedMotion ? "none" : SLOT_TRANSITION,
+                  }}
+                >
+                  {/* Official Rafiq Service Card.
+                      A plain div, not an <a>: the "Request Service" pill below is
+                      its own real, independent link so it always navigates,
+                      centered or not — see its onPointerUp below for why
+                      navigation happens there instead of via a plain href click.
+                      Interaction here uses onPointerUp, not onClick, for the same
+                      reason: this card sits inside a `perspective` stack (for the
+                      coverflow 3D effect), and in that setup the browser's
+                      synthesized `click` event can resolve its target to the wrong
+                      element in the 3D stack (verified: it was landing on the outer
+                      scroll container, several ancestors up, so neither this card's
+                      nor the link's onClick ever ran). pointerup hit-tests
+                      correctly regardless. */}
+                  <div
+                    role="group"
+                    aria-label={`Service ${slide.title}: ${slide.description}`}
+                    onPointerUp={() => {
+                      // A real drag just ended — don't steal it as a tap.
+                      if (Math.abs(dragDeltaRef.current) > 6) return;
+                      if (!isCenter) goToSlide(index);
+                    }}
+                    className={cn(
+                      "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl",
+                      isRtl ? "text-right" : "text-left",
+                      "w-[290px] sm:w-[330px] md:w-[360px] lg:w-[320px] p-5 sm:p-6 lg:p-5",
+                      isCenter
+                        ? "border-[#1A3A6B]/50 shadow-2xl shadow-[#12294D]/25 ring-2 ring-[#1A3A6B]/30"
+                        : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30",
+                      // Shadow/border fade only — the slot transform is owned by
+                      // paintCards (inline style), never by CSS classes.
+                      "transition-[box-shadow,border-color] duration-300 ease-out"
+                    )}
+                  >
+                    <div>
+                      {/* Top Header: Step Number & Verified Badge */}
+                      <div className="mb-3.5 flex items-center justify-between">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E8F0FB] border border-[#C2D9F5] text-xs font-black text-[#1A3A6B] shadow-sm">
+                          {stepNumber}
+                        </span>
+
+                        <div
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-sm",
+                            slide.badgeType === "direct"
+                              ? "bg-gradient-to-r from-[#E8F0FB] to-[#FAF8F0] text-[#1A3A6B] border-[#C2D9F5]"
+                              : "bg-gradient-to-r from-sky-50 to-[#FAF8F0] text-[#0284c7] border-sky-200"
+                          )}
+                        >
+                          {slide.badgeType === "direct" ? (
+                            <ShieldCheck className="h-3.5 w-3.5 text-[#1A3A6B]" aria-hidden="true" />
+                          ) : (
+                            <VerifiedBadge variant="shimmer" size={15} />
+                          )}
+                          <span>{slide.badge}</span>
+                        </div>
+                      </div>
+
+                      {/* Expansive Full-Bleed Image Container */}
+                      <div className="relative mb-4 h-44 sm:h-52 w-full overflow-hidden rounded-2xl bg-[#1A3A6B]/5 border border-[#EFEADB]">
+                        <img
+                          src={slide.src}
+                          alt={slide.alt}
+                          loading={isNear ? "eager" : "lazy"}
+                          decoding="async"
+                          draggable={false}
+                          className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-108"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#12294D]/15 via-transparent to-transparent pointer-events-none" />
+                      </div>
+
+                      {/* Category Label */}
+                      <div className="mb-2 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#1A3A6B] bg-[#E8F0FB]/70 px-2.5 py-0.5 rounded-md border border-[#D0E0F5]">
+                        {slide.icon && <span>{slide.icon}</span>}
+                        <span>{slide.category}</span>
+                      </div>
+
+                      {/* Service Title */}
+                      <h3 className="mb-2 text-xl sm:text-2xl lg:text-xl font-black tracking-tight text-[#12294D] transition-colors duration-200 group-hover:text-[#1A3A6B] leading-tight">
+                        {slide.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="text-xs sm:text-sm text-[#3A4F6D] font-medium leading-relaxed line-clamp-2">
+                        {slide.description}
+                      </p>
+                    </div>
+
+                    {/* Action Button inside card — a real, independent link so it
+                        always navigates, whether or not this card is centered.
+                        Navigates on pointerup (not the native href click — see
+                        the card comment above for why) so it's reliable inside
+                        the 3D coverflow stack; href/onClick stay as the fallback
+                        for keyboard activation (Enter/Space), where no pointer
+                        event fires and the browser's click targets this link
+                        correctly on its own. */}
+                    <div className="mt-5 border-t border-[#EFEADB] pt-3.5">
+                      <a
+                        href={slide.href}
+                        onPointerUp={(e) => {
+                          // A drag ending here is a swipe, not a tap: let it
+                          // bubble to the container so the slide still advances
+                          // — only real taps navigate. (Stopping propagation
+                          // unconditionally used to eat swipes that started on
+                          // the button: no slide change AND no navigation.)
+                          if (Math.abs(dragDeltaRef.current) > 6) return;
+                          e.stopPropagation();
+                          handleRequestService(slide);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        aria-label={`${t.common.requestService}: ${slide.title}`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-[background-color,box-shadow,transform] duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-2"
+                      >
+                        <span>{t.common.requestService}</span>
+                        {isRtl ? (
+                          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" aria-hidden="true" />
+                        ) : (
+                          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                        )}
+                      </a>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
 
-          {/* Smooth Interactive Pagination Dots — width springs via layout */}
+          {/* Pagination Dots — tiny width transition only */}
           <div className="mt-4 sm:mt-6 flex items-center justify-center gap-2 z-30">
             {activeSlides.map((slide, dotIndex) => {
               const isActive = dotIndex === currentIndex;
               return (
-                <motion.button
+                <button
                   key={slide.id}
                   type="button"
-                  layout
-                  initial={false}
-                  animate={{ width: isActive ? 32 : 10, opacity: isActive ? 1 : 0.55 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 32 }}
                   onClick={() => goToSlide(dotIndex)}
                   aria-label={`Go to slide ${dotIndex + 1}`}
+                  style={{ width: isActive ? 32 : 10 }}
                   className={cn(
-                    "h-2.5 rounded-full cursor-pointer",
+                    "h-2.5 rounded-full cursor-pointer transition-[width,background-color,opacity] duration-300 ease-out",
                     isActive
                       ? "bg-[#60A5FA] shadow-md shadow-blue-500/50"
                       : "bg-white/35 hover:bg-white/70"
@@ -870,7 +791,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
               );
             })}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Seamless Symmetrical Organic Bottom Wave Transition */}
