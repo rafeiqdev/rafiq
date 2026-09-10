@@ -104,14 +104,14 @@ export function DiscoverRafiq() {
       aria-labelledby="discover-rafiq-heading"
       className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20 lg:pt-14"
     >
-      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-12 lg:px-8">
-        <div className="mx-auto mb-4 max-w-3xl text-center sm:mb-8">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-12 lg:max-w-7xl lg:px-8 lg:pb-14">
+        <div className="mx-auto mb-4 max-w-3xl text-center sm:mb-8 lg:mb-10">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
             <span className="text-xs font-black uppercase tracking-widest text-[#1A3A6B] sm:text-sm">{c.eyebrow}</span>
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
           </div>
-          <h2 id="discover-rafiq-heading" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-4xl lg:text-3xl">
+          <h2 id="discover-rafiq-heading" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-3xl lg:text-[32px] lg:leading-[1.3]">
             {c.heading}
           </h2>
         </div>
@@ -120,14 +120,14 @@ export function DiscoverRafiq() {
             (each card 82% of the screen, snap-centered); from `sm` up the same
             cards fall into a 2-up, then 4-up grid. */}
         <ul
-          className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 pt-1 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
+          className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 pt-1 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 lg:gap-6"
           role="list"
         >
           {items.map((item) => (
             <li key={item.id} className="w-[82%] max-w-[82%] shrink-0 snap-center sm:w-auto sm:max-w-none">
               <a
                 href={item.href}
-                className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md transition-shadow hover:shadow-xl"
+                className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-[#EFEADB] bg-[#1A3A6B] shadow-md transition-shadow hover:shadow-xl sm:min-h-[300px] lg:aspect-auto lg:min-h-[380px]"
               >
                 <img
                   src={item.imageSrc}
@@ -138,10 +138,10 @@ export function DiscoverRafiq() {
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A1832]/95 via-[#0A1832]/55 via-45% to-[#0A1832]/5" aria-hidden="true" />
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                  <div className="text-lg font-black text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] sm:text-xl">{item.title}</div>
-                  <div className="mt-1 text-xs leading-relaxed text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] sm:text-sm">{item.description}</div>
-                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md sm:text-sm">
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 lg:p-6">
+                  <div className="text-lg font-black text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] sm:text-lg lg:text-[19px] lg:leading-snug">{item.title}</div>
+                  <div className="mt-1 text-xs leading-relaxed text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] sm:text-[13px] lg:text-[13px] lg:leading-[1.65]">{item.description}</div>
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1A3A6B] shadow-md sm:text-xs lg:mt-4 lg:px-5 lg:py-2 lg:text-[13px]">
                     {item.ctaLabel}
                     <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
