@@ -309,6 +309,12 @@ const CoverflowSlide = React.memo(function CoverflowSlide({
             <a
               href={slide.href}
               onPointerUp={(e) => {
+                // A drag ending here is a swipe, not a tap: let it bubble to
+                // the container so the slide still advances — only real taps
+                // navigate. (Stopping propagation unconditionally used to eat
+                // swipes that started on the button: no slide change AND no
+                // navigation — a dead gesture.)
+                if (Math.abs(dragX.get()) > 6) return;
                 e.stopPropagation();
                 onRequestService(slide);
               }}
