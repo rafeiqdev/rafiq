@@ -790,30 +790,61 @@
 }
 
 /* --------------------------------------------------------------------------
-   Desktop scale-down (owner, 2026-09-02): on laptop/desktop screens the hero
-   copy and buttons read oversized. Roughly -15% on type and button bulk;
-   phones/tablets keep the values above.
+   Desktop scale-up (owner, 2026-09-10): desktop hero copy read too small.
+   Bigger headline + supporting text + roomier spacing, buttons enlarged via
+   Button variant + CTA classes. Vertical rhythm stays centred in the
+   viewport (no shifting upward) — only type size and gaps grow.
+   RTL (Arabic/Farsi) keeps right alignment with looser line-height for
+   the Arabic script; LTR (English/Russian) keeps left alignment.
+   Phones/tablets keep the values above.
    -------------------------------------------------------------------------- */
 @media (min-width: 961px) {
+  .contentWrapper {
+    /* Keep the block vertically centred — same top offset, a touch more
+       bottom air so the bigger type never crowds the wave transition. */
+    padding-top: 7rem;
+    padding-bottom: 6rem;
+  }
+
   .textSection {
-    max-width: 640px;
-    gap: 1.25rem;
+    max-width: 720px;
+    gap: 1.75rem;
   }
 
   .headline {
-    font-size: clamp(1.6rem, 2.7vw, 2.4rem);
+    font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+    line-height: 1.28;
+    letter-spacing: -0.02em;
+  }
+
+  .heroRoot[dir="rtl"] .headline {
+    line-height: 1.6;
   }
 
   .supportingText {
-    font-size: clamp(1rem, 1.2vw, 1.15rem);
-    line-height: 1.7;
-    max-width: 560px;
+    font-size: clamp(1.15rem, 1.5vw, 1.35rem);
+    line-height: 1.85;
+    max-width: 620px;
+  }
+
+  .heroRoot[dir="rtl"] .supportingText {
+    line-height: 2;
+  }
+
+  .buttonGroup {
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: flex-start;
+  }
+
+  .heroRoot[dir="rtl"] .buttonGroup {
+    flex-direction: row;
   }
 
   .buttonBase {
-    padding: 0.85rem 2rem;
-    font-size: 1rem;
-    min-height: 50px;
-    border-radius: 0.75rem;
+    padding: 1rem 2.5rem;
+    font-size: 1.12rem;
+    min-height: 58px;
+    border-radius: 0.85rem;
   }
 }

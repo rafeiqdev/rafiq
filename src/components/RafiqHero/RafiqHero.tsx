@@ -255,7 +255,7 @@ export const RafiqHero: React.FC<RafiqHeroProps> = ({
   // Helper to render accessible CTA button or link using Button component
   const renderCta = (button: HeroCtaButton, isPrimary: boolean) => {
     const btnClasses = cn(
-      "font-sans font-bold transition-all duration-200 hover:-translate-y-0.5 rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-[1.05rem]",
+      "font-sans font-bold transition-all duration-200 hover:-translate-y-0.5 rounded-full px-6 sm:px-8 lg:px-10 py-2.5 sm:py-3 lg:py-3.5 text-base sm:text-[1.05rem] lg:text-[1.15rem]",
       isPrimary
         ? "bg-white hover:bg-[#FAF8F0] text-[#1A3A6B] shadow-xl shadow-black/20 border border-white hover:shadow-2xl"
         : "bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl border border-white/40 shadow-lg hover:border-white/60",

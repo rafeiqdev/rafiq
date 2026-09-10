@@ -17,7 +17,7 @@ export const buttonVariants = cva(
         default: 'h-10 px-5 py-2',
         sm: 'h-8 rounded-full px-3 text-xs',
         lg: 'h-11 px-6 py-2.5 text-sm sm:text-base',
-        hero: 'h-12 sm:h-[50px] px-6 sm:px-7 py-2.5 text-base sm:text-[1.05rem] font-semibold rounded-full',
+        hero: 'h-12 sm:h-[50px] lg:h-[58px] px-6 sm:px-7 lg:px-9 py-2.5 text-base sm:text-[1.05rem] lg:text-[1.15rem] font-semibold rounded-full',
         icon: 'h-10 w-10 rounded-full',
       },
     },
