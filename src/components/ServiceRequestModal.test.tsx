@@ -320,3 +320,47 @@ describe('client cooldown (S5)', () => {
     expect(screen.queryByText('services.modal.error')).toBeNull();
   });
 });
+
+/**
+ * A signed-in customer never retypes what the account already knows. With
+ * BOTH a valid name and phone on file the two inputs collapse into a one-line
+ * summary with an edit button; with either one missing (typically the phone)
+ * the fields stay open, pre-filled with whatever we have. The email field is
+ * gone entirely — the phone is how the team reaches people.
+ */
+describe('signed-in customer identity', () => {
+  it('collapses name + phone into a summary when the account has both, and reopens them on edit', async () => {
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz', phone: '+905551234567' } });
+    await renderModal();
+
+    expect(document.querySelector('input[autocomplete="name"]')).toBeNull();
+    expect(document.querySelector('input[autocomplete="tel"]')).toBeNull();
+    expect(screen.getByText('Ahmet Yilmaz')).toBeInTheDocument();
+    expect(screen.getByText('+905551234567')).toBeInTheDocument();
+    // the greeting carries the first name, the send button is enabled straight away
+    expect(screen.getByRole('button', { name: 'services.modal.send' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'common.edit' }));
+    await waitFor(() => {
+      const nameInput = document.querySelector<HTMLInputElement>('input[autocomplete="name"]');
+      expect(nameInput?.value).toBe('Ahmet Yilmaz');
+    });
+    expect(document.querySelector<HTMLInputElement>('input[autocomplete="tel"]')?.value).toBe('+905551234567');
+  });
+
+  it('keeps the fields open (pre-filled) when the account has no phone', async () => {
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz' } });
+    await renderModal();
+
+    expect(document.querySelector<HTMLInputElement>('input[autocomplete="name"]')?.value).toBe('Ahmet Yilmaz');
+    expect(document.querySelector<HTMLInputElement>('input[autocomplete="tel"]')?.value).toBe('');
+    expect(screen.getByRole('button', { name: 'services.modal.send' })).toBeDisabled();
+  });
+
+  it('never renders an email field', async () => {
+    useAppMock.mockReturnValue({ user: null });
+    await renderModal();
+    expect(document.querySelector('input[type="email"]')).toBeNull();
+    expect(document.querySelector('input[autocomplete="email"]')).toBeNull();
+  });
+});
