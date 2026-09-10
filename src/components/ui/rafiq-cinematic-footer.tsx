@@ -221,28 +221,28 @@ export function RafiqCinematicFooter({
           // wrapper, and mobile Safari/Chrome compositing lets that fixed
           // layer bleed over the page mid-scroll — a dark block flashing over
           // the content, which the owner reported as a scrambled screen.
-          "relative w-full h-screen min-h-[560px] max-h-[760px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
+          "relative w-full h-[62vh] min-h-[440px] max-h-[560px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
           className
         )}
         style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
         {/* The actual footer is fixed behind and reveals on scroll (desktop only) */}
-        <footer className="fixed bottom-0 left-0 flex h-screen min-h-[560px] max-h-[760px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
+        <footer className="fixed bottom-0 left-0 flex h-[62vh] min-h-[440px] max-h-[560px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
 
           {/* 1. Calm atmospheric background: the site-navy "Oceanic Shimmer"
               gradient (grain + soft radial glows) + one gentle glow */}
           <div className="absolute inset-0 z-0 pointer-events-none">
             <NavyShimmerBackground className="h-full w-full" />
           </div>
-          <div className="rafiq-footer-aurora absolute left-1/2 top-1/2 h-[60vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] blur-[100px] pointer-events-none z-0" />
+          <div className="rafiq-footer-aurora absolute left-1/2 top-1/2 h-[40vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] blur-[100px] pointer-events-none z-0" />
 
           {/* 2. Main Center Content: Title & Action Buttons */}
-          <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 py-16 w-full max-w-4xl mx-auto text-center">
+          <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 py-12 w-full max-w-4xl mx-auto text-center">
 
             {/* Main Heading with Metallic Glow */}
             <h2
               ref={headingRef}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-5xl font-black rafiq-text-glow tracking-tight mb-8 sm:mb-10 lg:mb-8 max-w-3xl leading-[1.15]"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-5xl font-black rafiq-text-glow tracking-tight mb-6 sm:mb-8 max-w-3xl leading-[1.15]"
             >
               {language === "ar"
                 ? "جاهز لترتيب معاملتك؟"
