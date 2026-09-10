@@ -217,6 +217,9 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   }, []);
 
   // One-shot scroll reveal (a single state flip, then pure CSS).
+  // Light by design (owner 2026-09-11): fires early — while the section is
+  // still approaching — so visitors never see an empty background waiting
+  // for its content.
   useEffect(() => {
     const el = sectionRef.current;
     if (!el || typeof IntersectionObserver === "undefined") {
@@ -230,7 +233,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
           io.disconnect();
         }
       },
-      { rootMargin: "0px 0px -60px 0px" }
+      { rootMargin: "120px 0px 120px 0px" }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -531,8 +534,8 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         {/* Section Header — one-shot CSS rise-in on scroll into view */}
         <div
           className={cn(
-            "mx-auto mb-8 sm:mb-18 max-w-4xl text-center pointer-events-auto transition-[opacity,transform] duration-700 ease-out",
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-7"
+            "mx-auto mb-8 sm:mb-18 max-w-4xl text-center pointer-events-auto transition-[opacity,transform] duration-500 ease-out",
+            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
           <div className="mb-3.5 inline-flex items-center gap-2.5">
@@ -557,8 +560,8 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         {/* 3D Coverflow Container */}
         <div
           className={cn(
-            "relative w-full max-w-5xl mx-auto transition-[opacity,transform] duration-700 ease-out delay-150",
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            "relative w-full max-w-5xl mx-auto transition-[opacity,transform] duration-500 ease-out",
+            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
           {/* Floating Navigation Controls (solid fill — no backdrop-blur here:

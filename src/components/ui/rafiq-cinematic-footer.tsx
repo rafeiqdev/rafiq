@@ -181,20 +181,24 @@ export function RafiqCinematicFooter({
 
     // React strict mode compatible GSAP context cleanup
     const ctx = gsap.context(() => {
-      // Staggered Content Reveal on heading and action pills
+      // Light one-time content reveal (owner 2026-09-11): the previous
+      // scroll-scrubbed version tied heading/buttons opacity to the scroll
+      // position, so visitors saw an empty background long before the
+      // content faded in. Now it plays once, early, and fast.
       gsap.fromTo(
         [headingRef.current, linksRef.current],
-        { y: 50, opacity: 0 },
+        { y: 24, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          stagger: 0.15,
-          ease: "power3.out",
+          duration: 0.6,
+          stagger: 0.08,
+          ease: "power2.out",
+          overwrite: "auto",
           scrollTrigger: {
             trigger: wrapperRef.current,
-            start: "top 45%",
-            end: "bottom bottom",
-            scrub: 1,
+            start: "top 88%",
+            toggleActions: "play none none none",
           },
         }
       );
