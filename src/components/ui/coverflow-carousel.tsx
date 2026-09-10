@@ -85,8 +85,9 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
 // The ONLY transition in the carousel: transform + opacity (both GPU-composited,
 // zero main-thread work per frame). Deliberately no spring library, no infinite
 // animations, no animated blurs — those kept low-end phones janky.
+// Apple-style expo-out: fast start, long silky settle.
 const SLOT_TRANSITION =
-  "transform 0.65s cubic-bezier(0.22,1,0.36,1), opacity 0.65s ease";
+  "transform 0.7s cubic-bezier(0.16,1,0.3,1), opacity 0.7s ease";
 
 /** Everything paintCards needs — captured once at pointerdown so drag frames
  *  never read stale closures and never trigger React renders. */
@@ -109,20 +110,26 @@ function diffFor(i: number, index: number, total: number, loop: boolean): number
   return d;
 }
 
-type PaintMode = "animated" | "instant" | "drag";
+type PaintMode = "animated" | "instant" | "drag" | "snap";
 
 /**
  * Writes slot transforms STRAIGHT to the DOM (no setState, no re-render).
  * Called from rAF during drags and from an effect on index change.
- * `animated` clears the inline transition so the CSS value from render takes
- * over; `instant`/`drag` pin it to none.
+ * - `animated`: clears the inline transition so the CSS value from render
+ *   takes over (the long silky glide between slots).
+ * - `snap`: short distance-proportional transition for release-without-jump,
+ *   so a tiny offset snaps back quickly instead of floating for 0.7s.
+ * - `instant`/`drag`: transition pinned to none (mount, finger-follow).
  */
 function paintCards(
   els: Array<HTMLDivElement | null>,
   snap: Pick<GestureSnap, "index" | "spacing" | "isRtl" | "total" | "loop">,
   mode: PaintMode,
   drag = 0,
+  snapDuration = 0.3,
 ) {
+  const pressScale =
+    mode === "drag" ? 1 - Math.min(Math.abs(drag) / 2500, 0.025) : 1;
   for (let i = 0; i < els.length; i++) {
     const el = els[i];
     if (!el) continue;
@@ -131,10 +138,16 @@ function paintCards(
     const center = diff === 0;
     const baseX = snap.isRtl ? -diff * snap.spacing : diff * snap.spacing;
     const x = baseX + (mode === "drag" ? drag * 0.9 : 0);
-    const s = center ? 1 : Math.max(0.82, 1 - ad * 0.11);
+    // Center card breathes down a touch under the finger (free: same write).
+    const s = (center ? 1 : Math.max(0.82, 1 - ad * 0.11)) * (center ? pressScale : 1);
     const rY = center ? 0 : snap.isRtl ? (diff > 0 ? 24 : -24) : diff > 0 ? -24 : 24;
     const rZ = center ? 0 : snap.isRtl ? (diff > 0 ? -1.5 : 1.5) : diff > 0 ? 1.5 : -1.5;
-    el.style.transition = mode === "animated" ? "" : "none";
+    el.style.transition =
+      mode === "animated"
+        ? ""
+        : mode === "snap"
+          ? `transform ${snapDuration}s cubic-bezier(0.16,1,0.3,1), opacity ${snapDuration}s ease`
+          : "none";
     el.style.transform = `translateX(${x}px) scale(${s}) rotateY(${rY}deg) rotateZ(${rZ}deg)`;
   }
 }
@@ -403,8 +416,11 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         goToSlide(snap.index + jump);
       } else {
         lastInteractRef.current = Date.now();
-        // No index change → no re-render → glide back manually.
-        paintCards(cardRefs.current, snap, "animated");
+        // No index change → no re-render → glide back manually, with a
+        // duration proportional to the offset: tiny wiggles snap instantly,
+        // long drags glide home. Still pure CSS, zero per-frame JS.
+        const dur = Math.min(0.22 + Math.abs(deltaX) / 1200, 0.5);
+        paintCards(cardRefs.current, snap, "snap", 0, Number(dur.toFixed(3)));
       }
 
       endGesturePause();
