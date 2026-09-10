@@ -102,10 +102,10 @@ export function DiscoverRafiq() {
       dir={dir}
       lang={language}
       aria-labelledby="discover-rafiq-heading"
-      className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20 lg:pt-14"
+      className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20 lg:pt-8"
     >
-      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-12 lg:max-w-7xl lg:px-8 lg:pb-14">
-        <div className="mx-auto mb-4 max-w-3xl text-center sm:mb-8 lg:mb-10">
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 pb-6 sm:px-6 sm:pb-12 lg:max-w-7xl lg:px-8 lg:pb-8">
+        <div className="mx-auto mb-4 max-w-3xl text-center sm:mb-8 lg:mb-6">
           <div className="mb-3 inline-flex items-center gap-2.5">
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
             <span className="text-xs font-black uppercase tracking-widest text-[#1A3A6B] sm:text-sm">{c.eyebrow}</span>
