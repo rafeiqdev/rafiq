@@ -104,10 +104,10 @@ export function DiscoverRafiq() {
       aria-labelledby="discover-rafiq-heading"
       className="relative w-full overflow-hidden bg-gradient-to-b from-[#FAF8F0] via-[#FAF6ED] to-[#FAF8F0] pt-10 pb-0 text-[#12294D] font-sans sm:pt-16 md:pt-20 lg:pt-8"
     >
-      {/* Ottoman-style watermark pattern — desktop only, phones stay exactly as they were.
-          Pure inline SVG (no new image files), kept very faint so titles stay easy to read. */}
+      {/* Ottoman-style watermark pattern — pure inline SVG (no new image files),
+          kept very faint so titles stay easy to read on phones and desktops. */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 hidden lg:block"
+        className="pointer-events-none absolute inset-0 z-0"
         aria-hidden="true"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%231A3A6B' stroke-opacity='0.10' stroke-width='1'%3E%3Cpath d='M48 12l8.5 20.5L77 41l-20.5 8.5L48 70l-8.5-20.5L19 41l20.5-8.5z'/%3E%3Ccircle cx='48' cy='41' r='30'/%3E%3Ccircle cx='48' cy='41' r='3'/%3E%3Cpath d='M0 0h96M0 96h96M0 0v96M96 0v96' stroke-opacity='0.05'/%3E%3C/g%3E%3C/svg%3E")`,
@@ -116,9 +116,9 @@ export function DiscoverRafiq() {
           WebkitMaskImage: 'radial-gradient(ellipse 90% 85% at 50% 40%, black 30%, transparent 100%)',
         }}
       />
-      {/* Soft golden wash behind the heading — desktop only, barely-there warmth. */}
+      {/* Soft golden wash behind the heading — barely-there warmth. */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 hidden h-72 lg:block"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72"
         aria-hidden="true"
         style={{ background: 'radial-gradient(ellipse 55% 100% at 50% 0%, rgba(201,162,75,0.12), transparent 70%)' }}
       />
