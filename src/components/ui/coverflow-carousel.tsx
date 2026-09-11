@@ -85,9 +85,10 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
 // The ONLY transition in the carousel: transform + opacity (both GPU-composited,
 // zero main-thread work per frame). Deliberately no spring library, no infinite
 // animations, no animated blurs — those kept low-end phones janky.
-// Apple-style expo-out: fast start, long silky settle.
+// Calm glide (retune 2026-09-11): 0.45s expo-out — short enough that the
+// section feels settled instead of constantly floating, long enough to stay silky.
 const SLOT_TRANSITION =
-  "transform 0.7s cubic-bezier(0.16,1,0.3,1), opacity 0.7s ease";
+  "transform 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.45s ease";
 
 /** Everything paintCards needs — captured once at pointerdown so drag frames
  *  never read stale closures and never trigger React renders. */
@@ -128,8 +129,6 @@ function paintCards(
   drag = 0,
   snapDuration = 0.3,
 ) {
-  const pressScale =
-    mode === "drag" ? 1 - Math.min(Math.abs(drag) / 2500, 0.025) : 1;
   for (let i = 0; i < els.length; i++) {
     const el = els[i];
     if (!el) continue;
@@ -138,10 +137,12 @@ function paintCards(
     const center = diff === 0;
     const baseX = snap.isRtl ? -diff * snap.spacing : diff * snap.spacing;
     const x = baseX + (mode === "drag" ? drag * 0.9 : 0);
-    // Center card breathes down a touch under the finger (free: same write).
-    const s = (center ? 1 : Math.max(0.82, 1 - ad * 0.11)) * (center ? pressScale : 1);
-    const rY = center ? 0 : snap.isRtl ? (diff > 0 ? 24 : -24) : diff > 0 ? -24 : 24;
-    const rZ = center ? 0 : snap.isRtl ? (diff > 0 ? -1.5 : 1.5) : diff > 0 ? 1.5 : -1.5;
+    // Gentle depth: side cards step back without leaning hard. rotateZ is
+    // gone entirely (it made text look broken/crooked) and rotateY is halved
+    // (12deg) so side cards stay readable instead of edge-on.
+    const s = center ? 1 : Math.max(0.7, 1 - ad * 0.15);
+    const rY = center ? 0 : snap.isRtl ? (diff > 0 ? 12 : -12) : diff > 0 ? -12 : 12;
+    const rZ = 0;
     el.style.transition =
       mode === "animated"
         ? ""
@@ -156,12 +157,12 @@ function paintCards(
  * 3D Coverflow Carousel for Rafiq Services with Oceanic Glow Gradient Background
  * Dynamically adapts gestures and typography for Arabic, English, Persian, and Russian.
  *
- * LITE motion model (rewrite 2026-09-11): the previous spring-physics version
- * ran per-frame JS + infinite animations + animated blurs and janked on
- * low-end phones. Now slide motion is one CSS transform transition
- * (compositor thread, zero JS per frame), drags write transforms straight to
- * the DOM via rAF, and there are no looping animations or animated blurs
- * anywhere in the section.
+ * CALM motion model (retune 2026-09-11): the spring-physics version janked on
+ * low-end phones, and the first LITE pass still felt busy (0.7s glides, 3s
+ * autoplay, 24deg side tilt, double-skip flings, shimmer + hover scales).
+ * Now: 0.45s glides, 6s autoplay, 12deg tilt with no crooked rotateZ, one
+ * card max per gesture, static verified badge, no hover zooms — same design
+ * and same coverflow idea, just settled.
  */
 export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   slides: customSlides,
@@ -173,7 +174,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   showNavigation = false,
   loop = true,
   autoScroll = true,
-  autoScrollInterval = 3000,
+  autoScrollInterval = 6000,
   cardWidth,
   gap = 0.08,
   label,
@@ -217,7 +218,9 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const mountedRef = useRef<boolean>(false);
 
   const totalSlides = activeSlides.length;
-  const spacing = viewportW < 640 ? 150 : 230;
+  // Wider gaps so side cards overlap less and their text stays readable.
+  // Mobile cards are 290px wide -> 200px spacing; desktop 320px -> 270px.
+  const spacing = viewportW < 640 ? 200 : 270;
 
   // Check prefers-reduced-motion
   useEffect(() => {
@@ -282,13 +285,32 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     goToSlide(currentIndex - 1);
   }, [goToSlide, currentIndex]);
 
+  // Autoplay advance — deliberately does NOT touch lastInteractRef. The old
+  // code routed autoplay through goToSlide (which stamps every advance as a
+  // "manual interaction"), so each auto step re-armed its own cooldown and
+  // the carousel stalled after the first step whenever the interval was
+  // shorter than the cooldown. Manual input stamps the cooldown; auto steps
+  // only read it.
+  const advanceAuto = useCallback(() => {
+    if (loop) {
+      setCurrentIndex((prev) => (prev + 1) % totalSlides);
+    } else {
+      setCurrentIndex((prev) => Math.min(prev + 1, totalSlides - 1));
+    }
+  }, [loop, totalSlides]);
+
   // Paint slot transforms after every index/spacing change. First paint is
   // instant (no fly-in on page load); everything after glides via CSS.
+  // With prefers-reduced-motion there is never a glide — always instant.
   useEffect(() => {
     const snap = { index: currentIndex, spacing, isRtl, total: totalSlides, loop };
-    paintCards(cardRefs.current, snap, mountedRef.current ? "animated" : "instant");
+    paintCards(
+      cardRefs.current,
+      snap,
+      !mountedRef.current || reducedMotion ? "instant" : "animated"
+    );
     mountedRef.current = true;
-  }, [currentIndex, spacing, isRtl, totalSlides, loop, activeSlides.length]);
+  }, [currentIndex, spacing, isRtl, totalSlides, loop, activeSlides.length, reducedMotion]);
 
   // Smart Auto-Scroll: pauses on hover/focus/drag, for a cooldown after any
   // manual interaction, and while the tab is hidden.
@@ -297,12 +319,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
 
     const timer = setInterval(() => {
       if (document.hidden) return;
-      if (Date.now() - lastInteractRef.current < 2500) return;
-      nextSlide();
+      if (Date.now() - lastInteractRef.current < 4000) return;
+      advanceAuto();
     }, autoScrollInterval);
 
     return () => clearInterval(timer);
-  }, [autoScroll, isPaused, reducedMotion, isPointerDown, nextSlide, autoScrollInterval]);
+  }, [autoScroll, isPaused, reducedMotion, isPointerDown, advanceAuto, autoScrollInterval]);
 
   // Pause autoplay while the tab is hidden so it never jumps on return.
   useEffect(() => {
@@ -324,7 +346,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   // on the button never navigates by accident.
   const handleRequestService = useCallback(
     (slide: ServiceSlide) => {
-      if (isDraggingRef.current || Math.abs(dragDeltaRef.current) > 6) return;
+      if (isDraggingRef.current || Math.abs(dragDeltaRef.current) > 10) return;
       lastInteractRef.current = Date.now();
       const internal = routePathFromHref(slide.href);
       if (internal) navigate(internal.path + internal.url.search + internal.url.hash);
@@ -358,9 +380,10 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   );
 
   const endGesturePause = useCallback(() => {
-    // Brief cooldown before autoplay resumes — no instant yank after a drag.
+    // Longer cooldown before autoplay resumes — the section stays settled
+    // after a drag instead of yanking away instantly.
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    resumeTimerRef.current = setTimeout(() => setIsPaused(false), 1200);
+    resumeTimerRef.current = setTimeout(() => setIsPaused(false), 2500);
     setTimeout(() => {
       isDraggingRef.current = false;
     }, 50);
@@ -399,18 +422,16 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         if (dt > 0) velocity = (last.x - first.x) / dt;
       }
 
-      const threshold = 45;
+      const threshold = 60;
       // Positive `forward` always means "go to next".
       const forward = snap.isRtl ? deltaX : -deltaX;
       const forwardVelocity = snap.isRtl ? velocity : -velocity;
 
+      // One card max per gesture — the old double-skip (jump * 2 on a hard
+      // fling) disoriented visitors, they lost track of where they were.
       let jump = 0;
-      if (forward > threshold || forwardVelocity > 0.45) jump = 1;
-      else if (forward < -threshold || forwardVelocity < -0.45) jump = -1;
-      // A long hard fling skips two cards — feels physical, not sticky.
-      if (Math.abs(forward) > snap.spacing * 1.4 && Math.abs(forwardVelocity) > 0.3) {
-        jump = (forward > 0 ? 1 : -1) * 2;
-      }
+      if (forward > threshold || forwardVelocity > 0.6) jump = 1;
+      else if (forward < -threshold || forwardVelocity < -0.6) jump = -1;
 
       if (jump !== 0) {
         goToSlide(snap.index + jump);
@@ -419,13 +440,20 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
         // No index change → no re-render → glide back manually, with a
         // duration proportional to the offset: tiny wiggles snap instantly,
         // long drags glide home. Still pure CSS, zero per-frame JS.
+        // Reduced-motion: no glide at all, jump straight home.
         const dur = Math.min(0.22 + Math.abs(deltaX) / 1200, 0.5);
-        paintCards(cardRefs.current, snap, "snap", 0, Number(dur.toFixed(3)));
+        paintCards(
+          cardRefs.current,
+          snap,
+          reducedMotion ? "instant" : "snap",
+          0,
+          Number(dur.toFixed(3))
+        );
       }
 
       endGesturePause();
     },
-    [goToSlide, endGesturePause]
+    [goToSlide, endGesturePause, reducedMotion]
   );
 
   // Pointer Drag adapted to direction.
@@ -441,7 +469,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   // instead of whatever was actually under the cursor — so a plain click on
   // "Request Service" never reached the <a> at all, it silently landed on
   // this wrapper div instead. Capture is taken only once real dragging is
-  // confirmed (past the 6px threshold), so a simple click never captures
+  // confirmed (past the 10px threshold), so a simple click never captures
   // the pointer and the native click reaches the real link.
   const handlePointerDown = (e: React.PointerEvent) => {
     gestureRef.current = {
@@ -479,7 +507,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       samples.push({ x: latestXRef.current, t: now });
       if (samples.length > 6) samples.shift();
 
-      if (Math.abs(delta) > 6) {
+      if (Math.abs(delta) > 10) {
         if (!isDraggingRef.current && containerRef.current) {
           try {
             if (!containerRef.current.hasPointerCapture(s.pointerId)) {
@@ -595,7 +623,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                 }
               }}
               aria-label={isRtl ? "Next service" : "Previous service"}
-              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[transform,background-color,box-shadow] duration-200 hover:scale-105 hover:shadow-2xl active:scale-90 cursor-pointer"
+              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[background-color,box-shadow] duration-200 hover:shadow-2xl cursor-pointer"
             >
               <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
             </button>
@@ -612,7 +640,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                 }
               }}
               aria-label={isRtl ? "Previous service" : "Next service"}
-              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[transform,background-color,box-shadow] duration-200 hover:scale-105 hover:shadow-2xl active:scale-90 cursor-pointer"
+              className="pointer-events-auto flex h-11 w-11 sm:h-13 sm:w-13 items-center justify-center rounded-full bg-white/20 hover:bg-white/40 text-white border border-white/40 shadow-xl transition-[background-color,box-shadow] duration-200 hover:shadow-2xl cursor-pointer"
             >
               <ChevronRight className="h-6 w-6 stroke-[2.5]" />
             </button>
@@ -641,7 +669,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
               const isCenter = diff === 0;
               const isNear = Math.abs(diff) <= 1;
 
-              const opacity = isCenter ? 1 : Math.max(0.48, 0.88 - Math.abs(diff) * 0.2);
+              const opacity = isCenter ? 1 : Math.max(0.35, 0.9 - Math.abs(diff) * 0.25);
               const zIndex = isCenter ? 30 : 20 - Math.abs(diff);
 
               const stepNumber = String(index + 1).padStart(2, "0");
@@ -679,7 +707,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                     aria-label={`Service ${slide.title}: ${slide.description}`}
                     onPointerUp={() => {
                       // A real drag just ended — don't steal it as a tap.
-                      if (Math.abs(dragDeltaRef.current) > 6) return;
+                      if (Math.abs(dragDeltaRef.current) > 10) return;
                       if (!isCenter) goToSlide(index);
                     }}
                     className={cn(
@@ -712,7 +740,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                           {slide.badgeType === "direct" ? (
                             <ShieldCheck className="h-3.5 w-3.5 text-[#1A3A6B]" aria-hidden="true" />
                           ) : (
-                            <VerifiedBadge variant="shimmer" size={15} />
+                            <VerifiedBadge variant="static" size={15} />
                           )}
                           <span>{slide.badge}</span>
                         </div>
@@ -726,7 +754,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                           loading={isNear ? "eager" : "lazy"}
                           decoding="async"
                           draggable={false}
-                          className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-108"
+                          className="h-full w-full object-cover object-center"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#12294D]/15 via-transparent to-transparent pointer-events-none" />
                       </div>
@@ -765,7 +793,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                           // — only real taps navigate. (Stopping propagation
                           // unconditionally used to eat swipes that started on
                           // the button: no slide change AND no navigation.)
-                          if (Math.abs(dragDeltaRef.current) > 6) return;
+                          if (Math.abs(dragDeltaRef.current) > 10) return;
                           e.stopPropagation();
                           handleRequestService(slide);
                         }}
@@ -773,13 +801,13 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                           e.stopPropagation();
                         }}
                         aria-label={`${t.common.requestService}: ${slide.title}`}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-[background-color,box-shadow,transform] duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-2"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A3A6B] px-4 py-3 text-xs sm:text-sm font-black text-white shadow-md transition-[background-color,box-shadow] duration-200 group-hover:bg-[#12294D] group-hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-[#1A3A6B] focus-visible:ring-offset-2"
                       >
                         <span>{t.common.requestService}</span>
                         {isRtl ? (
-                          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" aria-hidden="true" />
+                          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         ) : (
-                          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+                          <ArrowRight className="h-4 w-4" aria-hidden="true" />
                         )}
                       </a>
                     </div>

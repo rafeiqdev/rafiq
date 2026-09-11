@@ -432,15 +432,15 @@ describe('slow drags (finger speed)', () => {
     expect(activeTitle(container)).toBe('Alpha');
   });
 
-  it('a drag of exactly the 45px threshold still stays (strict >)', async () => {
+  it('a drag of exactly the 60px threshold still stays (strict >)', async () => {
     const { container } = renderCarousel();
-    await slowDrag(dragSurface(container), 500, 455);
+    await slowDrag(dragSurface(container), 500, 440);
     expect(activeTitle(container)).toBe('Alpha');
   });
 
-  it('46px is enough to move', async () => {
+  it('61px is enough to move', async () => {
     const { container } = renderCarousel();
-    await slowDrag(dragSurface(container), 500, 454);
+    await slowDrag(dragSurface(container), 500, 439);
     expect(activeTitle(container)).toBe('Bravo');
   });
 
@@ -455,14 +455,14 @@ describe('slow drags (finger speed)', () => {
     expect(activeTitle(container)).toBe('Alpha');
   });
 
-  it('a long hard fling skips two slides', async () => {
+  it('a long hard fling still moves only one slide (no double-skip)', async () => {
     nowStep = 4; // barely any mocked time passes -> high velocity
     const { container } = renderCarousel();
     await slowDrag(dragSurface(container), 600, 150, 8);
-    expect(activeTitle(container)).toBe('Charlie');
+    expect(activeTitle(container)).toBe('Bravo');
   });
 
-  it('works on narrow phone widths (150px spacing)', async () => {
+  it('works on narrow phone widths (200px spacing)', async () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: 390 });
     window.dispatchEvent(new Event('resize'));
     const { container } = renderCarousel();
