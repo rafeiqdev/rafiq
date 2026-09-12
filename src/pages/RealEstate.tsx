@@ -5,6 +5,7 @@ import { listings as listingsApi } from '../lib/api';
 import type { Listing, ListingType } from '../lib/types';
 import { AppIcon } from '../components/AppIcon';
 import { PageHero } from '../components/PageHero';
+import { PropertyResidenceCallout } from '../components/PropertyResidenceCallout';
 import { ListingCard } from '../components/realestate/ListingCard';
 import { FilterPanel } from '../components/realestate/FilterPanel';
 import {
@@ -93,6 +94,10 @@ export function RealEstate() {
         <AppIcon name="info" className="w-4 h-4 mt-0.5 shrink-0" />
         <span>{t('realEstate.citizenshipNotice')}</span>
       </div>
+
+      {/* Buying and residence are the same question for most visitors here —
+          this is the one contextual link from the hub to the topic page. */}
+      <PropertyResidenceCallout className="mt-3 animate-fade-up" />
 
       {/* sale / rent / commercial */}
       <div className="mt-4 inline-flex gap-1.5 rounded-card bg-white p-1.5 shadow-card sm:mt-5">

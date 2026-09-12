@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
+import { PropertyResidenceCallout, PROPERTY_RESIDENCE_GUIDE_ANCHORS } from '../components/PropertyResidenceCallout';
 import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
 import { CATEGORY_GUIDES } from '../data/categoryGuides';
@@ -218,6 +219,12 @@ export function CategoryGuide() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
+          {/* Contextual hand-off to the canonical property-residence page from
+              the two guides whose readers most often want it. */}
+          {id && PROPERTY_RESIDENCE_GUIDE_ANCHORS[id] && (
+            <PropertyResidenceCallout anchor={PROPERTY_RESIDENCE_GUIDE_ANCHORS[id]} />
+          )}
+
           {guide.sections.map((section, index) => (
             <section key={section.heading} id={sectionId(index)} className="card scroll-mt-24 p-5 sm:p-7">
               <div className="flex items-start gap-3">

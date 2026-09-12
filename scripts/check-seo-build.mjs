@@ -15,9 +15,12 @@ const categoryIds = [...servicesSource.matchAll(/\{ id: '([^']+)',\s+icon:/g)].m
 // generate-sitemap.mjs for where the "10" static routes below comes from.
 const serviceIds = [...servicesSource.matchAll(/\{ id: '([^']+)', category:/g)].map((match) => match[1]);
 // Keep in step with STATIC_ROUTES in generate-sitemap.mjs: home, services,
-// news, real-estate, health-tourism, faq, about, contact, tricks, referrals,
-// terms, privacy, refund.
-const STATIC_ROUTE_COUNT = 13;
+// news, real-estate, real-estate/residence-permit, health-tourism, faq,
+// about, contact, tricks, referrals, terms, privacy, refund.
+const STATIC_ROUTE_COUNT = 14;
+// The one canonical page for the property-residence topic — see
+// src/data/propertyResidence.ts.
+const PROPERTY_RESIDENCE_ROUTE = '/real-estate/residence-permit';
 // Same hand-maintained list as generate-sitemap.mjs's COMPARISON_IDS —
 // src/data/comparisons.ts is hand-written, not catalog-generated.
 const COMPARISON_IDS = ['residency-diy', 'citizenship-consultancy', 'health-tourism-direct', 'bank-account-alone'];
@@ -122,6 +125,19 @@ for (const url of urls) {
   }
   if (info.route === '/faq' && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length < 10)) {
     errors.push(`FAQ hub schema/content is incomplete: ${url}`);
+  }
+  if (info.route === PROPERTY_RESIDENCE_ROUTE && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
+    errors.push(`Property-residence FAQ schema/content is incomplete: ${url}`);
+  }
+  // Every page must carry a crawlable link to the canonical property-residence
+  // page (the footer topic link), and the page itself must link back out to
+  // the service page it hands off to — an orphaned topic page is the exact
+  // failure mode the indexing audit found across this site.
+  if (!html.includes(`href="/${info.lang}${PROPERTY_RESIDENCE_ROUTE}"`) && info.route !== PROPERTY_RESIDENCE_ROUTE) {
+    errors.push(`Property-residence link is missing from pre-rendered HTML: ${url}`);
+  }
+  if (info.route === PROPERTY_RESIDENCE_ROUTE && !html.includes(`href="/${info.lang}/services/res-property"`)) {
+    errors.push(`Property-residence page does not link back to its service page: ${url}`);
   }
 }
 

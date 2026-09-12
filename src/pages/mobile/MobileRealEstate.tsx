@@ -6,6 +6,7 @@ import { listings as listingsApi } from '../../lib/api';
 import type { Listing, ListingType } from '../../lib/types';
 import { AppIcon, BackArrow } from '../../components/AppIcon';
 import { MobileTabBar } from '../../components/MobileTabBar';
+import { PropertyResidenceCallout } from '../../components/PropertyResidenceCallout';
 import { InvestmentPhoto, useLocalized } from '../../components/realestate/InvestmentCard';
 import { InvestmentStripCard } from '../../components/realestate/InvestmentStripCard';
 import { ISTANBUL_AREAS } from '../../data/istanbulAreas';
@@ -468,6 +469,11 @@ export function MobileRealEstate() {
             <p>{t('realEstate.mx.infoBody', { eligible: eligibleCount, total: all.length })}</p>
           </div>
         </div>
+
+        {/* Same contextual link the desktop hub carries — buying and residence
+            are one question for most visitors landing here. Inset matches the
+            .infocard gutter above it. */}
+        <PropertyResidenceCallout className="mx-4 mt-1.5" />
 
         <div className={styles.fbar}>
           <button type="button" className={styles.fbtn} onClick={() => setSheetOpen(true)}>

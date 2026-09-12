@@ -4,6 +4,7 @@ import { AppIcon } from '../components/AppIcon';
 import { usePageMeta } from '../lib/seo';
 import { useInvestments } from '../hooks/useInvestments';
 import { InvestmentCard } from '../components/realestate/InvestmentCard';
+import { PropertyResidenceCallout } from '../components/PropertyResidenceCallout';
 
 /** Index of every investment opportunity, reached from the strip on /real-estate. */
 export function RealEstateInvestments() {
@@ -65,6 +66,10 @@ export function RealEstateInvestments() {
           <AppIcon name="info" className="w-4 h-4 mt-0.5 shrink-0" />
           <span>{t('invest.thresholdNotice')}</span>
         </div>
+
+        {/* The residence threshold is the first thing an investor here asks
+            about — link to the page that answers it rather than repeat it. */}
+        <PropertyResidenceCallout className="mt-3" anchor="conditions" />
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {loading

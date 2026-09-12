@@ -46,6 +46,7 @@ const MobileRealEstate = lazyPage(() => import('./pages/mobile/MobileRealEstate'
 const RealEstateDetail = lazyPage(() => import('./pages/RealEstateDetail').then((m) => ({ default: m.RealEstateDetail })));
 const MobileRealEstateDetail = lazyPage(() => import('./pages/mobile/MobileRealEstateDetail').then((m) => ({ default: m.MobileRealEstateDetail })));
 const MobileListingServices = lazyPage(() => import('./pages/mobile/MobileListingServices').then((m) => ({ default: m.MobileListingServices })));
+const PropertyResidence = lazyPage(() => import('./pages/PropertyResidence').then((m) => ({ default: m.PropertyResidence })));
 const RealEstateInvestments = lazyPage(() => import('./pages/RealEstateInvestments').then((m) => ({ default: m.RealEstateInvestments })));
 const InvestmentDetail = lazyPage(() => import('./pages/InvestmentDetail').then((m) => ({ default: m.InvestmentDetail })));
 const HealthTourism = lazyPage(() => import('./pages/HealthTourism').then((m) => ({ default: m.HealthTourism })));
@@ -123,6 +124,7 @@ registerRoutePreloads([
   { path: '/referrals', desktop: [Referrals], mobile: [MobileReferrals] },
   { path: '/wallet', desktop: [Wallet], mobile: [MobileWallet] },
   { path: '/real-estate', desktop: [RealEstate], mobile: [MobileRealEstate] },
+  { path: '/real-estate/residence-permit', desktop: [PropertyResidence] },
   { path: '/real-estate/investments', desktop: [RealEstateInvestments] },
   { path: '/real-estate/investments/:slug', desktop: [InvestmentDetail] },
   { path: '/real-estate/:id', desktop: [RealEstateDetail], mobile: [MobileRealEstateDetail] },
@@ -297,8 +299,9 @@ function Shell() {
             <Route path="/referrals" element={isMobile ? <MobileReferrals /> : <Referrals />} />
             <Route path="/wallet" element={isMobile ? <MobileWallet /> : <Wallet />} />
             <Route path="/real-estate" element={isMobile ? <MobileRealEstate /> : <RealEstate />} />
-            {/* `investments` is declared before `:id` so the literal path wins
-                over the dynamic listing route. */}
+            {/* `residence-permit` and `investments` are declared before `:id`
+                so the literal paths win over the dynamic listing route. */}
+            <Route path="/real-estate/residence-permit" element={<PropertyResidence />} />
             <Route path="/real-estate/investments" element={<RealEstateInvestments />} />
             <Route path="/real-estate/investments/:slug" element={<InvestmentDetail />} />
             <Route path="/real-estate/:id" element={isMobile ? <MobileRealEstateDetail /> : <RealEstateDetail />} />

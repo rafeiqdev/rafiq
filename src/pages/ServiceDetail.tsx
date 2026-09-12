@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
+import { PropertyResidenceCallout, PROPERTY_RESIDENCE_SERVICE_ANCHORS } from '../components/PropertyResidenceCallout';
 import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
 import type { ServiceType } from '../data/services';
@@ -369,6 +370,12 @@ export function ServiceDetail() {
                 {bodyExpanded ? copy.readLess : copy.readMore}
               </button>
             </section>
+          )}
+
+          {/* One contextual link to the canonical property-residence page, on
+              the services whose readers are actually weighing that route. */}
+          {PROPERTY_RESIDENCE_SERVICE_ANCHORS[service.id] && (
+            <PropertyResidenceCallout anchor={PROPERTY_RESIDENCE_SERVICE_ANCHORS[service.id]} />
           )}
 
           <section className="card p-5 sm:p-6">

@@ -20,6 +20,11 @@
  * Run via `npm run build` (prebuild step) or directly:
  *   node scripts/generate-llms-txt.mjs
  */
+// Loads .env so a local `npm run build` resolves VITE_BASE_URL the same way
+// Vercel does from a real environment variable — generate-sitemap.mjs and
+// generate-seo-pages.mjs already do this, and without it this step was the
+// one place in the build chain that could not run outside CI.
+import 'dotenv/config';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,6 +99,7 @@ const content = `# ${text('common.appName')}
 - [Home](${SITE_URL}/en): overview of every service Rafiq coordinates in Istanbul.
 - [All services](${SITE_URL}/en/services): the full service catalog, browsable by category.
 - [Real estate](${SITE_URL}/en/real-estate): property search, buying, and Turkish real-estate investment guidance.
+- [Property residence permit in Istanbul](${SITE_URL}/en/real-estate/residence-permit): who may apply, conditions, documents, duration and the process for a residence permit based on owning residential property in Türkiye.
 - [Health tourism](${SITE_URL}/en/health-tourism): medical travel coordination — treatment, hospitals, and logistics in Istanbul.
 - [Practical guides](${SITE_URL}/en/tricks): day-to-day tips for living in Istanbul as a foreigner.
 

@@ -117,6 +117,9 @@ function lastmodFor(path, lang) {
   if (path === '/contact') {
     return gitLastModified(['src/data/contactPage.ts', 'src/lib/contact.ts']);
   }
+  if (path === '/real-estate/residence-permit') {
+    return gitLastModified(['src/data/propertyResidence.ts']);
+  }
   const serviceMatch = path.match(/^\/services\/([^/]+)$/);
   if (serviceMatch) {
     return gitLastModified([`src/data/serviceSeo${capitalize(lang)}.ts`, 'src/data/services.ts']);
@@ -150,6 +153,10 @@ const STATIC_ROUTES = [
   { path: '/services', changefreq: 'weekly', priority: '0.9', isPriority: true },
   { path: '/news', changefreq: 'daily', priority: '0.7', isPriority: true },
   { path: '/real-estate', changefreq: 'weekly', priority: '0.8', isPriority: true },
+  // The one canonical page for the property-residence topic (see
+  // src/data/propertyResidence.ts). isPriority because it is a hub-level
+  // page written for a high-intent query, not another long-tail service.
+  { path: '/real-estate/residence-permit', changefreq: 'monthly', priority: '0.85', isPriority: true },
   { path: '/health-tourism', changefreq: 'monthly', priority: '0.7', isPriority: true },
   { path: '/faq', changefreq: 'monthly', priority: '0.8', isPriority: true },
   // Identity pages. isPriority because "who runs this site and how do I reach

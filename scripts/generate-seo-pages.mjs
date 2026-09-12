@@ -55,7 +55,11 @@ function gitLastModified(paths) {
 
 const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
 
+/** Must stay in step with PROPERTY_RESIDENCE_PATH in src/data/propertyResidence.ts. */
+const PROPERTY_RESIDENCE_ROUTE = '/real-estate/residence-permit';
+
 function dateModifiedFor(lang, route) {
+  if (route === PROPERTY_RESIDENCE_ROUTE) return gitLastModified(['src/data/propertyResidence.ts']);
   if (route.startsWith('/guides/')) return gitLastModified(['src/data/categoryGuides.ts']);
   if (route.startsWith('/compare/')) return gitLastModified(['src/data/comparisons.ts']);
   if (route === '/faq') return gitLastModified(['src/data/faqHub.ts']);
@@ -249,6 +253,9 @@ function readFlatLangRecord(relativePath) {
 
 const aboutPage = readFlatLangRecord('src/data/aboutPage.ts');
 const contactPage = readFlatLangRecord('src/data/contactPage.ts');
+// The one canonical page for the property-residence topic. Same flat
+// Record<Lang, Content> shape, so the same reader handles it.
+const propertyResidence = readFlatLangRecord('src/data/propertyResidence.ts');
 
 /**
  * Contact details for the pre-rendered shell and the Organization JSON-LD.
@@ -482,6 +489,14 @@ const staticMeta = {
     description: contactPage[lang].metaDescription,
     content: contactPage[lang].intro,
   }),
+  [PROPERTY_RESIDENCE_ROUTE]: (lang) => ({
+    title: propertyResidence[lang].seoTitle,
+    description: propertyResidence[lang].metaDescription,
+    content: propertyResidence[lang].intro,
+    // The short label, for the breadcrumb leaf — the seoTitle is a full
+    // sentence and reads badly in a SERP breadcrumb.
+    navLabel: propertyResidence[lang].navLabel,
+  }),
 };
 
 function escapeHtml(value) {
@@ -682,6 +697,11 @@ function breadcrumbJsonLd(lang, route, meta) {
     // practical-guides listing page, so the middle crumb points there.
     items.push({ '@type': 'ListItem', position: 2, name: GUIDES_LABEL[lang], item: pageUrl(lang, '/tricks') });
     items.push({ '@type': 'ListItem', position: 3, name: crumbLabel, item: here });
+  } else if (route === PROPERTY_RESIDENCE_ROUTE) {
+    // Sits under the real-estate hub, and matches the breadcrumb the live
+    // page renders. The leaf uses the short navLabel, not the full seoTitle.
+    items.push({ '@type': 'ListItem', position: 2, name: text(lang, 'nav.realEstate'), item: pageUrl(lang, '/real-estate') });
+    items.push({ '@type': 'ListItem', position: 3, name: meta.navLabel ?? crumbLabel, item: here });
   } else {
     items.push({ '@type': 'ListItem', position: 2, name: crumbLabel, item: here });
   }
@@ -707,9 +727,10 @@ function renderDetailsListHtml(items) {
         </details>`).join('');
 }
 
-function renderFaqHtml(items, lang) {
+function renderFaqHtml(items, lang, headingOverride) {
   if (!items.length) return '';
-  const heading = { ar: 'أسئلة شائعة', en: 'Common questions', ru: 'Частые вопросы', fa: 'پرسش‌های رایج' }[lang];
+  const heading = headingOverride
+    ?? { ar: 'أسئلة شائعة', en: 'Common questions', ru: 'Частые вопросы', fa: 'پرسش‌های رایج' }[lang];
   return `
       <section aria-labelledby="seo-faq-heading">
         <h2 id="seo-faq-heading">${escapeHtml(heading)}</h2>
@@ -838,6 +859,76 @@ function renderPriorityLinks(lang) {
       </section>`;
 }
 
+/**
+ * Contextual, in-content links to the one canonical property-residence page.
+ *
+ * These matter more than the footer link: a footer list on every page carries
+ * almost no topical signal, while a sentence inside the body of a closely
+ * related page does. Anchor text varies by source page on purpose — every
+ * one of them is a real phrase a reader searches, none of them is "click
+ * here". Runtime twin: src/components/PropertyResidenceCallout.tsx, which
+ * renders the same sentence and the same anchor after hydration.
+ */
+const PROPERTY_RESIDENCE_CALLOUT = {
+  ar: {
+    lead: 'المسار القائم على تملّك العقار له صفحة كاملة على رفيق:',
+    tail: '— من يحق له التقديم، الأوراق المطلوبة، مدة الإقامة وخطوات التقديم.',
+    anchors: {
+      main: 'الإقامة العقارية في إسطنبول',
+      conditions: 'شروط الإقامة العقارية',
+      ownership: 'الإقامة عن طريق تملك عقار',
+    },
+  },
+  en: {
+    lead: 'The property-ownership route has a page of its own on Rafiq:',
+    tail: '— who may apply, the documents required, how long the permit lasts and what the process looks like.',
+    anchors: {
+      main: 'the property residence permit in Istanbul',
+      conditions: 'conditions for a property residence permit',
+      ownership: 'residence through property ownership',
+    },
+  },
+  ru: {
+    lead: 'Маршруту через владение недвижимостью посвящена отдельная страница Rafiq:',
+    tail: '— кто может подать, какие документы нужны, на какой срок выдаётся разрешение и как идёт процесс.',
+    anchors: {
+      main: 'ВНЖ по недвижимости в Стамбуле',
+      conditions: 'условия ВНЖ по недвижимости',
+      ownership: 'ВНЖ через владение недвижимостью',
+    },
+  },
+  fa: {
+    lead: 'مسیر مبتنی بر مالکیت ملک صفحه‌ای جداگانه در رفیق دارد:',
+    tail: '— چه کسی می‌تواند درخواست دهد، چه مدارکی لازم است، مدت اقامت چقدر است و روند کار چگونه پیش می‌رود.',
+    anchors: {
+      main: 'اقامت ملکی در استانبول',
+      conditions: 'شرایط اقامت ملکی',
+      ownership: 'اقامت از راه مالکیت ملک',
+    },
+  },
+};
+
+/** Which anchor variant each linking page uses. Keep in step with the runtime map. */
+const PROPERTY_RESIDENCE_LINK_ROUTES = {
+  '/real-estate': 'main',
+  '/services/res-property': 'main',
+  '/services/res-renew': 'main',
+  '/services/res-eligibility': 'conditions',
+  '/services/res-citizenship': 'ownership',
+  '/guides/realestate': 'main',
+  '/guides/residency': 'conditions',
+  '/compare/residency-diy': 'ownership',
+};
+
+function renderPropertyResidenceCallout(lang, route) {
+  const variant = PROPERTY_RESIDENCE_LINK_ROUTES[route];
+  if (!variant) return '';
+  const copy = PROPERTY_RESIDENCE_CALLOUT[lang];
+  const href = `/${lang}${PROPERTY_RESIDENCE_ROUTE}`;
+  return `
+        <p>${escapeHtml(copy.lead)} <a href="${escapeHtml(href)}">${escapeHtml(copy.anchors[variant])}</a> ${escapeHtml(copy.tail)}</p>`;
+}
+
 // Mirrors SiteFooter's useGuideLinks, but baked into the static shell instead
 // of depending on client-side hydration: a crawler that doesn't run (or
 // budgets) JS otherwise only ever sees the single /guides/residency link from
@@ -853,7 +944,12 @@ function footerGuideLinkItems(lang) {
   const comparisonLinks = Object.keys(comparisons)
     .map((id) => [`/compare/${id}`, comparisons[id]?.[lang]?.navLabel])
     .filter(([, label]) => label);
-  return [...guideLinks, ...comparisonLinks];
+  // The property-residence page rides in the same list (as it does in the
+  // live footer), so every page on the site carries a crawlable link to it.
+  const topicLinks = propertyResidence[lang]
+    ? [[PROPERTY_RESIDENCE_ROUTE, propertyResidence[lang].navLabel]]
+    : [];
+  return [...guideLinks, ...comparisonLinks, ...topicLinks];
 }
 
 function renderFooterGuideLinks(lang) {
@@ -1155,7 +1251,9 @@ function buildHtml(template, lang, route, meta) {
           ? faqHub[lang].categories.flatMap((category) => category.items)
           : route === '/health-tourism'
             ? (text(lang, 'medical.landing.desktop.faq.items') ?? []).map((item) => ({ question: item.q, answer: item.a }))
-            : [];
+            : route === PROPERTY_RESIDENCE_ROUTE
+              ? propertyResidence[lang].faqs
+              : [];
   const faqJsonLd = faqItems.length ? escapeJsonForHtml(faqPageJsonLd(faqItems)) : '';
   const breadcrumbData = breadcrumbJsonLd(lang, route, meta);
   const breadcrumbSchemaJsonLd = breadcrumbData ? escapeJsonForHtml(breadcrumbData) : '';
@@ -1250,6 +1348,54 @@ function buildHtml(template, lang, route, meta) {
       <article aria-labelledby="seo-title">
         <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
         <p>${escapeHtml(faqHub[lang].intro)}</p>${categoriesHtml}
+      </article>
+      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
+      ${priorityLinksHtml}
+    </main>`;
+  } else if (route === PROPERTY_RESIDENCE_ROUTE) {
+    const c = propertyResidence[lang];
+    const sectionHtml = c.sections.map((section) => `
+        <section>
+          <h2>${escapeHtml(section.heading)}</h2>
+          <p>${escapeHtml(section.body)}</p>
+        </section>`).join('');
+    const documentsHtml = `
+        <section>
+          <h2>${escapeHtml(c.documentsHeading)}</h2>
+          <p>${escapeHtml(c.documentsIntro)}</p>
+          <ul>${c.documents.map((item) =>
+            `<li><strong>${escapeHtml(item.label)}</strong> — ${escapeHtml(item.note)}</li>`,
+          ).join('')}</ul>
+        </section>`;
+    const stepsHtml = `
+        <section>
+          <h2>${escapeHtml(c.stepsHeading)}</h2>
+          <p>${escapeHtml(c.stepsIntro)}</p>
+          <ol>${c.steps.map((item) =>
+            `<li><strong>${escapeHtml(item.title)}</strong> — ${escapeHtml(item.body)}</li>`,
+          ).join('')}</ol>
+        </section>`;
+    // The outbound half of the topic cluster, in static HTML so a crawler
+    // that never runs the app still sees every link out of this page.
+    const relatedHtml = `
+        <section>
+          <h2>${escapeHtml(c.relatedHeading)}</h2>
+          <p>${escapeHtml(c.relatedIntro)}</p>
+          <ul>${c.related.map((item) =>
+            `<li><a href="${escapeHtml(`/${lang}${item.to}`)}">${escapeHtml(item.label)}</a> — ${escapeHtml(item.note)}</li>`,
+          ).join('')}</ul>
+        </section>`;
+    staticMain = `
+    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
+      <article aria-labelledby="seo-title">
+        <h1 id="seo-title">${escapeHtml(c.h1)}</h1>
+        <p>${escapeHtml(c.intro)}</p>
+        <ul>${c.highlights.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>${sectionHtml}${documentsHtml}${stepsHtml}${renderFaqHtml(c.faqs, lang, c.faqHeading)}${relatedHtml}
+        <section>
+          <h2>${escapeHtml(c.ctaTitle)}</h2>
+          <p>${escapeHtml(c.ctaBody)}</p>
+          <p>${escapeHtml(c.disclaimer)}</p>
+        </section>
       </article>
       <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
       ${priorityLinksHtml}
@@ -1354,7 +1500,7 @@ function buildHtml(template, lang, route, meta) {
   const updatedLabel = { ar: 'آخر تحديث', en: 'Last updated', ru: 'Обновлено', fa: 'آخرین به‌روزرسانی' }[lang];
   staticMain = staticMain.replace(
     '</article>',
-    `${renderOfficialSourcesHtml(lang, sourceCategory)}
+    `${renderPropertyResidenceCallout(lang, route)}${renderOfficialSourcesHtml(lang, sourceCategory)}
         <p><time datetime="${dateModified}">${escapeHtml(updatedLabel)}: ${dateModified}</time></p>
       </article>`,
   );
@@ -1455,6 +1601,13 @@ function llmsFullDocument() {
       lines.push(`### ${guide.title}`, `URL: ${pageUrl(lang, `/guides/${id}`)}`, '', guide.intro, '');
       for (const section of guideSections[id]?.[lang] ?? []) lines.push(`#### ${section.heading}`, '', section.body, '');
       for (const faq of guideFaqs[id]?.[lang] ?? []) lines.push(`**${faq.question}**`, '', faq.answer, '');
+    }
+    const topic = propertyResidence[lang];
+    if (topic) {
+      lines.push(`### ${topic.h1}`, `URL: ${pageUrl(lang, PROPERTY_RESIDENCE_ROUTE)}`, '', topic.intro, '');
+      for (const section of topic.sections) lines.push(`#### ${section.heading}`, '', section.body, '');
+      lines.push(`#### ${topic.documentsHeading}`, '', ...topic.documents.map((d) => `- ${d.label}: ${d.note}`), '');
+      for (const faq of topic.faqs) lines.push(`**${faq.question}**`, '', faq.answer, '');
     }
     lines.push(`## ${lang === 'ar' ? 'الخدمات' : 'Services'}`, '');
     for (const [id, record] of Object.entries(serviceSeo[lang])) {

@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
+import { PropertyResidenceCallout } from '../components/PropertyResidenceCallout';
 import { COMPARISONS } from '../data/comparisons';
 import { usePageMeta } from '../lib/seo';
 
@@ -122,6 +123,10 @@ export function Comparison() {
               </table>
             </div>
           </section>
+
+          {/* The property route is the one a reader of the residency
+              comparison most often asks about next. */}
+          {id === 'residency-diy' && <PropertyResidenceCallout anchor="ownership" />}
 
           {comparison.sections.map((section) => (
             <section key={section.heading} className="card p-5 sm:p-6">

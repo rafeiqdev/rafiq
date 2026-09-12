@@ -9,6 +9,7 @@ import type { Lang } from '../lib/types';
 import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
 import { COMPARISONS } from '../data/comparisons';
+import { PROPERTY_RESIDENCE, PROPERTY_RESIDENCE_PATH } from '../data/propertyResidence';
 import {
   CONTACT_EMAIL,
   HAS_EMAIL,
@@ -254,7 +255,16 @@ function useGuideLinks() {
     to: `/compare/${id}`,
     label: byLang[language]?.navLabel ?? byLang.ar.navLabel,
   }));
-  return [...guideLinks, ...comparisonLinks];
+  // The property-residence topic page rides along here for the same reason
+  // the guides do: it is otherwise reachable only from the handful of pages
+  // that carry its contextual callout, and a topic page with no site-wide
+  // referrer is exactly what the indexing audit found stuck at "discovered,
+  // not indexed". Build-time twin: footerGuideLinkItems() in
+  // scripts/generate-seo-pages.mjs.
+  const topicLinks = [
+    { to: PROPERTY_RESIDENCE_PATH, label: (PROPERTY_RESIDENCE[language] ?? PROPERTY_RESIDENCE.ar).navLabel },
+  ];
+  return [...guideLinks, ...comparisonLinks, ...topicLinks];
 }
 
 export function SiteFooter({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
