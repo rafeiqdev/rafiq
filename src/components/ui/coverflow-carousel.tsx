@@ -24,6 +24,8 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 export interface ServiceSlide {
   id: string;
   src: string;
+  /** Optional responsive candidates (`srcset`); defaults get 480/800/1200w. */
+  srcSet?: string;
   alt: string;
   title: string;
   description: string;
@@ -63,6 +65,20 @@ const SERVICE_IMAGES: Record<string, string> = {
   health: "/images/services/official/health.webp",
 };
 
+// Responsive variants (lightened 2026-09-13): the photo box is at most ~312
+// CSS px wide, yet phones were downloading AND decoding six 1200px bitmaps for
+// a 250px slot (~680 KB, ~23 MB of decoded pixels). `<name>-480.webp` and
+// `<name>-800.webp` were generated with sharp (3:2 crop, q76); the browser now
+// picks 480 on 1x screens, 800 on 2-3x phones, and 1200 only beyond that.
+function serviceSrcSet(id: string): string | undefined {
+  const base = SERVICE_IMAGES[id];
+  if (!base) return undefined;
+  const stem = base.replace(/\.webp$/, "");
+  return `${stem}-480.webp 480w, ${stem}-800.webp 800w, ${base} 1200w`;
+}
+const SERVICE_SIZES =
+  "(max-width: 639px) 250px, (max-width: 767px) 282px, (max-width: 1023px) 312px, 280px";
+
 // Card id -> catalog category id (src/data/services.ts) for the services page filter.
 const SERVICE_CATEGORY: Record<string, string> = {
   residence: 'residency',
@@ -87,8 +103,7 @@ const SERVICE_ICONS: Record<string, React.ReactNode> = {
 // animations, no animated blurs — those kept low-end phones janky.
 // Calm glide (retune 2026-09-11): 0.45s expo-out — short enough that the
 // section feels settled instead of constantly floating, long enough to stay silky.
-const SLOT_TRANSITION =
-  "transform 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.45s ease";
+const SLOT_DURATION = 0.45;
 
 /** Everything paintCards needs — captured once at pointerdown so drag frames
  *  never read stale closures and never trigger React renders. */
@@ -98,6 +113,10 @@ interface GestureSnap {
   isRtl: boolean;
   total: number;
   loop: boolean;
+  /** Side-card rotateY in degrees; 0 on phones = flat 2D slots (no 3D raster). */
+  tilt: number;
+  /** Phones: slots at |diff| >= 2 sit past the viewport edge, so hide them. */
+  hideFar: boolean;
   startX: number;
   pointerId: number;
 }
@@ -116,15 +135,23 @@ type PaintMode = "animated" | "instant" | "drag" | "snap";
 /**
  * Writes slot transforms STRAIGHT to the DOM (no setState, no re-render).
  * Called from rAF during drags and from an effect on index change.
- * - `animated`: clears the inline transition so the CSS value from render
- *   takes over (the long silky glide between slots).
- * - `snap`: short distance-proportional transition for release-without-jump,
- *   so a tiny offset snaps back quickly instead of floating for 0.7s.
+ * paintCards OWNS the slot's inline `transition` and `visibility` — React
+ * never writes them (fix 2026-09-13: the old "animated" mode blanked the
+ * inline transition expecting React's style value to take over, but React
+ * only re-writes a style key when it changes, so every index change jumped
+ * with no glide at all — the carousel had silently lost its motion).
+ * - `animated`: the 0.45s glide between slots.
+ * - `snap`: short distance-proportional glide for release-without-jump,
+ *   so a tiny offset snaps back quickly instead of floating.
  * - `instant`/`drag`: transition pinned to none (mount, finger-follow).
+ * Far slots (phones, |diff| >= 2) are `visibility: hidden` — no layer, no
+ * raster — except mid-drag, when a finger can pull them into view. The
+ * visibility flip is delayed to the end of the glide so a leaving card still
+ * slides out; a returning card shows at once and glides in from off-screen.
  */
 function paintCards(
   els: Array<HTMLDivElement | null>,
-  snap: Pick<GestureSnap, "index" | "spacing" | "isRtl" | "total" | "loop">,
+  snap: Pick<GestureSnap, "index" | "spacing" | "isRtl" | "total" | "loop" | "tilt" | "hideFar">,
   mode: PaintMode,
   drag = 0,
   snapDuration = 0.3,
@@ -138,18 +165,23 @@ function paintCards(
     const baseX = snap.isRtl ? -diff * snap.spacing : diff * snap.spacing;
     const x = baseX + (mode === "drag" ? drag * 0.9 : 0);
     // Gentle depth: side cards step back without leaning hard. rotateZ is
-    // gone entirely (it made text look broken/crooked) and rotateY is halved
-    // (12deg) so side cards stay readable instead of edge-on.
+    // gone entirely (it made text look broken/crooked) and rotateY is 12deg
+    // on desktop so side cards stay readable instead of edge-on. On phones
+    // tilt is 0 and the rotateY is omitted altogether: a flat translate+scale
+    // keeps each card a cheap 2D layer with crisp text (2026-09-13).
     const s = center ? 1 : Math.max(0.7, 1 - ad * 0.15);
-    const rY = center ? 0 : snap.isRtl ? (diff > 0 ? 12 : -12) : diff > 0 ? -12 : 12;
-    const rZ = 0;
+    const t = snap.tilt;
+    const rY = center || !t ? 0 : snap.isRtl ? (diff > 0 ? t : -t) : diff > 0 ? -t : t;
+    const hidden = snap.hideFar && ad >= 2 && mode !== "drag";
+    const dur = mode === "animated" ? SLOT_DURATION : mode === "snap" ? snapDuration : 0;
     el.style.transition =
-      mode === "animated"
-        ? ""
-        : mode === "snap"
-          ? `transform ${snapDuration}s cubic-bezier(0.16,1,0.3,1), opacity ${snapDuration}s ease`
-          : "none";
-    el.style.transform = `translateX(${x}px) scale(${s}) rotateY(${rY}deg) rotateZ(${rZ}deg)`;
+      dur > 0
+        ? `transform ${dur}s cubic-bezier(0.16,1,0.3,1), opacity ${dur}s ease, visibility 0s linear ${hidden ? dur : 0}s`
+        : "none";
+    el.style.visibility = hidden ? "hidden" : "visible";
+    el.style.transform = rY
+      ? `translateX(${x}px) scale(${s}) rotateY(${rY}deg)`
+      : `translateX(${x}px) scale(${s})`;
   }
 }
 
@@ -163,6 +195,14 @@ function paintCards(
  * Now: 0.45s glides, 6s autoplay, 12deg tilt with no crooked rotateZ, one
  * card max per gesture, static verified badge, no hover zooms — same design
  * and same coverflow idea, just settled.
+ *
+ * LIGHT on phones (2026-09-13): the motion itself was already CSS-only, but
+ * the section still felt heavy on mobile because of what surrounded it:
+ * 1200px photos decoded for 250px slots, six cards rasterised (three of them
+ * fully off-screen), a 12deg 3D tilt per card, an animated box-shadow racing
+ * the glide, a backdrop-blur pill and a live blur() over the whole background.
+ * Now: responsive srcset, off-screen cards hidden, flat 2D slots on phones,
+ * static shadows, no backdrop/background filters. Same design, less to draw.
  */
 export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   slides: customSlides,
@@ -190,6 +230,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
     return t.servicesCarousel.services.map((item) => ({
       ...item,
       src: SERVICE_IMAGES[item.id] || "/images/services/official/residence.webp",
+      srcSet: serviceSrcSet(item.id),
       href: `/${language}/services?category=${SERVICE_CATEGORY[item.id] ?? item.id}`,
       icon: SERVICE_ICONS[item.id],
     }));
@@ -218,9 +259,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   const mountedRef = useRef<boolean>(false);
 
   const totalSlides = activeSlides.length;
+  const isPhone = viewportW < 640;
   // Wider gaps so side cards overlap less and their text stays readable.
   // Mobile cards are 290px wide -> 200px spacing; desktop 320px -> 270px.
-  const spacing = viewportW < 640 ? 200 : 270;
+  const spacing = isPhone ? 200 : 270;
+  // Flat slots on phones (see paintCards); the coverflow tilt stays on desktop.
+  const tilt = isPhone ? 0 : 12;
 
   // Check prefers-reduced-motion
   useEffect(() => {
@@ -303,14 +347,22 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
   // instant (no fly-in on page load); everything after glides via CSS.
   // With prefers-reduced-motion there is never a glide — always instant.
   useEffect(() => {
-    const snap = { index: currentIndex, spacing, isRtl, total: totalSlides, loop };
+    const snap = {
+      index: currentIndex,
+      spacing,
+      isRtl,
+      total: totalSlides,
+      loop,
+      tilt,
+      hideFar: isPhone,
+    };
     paintCards(
       cardRefs.current,
       snap,
       !mountedRef.current || reducedMotion ? "instant" : "animated"
     );
     mountedRef.current = true;
-  }, [currentIndex, spacing, isRtl, totalSlides, loop, activeSlides.length, reducedMotion]);
+  }, [currentIndex, spacing, tilt, isPhone, isRtl, totalSlides, loop, activeSlides.length, reducedMotion]);
 
   // Smart Auto-Scroll: pauses on hover/focus/drag, for a cooldown after any
   // manual interaction, and while the tab is hidden.
@@ -478,6 +530,8 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
       isRtl,
       total: totalSlides,
       loop,
+      tilt,
+      hideFar: isPhone,
       startX: e.clientX,
       pointerId: e.pointerId,
     };
@@ -594,7 +648,7 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
             {heading || t.servicesCarousel.heading}
           </h2>
 
-          <div className="mt-3.5 sm:mt-6 inline-flex items-center gap-2 px-4 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-[#12294D]/80 border border-[#60A5FA]/40 shadow-xl backdrop-blur-md">
+          <div className="mt-3.5 sm:mt-6 inline-flex items-center gap-2 px-4 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-[#12294D]/85 border border-[#60A5FA]/40 shadow-xl">
             <span className="text-xs sm:text-base md:text-lg lg:text-base font-bold text-[#E8F0FB] tracking-wide">
               {description || t.servicesCarousel.description}
             </span>
@@ -683,10 +737,12 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                   aria-hidden={!isCenter}
                   className="absolute flex items-center justify-center"
                   style={{
+                    // transform / transition / visibility are written by
+                    // paintCards directly — never listed here, or React and
+                    // the DOM writes would fight over them.
                     zIndex,
                     opacity,
                     pointerEvents: isNear ? "auto" : "none",
-                    transition: reducedMotion ? "none" : SLOT_TRANSITION,
                   }}
                 >
                   {/* Official Rafiq Service Card.
@@ -711,15 +767,18 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                       if (!isCenter) goToSlide(index);
                     }}
                     className={cn(
-                      "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl",
+                      // One static shadow for every card: the old centre-only
+                      // shadow-2xl was TRANSITIONED, so two cards repainted
+                      // their shadow every frame during the glide. Now only
+                      // the border/ring flips (a single repaint), and the
+                      // slot transform stays owned by paintCards (inline style).
+                      "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-3xl border bg-white shadow-xl shadow-[#12294D]/20",
                       isRtl ? "text-right" : "text-left",
                       "w-[290px] sm:w-[330px] md:w-[360px] lg:w-[320px] p-5 sm:p-6 lg:p-5",
                       isCenter
-                        ? "border-[#1A3A6B]/50 shadow-2xl shadow-[#12294D]/25 ring-2 ring-[#1A3A6B]/30"
-                        : "border-[#EFEADB] shadow-md hover:border-[#1A3A6B]/30",
-                      // Shadow/border fade only — the slot transform is owned by
-                      // paintCards (inline style), never by CSS classes.
-                      "transition-[box-shadow,border-color] duration-300 ease-out"
+                        ? "border-[#1A3A6B]/50 ring-2 ring-[#1A3A6B]/30"
+                        : "border-[#EFEADB] hover:border-[#1A3A6B]/30",
+                      "transition-[border-color] duration-300 ease-out"
                     )}
                   >
                     <div>
@@ -750,6 +809,8 @@ export const CoverflowCarousel: React.FC<CoverflowCarouselProps> = ({
                       <div className="relative mb-4 h-44 sm:h-52 w-full overflow-hidden rounded-2xl bg-[#1A3A6B]/5 border border-[#EFEADB]">
                         <img
                           src={slide.src}
+                          srcSet={slide.srcSet}
+                          sizes={slide.srcSet ? SERVICE_SIZES : undefined}
                           alt={slide.alt}
                           loading={isNear ? "eager" : "lazy"}
                           decoding="async"

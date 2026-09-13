@@ -25,17 +25,20 @@ export function GradientBackground({
         overflow: "hidden",
         width: "100%",
         height: "100%",
-        containerType: "size",
       }}
     >
+      {/* Lightened 2026-09-13: the banded rings used to be softened with a
+          live `filter: blur()` over the whole section, which every phone GPU
+          had to rasterise (and re-rasterise on resize / DPR change). The same
+          look is now baked into the gradient itself — each hard band edge
+          gets a ~1.4% feather — so this is one plain paint, no filter. */}
       <div
         style={{
           position: "absolute",
-          inset: "-3.2cqmin",
-          filter: "blur(1.6cqmin)",
+          inset: 0,
           backgroundColor: "#FAF8F0",
           backgroundImage:
-            "radial-gradient(circle at 50% 50%, #FAF8F0 0%, #FAF8F0 16.67%, #EFEADB 16.67%, #EFEADB 33.33%, #E8F0FB 33.33%, #E8F0FB 50%, #1A3A6B 50%, #1A3A6B 66.67%, #12294D 66.67%, #12294D 83.33%, #0B1F3A 83.33%, #0B1F3A 100%)",
+            "radial-gradient(circle at 50% 50%, #FAF8F0 0%, #FAF8F0 15.97%, #EFEADB 17.37%, #EFEADB 32.63%, #E8F0FB 34.03%, #E8F0FB 49.3%, #1A3A6B 50.7%, #1A3A6B 65.97%, #12294D 67.37%, #12294D 82.63%, #0B1F3A 84.03%, #0B1F3A 100%)",
         }}
       />
     </div>
