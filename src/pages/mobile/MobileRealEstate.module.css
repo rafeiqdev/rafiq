@@ -30,18 +30,24 @@
 .infocard b{font-size:16.5px;line-height:1.6;display:block}
 .infocard p{font-size:13px;color:#444;margin-top:6px;line-height:1.8}
 /* ===== chips ===== */
-.chips{display:flex;gap:8px;padding:14px 16px 2px;overflow-x:auto;scrollbar-width:none}
+.chips{display:flex;gap:8px;padding:14px 0 2px;overflow-x:auto;scrollbar-width:none;scroll-padding-inline:16px}
 .chips::-webkit-scrollbar{display:none}
+.chips>*:first-child{margin-inline-start:16px}
+.chips>*:last-child{margin-inline-end:16px}
 .chip{flex:0 0 auto;font:inherit;font-size:13.5px;font-weight:600;border:1.5px solid #1a3a6b;color:#1a3a6b;background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer}
 .chip.on{background:#1a3a6b;color:#fff}
 /* ===== sections ===== */
 .sec{padding:18px 0 0}
 .sec h2{font-size:20px;font-weight:700;padding:0 16px;margin-bottom:12px;margin-top:0}
 .sec .cnt{font-size:12.5px;color:#777;font-weight:400}
-/* horizontal cards */
-.hscroll{display:flex;gap:14px;overflow-x:auto;padding:2px 16px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}
+/* horizontal cards — gutters are margins on the edge cards (not container
+   padding) so RTL overflow never clips the first/last card ~5% off the edge.
+   scroll-padding keeps snap alignment inset by the same 16px page gutter. */
+.hscroll{display:flex;gap:12px;overflow-x:auto;padding:2px 0 12px;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-padding-inline:16px}
 .hscroll::-webkit-scrollbar{display:none}
-.hcard{flex:0 0 78%;scroll-snap-align:start;border:1px solid #ddd;border-radius:20px;overflow:hidden;background:#fff;cursor:pointer;text-align:start;font:inherit;color:inherit;padding:0}
+.hscroll>*:first-child{margin-inline-start:16px}
+.hscroll>*:last-child{margin-inline-end:16px}
+.hcard{flex:0 0 76%;max-width:340px;box-sizing:border-box;scroll-snap-align:start;border:1px solid #ddd;border-radius:20px;overflow:hidden;background:#fff;cursor:pointer;text-align:start;font:inherit;color:inherit;padding:0}
 .hcard img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#eee}
 .hcard .cb{padding:14px 16px 16px;position:relative}
 .hcard h3{font-size:26px;font-weight:700;margin:0}
@@ -87,8 +93,10 @@
 .dpill.yes{background:#0d7a3f;color:#fff}
 .dpill svg{width:13px;height:13px}
 .dphotos{font-size:13px;color:#555}
-.achips{display:flex;gap:8px;margin-top:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.achips{display:flex;gap:8px;margin-top:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;scroll-padding-inline:18px}
 .achips::-webkit-scrollbar{display:none}
+.achips>*:first-child{margin-inline-start:18px}
+.achips>*:last-child{margin-inline-end:18px}
 .achip{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;background:#f4f6fa;border-radius:12px;padding:9px 13px;font-size:13.5px;font-weight:600;white-space:nowrap}
 .achip svg{width:17px;height:17px;color:#1a3a6b}
 .ddet{margin-top:6px;border-top:1px solid #eee}
@@ -222,9 +230,11 @@
 .invcard .inv-tx span{font-size:12px;color:#cdd6ea;line-height:1.6}
 .invcard .inv-go{flex:0 0 auto;font-size:12.5px;font-weight:700;color:#1a2340;background:#e7c877;border-radius:999px;padding:8px 13px;white-space:nowrap}
 /* ===== premium investment cards (horizontal) ===== */
-.ivrow{display:flex;gap:14px;overflow-x:auto;padding:2px 16px 10px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.ivrow{display:flex;gap:12px;overflow-x:auto;padding:2px 0 10px;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-padding-inline:16px}
 .ivrow::-webkit-scrollbar{display:none}
-.ivcard{flex:0 0 84%;display:flex;flex-direction:column;scroll-snap-align:start;border-radius:22px;color:#fff;position:relative;overflow:hidden;background:radial-gradient(130% 120% at 100% 0,#27508f 0,#173a6a 45%,#0f2647 100%);box-shadow:0 12px 30px rgba(15,36,64,.28);border:1px solid rgba(201,162,75,.35)}
+.ivrow>*:first-child{margin-inline-start:16px}
+.ivrow>*:last-child{margin-inline-end:16px}
+.ivcard{flex:0 0 76%;max-width:340px;box-sizing:border-box;display:flex;flex-direction:column;scroll-snap-align:start;border-radius:22px;color:#fff;position:relative;overflow:hidden;background:radial-gradient(130% 120% at 100% 0,#27508f 0,#173a6a 45%,#0f2647 100%);box-shadow:0 12px 30px rgba(15,36,64,.28);border:1px solid rgba(201,162,75,.35)}
 .iv-img{position:relative;flex:1 1 150px;min-height:150px;background:#173a6a}
 .iv-img img{width:100%;height:100%;object-fit:cover;display:block}
 .iv-body{flex:0 0 auto;padding:11px 16px 9px}
