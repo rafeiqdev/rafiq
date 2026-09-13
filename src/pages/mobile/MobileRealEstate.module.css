@@ -40,6 +40,18 @@
 .sec{padding:18px 0 0}
 .sec h2{font-size:20px;font-weight:700;padding:0 16px;margin-bottom:12px;margin-top:0}
 .sec .cnt{font-size:12.5px;color:#777;font-weight:400}
+/* 21st.dev carousel pattern (shadcn Carousel + Offer Carousel): title row with
+   prev/next arrows + dots, so the rail never looks cut and position is clear. */
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px;margin-bottom:12px}
+.sec-head h2{padding:0;margin:0}
+.hnav{display:flex;gap:8px;flex:0 0 auto}
+.harrow{width:34px;height:34px;border-radius:50%;border:1.5px solid #1a3a6b;background:#fff;color:#1a3a6b;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s ease,background .2s ease}
+.harrow:active{transform:scale(.92)}
+.harrow:disabled{opacity:.35}
+.harrow svg{width:18px;height:18px}
+.hdots{display:flex;justify-content:center;gap:6px;padding:2px 0 4px}
+.hdots span{width:6px;height:6px;border-radius:99px;background:#c9cfd8;transition:width .25s ease,background .25s ease}
+.hdots span.on{width:20px;background:#1a3a6b}
 /* horizontal cards — gutters are margins on the edge cards (not container
    padding) so RTL overflow never clips the first/last card ~5% off the edge.
    scroll-padding keeps snap alignment inset by the same 16px page gutter. */

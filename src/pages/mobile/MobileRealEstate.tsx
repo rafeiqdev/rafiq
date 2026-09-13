@@ -129,6 +129,10 @@ export function MobileRealEstate() {
   const [brokenImages, setBrokenImages] = useState<string[]>([]);
   const closeTimer = useRef<number | null>(null);
   const searchInput = useRef<HTMLInputElement | null>(null);
+  // 21st.dev carousel pattern (shadcn Carousel / Offer Carousel): the best-offers
+  // rail scrolls one card per arrow tap, with dots showing position.
+  const bestRef = useRef<HTMLDivElement | null>(null);
+  const [bestIdx, setBestIdx] = useState(0);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const isRTL = lang === 'ar' || lang === 'fa';
@@ -338,6 +342,22 @@ export function MobileRealEstate() {
     setGalIdx(idx);
   };
 
+  // 21st.dev Offer Carousel behaviour: one card per arrow tap. In RTL the next
+  // card sits to the left, so the scroll direction is mirrored.
+  const scrollBest = (dir: 1 | -1): void => {
+    const el = bestRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>(`.${styles.hcard}`);
+    const step = (card?.offsetWidth ?? 280) + 12;
+    el.scrollBy({ left: (isRTL ? -dir : dir) * step, behavior: 'smooth' });
+  };
+  const onBestScroll = (e: React.UIEvent<HTMLDivElement>): void => {
+    const el = e.currentTarget;
+    const card = el.querySelector<HTMLElement>(`.${styles.hcard}`);
+    const step = Math.max(1, (card?.offsetWidth ?? 280) + 12);
+    setBestIdx(Math.min(Math.max(0, Math.round(Math.abs(el.scrollLeft) / step)), 8));
+  };
+
   // ── search overlay ──
   const recent: string[] = useMemo(() => (searchOpen ? readIds(RECENT_KEY) : []), [searchOpen, term]);
   const pushRecent = (name: string): void => {
@@ -513,10 +533,30 @@ export function MobileRealEstate() {
                 mid-word, so the rail simply steps aside when it has nothing. */}
             {preview.length > 0 && (
             <section className={styles.sec}>
-              <h2>
-                {t('realEstate.mx.bestTitle')} <span className={styles.cnt}>({preview.length})</span>
-              </h2>
-              <div className={styles.hscroll}>
+              <div className={styles['sec-head']}>
+                <h2>
+                  {t('realEstate.mx.bestTitle')} <span className={styles.cnt}>({preview.length})</span>
+                </h2>
+                <div className={styles.hnav}>
+                  <button
+                    type="button"
+                    className={styles.harrow}
+                    onClick={() => scrollBest(-1)}
+                    aria-label={t('common.back')}
+                  >
+                    <AppIcon name={isRTL ? 'chevron-right' : 'chevron-left'} className="w-[18px] h-[18px]" />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.harrow}
+                    onClick={() => scrollBest(1)}
+                    aria-label={t('common.next')}
+                  >
+                    <AppIcon name={isRTL ? 'chevron-left' : 'chevron-right'} className="w-[18px] h-[18px]" />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.hscroll} ref={bestRef} onScroll={onBestScroll}>
                 {
                   preview.map((d, i) => (
                     <button
@@ -569,6 +609,11 @@ export function MobileRealEstate() {
                     </button>
                   ))
                 }
+              </div>
+              <div className={styles.hdots} aria-hidden>
+                {preview.slice(0, 9).map((d, i) => (
+                  <span key={d.id} className={i === Math.min(bestIdx, Math.min(preview.length, 9) - 1) ? styles.on : ''} />
+                ))}
               </div>
             </section>
             )}
