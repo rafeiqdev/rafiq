@@ -33,15 +33,16 @@ const RAFIQ_FOOTER_STYLES = `
 
 /* Glass Pill Buttons for Rafiq */
 .rafiq-glass-pill {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  /* No backdrop-filter (2026-09-13): six live blur regions over a static
+     navy gradient re-composited on every desktop scroll frame and stuttered.
+     The glass look is kept with a slightly stronger tint instead. */
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.04) 100%);
   box-shadow:
       0 12px 30px -10px rgba(0, 0, 0, 0.6),
       inset 0 1px 1px rgba(255, 255, 255, 0.2),
       inset 0 -1px 2px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .rafiq-glass-pill:hover {
@@ -79,7 +80,6 @@ const RAFIQ_FOOTER_STYLES = `
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0px 4px 25px rgba(255, 255, 255, 0.18));
 }
 `;
 
@@ -212,33 +212,34 @@ export function RafiqCinematicFooter({
       <style dangerouslySetInnerHTML={{ __html: RAFIQ_FOOTER_STYLES }} />
 
       {/*
-        The "Curtain Reveal" Wrapper:
-        Attached seamlessly below the previous section with clipPath.
+        Plain in-flow section on every screen (2026-09-13). The desktop
+        "curtain reveal" (a position:fixed footer pinned to the viewport
+        bottom behind a clip-path wrapper) was removed: with the
+        informational SiteFooter rendered underneath it, the pinned block
+        stayed glued to the screen while the page kept scrolling, so the
+        heading and buttons slid under the next footer and got cut off —
+        and the fixed layer under a clip-path re-composited every scroll
+        frame. Phones already used this in-flow layout and were fine.
       */}
       <div
         ref={wrapperRef}
         dir={dir}
         lang={language}
         className={cn(
-          // Phones get a plain in-flow footer (max-md:*): the desktop "curtain"
-          // keeps a position:fixed full-screen footer behind a clip-path
-          // wrapper, and mobile Safari/Chrome compositing lets that fixed
-          // layer bleed over the page mid-scroll — a dark block flashing over
-          // the content, which the owner reported as a scrambled screen.
-          "relative w-full h-[62vh] min-h-[440px] max-h-[560px] overflow-hidden max-md:h-auto max-md:min-h-0 max-md:max-h-none",
+          "relative w-full md:h-[62vh] md:min-h-[440px] md:max-h-[560px] overflow-hidden",
           className
         )}
-        style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
       >
-        {/* The actual footer is fixed behind and reveals on scroll (desktop only) */}
-        <footer className="fixed bottom-0 left-0 flex h-[62vh] min-h-[440px] max-h-[560px] w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 max-md:relative max-md:h-auto max-md:min-h-0 max-md:max-h-none">
+        <footer className="relative flex w-full flex-col justify-center overflow-hidden bg-navy text-white selection:bg-[#FAF8F0]/20 md:h-full">
 
           {/* 1. Calm atmospheric background: the site-navy "Oceanic Shimmer"
               gradient (grain + soft radial glows) + one gentle glow */}
           <div className="absolute inset-0 z-0 pointer-events-none">
             <NavyShimmerBackground className="h-full w-full" />
           </div>
-          <div className="rafiq-footer-aurora absolute left-1/2 top-1/2 h-[40vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] blur-[100px] pointer-events-none z-0" />
+          {/* The glow is a soft radial gradient on its own; the old blur-[100px]
+              on top of it was a 60vw x 40vh Gaussian pass for no visible gain. */}
+          <div className="rafiq-footer-aurora absolute left-1/2 top-1/2 h-[56vh] w-[80vw] -translate-x-1/2 -translate-y-1/2 rounded-[50%] pointer-events-none z-0" />
 
           {/* 2. Main Center Content: Title & Action Buttons */}
           <div className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 py-12 w-full max-w-4xl mx-auto text-center">

@@ -21,7 +21,6 @@ export function NavyShimmerBackground({ className }: { className?: string }) {
         overflow: "hidden",
         width: "100%",
         height: "100%",
-        containerType: "size",
       }}
     >
       <div
@@ -35,28 +34,10 @@ export function NavyShimmerBackground({ className }: { className?: string }) {
         backgroundBlendMode: "overlay, normal, normal, normal, normal",
         }}
       />
-      <svg
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          opacity: 0.215,
-          mixBlendMode: "overlay",
-        }}
-      >
-        <filter id="grain-edd345b3-navy">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.8"
-            numOctaves="2"
-            stitchTiles="stitch"
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#grain-edd345b3-navy)" />
-      </svg>
+      {/* The builder's second, full-size SVG feTurbulence grain pass was
+          removed (2026-09-13): a viewport-sized noise filter with
+          mix-blend-mode ran on every desktop scroll frame. The tiled 120px
+          grain in the background-image above already gives the texture. */}
     </div>
   )
 }
