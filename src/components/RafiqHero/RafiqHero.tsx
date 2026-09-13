@@ -364,7 +364,7 @@ export const RafiqHero: React.FC<RafiqHeroProps> = ({
           <div className={styles.navBrandSlot}>
             <a href={`/${language}`} className={styles.logoLink} aria-label={t.common.brandName}>
               {logoSrc === DEFAULT_LOGO ? (
-                <RafiqBrandLogo size="md" variant="dark" className="h-8 w-auto" />
+                <RafiqBrandLogo size="custom" variant="dark" className="h-[30px] w-auto" />
               ) : (
                 <img src={logoSrc} alt={t.common.brandName} className={styles.brandLogo} />
               )}
