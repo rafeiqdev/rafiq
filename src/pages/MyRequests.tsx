@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { customerRequests, reviews, serviceOffers, servicePayments } from '../lib/api';
+import { RequestStatusPill } from '../components/RequestStatusPill';
 import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
@@ -291,11 +292,9 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
 }
 
 /**
- * One purchase-style row, modelled 1:1 on the eBay "Purchases" reference:
- * status line on top, service title, date line, small sub-line, then the
- * pill buttons. No product photo — requests have none — so the text takes
- * the full width. Tapping the title expands the full details inline
- * (offers, timeline, pay, review); the blue button goes to the offer page.
+ * One request card: status pill + date, service title (tapping it expands the
+ * full details inline), area, a small stage sub-line, then the pill buttons.
+ * Styled on the Rafiq identity system (.card / .btn-*) — no off-brand blues.
  */
 function RequestRow({ req }: { req: CustomerRequest }) {
   const { t, i18n } = useTranslation();
@@ -311,48 +310,49 @@ function RequestRow({ req }: { req: CustomerRequest }) {
   });
   const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
 
-  const subLine = statusKey === 'rejected'
-    ? null
-    : statusKey === 'done'
-      ? t('requests.leaveReview')
-      : t('requests.reassurance.sla');
-
   return (
-    <li className="px-4 py-4">
-      <p className="text-[12px] font-semibold uppercase tracking-wide text-[#767676]">
-        {t(`admin.serviceRequests.status.${statusKey}`)}
-      </p>
+    <li className="card card-hover p-5">
+      <div className="flex items-center justify-between gap-2">
+        <RequestStatusPill status={req.status} />
+        <span className="shrink-0 text-xs text-navy/50">{new Date(req.createdAt).toLocaleDateString(lang)}</span>
+      </div>
 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="mt-1 block w-full text-start"
+        className="mt-2.5 block w-full text-start"
       >
-        <span className="text-[15px] font-semibold leading-snug text-[#191919] line-clamp-2">
+        <span className="text-[17px] font-extrabold leading-snug text-navy line-clamp-2">
           {localizeServiceTitle(req.serviceTitle, lang)}
         </span>
       </button>
 
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-[#767676]">
-        <span className="min-w-0 truncate">
-          {req.area ? pickArea(req.area, lang) : t('requests.title')}
-        </span>
-        <span className="shrink-0">{new Date(req.createdAt).toLocaleDateString(lang)}</span>
-      </div>
-      {subLine && <p className="mt-0.5 text-[13px] text-[#767676]">{subLine}</p>}
+      {req.area && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-navy/55">
+          <AppIcon name="map-pin" className="h-3.5 w-3.5 shrink-0" />
+          {pickArea(req.area, lang)}
+        </p>
+      )}
 
-      <div className="mt-3 flex gap-2.5">
+      {statusKey !== 'rejected' && (
+        <p className="mt-2 flex items-center gap-1.5 text-[13px] font-semibold text-navy/70">
+          <AppIcon name={statusKey === 'done' ? 'star' : 'clock'} className="h-3.5 w-3.5 shrink-0" />
+          {statusKey === 'done' ? t('requests.leaveReview') : t('requests.reassurance.sla')}
+        </p>
+      )}
+
+      <div className="mt-4 flex gap-2.5 border-t border-cream-dark pt-4">
         <Link
           to={`/requests/${req.id}/offer`}
-          className="flex h-11 flex-1 items-center justify-center rounded-full bg-[#0064D2] px-4 text-[15px] font-bold text-white hover:bg-[#0053B0]"
+          className="btn-primary min-h-[48px] flex-1 text-[15px]"
         >
           {t('requests.detailsCta')}
         </Link>
         {finished ? (
           <Link
             to="/services"
-            className="flex h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-[#0064D2] bg-white px-4 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
+            className="btn-ghost min-h-[48px] flex-1 text-[15px]"
           >
             {t('requests.orderAgain')}
           </Link>
@@ -363,9 +363,9 @@ function RequestRow({ req }: { req: CustomerRequest }) {
               target="_blank"
               rel="noreferrer"
               onClick={() => track('whatsapp_clicked', { target: 'requests_row', meta: { request_id: req.id } })}
-              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-[#0064D2] bg-white px-4 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
+              className="btn-whatsapp min-h-[48px] flex-1 text-[15px]"
             >
-              <AppIcon name="message-circle" className="w-4 h-4 shrink-0" />
+              <AppIcon name="message-circle" className="h-4 w-4 shrink-0" />
               {t('requests.whatsappCta')}
             </a>
           )
@@ -373,7 +373,7 @@ function RequestRow({ req }: { req: CustomerRequest }) {
       </div>
 
       {open && (
-        <div className="mt-4 border-t border-[#E5E5E5] pt-4">
+        <div className="mt-4 border-t border-cream-dark pt-4">
           <ReassuranceBanner req={req} />
           <div className="mt-3">
             <RequestOffers req={req} />
@@ -395,42 +395,44 @@ function MyRequestsInner() {
   const requests = useAsyncSection<CustomerRequest[]>(() => customerRequests.allMine(), []);
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl bg-white pb-10">
-      {/* eBay-style header: back + title, then a live search row (search only,
-          no "Refine" — per the owner's choice). */}
-      <header className="sticky top-0 z-20 bg-white">
+    <div className="mx-auto min-h-screen max-w-2xl bg-cream pb-10">
+      {/* Frosted header: back + title, then an iOS-style search field.
+          Search only filters the list — no "Refine", per the owner's choice. */}
+      <header className="sticky top-0 z-20 border-b border-navy/10 bg-white/85 backdrop-blur-xl">
         <div className="flex items-center gap-3 px-4 pb-3 pt-3">
           <Link
             to="/"
             aria-label={t('common.back')}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] text-[#191919] hover:bg-[#E5E5E5]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy/5 text-navy transition-colors hover:bg-navy/10 active:bg-navy/15"
           >
             <BackArrow className="h-5 w-5" />
           </Link>
-          <h1 className="flex-1 text-[22px] font-extrabold leading-tight text-[#191919]">
+          <h1 className="flex-1 text-[22px] font-extrabold leading-tight text-navy">
             {t('requests.title')}
           </h1>
         </div>
-        <div className="flex items-center gap-2 border-t border-[#E5E5E5] px-4 py-2.5">
-          <AppIcon name="search" className="h-5 w-5 shrink-0 text-[#0064D2]" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('requests.searchPh')}
-            aria-label={t('requests.searchPh')}
-            className="flex-1 bg-transparent text-[15px] text-[#191919] outline-none placeholder:font-medium placeholder:text-[#0064D2]"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label={t('requests.clearSearch')}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#767676] hover:bg-[#F2F2F2]"
-            >
-              <AppIcon name="x" className="h-4 w-4" />
-            </button>
-          )}
+        <div className="px-4 pb-3">
+          <div className="flex h-11 items-center gap-2 rounded-full bg-navy/[0.05] px-4">
+            <AppIcon name="search" className="h-5 w-5 shrink-0 text-navy/40" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('requests.searchPh')}
+              aria-label={t('requests.searchPh')}
+              className="flex-1 bg-transparent text-[15px] text-navy outline-none placeholder:text-navy/40"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label={t('requests.clearSearch')}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-navy/50 transition-colors hover:bg-navy/10"
+              >
+                <AppIcon name="x" className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -440,10 +442,10 @@ function MyRequestsInner() {
         loading={<RafiqLoader size="sm" className="min-h-[50vh]" />}
         empty={
           <div className="px-4 pt-6">
-            <div className="rounded-2xl border border-[#E5E5E5] p-8 text-center">
+            <div className="card p-8 text-center">
               <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>
-              <p className="mt-4 text-sm text-[#767676]">{t('requests.empty')}</p>
-              <Link to="/services" className="mt-6 flex h-11 items-center justify-center rounded-full bg-[#0064D2] px-4 text-[15px] font-bold text-white hover:bg-[#0053B0]">{t('requests.browseServices')}</Link>
+              <p className="mt-4 text-sm text-navy/60">{t('requests.empty')}</p>
+              <Link to="/services" className="btn-primary mt-6 min-h-[48px] w-full text-[15px]">{t('requests.browseServices')}</Link>
             </div>
           </div>
         }
@@ -460,11 +462,11 @@ function MyRequestsInner() {
           if (visible.length === 0) {
             return (
               <div className="px-4 pt-10 text-center">
-                <p className="text-sm text-[#767676]">{t('requests.noResults')}</p>
+                <p className="text-sm text-navy/60">{t('requests.noResults')}</p>
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="mx-auto mt-4 flex h-11 items-center justify-center rounded-full border-[1.5px] border-[#0064D2] px-6 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
+                  className="btn-ghost mx-auto mt-4 min-h-[48px] px-6 text-[15px]"
                 >
                   {t('requests.clearSearch')}
                 </button>
@@ -472,14 +474,14 @@ function MyRequestsInner() {
             );
           }
           return (
-            <ul className="divide-y divide-[#E5E5E5]">
+            <ul className="flex flex-col gap-4 px-4 pt-5">
               {visible.map((r) => <RequestRow key={r.id} req={r} />)}
             </ul>
           );
         }}
       </SectionState>
 
-      <div className="px-4">
+      <div className="px-4 pt-5">
         <MedicalRequestsPanel />
       </div>
     </div>
