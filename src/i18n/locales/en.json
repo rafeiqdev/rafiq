@@ -384,15 +384,14 @@
     "step3Desc": "Review quote and pay safely inside your portal to start processing."
   },
   "help": {
-    "eyebrow": "Free assistance",
     "title": "Your Rafiq advisor is on the way",
-    "body": "Sit back — one of our local experts will guide you through it, step by step and free of charge. Choose how you'd like to start.",
+    "body": "Relax — one of our local experts will walk you through it, step by step and free of charge. Choose how you'd like to start.",
     "sceneCaption": "Your Rafiq advisor, coming to help you in Istanbul.",
     "yes": "Yes, I want help",
     "askAi": "Talk to the AI assistant",
     "note": "No fees — your first consultation is free.",
     "advisorRole": "Your Istanbul advisor",
-    "selfGuide": "Read the guide myself"
+    "selfGuide": "I'd rather read it myself"
   },
   "whatsapp": {
     "aria": "Chat with us on WhatsApp",
@@ -2271,7 +2270,13 @@
     },
     "showMore": "Show more",
     "showLess": "Show less",
-    "openOfferPage": "Open Offer Page"
+    "openOfferPage": "Open Offer Page",
+    "detailsCta": "Order details",
+    "orderAgain": "Order again",
+    "whatsappCta": "WhatsApp",
+    "searchPh": "Search your requests…",
+    "noResults": "No requests match your search.",
+    "clearSearch": "Clear search"
   },
   "reviews": {
     "leaveTitle": "Rate this company",

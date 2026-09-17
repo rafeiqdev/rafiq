@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { customerRequests, reviews, serviceOffers, servicePayments } from '../lib/api';
-import { RequestStatusPill } from '../components/RequestStatusPill';
 import { SectionState } from '../components/SectionState';
 import { useAsyncSection } from '../hooks/useAsyncSection';
 import type { CompanyResponse, CustomerRequest } from '../lib/types';
@@ -12,7 +11,7 @@ import { RequireAuth } from '../components/Gates';
 import { MedicalRequestsPanel } from '../components/medical/MedicalRequestsPanel';
 import { ReviewStars, StarRatingInput } from '../components/ReviewStars';
 import { Modal } from '../components/Modal';
-import { AppIcon } from '../components/AppIcon';
+import { AppIcon, BackArrow } from '../components/AppIcon';
 import { RafiqLoader } from '../components/RafiqLoader';
 import { ServiceOfferCard } from '../components/ServiceOfferCard';
 import { OrderTracking } from '@/components/ui/order-tracking';
@@ -291,42 +290,94 @@ function RequestOffers({ req }: { req: CustomerRequest }) {
   );
 }
 
+/**
+ * One purchase-style row, modelled 1:1 on the eBay "Purchases" reference:
+ * status line on top, service title, date line, small sub-line, then the
+ * pill buttons. No product photo — requests have none — so the text takes
+ * the full width. Tapping the title expands the full details inline
+ * (offers, timeline, pay, review); the blue button goes to the offer page.
+ */
 function RequestRow({ req }: { req: CustomerRequest }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [open, setOpen] = useState(false);
 
-  return (
-    <li className="card p-4">
-      <div className="flex items-center gap-3">
-        <button onClick={() => setOpen((v) => !v)} className="flex-1 min-w-0 flex items-center gap-3 text-start" aria-expanded={open}>
-          <AppIcon name="arrow-right" className={`w-3.5 h-3.5 text-navy/40 transition-transform ${open ? 'rotate-90' : ''}`} />
-          <span className="flex-1 min-w-0">
-            <span className="font-semibold text-navy block">{localizeServiceTitle(req.serviceTitle, lang)}</span>
-            <span className="text-xs text-navy/50 inline-flex items-center gap-2 flex-wrap">
-              {req.area && (<span className="inline-flex items-center gap-1"><AppIcon name="map-pin" className="w-3 h-3" />{pickArea(req.area, lang)}</span>)}
-              <span>{new Date(req.createdAt).toLocaleDateString(i18n.language)}</span>
-            </span>
-          </span>
-        </button>
+  const statusKey = req.status === 'new' ? 'pending' : req.status;
+  const finished = statusKey === 'done' || statusKey === 'rejected';
 
-        <div className="flex items-center gap-2 shrink-0">
+  const waMessage = t('requests.reassurance.waMessage', {
+    id: req.id,
+    service: localizeServiceTitle(req.serviceTitle, lang),
+  });
+  const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
+
+  const subLine = statusKey === 'rejected'
+    ? null
+    : statusKey === 'done'
+      ? t('requests.leaveReview')
+      : t('requests.reassurance.sla');
+
+  return (
+    <li className="px-4 py-4">
+      <p className="text-[12px] font-semibold uppercase tracking-wide text-[#767676]">
+        {t(`admin.serviceRequests.status.${statusKey}`)}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="mt-1 block w-full text-start"
+      >
+        <span className="text-[15px] font-semibold leading-snug text-[#191919] line-clamp-2">
+          {localizeServiceTitle(req.serviceTitle, lang)}
+        </span>
+      </button>
+
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[13px] text-[#767676]">
+        <span className="min-w-0 truncate">
+          {req.area ? pickArea(req.area, lang) : t('requests.title')}
+        </span>
+        <span className="shrink-0">{new Date(req.createdAt).toLocaleDateString(lang)}</span>
+      </div>
+      {subLine && <p className="mt-0.5 text-[13px] text-[#767676]">{subLine}</p>}
+
+      <div className="mt-3 flex gap-2.5">
+        <Link
+          to={`/requests/${req.id}/offer`}
+          className="flex h-11 flex-1 items-center justify-center rounded-full bg-[#0064D2] px-4 text-[15px] font-bold text-white hover:bg-[#0053B0]"
+        >
+          {t('requests.detailsCta')}
+        </Link>
+        {finished ? (
           <Link
-            to={`/requests/${req.id}/offer`}
-            className="btn-secondary !h-8 px-2.5 text-xs font-bold inline-flex items-center gap-1.5 hover:bg-cream-dark shadow-sm"
+            to="/services"
+            className="flex h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-[#0064D2] bg-white px-4 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
           >
-            <AppIcon name="file-text" className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('requests.openOfferPage')}</span>
+            {t('requests.orderAgain')}
           </Link>
-          <RequestStatusPill status={req.status} />
-        </div>
+        ) : (
+          waHref && (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => track('whatsapp_clicked', { target: 'requests_row', meta: { request_id: req.id } })}
+              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-[1.5px] border-[#0064D2] bg-white px-4 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
+            >
+              <AppIcon name="message-circle" className="w-4 h-4 shrink-0" />
+              {t('requests.whatsappCta')}
+            </a>
+          )
+        )}
       </div>
 
-      <ReassuranceBanner req={req} />
-
       {open && (
-        <div className="mt-4 border-t border-cream-dark pt-4">
-          <RequestOffers req={req} />
+        <div className="mt-4 border-t border-[#E5E5E5] pt-4">
+          <ReassuranceBanner req={req} />
+          <div className="mt-3">
+            <RequestOffers req={req} />
+          </div>
         </div>
       )}
     </li>
@@ -334,7 +385,9 @@ function RequestRow({ req }: { req: CustomerRequest }) {
 }
 
 function MyRequestsInner() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const [query, setQuery] = useState('');
   // The empty state below may only ever mean "the fetch succeeded and returned
   // zero rows". It used to also mean "the fetch failed", because the load was
   // `.catch(() => setRows([]))` — so a network hiccup told a customer their
@@ -342,30 +395,93 @@ function MyRequestsInner() {
   const requests = useAsyncSection<CustomerRequest[]>(() => customerRequests.allMine(), []);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold text-navy">{t('requests.title')}</h1>
-      <p className="mt-2 text-sm text-navy/60">{t('requests.subtitle')}</p>
+    <div className="mx-auto min-h-screen max-w-2xl bg-white pb-10">
+      {/* eBay-style header: back + title, then a live search row (search only,
+          no "Refine" — per the owner's choice). */}
+      <header className="sticky top-0 z-20 bg-white">
+        <div className="flex items-center gap-3 px-4 pb-3 pt-3">
+          <Link
+            to="/"
+            aria-label={t('common.back')}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F2F2F2] text-[#191919] hover:bg-[#E5E5E5]"
+          >
+            <BackArrow className="h-5 w-5" />
+          </Link>
+          <h1 className="flex-1 text-[22px] font-extrabold leading-tight text-[#191919]">
+            {t('requests.title')}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 border-t border-[#E5E5E5] px-4 py-2.5">
+          <AppIcon name="search" className="h-5 w-5 shrink-0 text-[#0064D2]" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('requests.searchPh')}
+            aria-label={t('requests.searchPh')}
+            className="flex-1 bg-transparent text-[15px] text-[#191919] outline-none placeholder:font-medium placeholder:text-[#0064D2]"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label={t('requests.clearSearch')}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#767676] hover:bg-[#F2F2F2]"
+            >
+              <AppIcon name="x" className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </header>
 
       <SectionState
         section={requests}
         title={t('requests.title')}
         loading={<RafiqLoader size="sm" className="min-h-[50vh]" />}
         empty={
-          <div className="card p-8 mt-6 text-center">
-            <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>
-            <p className="mt-4 text-sm text-navy/60">{t('requests.empty')}</p>
-            <Link to="/services" className="btn-primary mt-6">{t('requests.browseServices')}</Link>
+          <div className="px-4 pt-6">
+            <div className="rounded-2xl border border-[#E5E5E5] p-8 text-center">
+              <div className="icon-chip mx-auto"><AppIcon name="inbox" className="w-6 h-6" /></div>
+              <p className="mt-4 text-sm text-[#767676]">{t('requests.empty')}</p>
+              <Link to="/services" className="mt-6 flex h-11 items-center justify-center rounded-full bg-[#0064D2] px-4 text-[15px] font-bold text-white hover:bg-[#0053B0]">{t('requests.browseServices')}</Link>
+            </div>
           </div>
         }
       >
-        {(rows) => (
-          <ul className="mt-6 flex flex-col gap-3">
-            {rows.map((r) => <RequestRow key={r.id} req={r} />)}
-          </ul>
-        )}
+        {(rows) => {
+          const q = query.trim().toLowerCase();
+          const visible = q
+            ? rows.filter(
+              (r) =>
+                localizeServiceTitle(r.serviceTitle, lang).toLowerCase().includes(q) ||
+                r.id.toLowerCase().includes(q),
+            )
+            : rows;
+          if (visible.length === 0) {
+            return (
+              <div className="px-4 pt-10 text-center">
+                <p className="text-sm text-[#767676]">{t('requests.noResults')}</p>
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="mx-auto mt-4 flex h-11 items-center justify-center rounded-full border-[1.5px] border-[#0064D2] px-6 text-[15px] font-bold text-[#0064D2] hover:bg-[#0064D2]/5"
+                >
+                  {t('requests.clearSearch')}
+                </button>
+              </div>
+            );
+          }
+          return (
+            <ul className="divide-y divide-[#E5E5E5]">
+              {visible.map((r) => <RequestRow key={r.id} req={r} />)}
+            </ul>
+          );
+        }}
       </SectionState>
 
-      <MedicalRequestsPanel />
+      <div className="px-4">
+        <MedicalRequestsPanel />
+      </div>
     </div>
   );
 }
