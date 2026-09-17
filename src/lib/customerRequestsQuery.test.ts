@@ -15,7 +15,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  */
 
 interface Row {
-  id: string; service_title: string | null; category: string | null; service_type: string | null;
+  id: string; service_id: string | null; service_title: string | null; category: string | null; service_type: string | null;
   area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string;
 }
 
@@ -54,7 +54,7 @@ vi.mock('./supabase', () => ({
 import { customerRequests } from './api';
 
 const row = (over: Partial<Row>): Row => ({
-  id: 'r1', service_title: 'إقامة سياحية', category: 'residency', service_type: 'direct',
+  id: 'r1', service_id: 'res-tourist', service_title: 'إقامة سياحية', category: 'residency', service_type: 'direct',
   area: null, message: null, status: 'new', broadcast: false, created_at: '2026-07-27T10:00:00Z',
   ...over,
 });
@@ -95,6 +95,28 @@ describe('customerRequests.allMine() query', () => {
     for (const col of ['area', 'service_type', 'broadcast', 'status', 'message']) {
       expect(selectCols()).toContain(col);
     }
+  });
+
+  it('selects service_id so "order again" can reopen the same form', async () => {
+    await customerRequests.allMine();
+
+    expect(selectCols()).toContain('service_id');
+  });
+
+  it('maps service_id onto the request for the reorder form', async () => {
+    rows = [row({ id: 'r1', service_id: 'bank-account' })];
+
+    const out = await customerRequests.allMine();
+
+    expect(out[0].serviceId).toBe('bank-account');
+  });
+
+  it('maps a null service_id to null (old rows keep the /services fallback)', async () => {
+    rows = [row({ id: 'r1', service_id: null })];
+
+    const out = await customerRequests.allMine();
+
+    expect(out[0].serviceId).toBeNull();
   });
 
   it('returns a direct request as readily as a broadcast one', async () => {

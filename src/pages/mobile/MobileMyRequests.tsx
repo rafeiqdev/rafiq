@@ -17,6 +17,7 @@ import { RequestStatusPill } from '../../components/RequestStatusPill';
 import { SectionState } from '../../components/SectionState';
 import { useAsyncSection } from '../../hooks/useAsyncSection';
 import { ServiceOfferCard } from '../../components/ServiceOfferCard';
+import { ServiceRequestModal } from '../../components/ServiceRequestModal';
 import { CASE_FILE_DIVIDER } from '../../lib/bookingSummary';
 import { track } from '../../lib/analytics';
 
@@ -108,11 +109,13 @@ function ReviewModal({
  * full details inline), area, a small stage sub-line, then the pill buttons.
  * Styled on the Rafiq identity system (.card / .btn-*) — no off-brand blues.
  */
-function RequestRow({ req }: { req: CustomerRequest }) {
+function RequestRow({ req, onReordered }: { req: CustomerRequest; onReordered: () => void }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((v) => !v);
+  /** "Order again" opens the SAME order form, pre-filled — not the services list. */
+  const [reordering, setReordering] = useState(false);
 
   const statusKey = req.status === 'new' ? 'pending' : req.status;
   const finished = statusKey === 'done' || statusKey === 'rejected';
@@ -122,6 +125,12 @@ function RequestRow({ req }: { req: CustomerRequest }) {
     service: localizeServiceTitle(req.serviceTitle, lang),
   });
   const waHref = WA_ENABLED ? `https://wa.me/${WA}?text=${encodeURIComponent(waMessage)}` : null;
+
+  // Rows predating the service_id column (or non-catalog requests) cannot
+  // reopen their exact form — they keep the old fallback to /services.
+  const reorderSource = req.serviceId
+    ? { id: req.serviceId, title: req.serviceTitle, category: req.category, type: req.serviceType }
+    : null;
 
   return (
     <section className="card card-hover p-5">
@@ -163,12 +172,22 @@ function RequestRow({ req }: { req: CustomerRequest }) {
           {t('requests.detailsCta')}
         </Link>
         {finished ? (
-          <Link
-            to="/services"
-            className="btn-ghost min-h-[48px] flex-1 text-[15px]"
-          >
-            {t('requests.orderAgain')}
-          </Link>
+          reorderSource ? (
+            <button
+              type="button"
+              onClick={() => setReordering(true)}
+              className="btn-ghost min-h-[48px] flex-1 text-[15px]"
+            >
+              {t('requests.orderAgain')}
+            </button>
+          ) : (
+            <Link
+              to="/services"
+              className="btn-ghost min-h-[48px] flex-1 text-[15px]"
+            >
+              {t('requests.orderAgain')}
+            </Link>
+          )
         ) : (
           waHref && (
             <a
@@ -189,6 +208,21 @@ function RequestRow({ req }: { req: CustomerRequest }) {
         <div className="mt-4 border-t border-cream-dark pt-4">
           <MobileRequestOffers req={req} />
         </div>
+      )}
+
+      {reordering && reorderSource && (
+        <ServiceRequestModal
+          source={reorderSource}
+          initial={{
+            area: req.area,
+            message: req.message ? humanMessage(req.message).full : null,
+          }}
+          onClose={() => {
+            setReordering(false);
+            // The new request lands at the top of this same list.
+            onReordered();
+          }}
+        />
       )}
     </section>
   );
@@ -447,7 +481,7 @@ function MobileMyRequestsInner() {
             return (
               <div className="flex flex-col gap-4 px-4 pt-5">
                 {visible.map((req) => (
-                  <RequestRow key={req.id} req={req} />
+                  <RequestRow key={req.id} req={req} onReordered={requests.reload} />
                 ))}
               </div>
             );

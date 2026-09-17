@@ -364,3 +364,75 @@ describe('signed-in customer identity', () => {
     expect(document.querySelector('input[autocomplete="email"]')).toBeNull();
   });
 });
+
+/**
+ * Reorder pre-fill ("order again" on a finished request): the form opens with
+ * the previous request's area + details already in place, so the customer
+ * never retypes what we already know. Name/phone were already pre-filled from
+ * the account — this covers the two fields the account does not have.
+ */
+async function renderModalWith(
+  source: typeof SOURCE,
+  initial?: { area?: string | null; message?: string | null },
+) {
+  vi.resetModules();
+  const { ServiceRequestModal } = await import('./ServiceRequestModal');
+  return render(
+    <MemoryRouter>
+      <ServiceRequestModal source={source} initial={initial} onClose={() => {}} />
+    </MemoryRouter>,
+  );
+}
+
+const detailsBox = () =>
+  screen.getByLabelText('services.modal.problemDetailsLabel') as HTMLTextAreaElement;
+
+describe('reorder pre-fill ("order again")', () => {
+  it('strips a chip-label prefix so it cannot duplicate on the second order', async () => {
+    const { stripProblemLabelPrefix } = await import('./ServiceRequestModal');
+
+    expect(stripProblemLabelPrefix('lbl — typed text', ['lbl'])).toBe('typed text');
+    expect(stripProblemLabelPrefix('lbl', ['lbl'])).toBe('');
+    expect(stripProblemLabelPrefix('free text without a label', ['lbl'])).toBe('free text without a label');
+    expect(stripProblemLabelPrefix('', ['lbl'])).toBe('');
+  });
+
+  it('pre-fills the details textarea with the previous message', async () => {
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz', phone: '+905551234567' } });
+
+    await renderModalWith(SOURCE, { message: 'تفاصيل سابقة من الطلب الماضي' });
+
+    expect(detailsBox().value).toBe('تفاصيل سابقة من الطلب الماضي');
+  });
+
+  it('drops the stored chip label from the pre-filled text (chips stay tappable)', async () => {
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz', phone: '+905551234567' } });
+    const tourist = { ...SOURCE, id: 'res-tourist' };
+
+    // With the mocked t() the label IS its key — exactly what was stored.
+    await renderModalWith(tourist, { message: 'services.modal.problems.firstTime — بقية النص' });
+
+    expect(detailsBox().value).toBe('بقية النص');
+  });
+
+  it('pre-selects the previous area on a broadcast (partner) service', async () => {
+    const { ISTANBUL_AREAS } = await import('../data/istanbulAreas');
+    const district = ISTANBUL_AREAS[0].id;
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz', phone: '+905551234567' } });
+    const partner = { ...SOURCE, id: 'res-tourist', type: 'partner' };
+
+    await renderModalWith(partner, { area: district });
+
+    expect((document.querySelector('select') as HTMLSelectElement).value).toBe(district);
+  });
+
+  it('leaves area and message empty when there is nothing to carry over', async () => {
+    useAppMock.mockReturnValue({ user: { id: 'u1', name: 'Ahmet Yilmaz', phone: '+905551234567' } });
+    const partner = { ...SOURCE, id: 'res-tourist', type: 'partner' };
+
+    await renderModalWith(partner, {});
+
+    expect((document.querySelector('select') as HTMLSelectElement).value).toBe('');
+    expect(detailsBox().value).toBe('');
+  });
+});

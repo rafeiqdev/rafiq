@@ -84,7 +84,38 @@ const CHIP_ICON: Record<string, IconName> = {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function ServiceRequestModal({ source, onClose }: { source: LeadSource; onClose: () => void }) {
+/**
+ * Values carried over from a previous request when the customer taps
+ * "order again" on a finished request — so they never retype what we
+ * already know. Name/phone already pre-fill from the account; this covers
+ * the two fields the account does not have.
+ */
+export interface ReorderInitial {
+  /** Istanbul district id, as stored on the previous request. */
+  area?: string | null;
+  /** Human-readable part of the previous request's message. */
+  message?: string | null;
+}
+
+/**
+ * A stored message starts with the tapped situation-chip label
+ * ("label — typed text"). When pre-filling a reorder that label must go:
+ * the chips are still there to be tapped again, and keeping it would submit
+ * "label — label — text" on the second order.
+ */
+export function stripProblemLabelPrefix(raw: string, labels: string[]): string {
+  const text = (raw ?? '').trim();
+  if (!text) return '';
+  for (const label of labels) {
+    const l = (label ?? '').trim();
+    if (!l) continue;
+    if (text === l) return '';
+    if (text.startsWith(`${l} — `)) return text.slice(l.length + 3).trimStart();
+  }
+  return text;
+}
+
+export function ServiceRequestModal({ source, initial, onClose }: { source: LeadSource; initial?: ReorderInitial; onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { user } = useApp();
   const navigate = useNavigate();
@@ -99,9 +130,18 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   // already know. Still editable — the pencil below opens the fields again.
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [area, setArea] = useState('');
+  const problemChips = PROBLEM_CHIPS_BY_SERVICE_ID[source.id] ?? [];
+  // Reorder pre-fill from the previous request (area as stored; message minus
+  // any chip-label prefix — the chips stay tappable, so keeping the prefix
+  // would duplicate the label on the second order).
+  const [area, setArea] = useState(initial?.area ?? '');
   const [problem, setProblem] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(() =>
+    stripProblemLabelPrefix(
+      initial?.message ?? '',
+      problemChips.map((id) => t(`services.modal.problems.${id}`)),
+    ),
+  );
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   /** id of the row we just created — present only for signed-in customers */
@@ -117,8 +157,6 @@ export function ServiceRequestModal({ source, onClose }: { source: LeadSource; o
   const [rateLimited, setRateLimited] = useState(false);
   /** The customer chose to change the pre-filled name / phone. */
   const [editingIdentity, setEditingIdentity] = useState(false);
-
-  const problemChips = PROBLEM_CHIPS_BY_SERVICE_ID[source.id] ?? [];
 
   const phoneValid = isValidPhone(phone);
   const showPhoneError = phoneTouched && phone.trim().length > 0 && !phoneValid;

@@ -627,6 +627,13 @@ export interface CustomerRequest {
   category: string;
   area: string | null;
   message?: string | null;
+  /**
+   * Catalog id (src/data/services.ts) of the ordered service — what lets
+   * "order again" reopen the SAME order form instead of the generic services
+   * list. Null on rows predating the column or on non-catalog requests;
+   * callers must fall back (e.g. link to /services) when it is missing.
+   */
+  serviceId?: string | null;
   /** new | pending | accepted | done | rejected — shown to the customer. */
   status: string;
   createdAt: string;

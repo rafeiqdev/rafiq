@@ -2914,12 +2914,12 @@ export const customerRequests = {
   async allMine(): Promise<CustomerRequest[]> {
     const uid = await requireUid();
     const { data, error } = await sb().from('service_requests')
-      .select('id,service_title,category,service_type,area,message,status,broadcast,created_at')
+      .select('id,service_id,service_title,category,service_type,area,message,status,broadcast,created_at')
       .eq('customer_id', uid).order('created_at', { ascending: false });
     if (error) fail(error);
-    interface Row { id: string; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
+    interface Row { id: string; service_id: string | null; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
     return ((data ?? []) as Row[]).map((r) => ({
-      id: r.id, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
+      id: r.id, serviceId: r.service_id ?? null, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
       message: r.message ?? null, status: r.status, createdAt: r.created_at,
       // Carried for behaviour (whether to poll for offers), never for display:
       // the customer must never see a partner/direct or broadcast distinction.
@@ -2947,14 +2947,14 @@ export const customerRequests = {
   async byId(id: string): Promise<CustomerRequest | null> {
     await requireUid();
     const { data, error } = await sb().from('service_requests')
-      .select('id,service_title,category,service_type,area,message,status,broadcast,created_at')
+      .select('id,service_id,service_title,category,service_type,area,message,status,broadcast,created_at')
       .eq('id', id)
       .maybeSingle();
     if (error || !data) return null;
-    interface Row { id: string; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
+    interface Row { id: string; service_id: string | null; service_title: string | null; category: string | null; service_type: string | null; area: string | null; message: string | null; status: string; broadcast: boolean | null; created_at: string; }
     const r = data as Row;
     return {
-      id: r.id, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
+      id: r.id, serviceId: r.service_id ?? null, serviceTitle: r.service_title ?? '', category: r.category ?? '', area: r.area ?? null,
       message: r.message ?? null, status: r.status, createdAt: r.created_at,
       serviceType: r.service_type ?? '', broadcast: r.broadcast === true,
     };
