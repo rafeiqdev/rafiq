@@ -8,6 +8,7 @@ import { IstanbulCityGuide } from '../components/IstanbulCityGuide';
 import { IstanbulHeroFacts } from '../components/IstanbulHeroFacts';
 import { ComingSoon } from '../components/ComingSoon';
 import { BANNERS } from '../lib/images';
+import { usePageMeta } from '../lib/seo';
 
 /** Redesign is still being refined — visitors see a "coming soon" placeholder until this flips to true. */
 export const TRICKS_PAGE_READY = false;
@@ -88,6 +89,7 @@ function TrickCard({ id, index }: { id: TrickSlug; index: number }) {
 
 export function Tricks() {
   const { t } = useTranslation();
+  usePageMeta({ title: `${t('tricks.title')} — ${t('common.appName')}`, description: t('seo.tricksDescription') });
   if (!TRICKS_PAGE_READY) return <ComingSoon />;
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

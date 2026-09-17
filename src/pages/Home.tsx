@@ -11,6 +11,7 @@ import { DiscoverRafiq } from '../components/ui/discover-rafiq';
 import { HabitFaqScroller } from '../components/ui/habit-faq-scroller';
 import { RafiqCinematicFooter } from '../components/ui/rafiq-cinematic-footer';
 import { LocalBusinessSchema } from '../components/LocalBusinessSchema';
+import { useTranslation } from 'react-i18next';
 import { usePageMeta } from '../lib/seo';
 
 /**
@@ -39,10 +40,14 @@ function HomeContent() {
   // landscape video and its text/button placement don't survive a portrait
   // screen. Everything below the hero is shared.
   const isMobile = useIsMobile();
+  // The meta description comes from the shared i18n `seo` block, not the
+  // ported hero copy: it has to match the pre-rendered shell word for word
+  // and be long enough for a search snippet.
+  const { t: i18nT } = useTranslation();
 
   usePageMeta({
     title: `${t.common.brandName} — ${t.common.tagline}`,
-    description: t.hero.supportingText,
+    description: i18nT('seo.homeDescription'),
   });
 
   return (

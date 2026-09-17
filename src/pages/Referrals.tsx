@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { Share2, Copy, Check, Wallet, ArrowUpRight, LogIn } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { usePageMeta } from '../lib/seo';
 import { referrals } from '../lib/api';
 import type { ReferralStats } from '../lib/api';
 import { NumberTicker } from '../components/ui/NumberTicker';
@@ -53,6 +54,7 @@ const EMPTY: ReferralStats = {
 
 export function Referrals() {
   const { t, i18n } = useTranslation();
+  usePageMeta({ title: `${t('referrals.title')} — ${t('common.appName')}`, description: t('seo.referralsDescription') });
   const { user } = useApp();
   const [stats, setStats] = useState<ReferralStats>(EMPTY);
   const [copied, setCopied] = useState(false);

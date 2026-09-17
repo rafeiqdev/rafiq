@@ -303,6 +303,40 @@ for (const match of servicesSource.matchAll(
   serviceTitleByLang.ar[id] = ar;
   serviceTitleByLang.en[id] = en;
 }
+
+// Hero photo per category — the same file ServiceDetail.tsx and
+// CategoryGuide.tsx put at the top of the live page (CATEGORY_HERO_IMAGE in
+// src/data/categoryHeroImages.ts). The shells used to carry zero <img> tags,
+// so service and guide pages were invisible to image search and every share
+// card fell back to the generic og-cover. Pointing the shell at the exact URL
+// the hydrated page loads means the browser reuses it rather than paying for a
+// second download. Dimensions are read once so the tag ships width/height.
+const categoryHeroSource = readFileSync(join(root, 'src/data/categoryHeroImages.ts'), 'utf8');
+const categoryHeroImage = Object.fromEntries(
+  [...categoryHeroSource.matchAll(/^\s+(\w+):\s*'(\/[^']+\.webp)'/gm)].map((match) => [match[1], match[2]]),
+);
+const imageSize = {};
+try {
+  const { default: sharp } = await import('sharp');
+  for (const path of new Set(Object.values(categoryHeroImage))) {
+    const { width, height } = await sharp(join(root, 'public', path)).metadata();
+    if (width && height) imageSize[path] = { width, height };
+  }
+} catch {
+  // sharp unavailable or a file missing: ship the tags without dimensions
+  // rather than failing the build.
+}
+
+// Looser than the serviceCategory regex above, which skips entries carrying
+// extra flags (e.g. `onRequest: true`) before their title.
+const categoryOfService = Object.fromEntries(
+  [...servicesSource.matchAll(/\{ id: '([^']+)',\s+category: '([^']+)'/g)].map((match) => [match[1], match[2]]),
+);
+
+function heroImageFor(serviceId, guideId) {
+  const path = serviceId ? categoryHeroImage[categoryOfService[serviceId]] : guideId ? categoryHeroImage[guideId] : undefined;
+  return path ? { path, url: `${SITE_URL}${path}`, ...imageSize[path] } : null;
+}
 // Plain catalog name (e.g. "إقامة سياحية"), not the SEO title (which carries
 // a "| رفيق" brand suffix and would read oddly interpolated mid-sentence).
 function catalogTitle(lang, id) {
@@ -422,7 +456,7 @@ function renderServiceTopicsSections(lang, id, serviceTitle) {
 const staticMeta = {
   '/': (lang) => ({
     title: `${text(lang, 'common.appName')} — ${text(lang, 'home.heroTitle')}`,
-    description: text(lang, 'home.heroSubtitle'),
+    description: text(lang, 'seo.homeDescription'),
     content: text(lang, 'home.heroSubtitle'),
   }),
   '/services': (lang) => ({
@@ -432,12 +466,12 @@ const staticMeta = {
   }),
   '/news': (lang) => ({
     title: `${text(lang, 'home.news.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'home.news.eyebrow'),
-    content: `${text(lang, 'home.news.title')} — ${text(lang, 'home.news.eyebrow')}`,
+    description: text(lang, 'seo.newsDescription'),
+    content: text(lang, 'seo.newsDescription'),
   }),
   '/real-estate': (lang) => ({
     title: `${text(lang, 'realEstate.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'realEstate.subtitle'),
+    description: text(lang, 'seo.realEstateDescription'),
     content: text(lang, 'realEstate.subtitle'),
   }),
   '/health-tourism': (lang) => ({
@@ -447,7 +481,7 @@ const staticMeta = {
   }),
   '/tricks': (lang) => ({
     title: `${text(lang, 'tricks.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'tricks.subtitle'),
+    description: text(lang, 'seo.tricksDescription'),
     content: text(lang, 'tricks.subtitle'),
   }),
   // `referrals.lead`, not `referrals.subtitle`: the key was renamed when the
@@ -456,12 +490,12 @@ const staticMeta = {
   // had to invent its own snippet. check-seo-build.mjs catches this now.
   '/referrals': (lang) => ({
     title: `${text(lang, 'referrals.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'referrals.lead'),
+    description: text(lang, 'seo.referralsDescription'),
     content: text(lang, 'referrals.lead'),
   }),
   '/terms': (lang) => ({
     title: `${text(lang, 'legal.terms.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'legal.terms.body').split(/\n+/)[0],
+    description: text(lang, 'seo.termsDescription'),
     content: text(lang, 'legal.terms.body').split(/\n+/)[0],
   }),
   '/privacy': (lang) => ({
@@ -471,8 +505,10 @@ const staticMeta = {
   }),
   '/refund': (lang) => ({
     title: `${text(lang, 'legal.refund.title')} — ${text(lang, 'common.appName')}`,
-    description: text(lang, 'legal.refund.body').split(/\n+/)[0],
-    content: text(lang, 'legal.refund.body').split(/\n+/)[0],
+    // The refund body opens with a bare "last updated" line, which made a
+    // useless snippet and quick-answer paragraph.
+    description: text(lang, 'seo.refundDescription'),
+    content: text(lang, 'seo.refundDescription'),
   }),
   '/faq': (lang) => ({
     title: faqHub[lang].seoTitle,
@@ -1239,7 +1275,12 @@ function buildHtml(template, lang, route, meta) {
   const comparisonMatch = route.match(/^\/compare\/([^/]+)$/);
   const comparison = comparisonMatch ? comparisons[comparisonMatch[1]]?.[lang] : undefined;
   const serviceBodyHtml = serviceMatch && meta.body ? renderServiceBody(meta.body) : '';
-  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n        ${serviceBodyHtml}\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
+  const heroImage = heroImageFor(serviceMatch?.[1], guideMatch?.[1]);
+  const heroImageSize = heroImage?.width ? ` width="${heroImage.width}" height="${heroImage.height}"` : '';
+  const heroImageHtml = heroImage
+    ? `\n        <img src="${escapeHtml(heroImage.path)}" alt="${escapeHtml(meta.title)}"${heroImageSize} decoding="async" />`
+    : '';
+  let staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">\n      <article aria-labelledby="seo-title">\n        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>${heroImageHtml}\n        <section aria-labelledby="seo-answer-heading">\n          <h2 id="seo-answer-heading">${escapeHtml(answerHeading)}</h2>\n          <p>${escapeHtml(meta.content || meta.description)}</p>\n        </section>\n        ${serviceBodyHtml}\n      </article>\n      <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>\n      ${priorityLinksHtml}\n    </main>`;
   const siteJsonLd = escapeJsonForHtml(siteEntityJsonLd(lang));
   const faqItems = route === '/'
     ? homeFaqItems(lang)
@@ -1283,6 +1324,7 @@ function buildHtml(template, lang, route, meta) {
         name: meta.title,
         description: meta.description,
         serviceType: meta.title,
+        ...(heroImage ? { image: heroImage.url } : {}),
         provider: { '@id': `${SITE_URL}/#organization` },
         areaServed: { '@type': 'City', name: 'Istanbul' },
         inLanguage: lang,
@@ -1316,7 +1358,7 @@ function buildHtml(template, lang, route, meta) {
         </section>`).join('');
       staticMain = `\n    <main id="seo-fallback" lang="${lang}" dir="${rtl ? 'rtl' : 'ltr'}">
       <article aria-labelledby="seo-title">
-        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>
+        <h1 id="seo-title">${escapeHtml(meta.title)}</h1>${heroImageHtml}
         <p>${escapeHtml(meta.content || meta.description)}</p>${sectionHtml}${renderFaqHtml(guideFaqItems, lang)}
       </article>
       <nav aria-label="${escapeHtml(text(lang, 'nav.home'))}">${nav}</nav>
@@ -1514,6 +1556,15 @@ function buildHtml(template, lang, route, meta) {
     url,
     inLanguage: lang,
     dateModified,
+    ...(heroImage
+      ? {
+          primaryImageOfPage: {
+            '@type': 'ImageObject',
+            url: heroImage.url,
+            ...(heroImage.width ? { width: heroImage.width, height: heroImage.height } : {}),
+          },
+        }
+      : {}),
     ...identityRefs,
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#organization` },
@@ -1532,6 +1583,10 @@ function buildHtml(template, lang, route, meta) {
   html = upsertTag(html, /<meta\s+property="og:description"[^>]*>/i, `<meta property="og:description" content="${escapeHtml(meta.description)}" />`);
   html = upsertTag(html, /<meta\s+name="twitter:title"[^>]*>/i, `<meta name="twitter:title" content="${escapeHtml(meta.title)}" />`);
   html = upsertTag(html, /<meta\s+name="twitter:description"[^>]*>/i, `<meta name="twitter:description" content="${escapeHtml(meta.description)}" />`);
+  if (heroImage) {
+    html = upsertTag(html, /<meta\s+property="og:image"[^>]*>/i, `<meta property="og:image" content="${escapeHtml(heroImage.url)}" />`);
+    html = upsertTag(html, /<meta\s+name="twitter:image"[^>]*>/i, `<meta name="twitter:image" content="${escapeHtml(heroImage.url)}" />`);
+  }
   html = upsertTag(html, /<link\s+rel="canonical"[^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}" />`);
   html = html.replace(/\s*<link\s+rel="alternate"[^>]*hreflang="(?:ar|en|ru|fa|x-default)"[^>]*>\s*/gi, '\n');
   html = html.replace('</head>', `${alternateTags}\n    ${keywordTag}\n    <script id="ld-organization" type="application/ld+json">${siteJsonLd}</script>\n    ${serviceJsonLd ? `<script id="ld-service" type="application/ld+json">${serviceJsonLd}</script>` : ''}
@@ -1578,6 +1633,22 @@ for (const url of urls) {
 }
 
 console.log(`Generated ${generated} route-specific SEO HTML shells under ${relative(root, resolve(dist))}.`);
+
+// dist/404.html — Vercel serves this file, WITH a real 404 status, for any
+// URL that is neither a static file nor matched by a vercel.json rewrite.
+// Those rewrites used to catch every path and answer 200 with the app shell,
+// so a mistyped or dead URL was a soft 404 that Google could index as an empty
+// duplicate page. They now list the app's own route prefixes instead (see
+// spaRewrites.test.ts), and everything else lands here. The React app still
+// boots on this page and renders NotFound, so visitors see the normal site.
+{
+  let notFound = template;
+  notFound = notFound.replace(/<title>[^<]*<\/title>/i, '<title>404 — الصفحة غير موجودة · Page not found — Rafiq Istanbul</title>');
+  notFound = upsertTag(notFound, /<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex" />');
+  notFound = notFound.replace(/\s*<link\s+rel="canonical"[^>]*>/i, '');
+  writeFileSync(join(dist, '404.html'), notFound, 'utf8');
+  console.log('Generated 404.html (noindex).');
+}
 
 // /llms-full.txt — the whole service catalog and every guide as one Markdown
 // document (llmstxt.org's "full" companion to /llms.txt). ChatGPT/Claude/

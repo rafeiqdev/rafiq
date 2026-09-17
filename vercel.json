@@ -60,7 +60,11 @@
       "destination": "/api/render/news-article?lang=:lang&id=:id"
     },
     {
-      "source": "/((?!api/|assets/|scene/|.*\\..*).*)",
+      "source": "/:lang(ar|en|ru|fa)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/:section(r|auth|reset-password|premium|chat|help|services|guides|compare|faq|about|contact|map|referrals|wallet|real-estate|health-tourism|medical-request|tricks|news|profile|onboarding|home|journey|account|requests|offers|companies|company|notifications|admin|terms|privacy|refund)/:rest*",
       "destination": "/index.html"
     }
   ],

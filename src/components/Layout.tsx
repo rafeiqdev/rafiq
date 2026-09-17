@@ -261,7 +261,7 @@ export function Layout() {
   // of the pre-existing per-page effects in Journey/MapPage/Onboarding/
   // UserHome). Steps aside automatically when a page already claimed these —
   // see useFallbackMeta's doc comment in src/lib/seo.ts for why that matters.
-  useFallbackMeta(`${t('common.appName')} — ${t('common.tagline')}`, t('home.heroSubtitle'));
+  useFallbackMeta(`${t('common.appName')} — ${t('common.tagline')}`, t('seo.homeDescription'));
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {

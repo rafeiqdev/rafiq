@@ -106,7 +106,7 @@ export function MobileHome() {
 
   usePageMeta({
     title: `${t('common.appName')} — ${t('home.heroTitle')}`,
-    description: t('home.heroSubtitle'),
+    description: t('seo.homeDescription'),
   });
 
   // Exact same forgiving-match predicate as desktop Home.tsx: normalize, then

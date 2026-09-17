@@ -34,7 +34,7 @@ export function News() {
 
   usePageMeta({
     title: `${t('home.news.title')} — ${t('common.appName')}`,
-    description: t('home.news.eyebrow'),
+    description: t('seo.newsDescription'),
   });
 
   const date = (p: NewsPost) => new Date(p.createdAt).toLocaleDateString(i18n.language, { dateStyle: 'medium' });

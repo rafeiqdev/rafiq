@@ -53,7 +53,7 @@ export function RealEstate() {
 
   usePageMeta({
     title: `${t('realEstate.title')} — ${t('common.appName')}`,
-    description: t('realEstate.subtitle'),
+    description: t('seo.realEstateDescription'),
     image: `${SITE_URL}${BANNERS.realEstate}`,
   });
 

@@ -8,7 +8,7 @@ import { useCatalog } from '../data/catalogStore';
 import { pickText } from '../data/services';
 import { CATEGORY_GUIDES } from '../data/categoryGuides';
 import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
-import { usePageMeta } from '../lib/seo';
+import { SITE_URL, usePageMeta } from '../lib/seo';
 
 function copyFor(language: string) {
   if (language === 'en') {
@@ -123,19 +123,20 @@ export function CategoryGuide() {
   const isRtl = language === 'ar' || language === 'fa';
   const guide = id ? CATEGORY_GUIDES[id]?.[language] : undefined;
   const category = categories.find((item) => item.id === id);
+  const heroImage = id ? CATEGORY_HERO_IMAGE[id] : undefined;
 
   // usePageMeta is a hook, so it has to run on every render — including the
   // ones where the catalog is still loading and `category` is undefined.
   usePageMeta({
     title: guide?.seoTitle ?? copy.notFoundTitle,
     description: guide?.metaDescription ?? copy.notFoundText,
+    image: guide && heroImage ? `${SITE_URL}${heroImage}` : undefined,
   });
 
   if (!guide || !category) return <GuideNotFound />;
 
   const categoryTitle = pickText(category.title, language);
   const related = services.filter((item) => item.category === id);
-  const heroImage = id ? CATEGORY_HERO_IMAGE[id] : undefined;
   const sectionId = (index: number) => `section-${index + 1}`;
   // The Q&A already visible on the page, marked up so search engines can show
   // it as a rich result instead of guessing at it.

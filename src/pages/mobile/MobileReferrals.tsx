@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Share2, Copy, Check, Wallet, ArrowUpRight, LogIn } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { usePageMeta } from '../../lib/seo';
 import { referrals } from '../../lib/api';
 import type { ReferralStats } from '../../lib/api';
 import { BackArrow } from '../../components/AppIcon';
@@ -40,6 +41,7 @@ const EMPTY: ReferralStats = {
 
 export function MobileReferrals() {
   const { t, i18n } = useTranslation();
+  usePageMeta({ title: `${t('referrals.title')} — ${t('common.appName')}`, description: t('seo.referralsDescription') });
   const { user } = useApp();
   const navigate = useNavigate();
   const [stats, setStats] = useState<ReferralStats>(EMPTY);

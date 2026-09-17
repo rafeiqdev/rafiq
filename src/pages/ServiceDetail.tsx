@@ -12,7 +12,7 @@ import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
 import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
 import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
 import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
-import { usePageMeta } from '../lib/seo';
+import { SITE_URL, usePageMeta } from '../lib/seo';
 import { track } from '../lib/analytics';
 import { HAS_WHATSAPP, whatsappHref } from '../lib/contact';
 
@@ -278,7 +278,13 @@ export function ServiceDetail() {
   // Returning <ServiceNotFound /> before this call (as before) changed the
   // hook count between renders and crashed with React error #300 whenever
   // that happened (e.g. tour-vip while overrides were loading/hiding it).
-  usePageMeta({ title: seoTitle, description: seoDescription, noindex: !service });
+  usePageMeta({
+    title: seoTitle,
+    description: seoDescription,
+    noindex: !service,
+    // An admin-set photo can already be an absolute (storage) URL.
+    image: heroImage ? (/^https?:\/\//.test(heroImage) ? heroImage : `${SITE_URL}${heroImage}`) : undefined,
+  });
 
   // This page is where paid traffic lands, so opening it is the ViewContent
   // that campaigns build audiences from. It fires once per service, after the

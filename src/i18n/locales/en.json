@@ -3568,5 +3568,14 @@
     "partnerResponses": "Additional Verified Partner Quotes ({{count}})",
     "responsesError": "Could not load partner quotes. Some may be missing.",
     "viewPhoto": "View full size"
+  },
+  "seo": {
+    "homeDescription": "Rafiq Istanbul helps foreigners with residency, banking, housing, health, translation and daily life in Istanbul — in your language, start to finish.",
+    "newsDescription": "Istanbul and Türkiye news that matters to foreigners: residence and migration decisions, banking and official-procedure changes, and daily life, in plain words.",
+    "realEstateDescription": "Selected Istanbul property listings marked as meeting the Turkish citizenship threshold or unverified, with Rafiq beside you for viewings and contracts.",
+    "tricksDescription": "Insider apps and shortcuts that make daily life in Istanbul easier: official paperwork and residence, transport, money and connectivity, leisure and services.",
+    "referralsDescription": "Invite friends to Rafiq Istanbul with your personal link and earn wallet credit for everyone who signs up and completes a paid service with Rafiq.",
+    "termsDescription": "Rafiq Istanbul terms of use: who we are as an independent guidance service, accounts and subscriptions, our services, liability limits and the governing law.",
+    "refundDescription": "Rafiq Istanbul refund policy: when service fees are refunded in full or in part depending on the stage, why government fees are not, and how to request one."
   }
 }

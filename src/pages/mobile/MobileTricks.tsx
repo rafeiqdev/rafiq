@@ -7,6 +7,7 @@ import { IstanbulCityGuide } from '../../components/IstanbulCityGuide';
 import { IstanbulHeroFacts } from '../../components/IstanbulHeroFacts';
 import { ComingSoon } from '../../components/ComingSoon';
 import { BANNERS } from '../../lib/images';
+import { usePageMeta } from '../../lib/seo';
 import { useApp } from '../../context/AppContext';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import { TRICK_CATEGORIES, TRICK_ICONS, TRICKS_PAGE_READY } from '../Tricks';
@@ -66,6 +67,7 @@ function TrickCard({ id, index }: { id: TrickSlug; index: number }) {
 
 export function MobileTricks() {
   const { t, i18n } = useTranslation();
+  usePageMeta({ title: `${t('tricks.title')} — ${t('common.appName')}`, description: t('seo.tricksDescription') });
   const navigate = useNavigate();
   const { user } = useApp();
 

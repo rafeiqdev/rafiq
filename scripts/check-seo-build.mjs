@@ -120,6 +120,17 @@ for (const url of urls) {
   if (/^\/services\/[^/]+$/.test(info.route) && !readJsonLd(html, 'ld-service')) {
     errors.push(`Service schema is missing: ${url}`);
   }
+  // Service and guide shells carry their category hero photo — zero <img>
+  // tags site-wide left them invisible to image search.
+  if (/^\/(services|guides)\/[^/]+$/.test(info.route) && !/<main id="seo-fallback"[\s\S]*?<img src="\/[^"]+" alt="[^"]+"/.test(html)) {
+    errors.push(`Hero image missing from pre-rendered HTML: ${url}`);
+  }
+  // Meta descriptions under ~120 characters are what Bing flagged as "too
+  // short" across most Arabic and Persian pages.
+  const metaDescription = html.match(/<meta name="description" content="([^"]*)"/i)?.[1] ?? '';
+  if ([...metaDescription].length < 120) {
+    errors.push(`Meta description shorter than 120 characters (${[...metaDescription].length}): ${url}`);
+  }
   if (/^\/compare\/[^/]+$/.test(info.route) && (!readJsonLd(html, 'ld-faq') || (html.match(/<details>/g) ?? []).length === 0)) {
     errors.push(`Comparison FAQ schema/content is incomplete: ${url}`);
   }
@@ -144,6 +155,11 @@ for (const url of urls) {
 const expectedUrlCount = langs.length * (STATIC_ROUTE_COUNT + categoryIds.length + serviceIds.length + COMPARISON_IDS.length);
 if (urls.length !== expectedUrlCount) {
   errors.push(`Unexpected sitemap URL count: ${urls.length} (expected ${expectedUrlCount} = ${langs.length} langs × (${STATIC_ROUTE_COUNT} static + ${categoryIds.length} guides + ${serviceIds.length} services + ${COMPARISON_IDS.length} comparisons))`);
+}
+// Unknown URLs get this file with a real 404 status (see vercel.json rewrites).
+const notFoundFile = join(dist, '404.html');
+if (!existsSync(notFoundFile) || !/<meta name="robots" content="noindex"/.test(readFileSync(notFoundFile, 'utf8'))) {
+  errors.push('dist/404.html is missing or not noindex');
 }
 const robots = readFileSync(join(root, 'public/robots.txt'), 'utf8');
 const sitemapDirective = robots.match(/^Sitemap:\s*(\S+)$/im)?.[1];

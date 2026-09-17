@@ -172,7 +172,7 @@ export function MobileNews() {
 
   usePageMeta({
     title: `${t('home.news.title')} — ${t('common.appName')}`,
-    description: t('home.news.eyebrow'),
+    description: t('seo.newsDescription'),
   });
 
   // Localised relative time ("42 minutes ago"), falling back to an absolute date
