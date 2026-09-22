@@ -653,7 +653,8 @@
     "continue": "Continue",
     "changeEmail": "Use a different email",
     "emailSubtitle": "Enter your email to sign in or create your account.",
-    "googleOnlyNotice": "This email is registered with Google. Use the button above to sign in."
+    "googleOnlyNotice": "This email is registered with Google. Use the button above to sign in.",
+    "trust": "Your trusted companion in Istanbul — services, guidance and support in one place."
   },
   "checkout": {
     "title": "Checkout",

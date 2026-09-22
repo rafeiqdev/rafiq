@@ -183,14 +183,48 @@ export function Auth() {
     }
   };
 
+  // ── Shared visual tokens for the immersive navy sign-in shell ──
+  // Inputs/buttons here live on a dark glass card, so they can't reuse the
+  // light-surface `.input` / `.btn-*` classes; these are their dark twins.
+  const field =
+    'w-full h-11 px-4 rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/40 text-sm outline-none transition focus:border-white/50 focus:ring-2 focus:ring-white/20 focus:bg-white/[0.14]';
+  const labelCls = 'text-xs font-semibold text-white/70';
+  const btnPrimary =
+    'w-full h-11 rounded-full bg-white text-navy font-semibold text-sm shadow-lg transition hover:bg-cream active:translate-y-px disabled:opacity-60 disabled:pointer-events-none';
+  const btnGlass =
+    'w-full h-11 rounded-full flex items-center justify-center gap-2 bg-white/10 border border-white/15 text-white font-medium text-sm transition hover:bg-white/20 disabled:opacity-60 disabled:pointer-events-none';
+  const linkBtn =
+    'text-xs text-white/70 underline-offset-2 hover:text-white hover:underline transition';
+
+  // Soft brand-navy glows behind the card — the "stunning" depth of the shell.
+  const backdrop = (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-navy-light/40 blur-3xl" />
+      <div className="absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-navy/60 blur-3xl" />
+      <div className="absolute -bottom-40 left-1/4 h-96 w-96 rounded-full bg-navy-light/20 blur-3xl" />
+    </div>
+  );
+
+  const shell = 'relative min-h-[calc(100vh-4rem)] w-full flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-navy-dark via-navy to-navy-dark px-4 py-16';
+  const card =
+    'relative z-10 w-full max-w-sm rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-xl shadow-2xl p-8';
+  const logoBadge = (
+    <div className="flex justify-center mb-5">
+      <div className="inline-flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 px-5 py-3 shadow-lg">
+        <Logo size={30} variant="white" />
+      </div>
+    </div>
+  );
+
   if (user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-20">
-        <div className="card p-8 text-center">
-          <Logo size={64} />
-          <p className="mt-4 text-sm text-gray-500">{t('auth.signedInAs')}</p>
-          <p className="font-bold text-navy break-all">{user.email}</p>
-          <button onClick={() => signOut()} className="btn-secondary w-full mt-6">
+      <div className={shell}>
+        {backdrop}
+        <div className={`${card} text-center`}>
+          {logoBadge}
+          <p className="text-sm text-white/60">{t('auth.signedInAs')}</p>
+          <p className="mt-1 font-bold text-white break-all">{user.email}</p>
+          <button onClick={() => signOut()} className={`${btnGlass} mt-6`}>
             {t('common.signOut')}
           </button>
         </div>
@@ -211,13 +245,12 @@ export function Auth() {
     : t('auth.emailSubtitle');
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16">
-      <div className="card p-8">
-        <div className="flex justify-center">
-          <Logo size={64} />
-        </div>
-        <h1 className="mt-4 text-2xl font-extrabold text-navy text-center">{title}</h1>
-        <p className="mt-2 text-sm text-gray-500 text-center">{subtitle}</p>
+    <div className={shell}>
+      {backdrop}
+      <div className={card}>
+        {logoBadge}
+        <h1 className="text-2xl font-extrabold text-white text-center">{title}</h1>
+        <p className="mt-2 text-sm text-white/60 text-center">{subtitle}</p>
 
         {(step === 'email' || step === 'googleOnly') && (
           <>
@@ -225,17 +258,17 @@ export function Auth() {
               type="button"
               onClick={continueWithGoogle}
               disabled={busy}
-              className="btn-secondary w-full mt-6 disabled:opacity-60"
+              className={`${btnGlass} mt-6`}
             >
               <GoogleMark />
               {t('auth.google')}
             </button>
 
             {step === 'email' && (
-              <div className="my-5 flex items-center gap-3 text-xs text-gray-500">
-                <div className="flex-1 h-px bg-cream-dark" />
+              <div className="my-5 flex items-center gap-3 text-xs text-white/40">
+                <div className="flex-1 h-px bg-white/15" />
                 {t('auth.or')}
-                <div className="flex-1 h-px bg-cream-dark" />
+                <div className="flex-1 h-px bg-white/15" />
               </div>
             )}
           </>
@@ -249,10 +282,10 @@ export function Auth() {
               submitEmail();
             }}
           >
-            <label className="text-xs font-semibold text-navy/70">
+            <label className={labelCls}>
               {t('common.email')}
               <input
-                className="input mt-1"
+                className={`${field} mt-1`}
                 type="email"
                 required
                 value={email}
@@ -262,12 +295,12 @@ export function Auth() {
               />
             </label>
             {error && (
-              <p role="alert" className="amber-note flex items-center gap-2">
+              <p role="alert" className="rounded-xl bg-red-500/15 border border-red-400/30 text-red-200 px-3 py-2 text-sm flex items-center gap-2">
                 <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
                 {t(error)}
               </p>
             )}
-            <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+            <button type="submit" disabled={busy} className={btnPrimary}>
               {t('auth.continue')}
             </button>
           </form>
@@ -282,10 +315,10 @@ export function Auth() {
             }}
           >
             {step === 'register' && (
-              <label className="text-xs font-semibold text-navy/70">
+              <label className={labelCls}>
                 {t('common.name')}
                 <input
-                  className={`input mt-1 ${nameError ? 'border-brand-red ring-1 ring-brand-red' : ''}`}
+                  className={`${field} mt-1 ${nameError ? 'border-red-400 ring-1 ring-red-400' : ''}`}
                   value={name}
                   onChange={(e) => {
                     setName(e.target.value);
@@ -296,7 +329,7 @@ export function Auth() {
                   autoFocus
                 />
                 {nameError && (
-                  <span className="mt-1 flex items-center gap-1 text-xs font-normal text-brand-red">
+                  <span className="mt-1 flex items-center gap-1 text-xs font-normal text-red-300">
                     <AppIcon name="alert-triangle" className="w-3.5 h-3.5 shrink-0" />
                     {t(nameError)}
                   </span>
@@ -304,16 +337,16 @@ export function Auth() {
               </label>
             )}
 
-            <label className="text-xs font-semibold text-navy/70">
+            <label className={labelCls}>
               {t('common.email')}
-              <input className="input mt-1 opacity-70" type="email" value={email} disabled />
+              <input className={`${field} mt-1 opacity-60`} type="email" value={email} disabled />
             </label>
 
             {step === 'register' && (
-              <label className="text-xs font-semibold text-navy/70">
+              <label className={labelCls}>
                 {t('common.phone')}
                 <input
-                  className="input mt-1"
+                  className={`${field} mt-1`}
                   type="tel"
                   required
                   value={phone}
@@ -324,10 +357,10 @@ export function Auth() {
             )}
 
             {step !== 'forgot' && (
-              <label className="text-xs font-semibold text-navy/70">
+              <label className={labelCls}>
                 {t('common.password')}
                 <input
-                  className="input mt-1"
+                  className={`${field} mt-1`}
                   type="password"
                   required
                   minLength={step === 'register' ? 8 : undefined}
@@ -342,7 +375,7 @@ export function Auth() {
                     rules={passwordRules}
                     labels={passwordStrengthLabels}
                     commonlyGuessedLabel={t('auth.strength.commonlyGuessed')}
-                    className="mt-3"
+                    className="mt-3 [&_span]:!text-white/70"
                   />
                 )}
               </label>
@@ -354,24 +387,24 @@ export function Auth() {
                   setStep('forgot');
                   resetMessages();
                 }}
-                className="self-start text-xs text-navy underline-offset-2 hover:underline"
+                className={`self-start ${linkBtn}`}
               >
                 {t('auth.forgot')}
               </button>
             )}
             {notice && (
-              <p role="status" className="rounded-xl bg-brand-blue/60 text-navy text-sm px-3 py-2 flex items-center gap-2">
+              <p role="status" className="rounded-xl bg-white/10 border border-white/15 text-white/90 text-sm px-3 py-2 flex items-center gap-2">
                 <AppIcon name="mail" className="w-4 h-4 shrink-0" />
                 {t(notice)}
               </p>
             )}
             {error && (
-              <p role="alert" className="amber-note flex items-center gap-2">
+              <p role="alert" className="rounded-xl bg-red-500/15 border border-red-400/30 text-red-200 px-3 py-2 text-sm flex items-center gap-2">
                 <AppIcon name="alert-triangle" className="w-4 h-4 shrink-0" />
                 {t(error)}
               </p>
             )}
-            <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-60">
+            <button type="submit" disabled={busy} className={btnPrimary}>
               {step === 'signin' ? t('common.signIn') : step === 'register' ? t('common.register') : t('auth.reset.send')}
             </button>
           </form>
@@ -383,7 +416,7 @@ export function Auth() {
               setStep('signin');
               resetMessages();
             }}
-            className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
+            className={`mt-4 w-full text-center ${linkBtn}`}
           >
             {t('auth.reset.backToSignIn')}
           </button>
@@ -391,11 +424,17 @@ export function Auth() {
         {(step === 'signin' || step === 'register' || step === 'googleOnly') && (
           <button
             onClick={changeEmail}
-            className="mt-4 w-full text-center text-sm text-navy underline-offset-2 hover:underline"
+            className={`mt-4 w-full text-center ${linkBtn}`}
           >
             {t('auth.changeEmail')}
           </button>
         )}
+      </div>
+
+      {/* Honest trust line in the reference's "social proof" slot — no invented
+          user counts or stock avatars (Rafiq is a real, small brand). */}
+      <div className="relative z-10 mt-8 w-full max-w-sm text-center">
+        <p className="text-xs leading-relaxed text-white/50">{t('auth.trust')}</p>
       </div>
     </div>
   );
