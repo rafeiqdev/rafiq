@@ -6,6 +6,7 @@ import type { ServiceType } from '../data/services';
 import { useCatalog } from '../data/catalogStore';
 import { AppIcon } from '../components/AppIcon';
 import { ExpandableServiceCard } from '../components/ExpandableServiceCard';
+import { ServiceSearchBox } from '../components/ServiceSearchBox';
 import { usePageMeta } from '../lib/seo';
 import { track, normalizeSearchQuery } from '../lib/analytics';
 
@@ -159,15 +160,14 @@ export function Services() {
       {/* search */}
       <div className="mt-6 flex gap-2 max-w-xl mx-auto">
 
-        <div className="relative flex-1">
-          <span className="absolute inset-y-0 start-3 flex items-center text-navy/40">
-            <AppIcon name="search" className="w-4 h-4" />
-          </span>
-          <input
-            className="input ps-9"
-            placeholder={t('services.searchPlaceholder')}
+        <div className="relative z-20 flex-1">
+          <ServiceSearchBox
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={setQuery}
+            lang={lang}
+            inputClassName="input ps-9"
+            iconClassName="start-3"
+            placeholderClassName="ps-9 pe-4 text-sm"
           />
         </div>
       </div>

@@ -6,6 +6,7 @@ import type { ServiceType } from '../../data/services';
 import { useCatalog } from '../../data/catalogStore';
 import { AppIcon } from '../../components/AppIcon';
 import { ExpandableServiceCard } from '../../components/ExpandableServiceCard';
+import { ServiceSearchBox } from '../../components/ServiceSearchBox';
 import { usePageMeta } from '../../lib/seo';
 import { track, normalizeSearchQuery } from '../../lib/analytics';
 import { MobileTabBar } from '../../components/MobileTabBar';
@@ -110,15 +111,14 @@ export function MobileServices() {
 
         <div className="px-5 pt-5">
           {/* ── Search ── */}
-          <div className="animate-fade-up relative">
-            <span className="pointer-events-none absolute inset-y-0 start-3.5 flex items-center text-navy/40">
-              <AppIcon name="search" className="h-4.5 w-4.5" />
-            </span>
-            <input
-              className="input h-[50px] w-full ps-11 text-base"
-              placeholder={t('services.searchPlaceholder')}
+          <div className="animate-fade-up relative z-20">
+            <ServiceSearchBox
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={setQuery}
+              lang={lang}
+              inputClassName="input h-[50px] w-full ps-11 text-base"
+              iconClassName="start-3.5"
+              placeholderClassName="ps-11 pe-4 text-[15px]"
             />
           </div>
 
