@@ -146,7 +146,6 @@ function buildPins(variant: Variant): Pin[] {
 }
 
 export function BestOfferSearching({
-  serviceName,
   officeCount = 134,
   onTrack,
   onBack,
@@ -468,46 +467,6 @@ export function BestOfferSearching({
             >
               {t('bestOffer.successTitle')}
             </h2>
-            <p
-              style={{
-                margin: '0 auto',
-                maxWidth: isPhone ? 320 : 460,
-                fontSize: isPhone ? 'clamp(14px,3.9vw,16px)' : 'clamp(15px,1.9vw,19px)',
-                color: 'rgba(26,58,107,0.7)',
-                lineHeight: 1.7,
-              }}
-            >
-              {t('bestOffer.successSub', { service: serviceName })}
-            </p>
-            <p
-              style={{
-                margin: isPhone ? '8px 0 0' : '10px 0 0',
-                fontSize: isPhone ? 'clamp(12px,3.4vw,13px)' : 'clamp(13px,1.6vw,15px)',
-                color: NAVY,
-                fontWeight: 700,
-              }}
-            >
-              {t('requests.reassurance.sla')}
-            </p>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: isPhone ? 8 : 10,
-                marginTop: isPhone ? 14 : 'clamp(12px,2vh,20px)',
-                padding: isPhone ? '9px 14px' : '10px 18px',
-                borderRadius: 999,
-                background: '#eafaf0',
-                border: '1px solid rgba(37,211,102,0.4)',
-              }}
-            >
-              <svg width={isPhone ? 16 : 18} height={isPhone ? 16 : 18} viewBox="0 0 24 24" fill="#25d366" style={{ flex: 'none' }}>
-                <path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1-.4-.1-.9-.3-1.6-.6-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 .9-2.2.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5.2.6.8 2 .9 2.1.1.1.1.3 0 .5-.1.2-.2.3-.3.5l-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1.2-.2.7-.8.9-1.1.2-.3.4-.2.6-.1.2.1 1.5.7 1.7.9.2.1.4.2.4.3.1.1.1.6-.1 1.2Z" />
-              </svg>
-              <span style={{ fontSize: isPhone ? 'clamp(12px,3.4vw,14px)' : 'clamp(13px,1.6vw,16px)', color: '#12603a', fontWeight: 600 }}>
-                {t('bestOffer.whatsapp')}
-              </span>
-            </div>
             <div
               style={{
                 display: 'flex',
@@ -606,11 +565,6 @@ export function BestOfferSearching({
         {!done && (
           <button onClick={skip} style={chipButton}>
             {t('bestOffer.skip')}
-          </button>
-        )}
-        {done && (
-          <button onClick={start} style={chipButton}>
-            {t('bestOffer.replay')}
           </button>
         )}
       </div>
