@@ -652,7 +652,7 @@
 
 .esc-choice-panel h3 {
   max-width: 270px;
-  margin: 6px 0 18px;
+  margin: 6px 0 12px;
   color: var(--esc-navy);
   font-size: 19px;
   font-weight: 600;
@@ -661,15 +661,16 @@
 
 .esc-choice {
   width: 100%;
-  min-height: 90px;
-  margin-top: 10px;
-  padding: 12px;
+  min-height: 68px;
+  margin-top: 8px;
+  padding: 9px 10px;
   border: 1px solid #dce7f5;
-  border-radius: 19px;
+  border-radius: 16px;
   display: grid;
-  grid-template-columns: 48px 1fr 32px;
+  grid-template-columns: 38px 1fr 28px;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
+  text-decoration: none;
   background: #f7faff;
   color: var(--esc-ink);
   text-align: start;
@@ -681,9 +682,9 @@
 .esc-choice-human { background: #fff; }
 
 .esc-choice-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 15px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   background: var(--esc-navy);
@@ -691,6 +692,10 @@
 }
 
 .esc-choice-human .esc-choice-icon { background: #e9f2ff; color: var(--esc-navy); }
+.esc-choice-whatsapp { background: #fff; }
+.esc-choice-whatsapp .esc-choice-icon { background: #25d366; color: white; }
+.esc-choice-whatsapp .esc-choice-icon svg { fill: currentColor; stroke: none; }
+.esc-choice-whatsapp .esc-choice-label { background: #dcf8e7; color: #128c4a; }
 .esc-choice-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 
 .esc-choice-label {
@@ -703,11 +708,12 @@
   font-weight: 900;
 }
 
-.esc-choice-copy strong { color: var(--esc-navy); font-size: 14px; }
+.esc-choice-copy strong { color: var(--esc-navy); font-size: 13px; line-height: 1.3; }
 .esc-choice-copy small { color: #718096; font-size: 10px; }
 
-.esc-choice-arrow { width: 30px; height: 30px; border: 1px solid #dce7f5; border-radius: 10px; background: white; color: var(--esc-navy); }
-.esc-choice-arrow svg { width: 14px; height: 14px; }
+.esc-choice-arrow { width: 28px; height: 28px; border: 1px solid #dce7f5; border-radius: 9px; background: white; color: var(--esc-navy); }
+.esc-choice-arrow svg { width: 13px; height: 13px; }
+.esc-choice-icon svg { width: 17px; height: 17px; }
 
 /* ── transparent government-vs-platform fee table ── */
 .esc-fee-breakdown {
@@ -809,8 +815,8 @@
 
 .esc-back-action {
   width: 100%;
-  margin-top: 13px;
-  padding: 8px;
+  margin-top: 8px;
+  padding: 6px;
   border: 0;
   background: transparent;
   color: #718096;

@@ -10,6 +10,8 @@ import { ServiceRequestModal } from './ServiceRequestModal';
 import { TransparentFeeBreakdown } from './TransparentFeeBreakdown';
 import { annotateGlossaryTerms } from './TermTooltip';
 import { ServiceSharePanel, shareCopy } from './ServiceSharePanel';
+import { WhatsAppIcon } from './WhatsAppButton';
+import { whatsappHref } from '../lib/contact';
 import { track } from '../lib/analytics';
 import type { Lang } from '../lib/types';
 import './ExpandableServiceCard.css';
@@ -111,6 +113,8 @@ export function ExpandableServiceCard({
     track('request_started', { target: service.id, meta: { category: service.category } });
     setShowRequest(true);
   };
+  // Null when no WhatsApp number is configured — the option is then hidden.
+  const waHref = whatsappHref(`${pickText(service.title, lang)} — ${categoryTitle}`);
 
   /**
    * Deep link (`/services?open=<id>`): the dashboard's "افتح الخدمة" lands on
@@ -308,6 +312,28 @@ export function ExpandableServiceCard({
                       <DirArrow className="w-3.5 h-3.5" />
                     </span>
                   </button>
+
+                  {waHref && (
+                    <a
+                      href={waHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="esc-choice esc-choice-whatsapp"
+                      onClick={() => track('whatsapp_clicked', { target: 'service_card_choices', meta: { service: service.id } })}
+                    >
+                      <span className="esc-choice-icon">
+                        <WhatsAppIcon />
+                      </span>
+                      <span className="esc-choice-copy">
+                        <span className="esc-choice-label">{t('serviceAction.choice.whatsapp.badge')}</span>
+                        <strong>{t('serviceAction.choice.whatsapp.label')}</strong>
+                        <small>{t('serviceAction.choice.whatsapp.subtitle')}</small>
+                      </span>
+                      <span className="esc-choice-arrow">
+                        <DirArrow className="w-3.5 h-3.5" />
+                      </span>
+                    </a>
+                  )}
 
                   <button type="button" className="esc-back-action" onClick={() => setMode('detail')}>
                     {t('serviceAction.choice.back')}

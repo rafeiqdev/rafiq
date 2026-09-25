@@ -1319,13 +1319,18 @@
       "title": "How would you like to handle this?",
       "back": "Back to service details",
       "person": {
-        "label": "Get help from a person",
+        "label": "Get help on the website",
         "subtitle": "Our team handles it with you",
         "badge": "Human"
       },
       "ai": {
         "label": "Ask the AI assistant",
         "subtitle": "Chat about this service, instant answers",
+        "badge": "Instant"
+      },
+      "whatsapp": {
+        "label": "Chat with us on WhatsApp",
+        "subtitle": "Message our team directly, quick replies",
         "badge": "Instant"
       }
     }
