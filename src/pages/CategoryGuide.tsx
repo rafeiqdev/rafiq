@@ -9,6 +9,7 @@ import { pickText } from '../data/services';
 import { CATEGORY_GUIDES } from '../data/categoryGuides';
 import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
 import { SITE_URL, usePageMeta } from '../lib/seo';
+import { headlineFrom } from '../lib/headline';
 
 function copyFor(language: string) {
   if (language === 'en') {
@@ -65,18 +66,6 @@ function copyFor(language: string) {
     requestButton: 'اطلب المساعدة',
     browseServices: 'عرض الخدمات المرتبطة',
   };
-}
-
-/**
- * The browser-tab title carries the brand ("… | Rafiq coordination"), which
- * reads like a filename once it sits on the page as a headline. Drop that
- * trailing brand chunk from the visible H1 only — the <title> keeps it.
- */
-function headlineFrom(seoTitle: string): string {
-  const chunks = seoTitle.split(/\s+[|—–-]\s+/).map((part) => part.trim()).filter(Boolean);
-  const isBrand = (part: string) => /rafiq|رفيق|رفیق/i.test(part);
-  while (chunks.length > 1 && isBrand(chunks[chunks.length - 1])) chunks.pop();
-  return chunks.join(' — ') || seoTitle;
 }
 
 /**
@@ -177,7 +166,7 @@ export function CategoryGuide() {
                 // and let the blue gradient carry the header on its own.
                 e.currentTarget.style.display = 'none';
               }}
-              className={`pointer-events-none absolute inset-y-0 h-full w-3/5 object-cover object-center ${
+              className={`pointer-events-none absolute inset-y-0 h-full w-1/2 object-cover object-center opacity-40 sm:w-3/5 sm:opacity-100 ${
                 isRtl ? 'left-0' : 'right-0'
               }`}
             />
@@ -189,17 +178,19 @@ export function CategoryGuide() {
             />
           </>
         )}
-        <div className="relative px-6 py-8 text-white sm:px-9 sm:py-10">
+        <div className="relative px-5 py-6 text-white sm:px-9 sm:py-10">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+            {/* On a phone the icon eats a third of the width the title needs. */}
+            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm sm:flex">
               <AppIcon name={category.icon} className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-gold-light">{copy.guideLabel}</p>
-              <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">{headlineFrom(guide.seoTitle)}</h1>
+              <p className="text-xs font-semibold text-gold-light sm:text-sm">{copy.guideLabel}</p>
+              <h1 className="mt-1 text-xl font-extrabold leading-snug sm:text-3xl sm:leading-tight">{headlineFrom(guide.seoTitle)}</h1>
             </div>
           </div>
-          <p className="mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">{guide.intro}</p>
+          {/* Clamped on a phone only: the full text stays in the page for search engines. */}
+          <p className="mt-3 line-clamp-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-5 sm:line-clamp-none sm:text-base sm:leading-7">{guide.intro}</p>
           <div className="mt-6 flex flex-wrap items-center gap-2.5">
             <button type="button" className="btn-gold" onClick={() => setShowRequest(true)}>
               <AppIcon name="message-circle" className="h-4 w-4" />

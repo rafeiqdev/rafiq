@@ -13,6 +13,7 @@ import { SERVICE_SEO_RU } from '../data/serviceSeoRu';
 import { SERVICE_SEO_FA } from '../data/serviceSeoFa';
 import { CATEGORY_HERO_IMAGE } from '../data/categoryHeroImages';
 import { SITE_URL, usePageMeta } from '../lib/seo';
+import { headlineFrom } from '../lib/headline';
 import { track } from '../lib/analytics';
 import { HAS_WHATSAPP, whatsappHref } from '../lib/contact';
 
@@ -330,7 +331,7 @@ export function ServiceDetail() {
                 // blue gradient shows — never a broken-image icon.
                 e.currentTarget.style.display = 'none';
               }}
-              className={`pointer-events-none absolute inset-y-0 h-full w-3/5 object-cover object-center ${
+              className={`pointer-events-none absolute inset-y-0 h-full w-1/2 object-cover object-center opacity-40 sm:w-3/5 sm:opacity-100 ${
                 isRtl ? 'left-0' : 'right-0'
               }`}
             />
@@ -343,17 +344,19 @@ export function ServiceDetail() {
             />
           </>
         )}
-        <div className="relative px-6 py-8 text-white sm:px-9 sm:py-10">
+        <div className="relative px-5 py-6 text-white sm:px-9 sm:py-10">
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+            {/* On a phone the icon eats a third of the width the title needs. */}
+            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm sm:flex">
               <AppIcon name={service.icon} className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-gold-light">{categoryTitle}</p>
-              <h1 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">{seoTitle}</h1>
+              <p className="text-xs font-semibold text-gold-light sm:text-sm">{categoryTitle}</p>
+              <h1 className="mt-1 text-xl font-extrabold leading-snug sm:text-3xl sm:leading-tight">{headlineFrom(seoTitle)}</h1>
             </div>
           </div>
-          <p className="mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">{seoDescription}</p>
+          {/* Clamped on a phone only: the full text stays in the page for search engines. */}
+          <p className="mt-3 line-clamp-3 max-w-2xl text-sm leading-6 text-white/90 sm:mt-5 sm:line-clamp-none sm:text-base sm:leading-7">{seoDescription}</p>
         </div>
       </header>
 
