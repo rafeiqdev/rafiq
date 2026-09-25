@@ -9,11 +9,12 @@ import { VerifiedBadge } from './ui/verified-badge';
 import { ServiceRequestModal } from './ServiceRequestModal';
 import { TransparentFeeBreakdown } from './TransparentFeeBreakdown';
 import { annotateGlossaryTerms } from './TermTooltip';
+import { ServiceSharePanel, shareCopy } from './ServiceSharePanel';
 import { track } from '../lib/analytics';
 import type { Lang } from '../lib/types';
 import './ExpandableServiceCard.css';
 
-type Mode = 'compact' | 'detail' | 'choices';
+type Mode = 'compact' | 'detail' | 'choices' | 'share';
 
 /** Ported verbatim from the mockup (page.tsx CheckIcon) — the source used its
  * own inline SVGs instead of the site's icon set for this one glyph. */
@@ -189,7 +190,7 @@ export function ExpandableServiceCard({
                 aria-label={t('common.close')}
               />
               <article
-                className={`esc-service-card ${mode === 'choices' ? 'esc-show-choices' : ''}`}
+                className={`esc-service-card ${mode === 'choices' ? 'esc-show-choices' : ''} ${mode === 'share' ? 'esc-show-share' : ''}`}
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
@@ -215,9 +216,21 @@ export function ExpandableServiceCard({
                       {badgeText}
                     </span>
                   </div>
-                  <button type="button" className="esc-detail-close" onClick={closeCard} aria-label={t('common.close')}>
-                    ×
-                  </button>
+                  <div className="esc-toolbar-actions">
+                    <button
+                      type="button"
+                      className="esc-detail-share"
+                      onClick={() => setMode('share')}
+                      aria-label={shareCopy(lang).title}
+                      title={shareCopy(lang).title}
+                      aria-expanded={mode === 'share'}
+                    >
+                      <AppIcon name="share-2" />
+                    </button>
+                    <button type="button" className="esc-detail-close" onClick={closeCard} aria-label={t('common.close')}>
+                      ×
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -300,6 +313,13 @@ export function ExpandableServiceCard({
                     {t('serviceAction.choice.back')}
                   </button>
                 </section>
+
+                <ServiceSharePanel
+                  serviceId={service.id}
+                  title={title}
+                  open={mode === 'share'}
+                  onClose={() => setMode('detail')}
+                />
               </article>
             </div>
           ),
