@@ -70,6 +70,19 @@
       crawlers and social parsers get a truthful URL even before hydration.
       The React SEO bridge repeats this after route changes.
     -->
+    <!-- Refresh used to open at the old offset (often the bottom) and then jump
+         to the top once React mounted. GSAP's ScrollTrigger snapshots
+         history.scrollRestoration when its module loads — before ScrollToTop
+         could set "manual" — and writes that snapshot ("auto") back on every
+         refresh, so the browser kept restoring the previous position on reload.
+         Setting it here, before any bundle runs, makes "manual" the value GSAP
+         captures and keeps the browser from ever restoring a stale offset. -->
+    <script>
+      try {
+        if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+        if (!location.hash) window.scrollTo(0, 0);
+      } catch (_) {}
+    </script>
     <script>
       (function () {
         var origin = "%VITE_BASE_URL%";

@@ -11,6 +11,10 @@ import { NavyShimmerBackground } from "@/components/ui/oceanic-shimmer-navy";
 // Register ScrollTrigger safely in React / browser environment
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+  // ScrollTrigger writes its own scrollRestoration snapshot back on every
+  // refresh; pin it to "manual" so a reload never reopens at the old offset
+  // and then jumps to the top (see the inline script in index.html).
+  ScrollTrigger.clearScrollMemory("manual");
 }
 
 // -------------------------------------------------------------------------
