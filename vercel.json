@@ -45,6 +45,51 @@
       "permanent": false
     },
     {
+      "source": "/:lang(ar|en|ru|fa)/services/tour-vip",
+      "destination": "/:lang/services/tour-airport",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/tr-docs",
+      "destination": "/:lang/services/tr-sworn",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/tr-medical",
+      "destination": "/:lang/services/tr-companion",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/daily-shopping",
+      "destination": "/:lang/services/tr-companion",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/health-doctors",
+      "destination": "/:lang/services/health-hospitals",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/health-appointments",
+      "destination": "/:lang/services/health-hospitals",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/edu-advisory",
+      "destination": "/:lang/services/edu-university",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/biz-restaurant",
+      "destination": "/:lang/services/biz-licenses",
+      "permanent": true
+    },
+    {
+      "source": "/:lang(ar|en|ru|fa)/services/daily-marriage",
+      "destination": "/:lang/services/legal-family",
+      "permanent": true
+    },
+    {
       "source": "/((?!api/|assets/|scene/|ar(?:/|$)|en(?:/|$)|ru(?:/|$)|fa(?:/|$)|.*\\..*).*)",
       "destination": "/ar/$1",
       "permanent": true

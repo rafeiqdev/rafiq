@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
 import { PropertyResidenceCallout, PROPERTY_RESIDENCE_SERVICE_ANCHORS } from '../components/PropertyResidenceCallout';
 import { useCatalog } from '../data/catalogStore';
-import { pickText } from '../data/services';
+import { MERGED_SERVICE_IDS, pickText } from '../data/services';
 import type { ServiceType } from '../data/services';
 import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 import { SERVICE_SEO_EN } from '../data/serviceSeoEn';
@@ -297,6 +297,8 @@ export function ServiceDetail() {
     track('guide_viewed', { target: serviceId, meta: { category: serviceCategory ?? '' } });
   }, [serviceId, serviceCategory]);
 
+  const mergedInto = id ? MERGED_SERVICE_IDS[id] : undefined;
+  if (!service && mergedInto) return <Navigate to={`../${mergedInto}`} relative="path" replace />;
   if (!service) return <ServiceNotFound />;
 
   return (

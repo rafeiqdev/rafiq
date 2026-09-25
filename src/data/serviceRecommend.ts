@@ -49,7 +49,7 @@ const HAS_TO_SERVICES: Record<JourneyTaskKey, string[]> = {
 
 /** Top picks per student stage — these float to the head of the ranked list. */
 const STUDENT_STAGE_TOP: Record<StudentStage, string[]> = {
-  coming: ['edu-advisory', 'edu-university', 'tr-sworn'],
+  coming: ['edu-university', 'tr-sworn', 'edu-denklik'],
   arrived: ['res-student', 'ins-residence', 'bank-account'],
   settled: ['res-renew', 'res-work', 'edu-career'],
 };
@@ -57,7 +57,7 @@ const STUDENT_STAGE_TOP: Record<StudentStage, string[]> = {
 /** The full set of catalog services relevant to a student, richest-first. */
 const STUDENT_BASE: string[] = [
   'res-student', 'ins-student', 'ins-residence', 'bank-account', 'tel-address', 're-rent', 're-contracts',
-  'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-career', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'edu-university', 'edu-denklik', 'edu-tomer', 'edu-career', 'tr-sworn', 'tr-notary',
   'res-foreignid', 'res-tax', 'tel-sim', 'tel-istanbulkart', 'tour-airport', 'daily-moving',
   'res-renew', 'res-work', 'daily-license',
 ];
@@ -138,7 +138,7 @@ const ARRIVED_BASE: string[] = [
   'tel-sim', 'tel-istanbulkart', 'bank-account', 'res-tax', 'res-foreignid', 'tel-address',
   'res-eligibility', 'res-tourist', 'res-work', 'ins-residence', 're-rent', 're-contracts', 'tr-sworn',
   'tr-companion', 'daily-moving', 'tel-utilities', 'legal-ltd', 'acc-monthly', 'legal-consult',
-  'res-family', 'edu-schools', 'ins-family', 'health-doctors', 'daily-reminders',
+  'res-family', 'edu-schools', 'ins-family', 'health-hospitals', 'daily-reminders',
 ];
 
 /** The newcomer basket: reason picks the lead, housing/family re-rank the rest. */
@@ -173,19 +173,19 @@ function recommendForArrived(profile: Profile): string[] {
  */
 const VISITOR_TRIP_TOP: Partial<Record<VisitorTrip, string[]>> = {
   sights: ['tour-daytrips', 'tour-tickets', 'tour-airport'],
-  shopping: ['daily-shopping', 'tour-driver', 'tour-airport'],
+  shopping: ['tr-companion', 'tour-driver', 'tour-airport'],
   nature: ['tour-bosphorus', 'tour-daytrips', 'tour-airport'],
   multicity: ['tour-multicity', 'tour-packages', 'tour-airport'],
-  medical: ['health-tourism', 'tr-medical', 'tour-airport'],
+  medical: ['health-tourism', 'tr-companion', 'tour-airport'],
   family: ['tour-packages', 'tour-daytrips', 'tour-airport'],
 };
 const VISITOR_DEFAULT_TOP = ['tour-airport', 'tour-daytrips', 'tour-hotels'];
 
 /** Every service a visitor might want, across all trip types. */
 const VISITOR_BASE: string[] = [
-  'tour-airport', 'tour-vip', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
-  'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'daily-shopping', 'tr-companion',
-  'health-tourism', 'tr-medical', 'health-hospitals', 'visa-check',
+  'tour-airport', 'tour-daytrips', 'tour-hotels', 'tour-bosphorus', 'tour-multicity',
+  'tour-driver', 'tour-carrental', 'tour-tickets', 'tour-packages', 'tr-companion',
+  'health-tourism', 'health-hospitals', 'visa-check',
 ];
 
 /** The visitor basket: trip type leads, VIP/comfort promote the premium services. */
@@ -193,7 +193,7 @@ function recommendForVisitor(profile: Profile): string[] {
   const tripTop = (profile.visitorTrip && VISITOR_TRIP_TOP[profile.visitorTrip]) || VISITOR_DEFAULT_TOP;
   const serviceLead =
     profile.visitorService === 'vip'
-      ? ['tour-vip', 'tour-driver']
+      ? ['tour-airport', 'tour-driver']
       : profile.visitorService === 'comfort'
         ? ['tour-driver']
         : [];
@@ -209,16 +209,16 @@ const PLANNING_REASON_TOP: Partial<Record<PlanningReason, string[]>> = {
   study: ['edu-university', 'tr-sworn', 'edu-denklik'],
   family: ['res-family', 'tr-sworn', 'edu-schools'],
   business: ['legal-ltd', 'acc-monthly', 're-buy'],
-  retirement: ['re-rent', 'ins-residence', 'health-doctors'],
+  retirement: ['re-rent', 'ins-residence', 'health-hospitals'],
 };
 const PLANNING_DEFAULT_TOP = ['re-rent', 'tr-sworn', 'tour-airport'];
 
 /** Every service a pre-arrival planner might need, across every reason. */
 const PLANNING_BASE: string[] = [
-  'visa-check', 'res-eligibility', 're-rent', 're-contracts', 'tr-sworn', 'tr-notary', 'tr-docs',
+  'visa-check', 'res-eligibility', 're-rent', 're-contracts', 'tr-sworn', 'tr-notary',
   'tour-airport', 'res-tourist', 'res-work', 'res-student', 'res-family', 'ins-residence', 'ins-family',
-  'bank-account', 'tel-sim', 'edu-advisory', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools',
-  'legal-ltd', 'acc-monthly', 'legal-consult', 're-buy', 'health-doctors',
+  'bank-account', 'tel-sim', 'edu-university', 'edu-denklik', 'edu-tomer', 'edu-schools',
+  'legal-ltd', 'acc-monthly', 'legal-consult', 're-buy', 'health-hospitals',
 ];
 
 /** The planner basket: reason picks the lead, family adds schooling/insurance. */
@@ -260,7 +260,7 @@ const RESIDENT_BASE: string[] = [
   'res-renew', 'ins-residence', 'ins-family', 'daily-license', 're-rent', 're-contracts', 're-buy',
   're-management', 're-valuation', 'res-work', 'res-citizenship', 're-citizenship', 'res-eligibility',
   'tel-utilities', 'tel-address', 'acc-monthly', 'acc-consult', 'legal-ltd', 'legal-consult',
-  'health-doctors', 'daily-eldercare', 'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
+  'health-hospitals', 'daily-eldercare', 'tr-companion', 'bank-transfer', 'daily-reminders', 'edu-schools',
 ];
 
 /** The resident basket: nature leads, an explicit plan promotes its services. */

@@ -54,19 +54,20 @@ function renderAt(id: string) {
 // before ServiceDetail's own top-level import of it resolves.
 import { ServiceDetail as TestServiceDetail } from './ServiceDetail';
 import { SERVICES, SERVICE_CATEGORIES } from '../data/services';
+import { SERVICE_SEO_AR } from '../data/serviceSeoAr';
 
 describe('ServiceDetail survives a service disappearing after mount', () => {
   it('renders the service, then falls back to not-found (no crash) when the catalog update hides it', async () => {
-    renderAt('tour-vip');
+    renderAt('tour-driver');
 
-    // First render: static catalog still has tour-vip.
+    // First render: static catalog still has tour-driver.
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument();
 
     // Simulate the admin-overrides fetch resolving and hiding this service —
     // the exact transition that used to throw React error #300.
     act(() => {
       setSnapshot?.({
-        services: SERVICES.filter((s) => s.id !== 'tour-vip'),
+        services: SERVICES.filter((s) => s.id !== 'tour-driver'),
         categories: SERVICE_CATEGORIES,
       });
     });
@@ -74,5 +75,13 @@ describe('ServiceDetail survives a service disappearing after mount', () => {
     await waitFor(() => {
       expect(screen.getByText('الخدمة غير موجودة')).toBeInTheDocument();
     });
+  });
+});
+
+describe('ServiceDetail sends a merged service to the one that absorbed it', () => {
+  it('opens the airport service for the old VIP-reception link', async () => {
+    renderAt('tour-vip');
+    // The page heading is the service's SEO title.
+    expect(await screen.findByRole('heading', { level: 1, name: SERVICE_SEO_AR['tour-airport'].seoTitle })).toBeInTheDocument();
   });
 });

@@ -64,33 +64,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "everything about Visa & entry requirements check"
     ]
   },
-  "edu-advisory": {
-    "seoTitle": "University & program selection advice | Rafiq",
-    "metaDescription": "University and major selection advice for international students in Turkey: Rafiq helps match programs to your background and goals before you apply.",
-    "body": "## Why does choosing the right university and major from the start matter?\n\nChoosing a university and major is not a decision that can easily be corrected after applying. Every Turkish university, whether public or private, sets its own criteria for admitting international students, and these criteria differ in terms of accepted certificates, equivalency of the prior secondary or university certificate, language requirements, and the conditions of the major itself. Choosing a university or major that does not match the student's academic background or career goals can mean wasting an entire application season, or later having to transfer major or university after losing time and effort that could have been saved had the decision been built from the start on accurate and comprehensive information.\n\nThe question of certificate equivalency and the extent to which admission requirements match also varies noticeably between universities, and sometimes between different majors within the same university, which makes applying at random to multiple institutions without prior research a step riskier than it first appears.\n\n## What factors affect choosing the right university and major?\n\n- Prior academic background and its equivalency status: the type of secondary or university certificate the student holds and how well it matches the admission requirements and Turkey's certificate equivalency system\n- Long-term career goals: how closely the chosen major connects to the career path the student aspires to after graduation, and the job opportunities or further study linked to it\n- Language of instruction in the program: some programs are taught entirely in Turkish, others in English or bilingually, which directly affects the language requirements and preparation the student needs\n- Accreditation of the program and university: the extent of official recognition of the program and university within Turkey and abroad, a factor especially important for students planning to work or study in another country later\n\n## Frequently asked questions\n\n**Are admission requirements similar across all Turkish universities?**\nNo. Admission requirements vary significantly between public and private universities, and even between different programs within the same university, in terms of accepted certificates and their equivalency, language requirements, and application procedures.\n\n**Why isn't applying to as many universities as possible the safest option?**\nBecause each application requires time, effort, and meeting different requirements, and applying at random without matching the student's academic background and career goals to each institution's requirements can waste the chance at universities that were actually a better fit, rather than focusing on the most compatible options from the start.",
-    "searchPhrases": [
-      "University & program selection advice in Istanbul",
-      "University & program selection advice for foreigners in Türkiye",
-      "University & program selection advice for Arabs in Istanbul",
-      "requirements for University & program selection advice",
-      "who needs University & program selection advice",
-      "advice on University & program selection advice",
-      "University & program selection advice coordination in Türkiye",
-      "University & program selection advice with a trusted office",
-      "documents needed for University & program selection advice",
-      "University & program selection advice for students and residents",
-      "Arabic support for University & program selection advice",
-      "University & program selection advice details and conditions",
-      "University & program selection advice office in Istanbul",
-      "University & program selection advice for families in Türkiye",
-      "trusted University & program selection advice services",
-      "best place for University & program selection advice in Istanbul",
-      "when you need University & program selection advice",
-      "University & program selection advice with reliable follow-up",
-      "University & program selection advice for newcomers",
-      "everything about University & program selection advice"
-    ]
-  },
   "edu-career": {
     "seoTitle": "Student career services | Rafiq",
     "metaDescription": "CV preparation and finding internships or jobs for students, with guidance on the legal framework governing work by international students in Turkey",
@@ -1037,33 +1010,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "assistance with taxi and transfer choices"
     ]
   },
-  "tour-vip": {
-    "seoTitle": "Airport Meet-and-Greet Reception Assistance",
-    "metaDescription": "VIP airport meet-and-greet service with an escort through arrival procedures and fast-track lanes, available on request.",
-    "body": "## What makes VIP airport reception different?\n\nIstanbul Airport, like other major airports, offers dedicated reception lanes known internationally as \"fast track\" and \"personal meet-and-greet\" services. These lanes were originally designed for business travelers and VIPs, built around the idea of cutting down waiting and walking time inside large, crowded terminal halls.\n\nAt this level of service, a dedicated escort meets the traveler near the arrivals hall and accompanies them through passport control via a dedicated lane that bypasses the regular queues, then continues with them through baggage claim and out of the airport straight to the car. The core idea is for the traveler to pass through as little stopping, searching, and waiting as possible inside a huge building that may be completely unfamiliar to them, especially during peak hours when passport queues can stretch for hours.\n\nThis level differs from a standard pickup in the degree of escort and coordination: instead of waiting at a general meeting point, a dedicated escort follows the traveler's journey from almost the moment of landing until they leave the airport.\n\n## Who is this service suited for?\n\n- Businessmen and businesswomen arriving on a short work trip who need to save time and avoid any unexpected delay or congestion\n- Families traveling with elderly members or people with health needs, where less walking and shorter waits reduce physical strain\n- First-time visitors to Istanbul who don't know the airport layout and don't speak Turkish, making direct escort a reassuring factor in their first moments in a new country\n- Travelers whose trip is part of a packed schedule of meetings or appointments that can't tolerate any delay at passport control\n\n## Frequently asked questions\n\n**Does VIP reception mean bypassing passport and customs procedures?**\nNo. All travelers go through the same official entry procedures into Turkey without exception. What this level provides is an escort and a faster lane within these same procedures, not a way around them.\n\n**Is this service available regardless of my flight or airline?**\nYes, in principle — it's an independent service that relies on prior coordination of your arrival time and details, and it's best to share your flight information with the escort in advance so coordination matches your actual landing time precisely.",
-    "searchPhrases": [
-      "airport meet-and-greet reception assistance",
-      "how to request meet-and-greet reception",
-      "escort from plane to transport guidance",
-      "arrival reception options in Istanbul",
-      "meet-and-assist reception for delegations",
-      "baggage handling meet-and-greet guidance",
-      "reception options for business arrivals",
-      "arrival assistance for special events",
-      "customizing meet-and-greet reception services",
-      "modify meet-and-greet reservation advice",
-      "meet-and-greet cancellation policy information",
-      "arrival document assistance during reception",
-      "group reception arrangements for small delegations",
-      "requesting additional arrival support",
-      "contact support for meet-and-greet queries",
-      "arrival assistance after long flights",
-      "escort to immigration guidance",
-      "how to prepare for airport reception",
-      "language assistance during meet-and-greet",
-      "security and access requirements for reception"
-    ]
-  },
   "tour-daytrips": {
     "seoTitle": "Daily Istanbul Tours — Language Support Options",
     "metaDescription": "Daily tours within Istanbul with a licensed, Arabic-speaking guide, operating within Turkey's legal framework for tourist guiding.",
@@ -1359,60 +1305,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "Apostille requirements for corporate documents abroad",
       "Help preparing documents for notary and apostille",
       "Partner-based notary and apostille service options"
-    ]
-  },
-  "tr-docs": {
-    "seoTitle": "Official Document Translation Assistance",
-    "metaDescription": "Accurate translation of official documents and certificates, with guidance on the specific cases that require a certified sworn translation.",
-    "body": "## When do you need an accurate official translation of your documents?\n\nYou need an accurate official translation in several situations: when submitting documents to a Turkish government office (such as a birth certificate or civil status documents for residence or citizenship procedures), when applying to a Turkish university (such as certificates, diplomas, and their equivalency), or in legal matters such as contracts, powers of attorney, and court cases. In all of these situations, the importance of the translation is not limited to conveying the general meaning — it lies in literal precision regarding names, dates, and legal and administrative terminology.\n\nA simple error in translating an official document — a birth date, a name spelling, or a legal term — may not be a mere passing linguistic slip, but a sufficient reason for the transaction to be rejected, or for causing an unintended legal effect in a contract or power of attorney.\n\n## Important points to know\n\n- Official and legal documents tolerate very little error; a single inaccurate word in a legal term can change the meaning or legal effect of the text\n- Some uses specifically require a notarized sworn translation (such as submission to a government office or a court), while an ordinary accurate translation may suffice for non-official uses such as internal review or an initial understanding of the content\n- Among the most costly errors: a discrepancy between how a name is written in the translated document versus the passport or residence card, errors in date formats, and the use of administrative or legal terms that don't match the Turkish system\n- Having to re-translate a document because of an error discovered late means delaying the transaction, and this can be decisive for deadlines such as university enrollment or court sessions\n\n## Frequently asked questions\n\n**Is a \"linguistically accurate\" translation enough for official acceptance?**\nNot always. Linguistic accuracy is necessary but does not replace official certification when the relevant authority (such as a government office or court) requires a translation issued by a sworn translator and certified by a notary. For non-official uses, an accurate translation without this procedure may be sufficient.\n\n**What are the most common and costly errors in translating official documents?**\nAmong the most common are discrepancies between how names are written in the translated document and the passport, errors in date formats, and inaccurate legal or administrative terminology. These errors can lead to the transaction being rejected and the translation redone, costing extra time and potentially delaying time-sensitive matters.",
-    "searchPhrases": [
-      "Official document translation for birth certificates",
-      "Translate marriage certificate for administrative use",
-      "Translation for visa supporting documents",
-      "Translate university diploma to Turkish or English",
-      "Translate power of attorney and notarized forms",
-      "Translate academic transcripts for applications",
-      "Local translators for company registration papers",
-      "Property deed translation for ownership records",
-      "Translation for embassy and consulate submissions",
-      "Translate divorce certificate for official records",
-      "Translation of vehicle registration documents",
-      "Translating corporate minutes and agreements",
-      "Translation for patent and intellectual property documents",
-      "Translate professional licensing board certificates",
-      "Adoption papers translation for international registration",
-      "How to arrange translation of official letters",
-      "Help with translation of criminal background checks",
-      "Guidance on document formats for translation submissions",
-      "Request translation of medical reports and records",
-      "Support translating documents for work permit applications"
-    ]
-  },
-  "tr-medical": {
-    "seoTitle": "Medical Interpreting & Translation Support",
-    "metaDescription": "Interpreters specialized in medical terminology accompany appointments and translate medical reports, with guidance on why accuracy matters.",
-    "body": "## Why does accurate medical translation matter?\n\nA patient's right to understand what is happening during their treatment is enshrined in Turkish law. The Patient Rights Regulation issued by the Turkish Ministry of Health states that a patient must be provided with sufficient and clear information about the medical procedures being performed or to be performed on them, their reasons, and how they will be carried out, in a manner suited to the patient's physical and psychological condition. This right is not actually realized if the patient does not speak Turkish and has not received an accurate translation of what the doctor says.\n\nMedical translation is not like general translation. A simple error in conveying a medication name, dosage, or diagnosis can change the entire course of treatment. Medical terms carry very precise meanings, and sometimes words sound similar but differ completely in medical meaning. In addition, prior consent forms for treatment contain precise legal and medical details, and understanding them correctly is essential before signing.\n\n## Important points to know\n\n- Healthcare facilities holding an International Health Tourism Authorization Certificate (under the International Health Tourism Regulation in effect since 2017 and later updated) are required to operate a dedicated international patient coordination unit, whose duties include translation during admission, treatment, and discharge, according to specific language standards set out in the law\n- Not every healthcare facility in Turkey holds this authorization, and even facilities that do may not provide Arabic-language coverage specifically at all times or for every specialty\n- Relying on a companion or a relative as an untrained interpreter during a sensitive medical encounter carries real risk: an inaccurate understanding of the doctor's question about symptoms or drug allergies, or of the doctor's explanation of a diagnosis and treatment options, can lead to a medical decision based on incomplete information\n- Accuracy is not limited to the moment of consultation but extends to documents: medical reports, test and imaging results, and follow-up plans after returning to one's country of residence. An inaccurate translation of these documents can confuse any doctor following up later outside Turkey\n\n## Frequently asked questions\n\n**Do all hospitals in Turkey provide an Arabic-speaking staff?**\nNo. The availability of Arabic-speaking staff or translation service varies from one facility to another, and even facilities holding an International Health Tourism authorization are not required to cover Arabic specifically, but rather a minimum level of language support under the regulation's standards.\n\n**Why does medical translation need higher accuracy than ordinary translation?**\nBecause medical terms describe dosages, diagnoses, and procedures that directly affect the patient's health, and any slight distortion in meaning — even one that seems linguistically minor — can translate into a completely different treatment decision.\n\n**What happens if a diagnosis or treatment instructions are conveyed incorrectly?**\nThis can lead to taking a medication at the wrong dose or time, an incomplete understanding of post-operative warnings, or signing consent for a procedure the patient did not fully understand — all situations that show specialized language support is a core part of healthcare safety, not an added luxury.",
-    "searchPhrases": [
-      "Medical interpreter for doctor consultations",
-      "In-person interpreter for emergency department consultations",
-      "Medical interpreter for prenatal and obstetrics care",
-      "Interpreter for oncology consultations and discussions",
-      "In-person interpreter for hospital rounds and stays",
-      "Interpreter for pediatric clinic visits",
-      "Interpreter for surgical consent discussions",
-      "Clinical interpreting for lab results explanations",
-      "Interpreter for rehabilitation and therapy sessions",
-      "Interpreter for dental consultations and procedures",
-      "Interpreter for mental health consultations",
-      "Interpreter for physical therapy follow-ups",
-      "Interpreter to explain medication and discharge notes",
-      "Interpreter for endoscopy and diagnostic procedure explanations",
-      "How to arrange an on-site medical interpreter Istanbul",
-      "Find in-person medical interpreter options near me",
-      "Support finding medical interpreters with clinical experience",
-      "Medical document translation for patient records and reports",
-      "Guidance on medical interpreting for hospital visits",
-      "Assistance to coordinate medical interpreting for clinic visits"
     ]
   },
   "bank-account": {
@@ -1712,60 +1604,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "how to ask about Arabic-speaking nursing staff"
     ]
   },
-  "health-doctors": {
-    "seoTitle": "Arabic-speaking doctors in Istanbul",
-    "metaDescription": "Connecting you with Arabic-speaking doctors officially registered with the Turkish Ministry of Health, with guidance on how to verify their license.",
-    "body": "## What makes a doctor licensed to practice medicine in Turkey?\n\nUnder Law No. 1219 (the Law on the Practice of Medicine and its Branches), no one may practice medicine or treat patients in Turkey unless they hold a certified medical qualification officially registered with the Turkish Ministry of Health. This registration is the legal basis that grants a doctor \"licensed to practice\" status within Turkey — without it, their practice of medicine isn't considered legal, regardless of their academic qualifications.\n\nIn addition, under the professional framework overseen by the Turkish Medical Association (Türk Tabipleri Birliği - TTB), doctors are generally required to register with the medical chamber (Tabip Odası) in the location where they practice, which places them under a formal professional and disciplinary framework.\n\nAs for doctors who obtained their qualifications outside Turkey, a foreign medical diploma does not automatically entitle them to practice medicine in Turkey. They must first complete the \"official equivalency\" (denklik) procedure for that qualification: equivalency of the university degree itself is issued by the Council of Higher Education (YÖK), while equivalency of medical specialty qualifications falls under the General Directorate of Public Health Services at the Ministry of Health. Practicing medicine in Turkey on the basis of a foreign qualification whose equivalency and official registration procedures haven't been completed carries no legal recognition.\n\n## Key points to know\n\n- Within foreign communities, informal networks sometimes circulate recommendations for a \"doctor\" based solely on word-of-mouth reputation or shared nationality, without verifying their official status with the Ministry of Health\n- A doctor's fluency in Arabic doesn't by itself mean they're licensed to practice medicine in Turkey — language is a means of communication, while licensing is an entirely separate legal status issued by the Ministry of Health\n- For a foreign patient unfamiliar with the details of the Turkish health system, it's important to make sure the doctor they're dealing with is officially registered and practicing legally, rather than relying solely on an unverified recommendation\n\n## Frequently asked questions\n\n**Can a doctor who graduated outside Turkey practice medicine there without any additional steps?**\nNo. Their medical qualification must first go through the official equivalency (denklik) process with the competent authorities, then be registered and certified with the Turkish Ministry of Health. Before these steps are completed, a foreign qualification doesn't entitle them to legally practice medicine in Turkey.\n\n**How can I confirm that a particular doctor is actually licensed?**\nThe basic guarantee is that the doctor is officially registered with the Turkish Ministry of Health, which is different from simply hearing a recommendation from acquaintances or relying on the fact that the doctor speaks Arabic. The healthcare institution the doctor works at is usually a reliable reference point for verifying their professional status.",
-    "searchPhrases": [
-      "how to find Arabic-speaking doctor in Istanbul",
-      "where to locate Arabic-speaking specialists Istanbul",
-      "how to contact an Arabic-speaking GP",
-      "find female Arabic-speaking general practitioner Istanbul",
-      "search for Arabic-speaking pediatrician Istanbul",
-      "how to request Arabic-language medical consultation",
-      "telemedicine options with Arabic-speaking doctors",
-      "how to translate medical records into Arabic",
-      "what documents to bring to doctor visit",
-      "how to seek second opinion from Arabic-speaking specialist",
-      "where to find Arabic-speaking dentist Istanbul",
-      "how to find Arabic-speaking psychiatrist options",
-      "how to request referral to Arabic-speaking specialist",
-      "fees and payment questions for Arabic consultations",
-      "how to arrange follow-up appointment in Arabic",
-      "how to prepare for endocrinologist consultation in Arabic",
-      "how to check availability of Arabic-speaking urologist",
-      "how to change preferred doctor language in records",
-      "what to expect at Arabic-speaking doctor visit",
-      "how to find Arabic-speaking dermatologist in Istanbul"
-    ]
-  },
-  "health-appointments": {
-    "seoTitle": "Medical appointment assistance in Istanbul",
-    "metaDescription": "Guidance on the difference between the government (MHRS) pathway and private sector for booking medical appointments, based on your insurance status.",
-    "body": "## How does access to healthcare differ based on your insurance status in Turkey?\n\nThe Turkish Ministry of Health operates a central appointment booking system known as the \"Central Physician Appointment System\" (MHRS), which is the official channel for booking appointments at government hospitals, health centers, and facilities affiliated with the Social Security Institution (SGK). Access to this system is tied to your legal and insurance status in the country, and it isn't automatically available to every foreign resident.\n\nA foreigner who holds a valid residence permit and is registered with SGK, or who benefits from a bilateral social security agreement between Turkey and their home country, can typically book appointments through this government pathway and access care at public or affiliated facilities. Someone without this registration — whether because their residence is recent, they aren't registered in the system, or they rely on private health insurance — has the private healthcare sector as their natural path, which operates through booking channels entirely separate from MHRS, with a completely different way of handling patients from the government pathway.\n\nThe difference here isn't only in the type of facility, but in the nature of the coverage and the procedures tied to it. Private health insurance, for example, doesn't grant its holder any authorization to use the government system, because that system is tied specifically to registration with government social security, not to having insurance of any kind.\n\n## Key points to know\n\n- Entering an unfamiliar booking system without understanding which pathway applies to your insurance status can lead to attempted bookings at a facility you're not entitled to use, or to delays in reaching the right care\n- Matching the type of facility (government/SGK-affiliated or private) to your actual insurance status is essential before any booking attempt, since confusing the two pathways is a common mistake among newcomers\n- A companion who coordinates this step after understanding your specific insurance and residence status can direct you to the correct pathway and facility\n\n## Frequently asked questions\n\n**Can any foreigner use the government MHRS system?**\nNo, not automatically. Access is tied to actual registration with the Social Security Institution (SGK) or a valid bilateral social security agreement, along with holding a valid residence permit. A foreigner not registered in this system typically relies on the private sector.\n\n**What's the difference between booking in the public sector and booking in the private sector?**\nBooking in the public sector or SGK-affiliated facilities goes through the unified government MHRS system, while each private facility manages its own booking system and appointments independently, with no connection to this central system.\n\n**Does private health insurance give me the ability to use MHRS?**\nNo. The right to use MHRS is tied specifically to registration with government social security, not to having any private health insurance, even a comprehensive one.",
-    "searchPhrases": [
-      "how to book a medical appointment in Istanbul",
-      "how to reschedule a hospital appointment online",
-      "how to track my clinic appointment status",
-      "how to cancel a medical appointment properly",
-      "how to request an Arabic-speaking doctor appointment",
-      "what documents are needed for hospital appointments",
-      "appointment confirmation and reminder options explained",
-      "how to pay appointment fees online",
-      "how to check short-notice appointment options",
-      "how to request specialist consultation appointment Istanbul",
-      "how to upload medical reports for appointment",
-      "how to schedule appointment follow-up after visit",
-      "how to change appointment time with clinic",
-      "what to expect about clinic waiting times",
-      "how to confirm appointment details with hospital",
-      "how to request appointment for lab tests",
-      "how to arrange dental appointment for tourists",
-      "how to request group appointment for family",
-      "how to request translation support during appointment",
-      "what is the hospital check-in process for appointments"
-    ]
-  },
   "health-tourism": {
     "seoTitle": "Medical tourism: hair, dental, aesthetics",
     "metaDescription": "Connecting you with medical tourism facilities holding an official Turkish Health Ministry authorization for hair transplants, dental, and aesthetics.",
@@ -1899,33 +1737,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "advice on combining language and work schedules",
       "follow up on TÖMER application status (advice)",
       "transfer and enrollment change guidance (TÖMER)"
-    ]
-  },
-  "biz-restaurant": {
-    "seoTitle": "Restaurant & café permits in Istanbul",
-    "metaDescription": "Help completing both the municipal license and the health license needed to open a restaurant or café in Istanbul in full legal compliance.",
-    "body": "## What licenses does a restaurant or café need in Turkey?\n\nNo commercial establishment in Turkey, including restaurants and cafés, can begin actual operations before obtaining an opening and operating license from the relevant municipality (Ruhsat). This requirement is set out in the national regulation \"İşyeri Açma ve Çalışma Ruhsatlarına İlişkin Yönetmelik\" issued by the Turkish state, and it applies to every commercial establishment regardless of its size or type of activity.\n\nHowever, this municipal license alone is not enough to operate a restaurant or café. Food-sector establishments are subject to an additional layer of licensing related to food safety and public health, overseen by the food control authorities under the Ministry of Agriculture and Forestry (Tarım ve Orman Bakanlığı), which includes registering the food business and verifying that it meets hygiene, storage, and food-handling requirements.\n\nIn other words, opening a restaurant or café in Turkey rests on two complementary legal tracks: a general municipal operating license, and a health/food license specific to the food sector. Both are mandatory, neither substitutes for the other, and an establishment that obtains only one of them is not considered fully licensed under the law.\n\n## Important points to know\n\n- Operating a restaurant or café without completing all required licenses (both municipal and food-related) exposes the business to serious legal risks, including administrative closure by the relevant authorities\n- Obtaining only the general municipal license, without registering the establishment with the food control authorities, is not considered a complete license for restaurant or café operations, and does not protect the business from legal action\n- Delaying completion of either licensing track, even after operations have actually begun, keeps the business in a legally non-compliant position and exposes it to administrative and financial consequences\n- Every new food establishment, or one whose ownership or activity has changed, needs to review its licensing status again — an old license does not automatically carry over when circumstances change\n\n## Frequently asked questions\n\n**Is the general municipal license (Ruhsat) alone enough to open a restaurant or café?**\nNo. The municipal license is a basic requirement for every commercial establishment, but restaurants and cafés, as food businesses, additionally need a food-safety-specific license and registration with the relevant authorities under the Ministry of Agriculture and Forestry. The absence of either license leaves the business legally incomplete.\n\n**What happens if a restaurant or café starts operating before completing all licenses?**\nThis exposes the business to legal action that can extend to closure by the relevant authorities, in addition to other administrative penalties set out in the relevant legislation. Partial licensing or starting operations before procedures are complete does not exempt the business from these risks.\n\n**Do health licensing requirements differ between a restaurant serving full meals and a café serving only drinks?**\nThe details of classification and requirements may vary depending on the nature and scale of the activity, but the general principle remains fixed: any establishment involved in preparing or serving food and drinks to the public is subject to food safety obligations alongside the municipal license, regardless of the type of menu offered.",
-    "searchPhrases": [
-      "how to get restaurant opening permits in Istanbul",
-      "documents needed for cafe health inspection permit",
-      "apply for municipality food business permit",
-      "schedule health inspection for new restaurant",
-      "requirements for operating a cafe in Turkey",
-      "restaurant license renewal process Istanbul",
-      "where to submit ruhsat application for cafe",
-      "prepare premises for municipality inspection",
-      "translator for permit documents Turkish to English",
-      "cost estimate for restaurant permits and inspections",
-      "find municipal application form for food businesses",
-      "timeframe for health permit approval",
-      "common reasons permit inspections fail",
-      "list of required certificates for cafe hygiene",
-      "appointment booking for municipal ruhsat office",
-      "follow up on submitted restaurant permit application",
-      "support for completing restaurant permit paperwork",
-      "local firm to handle restaurant permit filings",
-      "checklist for opening a small cafe Istanbul",
-      "health department contact for food business questions"
     ]
   },
   "biz-location": {
@@ -2142,60 +1953,6 @@ export const SERVICE_SEO_EN: Record<string, EnglishServiceSeo> = {
       "documents checklist for driving licence issuance",
       "help obtaining learner documents and appointments",
       "follow-up after licence application submission"
-    ]
-  },
-  "daily-marriage": {
-    "seoTitle": "Marriage Assistance for Foreigners in Istanbul",
-    "metaDescription": "Help completing official marriage procedures for foreigners: document checks, translation, and the difference between religious and civil marriage.",
-    "body": "## What makes a marriage in Turkey legally valid and officially documented?\n\nIn Turkey, a marriage has no legal effect at all until it is officially registered before the competent marriage officer at the Marriage Office (Evlendirme Dairesi) of the municipality. This is set out in Turkish Civil Code No. 4721, which treats civil registration as the sole basis for a marriage's legal existence, regardless of any other ceremony accompanying it.\n\nWhen one or both parties do not hold Turkish citizenship, the authorities usually require submission of a \"Marriage Eligibility Certificate\" (evlenme ehliyet belgesi) — sometimes called a \"certificate of no impediment to marriage\" — a document issued by the competent authority in the foreign party's home country or its consulate in Turkey, confirming that they are not currently married and that there is no legal impediment to their marriage under the laws of their country. This document, along with the rest of the supporting papers, is presented to the marriage officer, who verifies that the file is complete and the identity is correct before allowing the marriage contract to be finalized.\n\n## Important points to know\n\n- A religious marriage alone has no legal standing. Many couples assume that a religious marriage contract (imam nikah) is enough to prove their marriage. But Turkish law draws a strict line between the religious and civil sides: Article 143 of the Civil Code prohibits holding any religious ceremony before the official civil marriage contract is completed, and a religious marriage alone — without a prior civil registration — grants the couple no rights or legal recognition in Turkey (not in inheritance, not in maintenance, and not in the children's legal status)\n- Foreign documents usually need certified translation, and often authentication (apostille). Any document issued outside Turkey — such as a marriage eligibility certificate or a birth certificate — usually needs an official certified translation into Turkish, and in most cases international authentication (apostille) or consular legalization, unless it is issued under specific international agreements exempting it from this\n- A marriage certificate issued abroad is not automatically valid in Turkey. If the marriage was concluded in another country, registering and recognizing it within the Turkish civil system is not automatic — it requires formal documentation and transfer procedures through the competent authorities\n\n## Frequently asked questions\n\n**Is a religious marriage alone (without an official contract) legally recognized in Turkey?**\nNo. Turkish law does not recognize any legal effect for a religious contract unless it was preceded by official civil marriage registration before the competent Marriage Office. A religious marriage alone grants no legal rights to the couple or to their children.\n\n**What does a foreign national need to prove they are unmarried and legally able to marry?**\nThey usually need a \"Marriage Eligibility Certificate\" (certificate of no impediment) issued by their country or its consulate, confirming they have no legal impediment to marriage under the laws of their nationality.\n\n**Is a marriage certificate issued in my home country automatically valid in Turkey?**\nNot necessarily. Registering it and having it recognized within the Turkish civil registry requires separate formal procedures — it is not automatic simply by holding the original document.\n\n**Does official marriage differ from divorce and child custody matters?**\nYes, this topic covers only the conditions for registering the marriage itself. Divorce and family disputes are handled in an entirely different context.",
-    "searchPhrases": [
-      "marry in Turkey as a foreigner guidance",
-      "documents needed for marriage in Turkey",
-      "translate birth certificates for marriage registration",
-      "how to prepare marriage application paperwork Istanbul",
-      "what to bring to marriage office",
-      "guide to marriage registration steps Turkey",
-      "how to legalise foreign documents for marriage",
-      "help obtaining no-marriage-certificate from embassy",
-      "translate and notarise documents for marriage",
-      "appointments at nüfus office guidance",
-      "prepare international marriage certificate documents",
-      "requirements for mixed-nationality marriage Turkey",
-      "assist with witnesses and registrar coordination",
-      "convert foreign marriage documents for Turkish registry",
-      "follow-up on marriage certificate issuance process",
-      "checklist for marrying in Turkey as foreigner",
-      "consular steps before civil marriage Turkey",
-      "where to submit papers for official marriage",
-      "translations accepted for marriage registration Turkey",
-      "assist with marriage document translations Istanbul"
-    ]
-  },
-  "daily-shopping": {
-    "seoTitle": "Accompanied Shopping with Interpretation",
-    "metaDescription": "A shopping companion in Istanbul with interpretation who explains your consumer rights under Turkish consumer protection law while you shop.",
-    "body": "## What are your rights as a consumer when shopping in Turkey?\n\nTurkish Consumer Protection Law No. 6502 grants everyone who buys goods within Turkey a set of basic rights. The legal status the law bases these rights on is that of a \"consumer\" buying a good or service for personal use — not nationality or residency.\n\nAmong the most important rights the law sets out regarding defective goods (ayıplı mal): if a good turns out to be defective or doesn't match the specifications agreed at the time of purchase, the buyer is entitled to choose one of the following remedies:\n\n- Cancel the purchase contract and return the item for a full refund\n- Keep the item and request a price reduction proportional to the defect\n- Request the item be repaired free of charge, if that isn't unreasonably costly\n- Request the item be exchanged for a sound one, if possible\n\nThe law also requires that any information relating to a defect in the goods be clearly stated on the invoice, receipt, or sales document. That's why keeping proof of purchase is what actually enables the buyer to exercise these rights later on.\n\n## Important points to know\n\nThe language barrier is the biggest practical obstacle for a foreign shopper in Turkey — not with the item itself, but with understanding the return, exchange, and warranty terms as explained by the seller at the time of purchase. Many of these terms are stated verbally, or written only in Turkish on the receipt, and a simple misunderstanding can cause a buyer to miss out on a right they actually had.\n\nHaving a companion who speaks Turkish and Arabic during shopping makes it possible to clarify these terms at the moment of purchase itself: what the warranty covers, what the store's return or exchange period is if one exists, and which documents need to be kept. This doesn't create a new right — it helps you understand and correctly use the right you already have under the law.\n\n## Frequently asked questions\n\n**Does a foreign shopper have the same consumer rights as a Turkish citizen?**\nYes, in principle. Consumer Protection Law No. 6502 bases rights on the status of \"consumer\" — someone buying goods for personal use within Turkey — not on nationality or residency.\n\n**What should I keep after a purchase to protect my rights?**\nIt's advisable to keep proof of purchase (the invoice or receipt), because the law requires that any information about a defect in the goods appear on it, and this document is the basis for any later request for repair, exchange, or refund.",
-    "searchPhrases": [
-      "accompanied shopping assistance Istanbul",
-      "personal shopper who interprets in stores",
-      "shop with an assistant who translates",
-      "help choosing sizes and fitting rooms",
-      "accompany me to local markets Istanbul",
-      "assist with buying electronics and appliances",
-      "shop and negotiate with local merchants",
-      "find stores for specific items while shopping",
-      "help with measurements and product selection",
-      "accompanied grocery shopping and market guidance",
-      "assist with payment and receipts in shops",
-      "support comparing prices across stores",
-      "book an accompanied shopping appointment",
-      "help returning or exchanging purchased items",
-      "shop together for furniture and home goods",
-      "shopping companion for first-time visitors Istanbul",
-      "assist reading labels and product specifications",
-      "accompany to boutiques and retail stores",
-      "help prepare shopping list and route",
-      "interpret while discussing warranties and services"
     ]
   },
   "daily-emergency": {

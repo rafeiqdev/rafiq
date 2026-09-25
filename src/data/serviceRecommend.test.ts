@@ -50,7 +50,7 @@ describe('recommendedServiceIds', () => {
   it('surfaces the new phase-2 gap services for the personas that need them', () => {
     const has = (p: Partial<Profile>, id: string) =>
       recommendedServiceIds({ ...EMPTY_PROFILE, ...p }).includes(id);
-    expect(has({ situation: 'student', studentStage: 'coming' }, 'edu-advisory')).toBe(true);
+    expect(has({ situation: 'student', studentStage: 'coming' }, 'edu-university')).toBe(true);
     expect(has({ situation: 'student', studentStage: 'settled' }, 'edu-career')).toBe(true);
     expect(has({ situation: 'student' }, 'ins-student')).toBe(true);
     expect(has({ situation: 'visiting' }, 'visa-check')).toBe(true);
@@ -73,7 +73,7 @@ describe('recommendedServiceIds', () => {
     expect(top3('study')).toEqual(['edu-university', 'tr-sworn', 'edu-denklik']);
     expect(top3('family')).toEqual(['res-family', 'tr-sworn', 'edu-schools']);
     expect(top3('business')).toEqual(['legal-ltd', 'acc-monthly', 're-buy']);
-    expect(top3('retirement')).toEqual(['re-rent', 'ins-residence', 'health-doctors']);
+    expect(top3('retirement')).toEqual(['re-rent', 'ins-residence', 'health-hospitals']);
     expect(top3('other')).toEqual(['re-rent', 'tr-sworn', 'tour-airport']); // unknown → default
   });
 
@@ -107,17 +107,17 @@ describe('recommendedServiceIds', () => {
     const top3 = (trip: Profile['visitorTrip']) =>
       recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: trip }).slice(0, 3);
     expect(top3('sights')).toEqual(['tour-daytrips', 'tour-tickets', 'tour-airport']);
-    expect(top3('shopping')).toEqual(['daily-shopping', 'tour-driver', 'tour-airport']);
+    expect(top3('shopping')).toEqual(['tr-companion', 'tour-driver', 'tour-airport']);
     expect(top3('nature')).toEqual(['tour-bosphorus', 'tour-daytrips', 'tour-airport']);
     expect(top3('multicity')).toEqual(['tour-multicity', 'tour-packages', 'tour-airport']);
-    expect(top3('medical')).toEqual(['health-tourism', 'tr-medical', 'tour-airport']);
+    expect(top3('medical')).toEqual(['health-tourism', 'tr-companion', 'tour-airport']);
     expect(top3('family')).toEqual(['tour-packages', 'tour-daytrips', 'tour-airport']);
     expect(top3('mix')).toEqual(['tour-airport', 'tour-daytrips', 'tour-hotels']); // no override → default
   });
 
   it('a VIP visitor leads with the premium airport reception and private driver', () => {
     const ids = recommendedServiceIds({ ...EMPTY_PROFILE, situation: 'visiting', visitorTrip: 'sights', visitorService: 'vip' });
-    expect(ids.slice(0, 2)).toEqual(['tour-vip', 'tour-driver']);
+    expect(ids.slice(0, 2)).toEqual(['tour-airport', 'tour-driver']);
   });
 
   // ── resident: nature of residence + plan branch the top three ──
@@ -159,7 +159,7 @@ describe('recommendedServiceIds', () => {
   // ── student stage / follow-up behaviour ──
   it('leads with the student stage-specific top picks', () => {
     expect(recommendedServiceIds(student({ studentStage: 'coming' })).slice(0, 3)).toEqual([
-      'edu-advisory', 'edu-university', 'tr-sworn',
+      'edu-university', 'tr-sworn', 'edu-denklik',
     ]);
     expect(recommendedServiceIds(student({ studentStage: 'settled' })).slice(0, 3)).toEqual([
       'res-renew', 'res-work', 'edu-career',

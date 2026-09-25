@@ -20,7 +20,7 @@ import { nextAvailableSlot } from '../lib/scheduling';
 import { pickVoice } from '../lib/speechVoice';
 import type { BookingMedia, ChatMessage } from '../lib/types';
 import { MAX_MEDIA_MB, formatFileList, wantsMedia } from '../components/ChatAttach';
-import { SERVICES, pickText } from '../data/services';
+import { MERGED_SERVICE_IDS, SERVICES, pickText } from '../data/services';
 import { track } from '../lib/analytics';
 
 /** BCP-47 speech locale per app language — shared by STT (recognition) and TTS (synthesis). */
@@ -531,7 +531,7 @@ export function useChatAssistant() {
   useEffect(() => {
     if (seededRef.current === topic) return;
     if (!topic) return;
-    const svc = SERVICES.find((s) => s.id === topic);
+    const svc = SERVICES.find((s) => s.id === (MERGED_SERVICE_IDS[topic] ?? topic));
     if (!svc) return;
     setCurrentSubject(svc.category);
     saveSubject(userId, svc.category);

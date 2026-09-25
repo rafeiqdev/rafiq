@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { companies } from '../lib/api';
 import type { CompanyPublic as CompanyPublicT, Review } from '../lib/types';
-import { SERVICE_CATEGORIES, SERVICES, pickText } from '../data/services';
+import { MERGED_SERVICE_IDS, SERVICE_CATEGORIES, SERVICES, pickText } from '../data/services';
 import { pickArea } from '../data/istanbulAreas';
 import { ReviewStars } from '../components/ReviewStars';
 import { AppIcon, BackArrow } from '../components/AppIcon';
@@ -39,7 +39,8 @@ export function CompanyPublic() {
   }
 
   const catLabels = company.categories.map((c) => SERVICE_CATEGORIES.find((x) => x.id === c)).filter(Boolean).map((c) => pickText(c!.title, lang));
-  const svcLabels = company.services.map((s) => SERVICES.find((x) => x.id === s)).filter(Boolean).map((s) => pickText(s!.title, lang));
+  const svcIds = [...new Set(company.services.map((s) => MERGED_SERVICE_IDS[s] ?? s))];
+  const svcLabels = svcIds.map((s) => SERVICES.find((x) => x.id === s)).filter(Boolean).map((s) => pickText(s!.title, lang));
 
   return (
     <div className="pb-16">
