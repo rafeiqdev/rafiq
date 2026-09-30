@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { intakePrompt, parseReply } from './ai-chat';
+import { detectWrittenLanguage, intakePrompt, parseReply } from './ai-chat';
 import type { MemoryRow } from './_lib/assistantMemory';
 
 describe('intakePrompt identity block', () => {
@@ -112,5 +112,32 @@ describe('parseReply', () => {
   it('tolerates spacing and case in the marker', () => {
     expect(parseReply('hi [[ link : NEWS ]]').links).toEqual([]); // ids are case-sensitive: NEWS is not a page
     expect(parseReply('hi [[ LINK : news ]]').links).toEqual(['news']);
+  });
+});
+
+describe('the reply language follows what the visitor actually wrote', () => {
+  it.each([
+    ['وين فيني شوف احدث الاخبار', 'Arabic'],
+    ['Where can I read the latest news?', 'Latin-script (English unless it is clearly another language)'],
+    ['покажи недвижимость', 'Russian'],
+    ['میخواهم اقامت بگیرم، کجا برم؟', 'Persian (Farsi)'],
+  ])('%s → %s', (text, expected) => {
+    expect(detectWrittenLanguage(text)).toBe(expected);
+  });
+
+  it('says nothing when there is too little to tell', () => {
+    expect(detectWrittenLanguage('12')).toBeNull();
+    expect(detectWrittenLanguage('👍')).toBeNull();
+  });
+
+  it('states it as a hard fact in the prompt, even on an Arabic-language site', () => {
+    const p = intakePrompt('ar', undefined, null, 'Where can I read the latest news?');
+    expect(p).toContain("DETECTED: the user's latest message is written in Latin-script");
+    expect(p).toContain('MUST be in that language');
+    expect(intakePrompt('ar')).not.toContain('DETECTED');
+  });
+
+  it('keeps the booking link out of an intake that has just started', () => {
+    expect(intakePrompt('ar')).toContain('do NOT send them to the booking page');
   });
 });

@@ -74,13 +74,35 @@ function identityLine(lang: string, identity?: Identity): string {
   return `KNOWN CLIENT — ${parts.join(', ')}. Do not ask for their name or phone number, you already have them. Address them by name where it feels natural, and tailor your questions to this situation starting from your very first question.`;
 }
 
-export function intakePrompt(lang: string, identity?: Identity, memory?: MemoryRow | null): string {
+/**
+ * Which language is the visitor actually writing in? A model given a long
+ * Arabic-heavy prompt drifts into Arabic even for an English question, so the
+ * script of their latest message is checked here and stated as a hard fact.
+ * Null when there is too little text to tell (a bare number, an emoji).
+ */
+export function detectWrittenLanguage(text: string): 'Arabic' | 'Persian (Farsi)' | 'Russian' | 'Latin-script (English unless it is clearly another language)' | null {
+  const letters = text.replace(/[^\p{L}]/gu, '');
+  if (letters.length < 2) return null;
+  const count = (re: RegExp) => (letters.match(re) ?? []).length;
+  const arabicScript = count(/[\u0600-\u06FF]/g);
+  const cyrillic = count(/[\u0400-\u04FF]/g);
+  const latin = count(/[A-Za-z\u00C0-\u024F]/g);
+  const max = Math.max(arabicScript, cyrillic, latin);
+  if (max === 0) return null;
+  if (max === arabicScript) return /[\u067E\u0686\u0698\u06AF\u06A9\u06CC]/.test(text) ? 'Persian (Farsi)' : 'Arabic';
+  if (max === cyrillic) return 'Russian';
+  return 'Latin-script (English unless it is clearly another language)';
+}
+
+export function intakePrompt(lang: string, identity?: Identity, memory?: MemoryRow | null, latestUserText?: string): string {
   const language = LANG_NAME[lang] ?? 'the same language as the user';
   const known = identityLine(lang, identity);
   const remembered = memoryPromptBlock(memory ?? null);
+  const written = latestUserText ? detectWrittenLanguage(latestUserText) : null;
   return [
     'You are "رفيق" (Rafiq), the smart guide of the Rafiq website — a service that helps foreigners (mostly Arabic speakers) move to, live in and invest in Istanbul, Turkey.',
-    `LANGUAGE: reply in whichever language the user's LATEST message is written in — never the site's interface language. If the user switches language mid-conversation, switch with them starting from your very next reply. Only when there is no user message yet default to ${language}.`,
+    `LANGUAGE: reply in whichever language the user's LATEST message is written in — never the site's interface language, and never Arabic for a message that is not written in Arabic. If the user switches language mid-conversation, switch with them starting from your very next reply. Only when there is no user message yet default to ${language}.`,
+    ...(written ? [`DETECTED: the user's latest message is written in ${written}. Your reply MUST be in that language.`] : []),
     'VOICE: you are a warm, quick, easy-to-talk-to local friend who knows every corner of the site — not a form, not a call-centre script. In Arabic write simple, natural, friendly Arabic, and if the person writes in a dialect (Levantine, Gulf, Egyptian, Maghrebi…) lean lightly toward it while staying easy to read. Never stiff ("عزيزي العميل"), never preachy. Plain text only: no markdown headings, no bold, no bullet dumps.',
     '',
     'WHAT YOU DO',
@@ -93,7 +115,7 @@ export function intakePrompt(lang: string, identity?: Identity, memory?: MemoryR
     '',
     'SENDING PEOPLE TO A PAGE',
     'To offer a button, put [[LINK:id]] on its own line at the end of your reply, after your text. Use only ids from the list above, exactly as written — never write a URL, never invent an id. One link is best, two at most, three only if truly needed.',
-    'Always include a link when the person asks where something is, wants to see / browse / open / look at something, or when your answer is about a section or a specific service. Your text must still stand on its own: say in words where it is ("بتلاقيها بصفحة الأخبار"), the button is only a shortcut. Do not add a link to every message — only when it helps.',
+    'Always include a link when the person asks where something is, wants to see / browse / open / look at something, or when your answer is about a section or a specific service. Your text must still stand on its own: say in words where it is ("بتلاقيها بصفحة الأخبار"), the button is only a shortcut. Do not add a link to every message — only when it helps. While you are taking someone\'s case (CASE mode), do NOT send them to the booking page: the intake ends with its own review-or-appointment choice, and the first thing to do is ask your first intake question. Offer the "consultation" link only when they ask to book a person right away.',
     'Examples (the dialect and wording follow the user):',
     '  User: "وين فيني شوف احدث الأخبار؟"',
     '  You: "بتلاقي آخر الأخبار اللي بتهم المقيمين والقادمين لتركيا بصفحة الأخبار، اضغط الزر وبتفتحلك."',
@@ -293,7 +315,8 @@ export default async function handler(req: Request): Promise<Response> {
       if (userId) memory = await readMemory(access, userId);
     }
 
-    const res = await callWithFallback(key, model, intakePrompt(lang, identity, memory), contents);
+    const latestUser = [...contents].reverse().find((c) => c.role === 'user')?.parts[0].text;
+    const res = await callWithFallback(key, model, intakePrompt(lang, identity, memory, latestUser), contents);
     if (!res.text) return json({ error: 'upstream_error', status: res.failStatus, detail: res.failDetail });
 
     const { reply, done, links } = parseReply(res.text);
