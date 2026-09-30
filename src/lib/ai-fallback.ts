@@ -7,6 +7,8 @@
  * booking-escalation decision.
  */
 
+import { cleanLinkIds, matchDestinations } from './siteMap';
+
 export interface PolicyMessage {
   role: 'user' | 'assistant';
   text: string;
@@ -91,6 +93,17 @@ const SUMMARY_LABEL: Record<Lang, Record<string, string>> = {
   fa: { residency: 'مشکل اجازه اقامت (İkamet)', tax: 'مشکل شماره مالیاتی (Vergi No)', bank: 'مشکل حساب بانکی', housing: 'مشکل مسکن / اجاره', health: 'مشکل بیمه درمانی', sim: 'مشکل تلفن / سیم‌کارت', study: 'مشکل تحصیل / denklik', realestate: 'مشکل املاک / شهروندی', generic: 'پرسش عمومی استقرار' },
 };
 
+/** Where each fallback topic lives on the site, so even an offline reply can hand over a button. */
+const TOPIC_LINKS: Record<string, string> = {
+  residency: 'category:residency',
+  tax: 'category:accounting',
+  bank: 'category:banking',
+  health: 'category:health',
+  sim: 'category:telecom',
+  study: 'category:education',
+  realestate: 'realestate',
+};
+
 function detectTopic(text: string): Topic {
   for (const topic of Object.keys(TOPIC_PATTERNS) as (keyof typeof TOPIC_PATTERNS)[]) {
     if (TOPIC_PATTERNS[topic].test(text)) return topic;
@@ -106,6 +119,8 @@ export interface PolicyResult {
   reply: string;
   offerBooking: boolean;
   problemSummary: string;
+  /** Page ids worth offering as buttons — only the ones the keywords point at. */
+  links: string[];
 }
 
 /** Deterministic responder + booking-escalation decision (no network). */
@@ -119,9 +134,12 @@ export function fallbackRespond(history: PolicyMessage[], userText: string, lang
 
   const replies = REPLIES[L];
   const labels = SUMMARY_LABEL[L];
+  // A page the words point at beats a generic topic shortcut.
+  const links = cleanLinkIds([...matchDestinations(userText, 2), ...(TOPIC_LINKS[topic] ? [TOPIC_LINKS[topic]] : [])], 2);
   return {
     reply: replies[topic] ?? replies.generic,
     offerBooking: asksHuman || isComplex || isStuck,
     problemSummary: `${labels[topic] ?? labels.generic}: "${userText.trim().slice(0, 160)}"`,
+    links,
   };
 }

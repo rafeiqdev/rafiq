@@ -19,11 +19,13 @@ vi.mock('../context/AppContext', () => ({ useApp: () => useAppMock() }));
 const chatMock = vi.fn();
 const uploadMediaMock = vi.fn();
 const summarizeMock = vi.fn();
+const learnMock = vi.fn();
 const createBookingMock = vi.fn();
 vi.mock('../lib/api', () => ({
   ai: {
     chat: (...a: unknown[]) => chatMock(...a),
     summarize: (...a: unknown[]) => summarizeMock(...a),
+    learn: (...a: unknown[]) => learnMock(...a),
   },
   bookings: {
     uploadMedia: (...a: unknown[]) => uploadMediaMock(...a),
@@ -71,8 +73,9 @@ beforeEach(() => {
   chatMock.mockReset();
   uploadMediaMock.mockReset();
   summarizeMock.mockReset();
+  learnMock.mockReset();
   createBookingMock.mockReset();
-  chatMock.mockResolvedValue({ reply: 'ok', done: false });
+  chatMock.mockResolvedValue({ reply: 'ok', done: false, links: [] });
   summarizeMock.mockResolvedValue({ summary: 'summary', caseFile: undefined });
   createBookingMock.mockResolvedValue({ id: 'b1' });
 });
@@ -160,5 +163,42 @@ describe('a topic ends when the appointment is booked', () => {
 
     expect(await screen.findByText('chat.closed.title')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('chat.closed.placeholder')).toBeDisabled();
+  });
+});
+
+describe('the assistant knows the whole site and hands over a button', () => {
+  it('shows a link button under a reply that offers one, and it goes to the right page', async () => {
+    chatMock.mockResolvedValue({ reply: 'بتلاقي آخر الأخبار بصفحة الأخبار.', done: false, links: ['news', 'service:res-tourist'] });
+    setup();
+
+    fireEvent.change(screen.getByPlaceholderText('chat.placeholder'), { target: { value: 'وين فيني شوف احدث الاخبار' } });
+    fireEvent.click(screen.getByText('common.send'));
+
+    const box = await screen.findByTestId('chat-links');
+    const hrefs = Array.from(box.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/news', '/services/res-tourist']);
+    expect(box.textContent).toContain('صفحة الأخبار');
+  });
+
+  it('shows no buttons when the reply offers none', async () => {
+    setup();
+    fireEvent.change(screen.getByPlaceholderText('chat.placeholder'), { target: { value: 'مرحبا' } });
+    fireEvent.click(screen.getByText('common.send'));
+    await waitFor(() => expect(chatMock).toHaveBeenCalled());
+    await screen.findByText('ok');
+    expect(screen.queryByTestId('chat-links')).toBeNull();
+  });
+
+  it('lets the assistant read each exchange into its memory, with the reply included', async () => {
+    chatMock.mockResolvedValue({ reply: 'أهلًا بك', done: false, links: [] });
+    setup();
+    fireEvent.change(screen.getByPlaceholderText('chat.placeholder'), { target: { value: 'أنا قادم من حلب' } });
+    fireEvent.click(screen.getByText('common.send'));
+
+    await waitFor(() => expect(learnMock).toHaveBeenCalledTimes(1));
+    const sent = learnMock.mock.calls[0][0] as { role: string; text: string }[];
+    expect(sent.map((m) => m.role)).toEqual(['user', 'assistant']);
+    expect(sent[0].text).toBe('أنا قادم من حلب');
+    expect(sent[1].text).toBe('أهلًا بك');
   });
 });

@@ -28,6 +28,7 @@ import { useAsyncSection } from '../hooks/useAsyncSection';
 import { ConfirmActionModal } from '../components/admin/ConfirmActionModal';
 import { AdminAuditLog } from '../components/admin/AdminAuditLog';
 import { RevealField } from '../components/admin/RevealField';
+import { AssistantMemoryCard } from '../components/admin/AssistantMemoryCard';
 import { maskEmail } from '../lib/format';
 import { isControlCenterEnabled } from '../admin-control-center/flag';
 
@@ -214,6 +215,8 @@ function UserRow({
                 </div>
               </div>
             )}
+            {/* what the smart assistant has learned from this person's chats */}
+            <AssistantMemoryCard userId={u.id} />
             {!u.isAdmin && (
               <div className="mt-3 flex items-center gap-2 border-t border-cream-dark pt-3">
                 <span className="text-xs font-semibold text-navy/60">{t('medical.admin.roleLabel')}</span>

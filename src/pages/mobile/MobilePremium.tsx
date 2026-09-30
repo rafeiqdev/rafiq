@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useChatAssistant } from '../../hooks/useChatAssistant';
@@ -11,6 +12,7 @@ import { MediaChips, AttachCard, ATTACH_ACCEPT } from '../../components/ChatAtta
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../../components/ChatHistory';
 import { SituationSuggestions } from '../../components/SituationSuggestions';
 import { MicGlyph, SpeakerGlyph } from '../../components/ChatVoiceIcons';
+import { ChatLinks } from '../../components/ChatLinks';
 
 // New mobile-only UI copy (not existing i18n keys), keyed by language code.
 const mobileCopy: Record<string, { back: string }> = {
@@ -94,24 +96,26 @@ function MobileChatUI() {
         )}
 
         {c.messages.map((m, i) => (
-          <div
-            key={`${m.ts}_${i}`}
-            className={
-              m.role === 'user'
-                ? 'animate-pop self-end max-w-[85%] rounded-2xl rounded-se-md bg-navy px-4 py-2.5 text-[14.5px] leading-relaxed text-white break-anywhere'
-                : 'animate-pop self-start max-w-[85%] rounded-2xl rounded-ss-md bg-brand-blue px-4 py-2.5 text-[14.5px] leading-relaxed text-navy whitespace-pre-line break-anywhere'
-            }
-          >
-            {m.text}
-            {m.streaming && !m.text && (
-              <span className="inline-flex gap-1.5 px-0.5 py-1.5" aria-label={t('chat.typing')}>
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:120ms]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:240ms]" />
-              </span>
-            )}
-            {m.streaming && !!m.text && <span className="ms-1 inline-block h-4 w-0.5 animate-pulse bg-navy/50 align-middle" />}
-          </div>
+          <Fragment key={`${m.ts}_${i}`}>
+            <div
+              className={
+                m.role === 'user'
+                  ? 'animate-pop self-end max-w-[85%] rounded-2xl rounded-se-md bg-navy px-4 py-2.5 text-[14.5px] leading-relaxed text-white break-anywhere'
+                  : 'animate-pop self-start max-w-[85%] rounded-2xl rounded-ss-md bg-brand-blue px-4 py-2.5 text-[14.5px] leading-relaxed text-navy whitespace-pre-line break-anywhere'
+              }
+            >
+              {m.text}
+              {m.streaming && !m.text && (
+                <span className="inline-flex gap-1.5 px-0.5 py-1.5" aria-label={t('chat.typing')}>
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:120ms]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-navy/40 [animation-delay:240ms]" />
+                </span>
+              )}
+              {m.streaming && !!m.text && <span className="ms-1 inline-block h-4 w-0.5 animate-pulse bg-navy/50 align-middle" />}
+            </div>
+            {m.role === 'assistant' && !m.streaming && <ChatLinks ids={m.links} />}
+          </Fragment>
         ))}
 
         {c.showAttachCard && <AttachCard onAttach={c.pickFiles} onSkip={() => c.setAttachDismissed(true)} uploading={c.uploading} />}

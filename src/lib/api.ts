@@ -10,6 +10,8 @@ import { supabase as sbClient } from './supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ServiceItem } from '../data/services';
 import { fallbackRespond } from './ai-fallback';
+import { cleanLinkIds, hasNavigationIntent, matchDestinations } from './siteMap';
+import type { AssistantMemoryResult, MemoryFacts, MemoryStyle } from './assistantMemoryTypes';
 import { readMetric } from './metrics/service';
 import type {
   AdminUser,
@@ -1715,6 +1717,33 @@ export const adminUsers = {
     await logAdminAudit('role_change', 'profile', id, { role });
     return { ok: true };
   },
+  /**
+   * What the smart assistant knows about one visitor (admin only — RLS lets no
+   * one else read the table). `not_installed` means the migration has not been
+   * pasted into Supabase yet, which is a different thing from "no notes yet".
+   */
+  async assistantMemory(userId: string): Promise<AssistantMemoryResult> {
+    const { data, error } = await sb()
+      .from('assistant_memory')
+      .select('facts,style,message_count,last_analyzed_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) {
+      if (isSchemaUnavailable(error)) return { state: 'not_installed' };
+      fail(error);
+    }
+    if (!data) return { state: 'ready', memory: null };
+    const row = data as { facts: MemoryFacts | null; style: MemoryStyle | null; message_count: number | null; last_analyzed_at: string | null };
+    return {
+      state: 'ready',
+      memory: {
+        facts: row.facts ?? {},
+        style: row.style ?? {},
+        messageCount: row.message_count ?? 0,
+        lastAnalyzedAt: row.last_analyzed_at,
+      },
+    };
+  },
   /** Cancelled subscriptions with the reason/comment the user left when cancelling. */
   async cancellations(): Promise<{ userId: string; tier: string; reason: string | null; comment: string | null; expiresAt: string }[]> {
     const { data, error } = await sb().from('subscriptions')
@@ -2429,6 +2458,8 @@ export interface ChatResult {
   reply: string;
   /** the assistant has gathered enough → the UI offers to confirm an appointment */
   done: boolean;
+  /** page ids to show as buttons under the reply (validated, at most 3) */
+  links: string[];
 }
 
 export interface ChatSummary {
@@ -2442,6 +2473,16 @@ export interface ChatIdentity {
   name?: string | null;
   phone?: string | null;
   situation?: string | null;
+}
+
+/** The signed-in visitor's access token, so the server can load their private memory. */
+async function accessToken(): Promise<string | null> {
+  try {
+    const { data } = await sb().auth.getSession();
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export const ai = {
@@ -2467,22 +2508,33 @@ export const ai = {
 
     let reply = fb.reply;
     let done = false;
+    let links: string[] = fb.links;
+    let answered = false;
 
-    // Real AI (intake agent) via our own server function (/api/ai-chat on Vercel).
+    // Real AI (the smart assistant) via our own server function (/api/ai-chat on Vercel).
     try {
+      const token = await accessToken();
       const res = await fetch('/api/ai-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ messages: messages.map((m) => ({ role: m.role, text: m.text })), lang, identity }),
       });
       if (res.ok) {
-        const d = (await res.json()) as { reply?: string; done?: boolean; error?: string };
-        if (d?.reply && d.reply.trim()) reply = d.reply.trim();
+        const d = (await res.json()) as { reply?: string; done?: boolean; links?: unknown; error?: string };
+        if (d?.reply && d.reply.trim()) {
+          reply = d.reply.trim();
+          answered = true;
+        }
         done = d?.done === true;
+        links = answered ? cleanLinkIds(Array.isArray(d?.links) ? (d.links as unknown[]).filter((x): x is string => typeof x === 'string') : []) : fb.links;
       }
     } catch {
       /* offline or function unavailable — keep the fallback reply */
     }
+
+    // Safety net: someone clearly asked to be sent somewhere ("where can I see
+    // the news?") and the model forgot the button — the words themselves know.
+    if (answered && links.length === 0 && hasNavigationIntent(last)) links = matchDestinations(last, 1);
 
     onReply?.(reply);
 
@@ -2495,7 +2547,31 @@ export const ai = {
       if (i % 2 === 1) await sleep(16);
     }
 
-    return { reply, done };
+    return { reply, done, links };
+  },
+
+  /**
+   * Tell the server to read the latest turns into the visitor's private memory
+   * (what they told us + how they communicate — see api/ai-memory.ts). Fire and
+   * forget: it never blocks the chat, never throws, and does nothing for a
+   * signed-out visitor or before the memory table exists.
+   */
+  async learn(messages: ChatMessage[], lang: string): Promise<void> {
+    try {
+      const token = await accessToken();
+      if (!token) return;
+      await fetch('/api/ai-memory', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          messages: messages.slice(-14).map((m) => ({ role: m.role, text: m.text.slice(0, 1200) })),
+          lang,
+        }),
+      });
+    } catch {
+      /* the memory is a bonus — never surface a failure */
+    }
   },
 
   /**

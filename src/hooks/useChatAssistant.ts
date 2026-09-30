@@ -378,9 +378,26 @@ export function useChatAssistant() {
         (fullReply) => speak(fullReply),
       );
       setMessages((m) =>
-        m.map((msg) => (msg.ts === placeholderTs ? { ...msg, text: result.reply, streaming: false, showConfirm: result.done } : msg)),
+        m.map((msg) =>
+          msg.ts === placeholderTs
+            ? { ...msg, text: result.reply, streaming: false, showConfirm: result.done, links: result.links?.length ? result.links : undefined }
+            : msg,
+        ),
       );
       if (result.done) setReadyToBook(true);
+      // Let the assistant read this exchange into its private memory of the
+      // visitor. Fire and forget — it must never slow down or break the chat.
+      try {
+        void ai.learn(
+          [
+            ...history.map(({ role, text: tx, ts }) => ({ role, text: tx, ts })),
+            { role: 'assistant' as const, text: result.reply, ts: placeholderTs },
+          ],
+          i18n.language,
+        );
+      } catch {
+        /* the memory is a bonus — never let it break a reply */
+      }
     } catch {
       setMessages((m) => m.filter((msg) => msg.ts !== placeholderTs));
       setError('chat.error');

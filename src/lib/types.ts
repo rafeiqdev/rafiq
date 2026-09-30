@@ -415,6 +415,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   ts: number;
+  /** Page ids the assistant offered as buttons under this reply (see lib/siteMap.ts). */
+  links?: string[];
 }
 
 export type BookingStatus = 'new' | 'confirmed' | 'done' | 'cancelled';

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChatAssistant } from '../hooks/useChatAssistant';
 import { useApp } from '../context/AppContext';
@@ -10,6 +11,7 @@ import { MediaChips, AttachCard, ATTACH_ACCEPT } from '../components/ChatAttach'
 import { ArchivedTopicModal, ChatClosedCard, ChatHistoryModal } from '../components/ChatHistory';
 import { SituationSuggestions } from '../components/SituationSuggestions';
 import { MicGlyph, SpeakerGlyph } from '../components/ChatVoiceIcons';
+import { ChatLinks } from '../components/ChatLinks';
 
 function ChatUI() {
   const { t, i18n } = useTranslation();
@@ -64,17 +66,19 @@ function ChatUI() {
         )}
 
         {c.messages.map((m, i) => (
-          <div
-            key={`${m.ts}_${i}`}
-            className={
-              m.role === 'user'
-                ? 'self-end max-w-[85%] rounded-2xl rounded-se-sm bg-navy px-4 py-3 text-sm text-white break-anywhere'
-                : 'self-start max-w-[85%] rounded-2xl rounded-ss-sm bg-brand-blue px-4 py-3 text-sm text-navy whitespace-pre-line break-anywhere'
-            }
-          >
-            {m.text}
-            {m.streaming && <span className="inline-block w-2 h-4 bg-navy/40 animate-pulse ms-1 align-middle" />}
-          </div>
+          <Fragment key={`${m.ts}_${i}`}>
+            <div
+              className={
+                m.role === 'user'
+                  ? 'self-end max-w-[85%] rounded-2xl rounded-se-sm bg-navy px-4 py-3 text-sm text-white break-anywhere'
+                  : 'self-start max-w-[85%] rounded-2xl rounded-ss-sm bg-brand-blue px-4 py-3 text-sm text-navy whitespace-pre-line break-anywhere'
+              }
+            >
+              {m.text}
+              {m.streaming && <span className="inline-block w-2 h-4 bg-navy/40 animate-pulse ms-1 align-middle" />}
+            </div>
+            {m.role === 'assistant' && !m.streaming && <ChatLinks ids={m.links} />}
+          </Fragment>
         ))}
 
         {/* the assistant asked for documents → a clear attach prompt */}

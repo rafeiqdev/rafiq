@@ -27,8 +27,21 @@ export const MODEL_CHAIN = [
   'gemini-3.5-flash',
 ];
 
+export interface GeminiOptions {
+  /** Ask for a JSON object back (responseMimeType) — for the analyst, not the chat. */
+  json?: boolean;
+  temperature?: number;
+  maxOutputTokens?: number;
+}
+
 /** One Gemini generateContent call. Never throws on HTTP errors. */
-export async function callGemini(key: string, model: string, systemText: string, contents: GeminiContent[]): Promise<GeminiResult> {
+export async function callGemini(
+  key: string,
+  model: string,
+  systemText: string,
+  contents: GeminiContent[],
+  options: GeminiOptions = {},
+): Promise<GeminiResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const upstream = await fetch(url, {
     method: 'POST',
@@ -39,13 +52,14 @@ export async function callGemini(key: string, model: string, systemText: string,
       systemInstruction: { parts: [{ text: systemText }] },
       contents,
       generationConfig: {
-        temperature: 0.6,
+        temperature: options.temperature ?? 0.6,
         // Generous cap so the answer is never cut short. Gemini 3.x "thinking"
         // tokens also count against this limit, so keep it comfortably high.
-        maxOutputTokens: 2048,
+        maxOutputTokens: options.maxOutputTokens ?? 2048,
         // Practical intake, not puzzles — turn thinking off for faster, cheaper,
         // complete replies. (Ignored by models without it.)
         thinkingConfig: { thinkingBudget: 0 },
+        ...(options.json ? { responseMimeType: 'application/json' } : {}),
       },
     }),
   });
@@ -56,11 +70,17 @@ export async function callGemini(key: string, model: string, systemText: string,
 }
 
 /** Try the preferred model, then walk the chain past quota/retirement errors. */
-export async function callWithFallback(key: string, preferred: string, systemText: string, contents: GeminiContent[]): Promise<GeminiResult> {
+export async function callWithFallback(
+  key: string,
+  preferred: string,
+  systemText: string,
+  contents: GeminiContent[],
+  options: GeminiOptions = {},
+): Promise<GeminiResult> {
   const chain = [preferred, ...MODEL_CHAIN.filter((m) => m !== preferred)];
   let last: GeminiResult = { text: '', failStatus: 500, failDetail: 'no_models' };
   for (const model of chain) {
-    last = await callGemini(key, model, systemText, contents);
+    last = await callGemini(key, model, systemText, contents, options);
     if (last.text) return last;
     // only quota (429) and gone-model (404/400) errors are worth retrying
     if (last.failStatus !== 429 && last.failStatus !== 404 && last.failStatus !== 400) return last;

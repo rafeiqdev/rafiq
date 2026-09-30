@@ -710,10 +710,10 @@
   },
   "chat": {
     "title": "AI Assistant",
-    "subtitle": "Ask anything about residency, real estate, health or settling in.",
-    "placeholder": "Describe your situation...",
-    "disclaimer": "Rafiq AI gives general guidance, not legal advice.",
-    "greeting": "Hello! I'm Rafiq, your Istanbul assistant. Tell me what you're working on — residency, banking, housing, health — and I'll guide you step by step.",
+    "subtitle": "Ask about anything on the site: news, real estate, services, residency…",
+    "placeholder": "Type your question or what you're looking for...",
+    "disclaimer": "Rafiq AI gives general guidance, not legal advice. It keeps short notes from your chats to serve you better, and the Rafiq team can see them.",
+    "greeting": "Hi! I'm Rafiq. Ask me about any section of the site, or tell me what you're looking for and I'll take you straight there.",
     "typing": "Rafiq is typing...",
     "bookOffer": "This looks like a case where a human expert can really help. I can arrange a free online appointment (call or video) with one of our specialists.",
     "bookCta": "Book a free appointment",
@@ -775,6 +775,9 @@
       "booking": "Booking...",
       "errorPast": "That time just passed — here is a new suggested time.",
       "errorGeneric": "Couldn't book the appointment. Please try again."
+    },
+    "links": {
+      "guide": "{{name}} guide"
     }
   },
   "booking": {
@@ -1809,6 +1812,112 @@
         "cancelledTitle": "Reject this payout",
         "cancelledResult": "The amount returns to the user’s available balance and they can request it again."
       }
+    },
+    "assistant": {
+      "title": "What the smart assistant knows",
+      "hint": "Notes the assistant keeps from its chats. The user never sees them, and they are not a diagnosis — only a read of how they write in the chat.",
+      "notInstalled": "Not switched on yet: the memory file (20261001_assistant_memory.sql) must be pasted into Supabase once.",
+      "empty": "Hasn't talked to the assistant yet, or nothing has been read yet.",
+      "loadError": "Couldn't load the assistant's notes.",
+      "whatTheyTold": "What they told us",
+      "howTheyTalk": "How they communicate",
+      "messagesRead": "{{count}} messages read",
+      "updated": "Updated {{date}}",
+      "yes": "Yes",
+      "no": "No",
+      "f": {
+        "visitor_type": "Stage",
+        "summary": "Summary",
+        "nationality": "Nationality",
+        "current_city": "Current city",
+        "in_turkey_now": "In Turkey now",
+        "arrival_timeframe": "When arriving",
+        "purpose": "Purpose",
+        "family": "Family",
+        "budget_note": "Budget note",
+        "languages": "Languages",
+        "interests": "Interests",
+        "services_of_interest": "Services of interest",
+        "open_questions": "Open questions",
+        "notes": "Other notes",
+        "next_best_action": "Suggested next step"
+      },
+      "s": {
+        "tempo": "Pace",
+        "urgency": "Urgency",
+        "message_length": "Message length",
+        "social_style": "Communication style",
+        "seriousness": "Seriousness",
+        "detail_preference": "Detail preference",
+        "tone": "Tone",
+        "intent_score": "Likelihood to use a service",
+        "signals": "What we noticed",
+        "how_to_talk": "How to talk to them",
+        "confidence": "Confidence"
+      },
+      "v": {
+        "visitor_type": {
+          "just_browsing": "Just browsing",
+          "exploring": "Exploring",
+          "planning_move": "Planning to move to Turkey",
+          "needs_service": "Has a concrete need",
+          "ready_to_act": "Ready to start now"
+        },
+        "tempo": {
+          "hurried": "In a hurry",
+          "normal": "Normal pace",
+          "relaxed": "Relaxed"
+        },
+        "urgency": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "critical": "Critical"
+        },
+        "message_length": {
+          "very_short": "Very short",
+          "short": "Short",
+          "medium": "Medium",
+          "long": "Long and detailed"
+        },
+        "social_style": {
+          "driver": "Driver — direct, wants results",
+          "analytical": "Analytical — precise, detail-minded",
+          "expressive": "Expressive — sociable, enthusiastic",
+          "amiable": "Amiable — warm, needs reassurance",
+          "mixed": "Mixed",
+          "unclear": "Not clear yet"
+        },
+        "seriousness": {
+          "passing_time": "Just passing time",
+          "low": "Low interest",
+          "medium": "Moderate interest",
+          "high": "Serious"
+        },
+        "detail_preference": {
+          "brief": "Prefers brief answers",
+          "detailed": "Prefers detail"
+        },
+        "tone": {
+          "direct": "Direct",
+          "polite": "Polite",
+          "warm": "Warm",
+          "chatty": "Chatty",
+          "playful": "Playful",
+          "skeptical": "Skeptical",
+          "anxious": "Anxious",
+          "frustrated": "Frustrated",
+          "pressured": "Under pressure",
+          "curious": "Curious",
+          "detached": "Detached",
+          "demanding": "Demanding"
+        },
+        "confidence": {
+          "low": "Low confidence (little evidence)",
+          "medium": "Medium confidence",
+          "high": "High confidence"
+        }
+      }
     }
   },
   "adminBookings": {
@@ -1851,7 +1960,7 @@
     },
     "privacy": {
       "title": "Privacy Policy (KVKK)",
-      "body": "This Privacy Policy explains how Rafiq Istanbul collects and uses your information, in line with the Turkish Personal Data Protection Law (KVKK No. 6698).\n\n1. Data we collect. Account details (name, email), the answers you give during onboarding, your service requests and bookings, documents you choose to upload, and basic usage data needed to operate the service.\n\n2. Why we use it. To provide and personalize our services, prepare and follow up your requests, communicate with you, and improve the platform. We do not sell your personal data.\n\n3. Sharing. We share only what is necessary with the vetted partner handling your specific request (for example, a translation office or insurance provider). Our infrastructure is hosted on secure cloud providers.\n\n4. Storage and security. Your data is stored on protected servers with access controls. Uploaded documents stay private to your account and are accessible to our team only to deliver the service you requested.\n\n5. Your rights (KVKK). You may request access to, correction of, or deletion of your personal data, and you may withdraw consent at any time, by contacting us.\n\n6. Retention. We keep your data only as long as needed to provide the service and meet legal obligations, then delete or anonymize it.\n\n7. Cookies, measurement and advertising. Only after you accept the cookie banner do we load two tools: Google Analytics, to see which pages are useful, and the Meta Pixel (Facebook/Instagram), to measure our ad results and show our ads to people who visited the site. They receive general events only — opening a service page, tapping WhatsApp or the phone number, submitting a request — never your name, phone, email, uploaded documents, health or legal case details, or the text of your chats. If you decline, neither tool is loaded at all and the site works in full. You can change your choice at any time from the \"Privacy choices\" link at the bottom of every page.\n\n8. Contact. For privacy requests, contact our team through the app."
+      "body": "This Privacy Policy explains how Rafiq Istanbul collects and uses your information, in line with the Turkish Personal Data Protection Law (KVKK No. 6698).\n\n1. Data we collect. Account details (name, email), the answers you give during onboarding, your service requests and bookings, documents you choose to upload, and basic usage data needed to operate the service. The smart assistant also keeps short notes from your chats (such as your country, your goal, when you plan to arrive, the services you care about, and how you write in the chat) so it can serve you better without you repeating yourself; only the Rafiq team can see them, and you can ask for them to be deleted at any time.\n\n2. Why we use it. To provide and personalize our services, prepare and follow up your requests, communicate with you, and improve the platform. We do not sell your personal data.\n\n3. Sharing. We share only what is necessary with the vetted partner handling your specific request (for example, a translation office or insurance provider). Our infrastructure is hosted on secure cloud providers.\n\n4. Storage and security. Your data is stored on protected servers with access controls. Uploaded documents stay private to your account and are accessible to our team only to deliver the service you requested.\n\n5. Your rights (KVKK). You may request access to, correction of, or deletion of your personal data, and you may withdraw consent at any time, by contacting us.\n\n6. Retention. We keep your data only as long as needed to provide the service and meet legal obligations, then delete or anonymize it.\n\n7. Cookies, measurement and advertising. Only after you accept the cookie banner do we load two tools: Google Analytics, to see which pages are useful, and the Meta Pixel (Facebook/Instagram), to measure our ad results and show our ads to people who visited the site. They receive general events only — opening a service page, tapping WhatsApp or the phone number, submitting a request — never your name, phone, email, uploaded documents, health or legal case details, or the text of your chats. If you decline, neither tool is loaded at all and the site works in full. You can change your choice at any time from the \"Privacy choices\" link at the bottom of every page.\n\n8. Contact. For privacy requests, contact our team through the app."
     },
     "refund": {
       "title": "Refund and Return Policy",
