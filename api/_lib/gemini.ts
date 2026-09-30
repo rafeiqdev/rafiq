@@ -82,8 +82,11 @@ export async function callWithFallback(
   for (const model of chain) {
     last = await callGemini(key, model, systemText, contents, options);
     if (last.text) return last;
-    // only quota (429) and gone-model (404/400) errors are worth retrying
-    if (last.failStatus !== 429 && last.failStatus !== 404 && last.failStatus !== 400) return last;
+    // Worth trying the next model: quota (429), a gone model (404/400), and a
+    // model that is overloaded right now (500/502/503/504 — Gemini answers 503
+    // "high demand" in spikes, and another model in the chain is usually free).
+    const retryable = [429, 404, 400, 500, 502, 503, 504];
+    if (last.failStatus === undefined || !retryable.includes(last.failStatus)) return last;
   }
   return last;
 }

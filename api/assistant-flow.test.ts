@@ -221,3 +221,21 @@ describe('/api/ai-memory', () => {
     expect(storedMemory).toBeNull();
   });
 });
+
+describe('when the first model is overloaded', () => {
+  it('walks on to the next model instead of giving up on a 503', async () => {
+    const real = globalThis.fetch;
+    let gemini = 0;
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('generativelanguage')) {
+        gemini += 1;
+        if (gemini === 1) return json({ error: { code: 503, status: 'UNAVAILABLE' } }, 503);
+        return json({ candidates: [{ content: { parts: [{ text: 'ok من النموذج الثاني' }] } }] });
+      }
+      return real(input, init);
+    }));
+    const res = await (await chat(post('/api/ai-chat', { lang: 'ar', messages: [{ role: 'user', text: 'مرحبا' }] }))).json();
+    expect(res.reply).toBe('ok من النموذج الثاني');
+    expect(gemini).toBe(2);
+  });
+});
