@@ -75,7 +75,8 @@ describe('NewsSection', () => {
     const { container } = renderIt(<NewsSection />);
 
     expect(await screen.findByText('New ikamet rules')).toBeInTheDocument();
-    expect(screen.getByText('Appointments move online from March.')).toBeInTheDocument();
+    // The excerpt lives on the article page only — the card shows date + title.
+    expect(screen.queryByText('Appointments move online from March.')).toBeNull();
     // Read more stays on-site (/news/:id) — it must NOT point at Telegram.
     expect(screen.getByRole('link', { name: /home.news.readMore/ })).toHaveAttribute('href', '/news/n1');
     expect(screen.queryByRole('link', { name: /home.news.follow/ })).toBeNull();
