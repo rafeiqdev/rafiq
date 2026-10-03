@@ -3702,5 +3702,66 @@
     "referralsDescription": "Invite friends to Rafiq Istanbul with your personal link and earn wallet credit for everyone who signs up and completes a paid service with Rafiq.",
     "termsDescription": "Rafiq Istanbul terms of use: who we are as an independent guidance service, accounts and subscriptions, our services, liability limits and the governing law.",
     "refundDescription": "Rafiq Istanbul refund policy: when service fees are refunded in full or in part depending on the stage, why government fees are not, and how to request one."
+  },
+  "tour": {
+    "next": "Next",
+    "back": "Back",
+    "done": "Done",
+    "close": "Close",
+    "replay": "Show me around this page",
+    "home": {
+      "welcomeTitle": "Welcome to Rafiq",
+      "welcomeBody": "A 30-second tour of the app's sections. You can close it at any time.",
+      "heroCtaTitle": "Start here",
+      "heroCtaBody": "Sign in to follow your requests, or browse the services right away without an account.",
+      "howTitle": "How we work",
+      "howBody": "You request, we review your papers, we complete the procedure and return the result.",
+      "servicesCarouselTitle": "Most popular services",
+      "servicesCarouselBody": "Swipe the cards to see the most requested services; open any to read its conditions.",
+      "discoverTitle": "Discover Rafiq's sections",
+      "discoverBody": "AI assistant, map, news, real estate and more — one card per section.",
+      "faqTitle": "Frequently asked",
+      "faqBody": "Short answers to what newcomers ask most.",
+      "chatTitle": "AI assistant",
+      "chatBody": "Ask about any procedure in any language; it points you to the right section with one button.",
+      "mapTitle": "Map",
+      "mapBody": "Immigration and civil registry offices, hospitals and bureaus near you.",
+      "requestsTitle": "My requests",
+      "requestsBody": "Every request you have made and its live status, in one place.",
+      "servicesTitle": "Services",
+      "servicesBody": "Everything a foreigner needs in Istanbul: residence, translation, insurance and more.",
+      "profileTitle": "My account",
+      "profileBody": "Your documents, requests and wallet. Sign in if you have not yet."
+    },
+    "chat": {
+      "inputTitle": "Type your question here",
+      "inputBody": "In any language, in your own words. The assistant understands and points you to the right page.",
+      "attachTitle": "Attach a document or photo",
+      "attachBody": "Snap the document and send it; we tell you what is missing.",
+      "voiceTitle": "Speak instead of typing",
+      "voiceBody": "Tap the microphone and say what you need."
+    },
+    "services": {
+      "searchTitle": "Search for a service",
+      "searchBody": "One word is enough: residence, translation, insurance…",
+      "filterTitle": "Filter the services",
+      "filterBody": "All of them, those Rafiq handles directly, or those through partners.",
+      "listTitle": "Categories",
+      "listBody": "Open any service to see the conditions and required documents, then request it with one button."
+    },
+    "requests": {
+      "searchTitle": "Search your requests",
+      "searchBody": "By request number or service name.",
+      "listTitle": "Your requests",
+      "listBody": "Each request is a card with its status. Tap it for details and messages."
+    },
+    "profile": {
+      "lockerTitle": "Document locker",
+      "lockerBody": "Upload your papers once; the results come back to the same place.",
+      "renewalsTitle": "Renewal tracker",
+      "renewalsBody": "We remind you before your residence or documents expire.",
+      "pipelineTitle": "Your requests",
+      "pipelineBody": "A shortcut to My requests and each request's status."
+    }
   }
 }

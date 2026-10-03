@@ -211,7 +211,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
             <span className="h-px w-6 sm:w-10 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
+          <h2 data-tour="home-how" className="text-3xl sm:text-4xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
             {t.howItWorks.heading}
           </h2>
           <p className="mt-3.5 hidden text-base sm:block sm:text-lg lg:text-base leading-relaxed text-[#4A5F7D] max-w-2xl mx-auto">

@@ -108,7 +108,7 @@ export function MobileHomeHero() {
             </p>
 
             {/* Both actions full-width, stacked, thumb-height. */}
-            <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5">
+            <div data-tour="home-hero-cta" className="mt-6 flex w-full max-w-xs flex-col gap-2.5">
               <a
                 href={`/${language}/auth`}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white text-[0.95rem] font-bold text-[#1A3A6B] shadow-xl shadow-black/20"

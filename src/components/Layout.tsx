@@ -28,6 +28,7 @@ function RouteScrollReset() {
 import { bookings, leads, serviceRequests } from '../lib/api';
 import { Logo } from './Logo';
 import { LangSwitcher } from './LangSwitcher';
+import { TourHost } from '../tour/TourHost';
 import { AppIcon } from './AppIcon';
 import type { IconName } from './AppIcon';
 import { NotificationBell } from './NotificationBell';
@@ -526,6 +527,7 @@ export function Layout() {
         </div>
       )}
       <ConsentBanner />
+      <TourHost />
       <NotificationToastHost isMobile={isMobile} />
     </div>
   );

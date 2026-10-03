@@ -217,7 +217,7 @@ export const HabitFaqScroller: React.FC<HabitFaqScrollerProps> = ({
             <span className="h-px w-6 bg-[#1A3A6B]/30" aria-hidden="true" />
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
+          <h2 data-tour="home-faq" className="text-3xl sm:text-4xl md:text-5xl lg:text-4xl font-black tracking-tight text-[#12294D] leading-tight">
             {title || t.faq.title}
           </h2>
 

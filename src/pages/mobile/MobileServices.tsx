@@ -111,7 +111,7 @@ export function MobileServices() {
 
         <div className="px-5 pt-5">
           {/* ── Search ── */}
-          <div className="animate-fade-up relative z-20">
+          <div data-tour="services-search" className="animate-fade-up relative z-20">
             <ServiceSearchBox
               value={query}
               onChange={setQuery}
@@ -123,7 +123,7 @@ export function MobileServices() {
           </div>
 
           {/* ── Type filter (3 pills, one row) ── */}
-          <div className="mt-3.5 flex gap-2">
+          <div data-tour="services-filter" className="mt-3.5 flex gap-2">
             {(['all', 'direct', 'partner'] as const).map((tp) => (
               <button
                 key={tp}
@@ -191,7 +191,7 @@ export function MobileServices() {
               <p className="mt-4 text-sm text-gray-500">{t('services.noResults')}</p>
             </div>
           ) : (
-            <div className="mt-6 flex flex-col gap-7">
+            <div data-tour="services-list" className="mt-6 flex flex-col gap-7">
               {visibleCategories.map((c) => {
                 const items = matches.filter((s) => s.category === c.id);
                 return (

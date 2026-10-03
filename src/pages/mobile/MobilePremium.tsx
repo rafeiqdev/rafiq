@@ -213,11 +213,13 @@ function MobileChatUI() {
             disabled={c.uploading || c.inputLocked}
             aria-label={t('chat.attach')}
             title={t('chat.attach')}
+            data-tour="chat-attach"
             className="btn-ghost h-12 w-12 shrink-0 px-0 disabled:opacity-60"
           >
             <AppIcon name={c.uploading ? 'hourglass' : 'paperclip'} className="h-5 w-5" />
           </button>
           <input
+            data-tour="chat-input"
             className="input h-12 min-w-0 flex-1"
             placeholder={t(c.closed ? 'chat.closed.placeholder' : 'chat.placeholder')}
             value={c.input}
@@ -232,6 +234,7 @@ function MobileChatUI() {
               disabled={c.busy || c.inputLocked || c.speaking}
               aria-label={t('chat.voice')}
               title={t('chat.voice')}
+              data-tour="chat-voice"
               className={`btn-ghost h-12 w-12 shrink-0 px-0 disabled:opacity-60 ${c.listening ? 'text-brand-red' : ''}`}
             >
               <MicGlyph className="h-5 w-5" />

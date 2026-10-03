@@ -413,7 +413,7 @@ function MobileMyRequestsInner() {
             </h1>
           </div>
           <div className="px-4 pb-3">
-            <div className="flex h-11 items-center gap-2 rounded-full bg-navy/[0.05] px-4">
+            <div data-tour="requests-search" className="flex h-11 items-center gap-2 rounded-full bg-navy/[0.05] px-4">
               <AppIcon name="search" className="h-5 w-5 shrink-0 text-navy/40" />
               <input
                 type="search"
@@ -479,7 +479,7 @@ function MobileMyRequestsInner() {
               );
             }
             return (
-              <div className="flex flex-col gap-4 px-4 pt-5">
+              <div data-tour="requests-list" className="flex flex-col gap-4 px-4 pt-5">
                 {visible.map((req) => (
                   <RequestRow key={req.id} req={req} onReordered={requests.reload} />
                 ))}

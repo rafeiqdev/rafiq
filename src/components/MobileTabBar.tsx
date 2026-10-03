@@ -62,14 +62,17 @@ export function MobileTabBar() {
   const location = useLocation();
   const c = COPY[(i18n.language || 'en').split('-')[0]] ?? COPY.en;
 
-  const tabs: { to: string; icon: IconName; label: string }[] = [
-    { to: '/', icon: 'home', label: c.home },
-    { to: '/premium', icon: 'message-circle', label: c.chat },
+  // `tour` is the data-tour key the first-visit walkthrough spotlights
+  // (src/tour/tours.ts) — keep the two copies of this bar (here and in
+  // MobileHome) stamped identically or the home tour skips that step.
+  const tabs: { to: string; icon: IconName; label: string; tour: string }[] = [
+    { to: '/', icon: 'home', label: c.home, tour: 'tab-home' },
+    { to: '/premium', icon: 'message-circle', label: c.chat, tour: 'tab-chat' },
     user
-      ? { to: '/requests', icon: 'inbox', label: c.requests }
-      : { to: '/map', icon: 'map', label: c.map },
-    { to: '/services', icon: 'layers', label: c.services },
-    { to: user ? '/profile' : '/auth', icon: 'user', label: c.profile },
+      ? { to: '/requests', icon: 'inbox', label: c.requests, tour: 'tab-requests' }
+      : { to: '/map', icon: 'map', label: c.map, tour: 'tab-map' },
+    { to: '/services', icon: 'layers', label: c.services, tour: 'tab-services' },
+    { to: user ? '/profile' : '/auth', icon: 'user', label: c.profile, tour: 'tab-profile' },
   ];
 
   return (
@@ -84,6 +87,7 @@ export function MobileTabBar() {
             <Link
               key={tab.icon}
               to={tab.to}
+              data-tour={tab.tour}
               className={`flex flex-col items-center justify-center gap-1 min-h-[56px] pt-2 pb-1.5 ${
                 active ? 'text-navy' : 'text-navy/40'
               }`}

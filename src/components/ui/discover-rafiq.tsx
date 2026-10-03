@@ -129,7 +129,7 @@ export function DiscoverRafiq() {
             <span className="text-xs font-black uppercase tracking-widest text-[#1A3A6B] sm:text-sm">{c.eyebrow}</span>
             <span className="h-px w-6 bg-[#1A3A6B]/30 sm:w-10" aria-hidden="true" />
           </div>
-          <h2 id="discover-rafiq-heading" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-3xl lg:text-[32px] lg:leading-[1.3]">
+          <h2 id="discover-rafiq-heading" data-tour="home-discover" className="text-2xl font-black leading-tight tracking-tight text-[#12294D] sm:text-3xl lg:text-[32px] lg:leading-[1.3]">
             {c.heading}
           </h2>
         </div>
