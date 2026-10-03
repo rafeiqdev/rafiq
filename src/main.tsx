@@ -4,6 +4,28 @@ import { i18nReady, langFromPath, resolveInitialLang } from './i18n';
 import './index.css';
 import App from './App';
 
+// After a deploy the previous build's hashed chunks disappear. A tab (or a
+// crawler) still holding the old index.html then fails with "Failed to fetch
+// dynamically imported module" and lands on the error boundary — Google once
+// indexed that error text as a page description. Reload once to pick up the
+// fresh index.html. At most one reload per minute: if the chunks are really
+// unreachable (outage, not a stale build) the error boundary shows instead of
+// reloading forever.
+window.addEventListener('vite:preloadError', (event) => {
+  const key = 'rafiq_chunk_reload_at';
+  try {
+    const last = Number(sessionStorage.getItem(key) ?? 0);
+    if (Date.now() - last < 60_000) return;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    // Storage blocked: no way to guard against a loop, so let the error
+    // boundary show instead of reloading forever.
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+});
+
 // Every page lives under a language segment (/ar /en /ru /fa). Production
 // 301s langless URLs at the edge (vercel.json); this covers dev and anything
 // that slips through, BEFORE the router mounts so basename sees the prefix.
