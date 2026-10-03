@@ -176,7 +176,7 @@ describe('the assistant knows the whole site and hands over a button', () => {
 
     const box = await screen.findByTestId('chat-links');
     const hrefs = Array.from(box.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    expect(hrefs).toEqual(['/news', '/services/res-tourist']);
+    expect(hrefs).toEqual(['/news', '/services/res-tourist?request=1']);
     expect(box.textContent).toContain('صفحة الأخبار');
   });
 

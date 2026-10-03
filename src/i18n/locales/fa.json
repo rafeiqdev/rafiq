@@ -777,7 +777,8 @@
       "errorGeneric": "رزرو نوبت انجام نشد. دوباره امتحان کنید."
     },
     "links": {
-      "guide": "راهنمای {{name}}"
+      "guide": "راهنمای {{name}}",
+      "service": "درخواست: {{name}}"
     }
   },
   "booking": {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
@@ -240,7 +240,12 @@ export function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const { services, categories } = useCatalog();
   const { i18n } = useTranslation();
-  const [showRequest, setShowRequest] = useState(false);
+  // ?request=1 (the smart assistant's service buttons) lands on the request
+  // form itself, not on the long description: someone who said "I want a
+  // student residence permit" asked to start, not to read.
+  const [params, setParams] = useSearchParams();
+  const wantsRequest = params.get('request') === '1';
+  const [showRequest, setShowRequest] = useState(wantsRequest);
   const [bodyExpanded, setBodyExpanded] = useState(false);
   const service = services.find((item) => item.id === id);
 
@@ -297,6 +302,22 @@ export function ServiceDetail() {
     if (!serviceId) return;
     track('guide_viewed', { target: serviceId, meta: { category: serviceCategory ?? '' } });
   }, [serviceId, serviceCategory]);
+
+  // Arriving on the form counts as starting a request, same as the button.
+  useEffect(() => {
+    if (!serviceId || !wantsRequest) return;
+    track('request_started', { target: serviceId, meta: { category: serviceCategory ?? '', source: 'chat' } });
+  }, [serviceId, serviceCategory, wantsRequest]);
+
+  // Closing the form drops the flag, so a refresh shows the page, not the form again.
+  const closeRequest = () => {
+    setShowRequest(false);
+    if (wantsRequest) {
+      const next = new URLSearchParams(params);
+      next.delete('request');
+      setParams(next, { replace: true });
+    }
+  };
 
   const mergedInto = id ? MERGED_SERVICE_IDS[id] : undefined;
   if (!service && mergedInto) return <Navigate to={`../${mergedInto}`} relative="path" replace />;
@@ -483,7 +504,7 @@ export function ServiceDetail() {
       {showRequest && (
         <ServiceRequestModal
           source={{ id: service.id, title, category: service.category, type: serviceMode }}
-          onClose={() => setShowRequest(false)}
+          onClose={closeRequest}
         />
       )}
     </main>

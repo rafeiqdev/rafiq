@@ -777,7 +777,8 @@
       "errorGeneric": "Couldn't book the appointment. Please try again."
     },
     "links": {
-      "guide": "{{name}} guide"
+      "guide": "{{name}} guide",
+      "service": "Request: {{name}}"
     }
   },
   "booking": {

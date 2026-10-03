@@ -23,7 +23,7 @@ export function siteKnowledgeBlock(): string {
     'PAGES YOU CAN SEND PEOPLE TO (link id — page title — what they find there):',
     ...pages,
     '',
-    'SERVICES, BY CATEGORY. category:<id> opens that category of the services catalogue, guide:<id> opens its free information guide, service:<id> opens one service page:',
+    'SERVICES, BY CATEGORY. service:<id> opens the REQUEST FORM for that service (the person starts their request right there — use it when they want this done for them). category:<id> opens that category of the services catalogue (use it to browse or compare). guide:<id> opens the free information guide for that category (use it when they want to read and understand first):',
     ...categories,
   ].join('\n');
 }

@@ -777,7 +777,8 @@
       "errorGeneric": "تعذّر حجز الموعد. حاول مرة أخرى."
     },
     "links": {
-      "guide": "دليل {{name}}"
+      "guide": "دليل {{name}}",
+      "service": "اطلب: {{name}}"
     }
   },
   "booking": {

@@ -42,7 +42,7 @@ describe('link ids', () => {
   it('accepts real pages, services, categories and guides', () => {
     expect(linkPath('news')).toBe('/news');
     expect(linkPath('realestate')).toBe('/real-estate');
-    expect(linkPath('service:res-tourist')).toBe('/services/res-tourist');
+    expect(linkPath('service:res-tourist')).toBe('/services/res-tourist?request=1');
     expect(linkPath('category:realestate')).toBe('/services?category=realestate');
     expect(linkPath('guide:residency')).toBe('/guides/residency');
   });

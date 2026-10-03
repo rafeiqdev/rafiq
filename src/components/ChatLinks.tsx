@@ -24,7 +24,7 @@ export function ChatLinks({ ids }: { ids?: string[] }) {
           className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-navy/25 bg-white px-4 py-2 text-[13.5px] font-bold text-navy shadow-sm transition-colors hover:bg-navy hover:text-white active:bg-navy active:text-white"
         >
           <AppIcon name={l.icon} className="h-4 w-4 shrink-0" />
-          <span className="min-w-0 break-anywhere">{l.kind === 'guide' ? t('chat.links.guide', { name: l.label }) : l.label}</span>
+          <span className="min-w-0 break-anywhere">{l.kind === 'guide' ? t('chat.links.guide', { name: l.label }) : l.kind === 'service' ? t('chat.links.service', { name: l.label }) : l.label}</span>
           <DirArrow className="h-4 w-4 shrink-0" />
         </Link>
       ))}

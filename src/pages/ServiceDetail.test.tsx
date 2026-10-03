@@ -85,3 +85,39 @@ describe('ServiceDetail sends a merged service to the one that absorbed it', () 
     expect(await screen.findByRole('heading', { level: 1, name: SERVICE_SEO_AR['tour-airport'].seoTitle })).toBeInTheDocument();
   });
 });
+
+vi.mock('../components/ServiceRequestModal', () => ({
+  ServiceRequestModal: ({ onClose }: { onClose: () => void }) => (
+    <div role="dialog" aria-label="request-form">
+      <button onClick={onClose}>close-form</button>
+    </div>
+  ),
+}));
+
+describe('?request=1 lands on the request form', () => {
+  // The smart assistant's service buttons link here. Someone who said "I want
+  // a student residence permit" asked to start, not to read a long page.
+  it('opens the form on arrival, and closing it drops the flag', async () => {
+    const { act: actRtl, fireEvent } = await import('@testing-library/react');
+    render(
+      <MemoryRouter initialEntries={['/services/res-student?request=1']}>
+        <Routes>
+          <Route path="/services/:id" element={<TestServiceDetail />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('dialog', { name: 'request-form' })).toBeInTheDocument();
+    await actRtl(async () => {
+      fireEvent.click(screen.getByText('close-form'));
+    });
+    expect(screen.queryByRole('dialog', { name: 'request-form' })).not.toBeInTheDocument();
+    // the page itself is still there underneath
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+  });
+
+  it('does not open the form on a plain visit', async () => {
+    renderAt('res-student');
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'request-form' })).not.toBeInTheDocument();
+  });
+});

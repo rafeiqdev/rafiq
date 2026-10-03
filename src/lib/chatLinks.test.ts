@@ -14,7 +14,7 @@ describe('resolveChatLink', () => {
 
   it('uses the live catalogue title for a service and a category', () => {
     const svc = resolveChatLink('service:res-tourist', 'en', catalog);
-    expect(svc).toMatchObject({ to: '/services/res-tourist', kind: 'service' });
+    expect(svc).toMatchObject({ to: '/services/res-tourist?request=1', kind: 'service' });
     expect(svc?.label).toContain('Tourist residence permit');
     expect(resolveChatLink('category:realestate', 'ar', catalog)).toMatchObject({ to: '/services?category=realestate', label: 'العقارات' });
     expect(resolveChatLink('guide:residency', 'ar', catalog)).toMatchObject({ to: '/guides/residency', kind: 'guide' });

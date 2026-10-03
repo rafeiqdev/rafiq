@@ -12,7 +12,7 @@
  *
  * Link ids the assistant may emit:
  *   news                 a destination below
- *   service:<id>         /services/<id>
+ *   service:<id>         /services/<id>?request=1  (the request form, not the long text)
  *   category:<id>        /services?category=<id>
  *   guide:<id>           /guides/<id>
  */
@@ -250,7 +250,7 @@ export function linkPath(id: string): string | null {
     case 'page':
       return DESTINATION_BY_ID.get(p.id)!.path;
     case 'service':
-      return `/services/${p.id}`;
+      return `/services/${p.id}?request=1`;
     case 'category':
       return `/services?category=${p.id}`;
     case 'guide':
