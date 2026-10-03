@@ -3,6 +3,7 @@ import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppIcon } from '../components/AppIcon';
 import { ServiceRequestModal } from '../components/ServiceRequestModal';
+import { ServiceBody } from '../components/ServiceBody';
 import { PropertyResidenceCallout, PROPERTY_RESIDENCE_SERVICE_ANCHORS } from '../components/PropertyResidenceCallout';
 import { useCatalog } from '../data/catalogStore';
 import { MERGED_SERVICE_IDS, pickText } from '../data/services';
@@ -37,6 +38,7 @@ function copyFor(language: string) {
       returnButton: 'Return to all services',
       readMore: 'Read more',
       readLess: 'Show less',
+      contents: 'On this page',
       whatsappButton: 'Ask on WhatsApp',
       independence: 'Rafiq is an independent coordination platform — not a government authority, a bank, a law firm or a hospital. Official decisions rest with the competent authority or provider.',
       privacy: 'Privacy policy',
@@ -62,6 +64,7 @@ function copyFor(language: string) {
       returnButton: 'Вернуться ко всем услугам',
       readMore: 'Читать далее',
       readLess: 'Свернуть',
+      contents: 'На этой странице',
       whatsappButton: 'Спросить в WhatsApp',
       independence: 'Rafiq — независимая платформа координации, а не государственный орган, банк, юридическая фирма или больница. Официальные решения принимает компетентный орган или поставщик услуг.',
       privacy: 'Политика конфиденциальности',
@@ -87,6 +90,7 @@ function copyFor(language: string) {
       returnButton: 'بازگشت به همه خدمات',
       readMore: 'ادامه مطلب',
       readLess: 'نمایش کمتر',
+      contents: 'در این صفحه',
       whatsappButton: 'پرسش در واتساپ',
       independence: 'Rafiq یک پلتفرم هماهنگی مستقل است — نه نهاد دولتی، نه بانک، نه دفتر حقوقی و نه بیمارستان. تصمیم‌های رسمی بر عهده مرجع یا ارائه‌کننده صلاحیت‌دار است.',
       privacy: 'سیاست حریم خصوصی',
@@ -111,111 +115,12 @@ function copyFor(language: string) {
     returnButton: 'العودة إلى كل الخدمات',
     readMore: 'قراءة المزيد',
     readLess: 'عرض أقل',
+    contents: 'في هذه الصفحة',
     whatsappButton: 'اسأل عبر واتساب',
     independence: 'رفيق منصة تنسيق مستقلة — ليست جهة حكومية ولا بنكاً ولا مكتب محاماة ولا مستشفى. القرارات الرسمية تعود للجهة المختصة أو لمقدّم الخدمة.',
     privacy: 'سياسة الخصوصية',
     terms: 'شروط الاستخدام',
   };
-}
-
-/** Renders "**bold**" spans within a line; everything else passes through as-is. */
-function renderInline(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
-    part.startsWith('**') && part.endsWith('**') ? (
-      <strong key={index} className="font-bold text-navy">{part.slice(2, -2)}</strong>
-    ) : (
-      part
-    )
-  );
-}
-
-/**
- * Splits a service body on blank lines and renders each block by shape:
- * a single "## "/"### " line becomes a heading, a block of "| ... |" lines
- * becomes a table, a block where every line starts with "- " or "1. " becomes
- * a list, otherwise it's a paragraph. "**bold**" works inside any block.
- */
-function renderServiceBody(body: string) {
-  return body.split('\n\n').map((block, index) => {
-    const lines = block.split('\n').filter(Boolean);
-
-    if (lines.length === 1 && lines[0].startsWith('### ')) {
-      return (
-        <h3 key={index} className="pt-1 text-base font-extrabold text-navy">
-          {renderInline(lines[0].slice(4))}
-        </h3>
-      );
-    }
-    if (lines.length === 1 && lines[0].startsWith('## ')) {
-      return (
-        <h2 key={index} className="pt-1 text-lg font-extrabold text-navy">
-          {renderInline(lines[0].slice(3))}
-        </h2>
-      );
-    }
-
-    const isTable = lines.length >= 2 && lines.every((line) => line.trim().startsWith('|'));
-    if (isTable) {
-      const rows = lines
-        .map((line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim()))
-        .filter((cells) => !cells.every((cell) => /^:?-+:?$/.test(cell)));
-      const [head, ...bodyRows] = rows;
-      return (
-        <div key={index} className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                {head.map((cell, i) => (
-                  <th key={i} className="border-b border-gray-200 py-2 ps-3 text-start font-bold text-navy">
-                    {renderInline(cell)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {bodyRows.map((cells, r) => (
-                <tr key={r}>
-                  {cells.map((cell, c) => (
-                    <td key={c} className="border-b border-gray-100 py-2 ps-3 text-gray-650">
-                      {renderInline(cell)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-
-    const isBulletList = lines.length > 0 && lines.every((line) => line.startsWith('- '));
-    if (isBulletList) {
-      return (
-        <ul key={index} className="list-disc space-y-1.5 ps-5 text-sm leading-7 text-gray-650">
-          {lines.map((line) => (
-            <li key={line}>{renderInline(line.slice(2))}</li>
-          ))}
-        </ul>
-      );
-    }
-
-    const isNumberedList = lines.length > 0 && lines.every((line) => /^\d+\.\s/.test(line));
-    if (isNumberedList) {
-      return (
-        <ol key={index} className="list-decimal space-y-1.5 ps-5 text-sm leading-7 text-gray-650">
-          {lines.map((line) => (
-            <li key={line}>{renderInline(line.replace(/^\d+\.\s/, ''))}</li>
-          ))}
-        </ol>
-      );
-    }
-
-    return (
-      <p key={index} className="text-sm leading-7 text-gray-650">
-        {renderInline(block)}
-      </p>
-    );
-  });
 }
 
 function ServiceNotFound() {
@@ -246,7 +151,6 @@ export function ServiceDetail() {
   const [params, setParams] = useSearchParams();
   const wantsRequest = params.get('request') === '1';
   const [showRequest, setShowRequest] = useState(wantsRequest);
-  const [bodyExpanded, setBodyExpanded] = useState(false);
   const service = services.find((item) => item.id === id);
 
   const language = i18n.language;
@@ -384,24 +288,13 @@ export function ServiceDetail() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
           {serviceSeo?.body && (
-            <section key={service.id} className="card p-5 sm:p-6" dir={isRtl ? 'rtl' : 'ltr'}>
-              {/* The full body always renders in the DOM — collapsing is purely
-                  visual (max-height + fade), so search engines still see the
-                  whole thing even though most readers only see a preview. */}
-              <div className={`relative space-y-3 overflow-hidden ${bodyExpanded ? '' : 'max-h-[26rem]'}`}>
-                {renderServiceBody(serviceSeo.body)}
-                {!bodyExpanded && (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setBodyExpanded((value) => !value)}
-                className="mt-3 text-sm font-bold text-gold-dark hover:underline"
-              >
-                {bodyExpanded ? copy.readLess : copy.readMore}
-              </button>
-            </section>
+            <ServiceBody
+              key={service.id}
+              body={serviceSeo.body}
+              serviceId={service.id}
+              isRtl={isRtl}
+              labels={{ contents: copy.contents, readMore: copy.readMore, readLess: copy.readLess }}
+            />
           )}
 
           {/* One contextual link to the canonical property-residence page, on
