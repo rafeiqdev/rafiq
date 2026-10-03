@@ -63,7 +63,12 @@ export type AnalyticsEventType =
   | 'lang_changed'
   | 'search_performed'
   | 'paywall_shown'
-  | 'upgrade_clicked';
+  | 'upgrade_clicked'
+  // Only sent once supabase/migrations/20261003_product_tour.sql is applied —
+  // see src/tour/tourSync.ts for the probe that gates them.
+  | 'tour_started'
+  | 'tour_completed'
+  | 'tour_skipped';
 
 type MetaValue = string | number | boolean | null;
 export interface TrackOptions {

@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { useApp } from '../context/AppContext';
 import type { TourStepDef } from './tours';
 import { findTour, hasAnchoredStep, hasSeenTour, isTourBlocked, markTourSeen, resolveSteps, targetSelector } from './tourState';
+import { fetchSeenTours, markSeenRemote, trackTourEvent } from './tourSync';
 
 /** How long the screen gets to settle (lazy page chunk, fonts, images) before
  *  the first attempt. Shorter and the tab bar measures before the layout is
@@ -25,7 +26,8 @@ const MAX_RETRIES = 20;
 export function TourHost() {
   const isMobile = useIsMobile();
   const { pathname } = useLocation();
-  const { authLoading } = useApp();
+  const { authLoading, user } = useApp();
+  const uid = user?.id ?? null;
   const { t, i18n } = useTranslation();
 
   const tour = useMemo(() => findTour(pathname), [pathname]);
@@ -44,6 +46,7 @@ export function TourHost() {
     setSteps(present);
     setIndex(0);
     setOpen(true);
+    void trackTourEvent('tour_started', tour.id, 1, present.length);
     return true;
   }, [tour]);
 
@@ -54,32 +57,51 @@ export function TourHost() {
   }, [pathname]);
 
   // Once the screen has settled: find out whether its targets are rendered
-  // (→ offer «؟»), and on the first visit to it on this device, start the
-  // tour as soon as nothing else owns the viewport.
+  // (→ offer «؟»), and on the first visit to it — on this device, or on this
+  // account once the tour migration is in — start the tour as soon as
+  // nothing else owns the viewport.
   useEffect(() => {
     if (!isMobile || !tour || authLoading) return;
-    const seen = hasSeenTour(tour.id);
     let cancelled = false;
     let tries = 0;
     let timer: number;
-    const attempt = () => {
+    // The device answers at once; the account answer arrives later and is
+    // mirrored onto the device so the next visit does not have to ask again.
+    let seen = hasSeenTour(tour.id);
+    const remote = !seen && uid ? fetchSeenTours(uid) : Promise.resolve<Set<string> | null>(null);
+    const attempt = async () => {
       if (cancelled) return;
       const anchored = hasAnchoredStep(resolveSteps(tour, document));
       if (anchored) setAvailable(true);
+      if (!seen) {
+        const remoteSeen = await remote;
+        if (cancelled) return;
+        if (remoteSeen?.has(tour.id)) {
+          seen = true;
+          markTourSeen(tour.id);
+        }
+      }
       const done = anchored && (seen || (!isTourBlocked(document) && begin()));
-      if (!done && ++tries < MAX_RETRIES) timer = window.setTimeout(attempt, RETRY_MS);
+      if (!done && ++tries < MAX_RETRIES) timer = window.setTimeout(() => void attempt(), RETRY_MS);
     };
-    timer = window.setTimeout(attempt, SETTLE_MS);
+    timer = window.setTimeout(() => void attempt(), SETTLE_MS);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [isMobile, tour, authLoading, begin]);
+  }, [isMobile, tour, authLoading, uid, begin]);
 
-  const close = useCallback(() => {
-    if (tour) markTourSeen(tour.id);
-    setOpen(false);
-  }, [tour]);
+  const close = useCallback(
+    (how: 'completed' | 'skipped') => {
+      if (tour) {
+        markTourSeen(tour.id);
+        if (uid) void markSeenRemote(uid, tour.id);
+        void trackTourEvent(how === 'completed' ? 'tour_completed' : 'tour_skipped', tour.id, index + 1, steps.length);
+      }
+      setOpen(false);
+    },
+    [tour, uid, index, steps.length],
+  );
 
   if (!isMobile || !tour) return null;
 
@@ -128,11 +150,13 @@ export function TourHost() {
         }}
         index={index}
         onIndexChange={setIndex}
+        // onFinish/onSkip fire first and record the outcome; the component's
+        // own onOpenChange(false) that follows is then a no-op.
         onOpenChange={(o) => {
-          if (!o) close();
+          if (!o) setOpen(false);
         }}
-        onFinish={close}
-        onSkip={close}
+        onFinish={() => close('completed')}
+        onSkip={() => close('skipped')}
       />
     </>
   );
