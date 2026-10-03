@@ -177,7 +177,6 @@ export function RealEstateSection({
 
       <div className="mt-7 flex items-center gap-3 flex-wrap">
         <h2 className="section-title">{t('realEstate.home.featured')}</h2>
-        <span className="text-sm text-gray-500">{t('realEstate.home.featuredBody')}</span>
         <div className="flex-1" />
         <Link
           to="/real-estate"

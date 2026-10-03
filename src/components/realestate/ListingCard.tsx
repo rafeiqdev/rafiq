@@ -63,8 +63,6 @@ export function CitizenshipBadge({ listing, small = false }: { listing: Listing;
   );
 }
 
-const CHIP = 'inline-flex items-center rounded-full bg-cream-dark text-navy/80 text-xs font-semibold px-2.5 py-1';
-
 export function ListingCard({ listing, index, to }: { listing: Listing; index: number; to: string }) {
   const { t } = useTranslation();
   return (
@@ -105,14 +103,6 @@ export function ListingCard({ listing, index, to }: { listing: Listing; index: n
             </span>
           ) : null}
         </div>
-        {/* only render the chip row when there is a chip to show — an empty
-            row used to leave a stray gap under the specs */}
-        {listing.furnished || listing.buildStatus ? (
-          <div className="flex flex-wrap gap-1.5">
-            {listing.furnished ? <span className={CHIP}>{t('realEstate.furnished')}</span> : null}
-            {listing.buildStatus ? <span className={CHIP}>{t(`realEstate.build.${listing.buildStatus}`)}</span> : null}
-          </div>
-        ) : null}
         <div className="flex-1" />
         <span className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-btn bg-navy text-sm font-bold text-white">
           {t('realEstate.viewDetails')}
