@@ -120,6 +120,37 @@ describe('a deep link with a hash', () => {
     expect(document.querySelectorAll('.spotlight-dim').length).toBe(0);
   });
 
+  it('drops the hash from the address bar once the target is reached', () => {
+    window.location.hash = '#locker';
+    render(
+      <MemoryRouter initialEntries={['/profile#locker']}>
+        <ScrollToTop />
+        <LatePage id="locker" />
+      </MemoryRouter>,
+    );
+    tick(50);
+
+    expect(scrolled).toEqual(['locker']);
+    // a refresh or a reopened tab must come back at the top, not at the locker
+    expect(window.location.hash).toBe('');
+    // ...and the spotlight was not undone by the URL change
+    expect(document.getElementById('locker')!.classList.contains('spotlight-target')).toBe(true);
+  });
+
+  it('drops a hash whose section never shows up', () => {
+    window.location.hash = '#gone';
+    render(
+      <MemoryRouter initialEntries={['/profile#gone']}>
+        <ScrollToTop />
+        <LatePage id="locker" />
+      </MemoryRouter>,
+    );
+    tick(3500);
+
+    expect(scrolled).toEqual([]);
+    expect(window.location.hash).toBe('');
+  });
+
   it('still scrolls a hash-less route to the top', () => {
     render(
       <MemoryRouter initialEntries={['/profile']}>

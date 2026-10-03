@@ -75,6 +75,15 @@ function spotlight(el: HTMLElement): () => void {
  * the frame after mount — measuring once landed the visitor at the top of the
  * page, which read as "the button does nothing".
  *
+ * The hash is consumed once. After the target has been reached (or given up
+ * on) it is dropped from the address bar with a bare `replaceState`, which the
+ * router does not observe, so nothing here re-runs and no reset fires. Left in
+ * place, the hash outlived the tap that put it there: a refresh, a phone
+ * reopening the tab from the task switcher, or an in-app browser restoring
+ * its last URL all re-ran this scroll and the page "always opened at the
+ * bottom" — the admin's "+N more" link (#service-requests) and the dashboard's
+ * locker invite (/profile#locker) both did this for the owner.
+ *
  * Without disabling the browser's own `history.scrollRestoration`, the
  * browser fights this component on back/forward navigation: it tries to
  * restore whatever pixel offset was last recorded for that history entry,
@@ -85,7 +94,7 @@ function spotlight(el: HTMLElement): () => void {
  * source of truth for scroll position on every navigation, forward or back.
  */
 export function ScrollToTop() {
-  const { pathname, hash } = useLocation();
+  const { pathname, search, hash } = useLocation();
 
   // Re-asserted on EVERY navigation, not once at mount. `scrollRestoration` is
   // a per-history-entry setting, and GSAP's ScrollTrigger (the guest home's
@@ -134,8 +143,22 @@ export function ScrollToTop() {
       for (const e of DISMISS_EVENTS) window.removeEventListener(e, clear);
     };
 
+    // Bare replaceState on purpose: react-router only listens to popstate, so
+    // its location (and these effects' deps) keep the hash while the URL the
+    // browser will reload or restore no longer carries it. The router's own
+    // history state is handed back unchanged so back/forward keep working.
+    const consumeHash = () => {
+      if (window.location.hash !== hash) return;
+      try {
+        window.history.replaceState(window.history.state, '', window.location.pathname + search);
+      } catch {
+        /* ignore */
+      }
+    };
+
     const found = (el: HTMLElement) => {
       el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      consumeHash();
       release = spotlight(el);
       // The visitor's first real gesture means they've found it — let go. Only
       // after the smooth scroll has had time to finish, since the scroll itself
@@ -153,6 +176,7 @@ export function ScrollToTop() {
         return;
       }
       if (Date.now() < deadline) frame = window.requestAnimationFrame(look);
+      else consumeHash();
     };
     frame = window.requestAnimationFrame(look);
 
@@ -162,7 +186,7 @@ export function ScrollToTop() {
       window.clearTimeout(maxTimer);
       clear();
     };
-  }, [pathname, hash]);
+  }, [pathname, search, hash]);
 
   return null;
 }
