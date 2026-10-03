@@ -1352,9 +1352,10 @@
       "progress": "{{done}} of {{total}} complete"
     },
     "locker": {
-      "title": "Document locker",
-      "empty": "No documents yet. Upload passport scans, contracts, and translations to keep them safe.",
-      "upload": "Upload document",
+      "title": "My papers with Rafiq",
+      "tagline": "Upload your papers here, and we return your certifications and translations ready in the same place.",
+      "empty": "No papers yet. Upload your passport, residence permit or any paper you need certified, and we return the result here.",
+      "upload": "Send a paper to Rafiq",
       "uploadedAt": "Uploaded",
       "download": "Download"
     },
@@ -2691,12 +2692,15 @@
     "noDatesTitle": "No dates saved yet",
     "noDatesBody": "Add the expiry date of your residence permit, insurance or passport — we remind you 60 and 30 days ahead.",
     "noDatesCta": "Add a date",
-    "lockerTitle": "Document locker",
+    "lockerTitle": "My papers with Rafiq",
     "lockerManage": "Manage locker",
+    "lockerTagline": "Upload your papers here, and we return your certifications and translations ready in the same place.",
+    "lockerSend": "Send my papers to Rafiq",
+    "lockerReceived": "Received from Rafiq",
     "lockerDragHint": "Drag a document down to close",
-    "noDocsTitle": "Your locker is empty",
-    "noDocsBody": "Upload your passport once — we reuse it on every form instead of asking you to retype your details.",
-    "noDocsCta": "Upload your passport",
+    "noDocsTitle": "Start by uploading your papers",
+    "noDocsBody": "Passport, residence permit, or any paper you need certified. We pick it up here and return the result in the same place.",
+    "noDocsCta": "Send my papers to Rafiq",
     "freeCallTitle": "Your first call is free",
     "freeCallBody": "A local expert who speaks your language reviews your plan with you and tells you what could hold you up. No commitment.",
     "freeCallCta": "Book a call"

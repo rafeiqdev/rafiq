@@ -382,6 +382,7 @@ function ProfileInner() {
         {/* document locker — id target for /profile#locker deep links */}
         <div id="locker" className="card p-5 sm:p-6 scroll-mt-20">
           <h2 className="font-bold text-navy">{t('profile.locker.title')}</h2>
+          <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('profile.locker.tagline')}</p>
           <SectionState
             section={docsSec}
             title={t('profile.locker.title')}

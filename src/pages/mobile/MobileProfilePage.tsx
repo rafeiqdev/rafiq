@@ -412,6 +412,7 @@ function MobileProfileInner() {
               link scrolled nowhere and looked broken. ── */}
           <section id="locker" className="card animate-fade-up scroll-mt-6 p-5">
             <h2 className="text-[15px] font-extrabold text-navy">{t('profile.locker.title')}</h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-gray-500">{t('profile.locker.tagline')}</p>
             <SectionState
               section={docsSec}
               title={t('profile.locker.title')}

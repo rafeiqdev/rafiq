@@ -845,17 +845,23 @@ export function UserHome() {
       {docs !== null &&
         (docs.length > 0 ? (
           <Panel className="mt-4">
-            <div className="flex items-center justify-center py-4">
-              <span
-                className="text-2xl font-extrabold text-navy sm:text-3xl"
-                style={{ textShadow: '0 6px 18px rgba(26, 58, 107, 0.35)' }}
-              >
-                {t('dash.lockerTitle')}
-              </span>
+            <h2 className="flex items-center gap-2 font-extrabold text-navy">
+              <AppIcon name="folder" className="w-4 h-4 text-gray-500" />
+              {t('dash.lockerTitle')}
+            </h2>
+            {/* the one line that says what this is: papers go up here, and the
+                certified / translated results come back to the same place */}
+            <p className="mt-1 text-sm text-gray-500 leading-relaxed">{t('dash.lockerTagline')}</p>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Link to="/profile#locker" className="btn-primary w-full min-h-[44px]">
+                <AppIcon name="upload" className="w-4 h-4" />
+                {t('dash.lockerSend')}
+              </Link>
+              <Link to="/profile#locker" className="btn-ghost w-full min-h-[44px]">
+                <AppIcon name="download" className="w-4 h-4" />
+                {t('dash.lockerReceived')}
+              </Link>
             </div>
-            <Link to="/profile#locker" className="btn-ghost w-full mt-1 min-h-[44px]">
-              {t('dash.lockerManage')}
-            </Link>
           </Panel>
         ) : (
           <InvitePanel

@@ -53,6 +53,9 @@ vi.mock('../lib/api', () => ({
 }));
 
 vi.mock('react-i18next', () => ({
+  // UserHome renders <LangSwitcher>, whose i18n module registers this plugin on
+  // import; without it the whole suite fails to collect.
+  initReactI18next: { type: '3rdParty', init: () => {} },
   useTranslation: () => ({
     t: (k: string, vars?: Record<string, unknown>) => {
       if (vars && 'defaultValue' in vars) return String(vars.defaultValue);
