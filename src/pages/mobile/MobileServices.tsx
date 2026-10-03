@@ -191,11 +191,13 @@ export function MobileServices() {
               <p className="mt-4 text-sm text-gray-500">{t('services.noResults')}</p>
             </div>
           ) : (
-            <div data-tour="services-list" className="mt-6 flex flex-col gap-7">
-              {visibleCategories.map((c) => {
+            <div className="mt-6 flex flex-col gap-7">
+              {visibleCategories.map((c, ci) => {
                 const items = matches.filter((s) => s.category === c.id);
                 return (
-                  <section key={c.id} className="animate-fade-up">
+                  // data-tour on the FIRST category only: the tour spotlights one
+                  // category as the example, not the whole (very tall) list.
+                  <section key={c.id} data-tour={ci === 0 ? 'services-list' : undefined} className="animate-fade-up">
                     <div className="flex items-center gap-2.5">
                       <span className="icon-chip !h-[34px] !w-[34px]">
                         <AppIcon name={c.icon} className="h-4 w-4" />
