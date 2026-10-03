@@ -107,7 +107,6 @@ export function NewsSection({
                 {photo(p, '-mx-4 -mt-4 mb-3 h-36 w-[calc(100%+2rem)] max-w-none object-cover')}
                 <p className="text-xs text-gray-500">{date(p)}</p>
                 <h3 className="mt-1 font-bold text-navy break-words line-clamp-2">{text.title}</h3>
-                {text.body && <p className="mt-1 text-sm text-navy/70 break-words line-clamp-3">{text.body}</p>}
                 {/* Read more stays IN the app (/news/:id) — the Telegram jump lost readers. */}
                 <Link
                   to={`/news/${p.id}`}
@@ -144,7 +143,6 @@ export function NewsSection({
               {photo(p, '-mx-5 -mt-5 mb-4 h-36 w-[calc(100%+2.5rem)] max-w-none object-cover')}
               <p className="text-xs text-gray-500">{date(p)}</p>
               <h3 className="mt-1.5 font-bold text-navy break-words">{text.title}</h3>
-              {text.body && <p className="mt-1.5 text-sm text-navy/70 break-words line-clamp-4">{text.body}</p>}
               <Link
                 to={`/news/${p.id}`}
                 className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-bold text-navy underline-offset-2 hover:underline"
